@@ -34,6 +34,7 @@ import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
 import WarehouseModal from './WarehouseModal';
 import ZonePreviewModal from './ZonePreviewModal';
+import NoSeedsModal from './NoSeedsModal';
 
 const COLORS = {
   grass: '#7cb342',
@@ -126,6 +127,8 @@ export default function Game() {
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [showZonePreview, setShowZonePreview] = useState(false);
   const [previewZone, setPreviewZone] = useState<Zone | null>(null);
+  const [showNoSeedsModal, setShowNoSeedsModal] = useState(false);
+  const [noSeedsCropType, setNoSeedsCropType] = useState<Exclude<CropType, null> | null>(null);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
@@ -961,6 +964,10 @@ export default function Game() {
               // Then add the task
               return addTask(newState, 'plant', tileX, tileY, crop);
             });
+          } else {
+            // Show no seeds modal
+            setNoSeedsCropType(crop);
+            setShowNoSeedsModal(true);
           }
         }
         break;
@@ -1505,6 +1512,22 @@ export default function Game() {
             setPreviewZone(null);
           }}
           onTravel={handleZoneTravel}
+        />
+      )}
+
+      {/* No Seeds Modal */}
+      {showNoSeedsModal && noSeedsCropType && (
+        <NoSeedsModal
+          cropType={noSeedsCropType}
+          onClose={() => {
+            setShowNoSeedsModal(false);
+            setNoSeedsCropType(null);
+          }}
+          onGoToShop={() => {
+            setShowNoSeedsModal(false);
+            setNoSeedsCropType(null);
+            setShowShop(true);
+          }}
         />
       )}
 

@@ -893,6 +893,39 @@ export default function Game() {
       });
     });
 
+    // Draw sprinkler coverage preview when in placement mode
+    if (placementMode === 'sprinkler' && hoveredTile) {
+      const currentGrid = getCurrentGrid(gameState);
+      const hoveredTileData = currentGrid[hoveredTile.y]?.[hoveredTile.x];
+
+      // Only show preview if hovering over a valid placement tile
+      if (hoveredTileData && !hoveredTileData.hasSprinkler) {
+        for (let y = 0; y < currentGrid.length; y++) {
+          for (let x = 0; x < currentGrid[y].length; x++) {
+            const dx = Math.abs(x - hoveredTile.x);
+            const dy = Math.abs(y - hoveredTile.y);
+
+            // Highlight tiles in 7x7 coverage area
+            if (dx <= 3 && dy <= 3) {
+              const px = x * GAME_CONFIG.tileSize;
+              const py = y * GAME_CONFIG.tileSize;
+
+              // Draw bright cyan overlay for coverage preview
+              ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+              // Draw border around coverage area
+              if (dx === 3 || dy === 3) {
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Draw player using visual position for smooth movement
     const visualX = gameState.player.visualX ?? gameState.player.x;
     const visualY = gameState.player.visualY ?? gameState.player.y;

@@ -824,7 +824,11 @@ export function plantSeed(
 ): GameState {
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
+
+  // Can only plant on cleared grass/dirt tiles without crops, sprinklers, or buildings
   if (!tile || !tile.cleared || tile.crop || !cropType) return state;
+  if (tile.hasSprinkler) return state; // Don't plant on sprinklers
+  if (tile.type !== 'grass' && tile.type !== 'dirt') return state; // Don't plant on buildings
 
   // Seed count is already decreased when task was queued, so just plant
   const newGrid = grid.map((row, y) =>
@@ -948,7 +952,35 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
 
   const updatedState = updateCurrentGrid(state, newGrid);
 
-  return {
+  // After placing sprinkler, look for plants that need watering in 7x7 coverage area
+  const wateringTasks: Task[] = [];
+  for (let y = 0; y < newGrid.length; y++) {
+    for (let x = 0; x < newGrid[y].length; x++) {
+      const t = newGrid[y][x];
+      const dx = Math.abs(x - tileX);
+      const dy = Math.abs(y - tileY);
+
+      // Check if tile is in sprinkler range (7x7 area)
+      if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
+        // If there's a planted crop that hasn't been watered today, add watering task
+        if (t.type === 'planted' && !t.wateredToday) {
+          wateringTasks.push({
+            id: `${Date.now()}-${Math.random()}`,
+            type: 'water',
+            tileX: x,
+            tileY: y,
+            zoneX: updatedState.currentZone.x,
+            zoneY: updatedState.currentZone.y,
+            progress: 0,
+            duration: TASK_DURATIONS.water,
+          });
+        }
+      }
+    }
+  }
+
+  // Add watering tasks to the queue
+  let finalState = {
     ...updatedState,
     player: {
       ...updatedState.player,
@@ -958,6 +990,13 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
       },
     },
   };
+
+  // Add all watering tasks to queue
+  for (const task of wateringTasks) {
+    finalState = addTask(finalState, task.type, task.tileX, task.tileY);
+  }
+
+  return finalState;
 }
 
 export function buyTool(state: GameState, toolName: string): GameState {

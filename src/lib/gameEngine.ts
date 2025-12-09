@@ -22,6 +22,7 @@ export const WATERBOT_COST = 150; // Cost to buy one water bot
 export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
 export const BAG_UPGRADE_COST = 100; // Cost to upgrade basket capacity by 4
+export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
@@ -33,6 +34,7 @@ export const TASK_DURATIONS = {
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   place_sprinkler: 3000, // 3 seconds to place sprinkler
+  place_mechanic: 120000, // 2 minutes to install mechanic shop
 };
 
 export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
@@ -50,18 +52,20 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       let archDirection: 'north' | 'south' | 'east' | 'west' | undefined = undefined;
       let archTargetZone: { x: number; y: number } | undefined = undefined;
 
-      // Shop building at top-left corner of starting zone only
-      if (isStartingZone && x === 0 && y === 0) {
+      // Shop building at top-left corner (2x2) of starting zone only
+      if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
-      // Warehouse building to the left of export building
-      else if (isStartingZone && x === GAME_CONFIG.gridWidth - 2 && y === 0) {
-        type = 'warehouse';
-      }
-      // Export building at top-right corner of starting zone only
-      else if (isStartingZone && x === GAME_CONFIG.gridWidth - 1 && y === 0) {
+      // Export building at top-right corner (2x2) of starting zone only
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= 0 && y <= 1) {
         type = 'export';
       }
+      // Warehouse building (2x2) to the left of export building
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= 0 && y <= 1) {
+        type = 'warehouse';
+      }
+      // Mechanic building (2x2) - if placed by player
+      // Will be handled separately when player places it
       // North arch (top center)
       else if (y === 0 && x === centerX) {
         type = 'arch';
@@ -187,6 +191,8 @@ export function createInitialState(): GameState {
         sprinklers: 0,
         waterbots: 0,
         harvestbots: 0,
+        mechanicShop: 0,
+        mechanicShopPlaced: false,
       },
       autoBuy: {
         carrot: false,
@@ -313,6 +319,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'place_sprinkler':
           newState = placeSprinkler(newState, task.tileX, task.tileY);
+          break;
+        case 'place_mechanic':
+          newState = placeMechanicShop(newState, task.tileX, task.tileY);
           break;
       }
 
@@ -678,6 +687,60 @@ export function upgradeBag(state: GameState): GameState {
       ...state.player,
       money: state.player.money - BAG_UPGRADE_COST,
       basketCapacity: state.player.basketCapacity + 4,
+    },
+  };
+}
+
+export function buyMechanicShop(state: GameState): GameState {
+  // Only allow buying if they don't already have one
+  if (state.player.money < MECHANIC_SHOP_COST || state.player.inventory.mechanicShop >= 1) {
+    return state;
+  }
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - MECHANIC_SHOP_COST,
+      inventory: {
+        ...state.player.inventory,
+        mechanicShop: 1,
+      },
+    },
+  };
+}
+
+export function placeMechanicShop(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
+
+  // Can only place on grass or cleared tiles, and must have one in inventory
+  if (!tile || tile.type !== 'grass' || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
+    return state;
+  }
+
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY) {
+        return {
+          ...t,
+          type: 'mechanic' as const,
+        };
+      }
+      return t;
+    })
+  );
+
+  const updatedState = updateCurrentGrid(state, newGrid);
+
+  return {
+    ...updatedState,
+    player: {
+      ...updatedState.player,
+      inventory: {
+        ...updatedState.player.inventory,
+        mechanicShopPlaced: true,
+      },
     },
   };
 }

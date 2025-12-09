@@ -16,6 +16,7 @@ import {
   buyWaterbots,
   buyHarvestbots,
   upgradeBag,
+  buyMechanicShop,
   addTask,
   removeTask,
   depositToWarehouse,
@@ -86,6 +87,12 @@ export default function Game() {
           if (parsed.player.visualY === undefined) {
             parsed.player.visualY = parsed.player.y;
           }
+          if (parsed.player.inventory.mechanicShop === undefined) {
+            parsed.player.inventory.mechanicShop = 0;
+          }
+          if (parsed.player.inventory.mechanicShopPlaced === undefined) {
+            parsed.player.inventory.mechanicShopPlaced = false;
+          }
 
           return parsed as GameState;
         } catch (e) {
@@ -107,6 +114,7 @@ export default function Game() {
   const [purchaseZoneKey, setPurchaseZoneKey] = useState<string>('');
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
+  const [showMechanicShop, setShowMechanicShop] = useState(false);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const lastTimeRef = useRef<number>(0);
@@ -133,6 +141,7 @@ export default function Game() {
   const clearToolImageRef = useRef<HTMLImageElement | null>(null);
   const waterdropletImageRef = useRef<HTMLImageElement | null>(null);
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
+  const mechanicImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all textures
   useEffect(() => {
@@ -254,6 +263,12 @@ export default function Game() {
     harvestImg.src = '/harvest.png';
     harvestImg.onload = () => {
       harvestImageRef.current = harvestImg;
+    };
+
+    const mechanicImg = new Image();
+    mechanicImg.src = '/mechanic.png';
+    mechanicImg.onload = () => {
+      mechanicImageRef.current = mechanicImg;
     };
   }, []);
 
@@ -404,32 +419,55 @@ export default function Game() {
           }
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'shop' && shopImageRef.current) {
-          // Draw grass background first, then shop sprite
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Draw 2x2 building only from top-left tile (0,0)
+          if (x === 0 && y === 0) {
+            ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          }
         } else if (tile.type === 'export' && exportImageRef.current) {
-          // Draw grass background first, then export sprite
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Draw 2x2 building only from top-left tile
+          if (x === GAME_CONFIG.gridWidth - 2 && y === 0) {
+            ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          }
         } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
-          // Draw grass background first, then warehouse sprite
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Draw 2x2 building only from top-left tile
+          if (x === GAME_CONFIG.gridWidth - 4 && y === 0) {
+            ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          }
+        } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          // Draw 2x2 mechanic building (position varies based on where player placed it)
+          // Only draw if this is the top-left corner of the mechanic building
+          // For now, we'll need to check if it's an even x and y coordinate
+          if (x % 2 === 0 && y % 2 === 0) {
+            ctx.drawImage(mechanicImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -703,6 +741,11 @@ export default function Game() {
       return { action: 'warehouse' as const, cursor: 'pointer' };
     }
 
+    // Mechanic tile
+    if (tile.type === 'mechanic') {
+      return { action: 'mechanic' as const, cursor: 'pointer' };
+    }
+
     // Arch tile
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -806,6 +849,12 @@ export default function Game() {
     if (tile.type === 'warehouse') {
       // Deposit all items from basket to warehouse
       setGameState(prev => depositToWarehouse(prev));
+      return;
+    }
+
+    // Handle mechanic shop tile clicks
+    if (tile.type === 'mechanic') {
+      setShowMechanicShop(true);
       return;
     }
 
@@ -1248,6 +1297,7 @@ export default function Game() {
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
+          onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
         />
       )}
 

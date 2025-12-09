@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COST, MECHANIC_SHOP_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -13,6 +13,7 @@ interface ShopProps {
   onBuyWaterbots: (amount: number) => void;
   onBuyHarvestbots: (amount: number) => void;
   onUpgradeBag: () => void;
+  onBuyMechanicShop: () => void;
 }
 
 const SEED_INFO = {
@@ -23,7 +24,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools' | 'robots' | 'animals';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -179,6 +180,49 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               >
                 Upgrade Basket
               </button>
+            </div>
+
+            {/* Mechanic Shop */}
+            <div className={`p-4 rounded-lg border-2 ${
+              gameState.player.inventory.mechanicShop >= 1
+                ? 'bg-green-900/40 border-green-600'
+                : 'bg-black/40 border-amber-700'
+            }`}>
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">⚙️</span>
+                  <span className="font-bold">Mechanic Shop</span>
+                </div>
+                {gameState.player.inventory.mechanicShop >= 1 ? (
+                  <span className="text-green-400 font-bold">✓ OWNED</span>
+                ) : (
+                  <span className="text-amber-300 font-bold">${MECHANIC_SHOP_COST}</span>
+                )}
+              </div>
+              <div className="text-sm mb-2 text-gray-300">
+                Unlock bot purchases (watering, planting, harvesting)
+                {' • '}
+                <span className="text-purple-400">Limit 1</span>
+                {' • '}
+                {gameState.player.inventory.mechanicShopPlaced ? (
+                  <span className="text-green-400">Installed</span>
+                ) : gameState.player.inventory.mechanicShop >= 1 ? (
+                  <span className="text-yellow-400">Ready to place!</span>
+                ) : null}
+              </div>
+              {gameState.player.inventory.mechanicShop < 1 && (
+                <button
+                  onClick={() => onBuyMechanicShop()}
+                  disabled={gameState.player.money < MECHANIC_SHOP_COST}
+                  className={`px-4 py-2 rounded font-bold w-full ${
+                    gameState.player.money >= MECHANIC_SHOP_COST
+                      ? 'bg-purple-600 hover:bg-purple-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  Buy Mechanic Shop
+                </button>
+              )}
             </div>
 
             {/* Water Sprinkler Tool */}

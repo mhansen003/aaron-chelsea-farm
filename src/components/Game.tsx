@@ -1137,17 +1137,17 @@ export default function Game() {
           {/* Task Queue */}
           {gameState.taskQueue.length > 0 && (
             <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1 flex-1 flex flex-col min-h-0">
-              <div className="text-[10px] text-blue-300 font-bold mb-1">QUEUE ({gameState.taskQueue.length}):</div>
+              <div className="text-xs text-blue-300 font-bold mb-1">QUEUE ({gameState.taskQueue.length}):</div>
               <div className="space-y-0.5 overflow-y-auto flex-1">
                 {gameState.taskQueue.map((task, idx) => (
-                  <div key={task.id} className="text-xs flex items-center gap-1">
+                  <div key={task.id} className="text-sm flex items-center gap-1">
                     <span className="text-gray-400">{idx + 1}.</span>
                     {task.type === 'clear' ? '⛏️' :
                      task.type === 'plant' ? '🌱' :
                      task.type === 'water' ? '💧' :
                      task.type === 'harvest' ? '🌾' :
                      '💦'}
-                    <span className="text-gray-300 text-[10px]">({task.tileX},{task.tileY})</span>
+                    <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
                   </div>
                 ))}
               </div>

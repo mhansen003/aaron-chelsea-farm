@@ -356,7 +356,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'harvest':
           // Check if basket is full BEFORE harvesting - if so, don't harvest and trigger deposit instead
-          if (newState.player.basket.length >= newState.player.basketCapacity) {
+          if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
             const warehousePos = findWarehouseTile(newState);
             if (warehousePos) {
               // Create deposit task at warehouse location
@@ -384,7 +384,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           newState = harvestCrop(newState, task.tileX, task.tileY);
 
           // Check if basket became full AFTER this harvest
-          if (newState.player.basket.length >= newState.player.basketCapacity) {
+          if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
             const warehousePos = findWarehouseTile(newState);
             if (warehousePos) {
               // Create deposit task at warehouse location
@@ -435,7 +435,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newState.taskQueue = remainingQueue;
 
     // AUTO-DEPOSIT: If basket is full, insert deposit task before continuing
-    if (newState.player.basket.length >= newState.player.basketCapacity) {
+    if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
       const warehousePos = findWarehouseTile(newState);
       if (warehousePos) {
         // Create deposit task at warehouse location

@@ -8,14 +8,17 @@ import {
   plantSeed,
   harvestCrop,
   waterTile,
-  waterArea,
-  feedCommunity,
+  placeSprinkler,
+  sellCrop,
   buySeeds,
   buyTool,
+  buySprinklers,
   GAME_CONFIG,
+  CROP_INFO,
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType } from '@/types/game';
 import Shop from './Shop';
+import SellShop from './SellShop';
 
 const COLORS = {
   grass: '#7cb342',
@@ -40,8 +43,9 @@ export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [showShop, setShowShop] = useState(false);
+  const [showSellShop, setShowSellShop] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [feedMessage, setFeedMessage] = useState<string>('');
+  const [sellMessage, setSellMessage] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -241,15 +245,13 @@ export default function Game() {
         break;
 
       case 'watering_can':
-        // Water single tile
-        if (tile.type === 'planted' || tile.type === 'grown') {
-          setGameState(prev => waterTile(prev, x, y));
-        }
+        // Water single tile for the day
+        setGameState(prev => waterTile(prev, x, y));
         break;
 
       case 'water_sprinkler':
-        // Water 3x3 area
-        setGameState(prev => waterArea(prev, x, y));
+        // Place permanent sprinkler
+        setGameState(prev => placeSprinkler(prev, x, y));
         break;
     }
   }, [gameState]);
@@ -285,13 +287,8 @@ export default function Game() {
         case 'b':
           setShowShop(!showShop);
           return;
-        case 'f':
-          const result = feedCommunity(gameState);
-          setFeedMessage(result.message);
-          if (result.success) {
-            setGameState(result.state);
-          }
-          setTimeout(() => setFeedMessage(''), 3000);
+        case 'v':
+          setShowSellShop(!showSellShop);
           return;
         case 'h':
           setShowInstructions(!showInstructions);
@@ -344,12 +341,13 @@ export default function Game() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, handleInteraction, showShop, showInstructions]);
+  }, [gameState, handleInteraction, showShop, showSellShop, showInstructions]);
 
   const handleNewGame = () => {
     setGameState(createInitialState());
-    setFeedMessage('');
+    setSellMessage('');
     setShowShop(false);
+    setShowSellShop(false);
     setShowInstructions(false);
   };
 
@@ -384,40 +382,30 @@ export default function Game() {
             <div>🥕 Carrot Seeds: {gameState.player.inventory.seeds.carrot} (Gen {gameState.player.inventory.seedQuality.carrot.generation})</div>
             <div>🌾 Wheat Seeds: {gameState.player.inventory.seeds.wheat} (Gen {gameState.player.inventory.seedQuality.wheat.generation})</div>
             <div>🍅 Tomato Seeds: {gameState.player.inventory.seeds.tomato} (Gen {gameState.player.inventory.seedQuality.tomato.generation})</div>
+            <div>💦 Sprinklers: {gameState.player.inventory.sprinklers}</div>
           </div>
         </div>
 
-        {/* Community Stats */}
+        {/* Day & Time */}
         <div className="bg-black/50 px-6 py-4 rounded-lg text-white">
-          <h3 className="font-bold text-xl mb-2">👥 Community ({gameState.community.people} people)</h3>
+          <h3 className="font-bold text-xl mb-2">📅 Day {gameState.currentDay}</h3>
           <div className="space-y-2">
             <div>
               <div className="flex justify-between mb-1">
-                <span>🍖 Hunger:</span>
-                <span className={gameState.community.hunger < 30 ? 'text-red-400' : ''}>
-                  {Math.floor(gameState.community.hunger)}%
-                </span>
+                <span>⏰ Day Progress:</span>
+                <span>{Math.floor(gameState.dayProgress)}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-700 rounded-full h-3">
                 <div
-                  className={`h-2 rounded-full transition-all ${
-                    gameState.community.hunger < 30 ? 'bg-red-500' : 'bg-green-500'
-                  }`}
-                  style={{ width: `${gameState.community.hunger}%` }}
+                  className="bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-500 h-3 rounded-full transition-all"
+                  style={{ width: `${gameState.dayProgress}%` }}
                 />
               </div>
             </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span>😊 Happiness:</span>
-                <span>{Math.floor(gameState.community.happiness)}%</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
-                <div
-                  className="bg-yellow-500 h-2 rounded-full transition-all"
-                  style={{ width: `${gameState.community.happiness}%` }}
-                />
-              </div>
+            <div className="text-sm text-gray-300">
+              <div>🌱 Growth Tips:</div>
+              <div>• Plants need water daily to grow</div>
+              <div>• Use sprinklers for auto-watering</div>
             </div>
           </div>
         </div>
@@ -525,40 +513,27 @@ export default function Game() {
           onClick={() => setShowShop(!showShop)}
           className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold"
         >
-          🏪 Shop (B)
+          🏪 Buy Seeds & Tools (B)
         </button>
 
         <button
-          onClick={() => {
-            const result = feedCommunity(gameState);
-            setFeedMessage(result.message);
-            if (result.success) {
-              setGameState(result.state);
-            }
-            setTimeout(() => setFeedMessage(''), 3000);
-          }}
+          onClick={() => setShowSellShop(!showSellShop)}
           className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
         >
-          🍽️ Feed Community (F)
+          💰 Sell Crops (V)
         </button>
       </div>
 
-      {/* Feed Message */}
-      {feedMessage && (
+      {/* Sell Message */}
+      {sellMessage && (
         <div
           className={`text-white px-6 py-3 rounded-lg font-bold ${
-            feedMessage.includes('successfully') ? 'bg-green-600' : 'bg-red-600'
+            sellMessage.includes('Sold') ? 'bg-green-600' : 'bg-red-600'
           }`}
         >
-          {feedMessage}
+          {sellMessage}
         </div>
       )}
-
-      {/* Dietary Needs */}
-      <div className="text-white bg-black/50 px-6 py-3 rounded-lg">
-        <strong>Community Needs per Feeding:</strong> 🥕 {gameState.community.dietaryNeeds.carrot} | 🌾{' '}
-        {gameState.community.dietaryNeeds.wheat} | 🍅 {gameState.community.dietaryNeeds.tomato}
-      </div>
 
       {/* Instructions Modal */}
       {showInstructions && (
@@ -662,6 +637,23 @@ export default function Game() {
           onClose={() => setShowShop(false)}
           onBuySeeds={(crop, amount) => setGameState(prev => buySeeds(prev, crop, amount))}
           onBuyTool={toolName => setGameState(prev => buyTool(prev, toolName))}
+          onBuySprinklers={amount => setGameState(prev => buySprinklers(prev, amount))}
+        />
+      )}
+
+      {/* Sell Shop Modal */}
+      {showSellShop && (
+        <SellShop
+          gameState={gameState}
+          onClose={() => setShowSellShop(false)}
+          onSellCrop={(crop, amount) => {
+            const result = sellCrop(gameState, crop, amount);
+            setSellMessage(result.message);
+            if (result.success) {
+              setGameState(result.state);
+            }
+            setTimeout(() => setSellMessage(''), 3000);
+          }}
         />
       )}
     </div>

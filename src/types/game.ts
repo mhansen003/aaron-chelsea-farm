@@ -19,6 +19,9 @@ export interface Tile {
   crop: CropType;
   growthStage: number; // 0-100
   cleared: boolean;
+  plantedDay?: number; // Which day the crop was planted
+  wateredToday: boolean; // Whether this tile has been watered today
+  hasSprinkler: boolean; // Whether this tile has a sprinkler placed on it
 }
 
 export interface SeedQuality {
@@ -37,18 +40,14 @@ export interface Player {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
     harvested: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
+    sprinklers: number; // How many sprinklers the player owns
   };
 }
 
-export interface Community {
-  people: number;
-  hunger: number; // 0-100, decreases over time
-  happiness: number; // 0-100, affected by diet diversity
-  dietaryNeeds: {
-    carrot: number; // How much of each crop type they need
-    wheat: number;
-    tomato: number;
-  };
+export interface CropGrowthInfo {
+  daysToGrow: number; // How many days it takes to fully grow
+  sellPrice: number; // How much you can sell it for
+  seedCost: number; // How much seeds cost in shop
 }
 
 export interface Tool {
@@ -62,10 +61,10 @@ export interface GameState {
   grid: Tile[][];
   player: Player;
   tools: Tool[];
-  community: Community;
+  currentDay: number; // Day counter
+  dayProgress: number; // 0-100, progress through current day
   gameTime: number;
   isPaused: boolean;
-  lastFeedTime: number;
 }
 
 export interface GameConfig {

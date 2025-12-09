@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -7,22 +7,17 @@ export const GAME_CONFIG: GameConfig = {
   tileSize: 48,
 };
 
-export const CROP_PRICES: Record<Exclude<CropType, null>, number> & { null: number } = {
-  carrot: 5,
-  wheat: 3,
-  tomato: 8,
-  null: 0,
+// Crop information: growth days, sell price, seed cost
+export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
+  carrot: { daysToGrow: 1, sellPrice: 5, seedCost: 2 },
+  wheat: { daysToGrow: 1, sellPrice: 3, seedCost: 1 },
+  tomato: { daysToGrow: 2, sellPrice: 8, seedCost: 4 },
+  null: { daysToGrow: 0, sellPrice: 0, seedCost: 0 },
 };
 
-export const SEED_COSTS: Record<Exclude<CropType, null>, number> & { null: number } = {
-  carrot: 2,
-  wheat: 1,
-  tomato: 4,
-  null: 0,
-};
-
-export const GROWTH_TIME = 5000; // ms for full growth
-export const WATER_BOOST = 0.2; // 20% growth speed boost when watered
+export const DAY_LENGTH = 60000; // 60 seconds = 1 day
+export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
+export const SPRINKLER_RANGE = 2; // 5x5 area (2 tiles in each direction)
 
 export function createInitialGrid(): Tile[][] {
   const grid: Tile[][] = [];
@@ -44,6 +39,8 @@ export function createInitialGrid(): Tile[][] {
         crop: null,
         growthStage: 0,
         cleared: type === 'grass',
+        wateredToday: false,
+        hasSprinkler: false,
       });
     }
     grid.push(row);
@@ -80,16 +77,7 @@ export function createInitialState(): GameState {
           tomato: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
           null: { generation: 0, yield: 0, growthSpeed: 0 },
         },
-      },
-    },
-    community: {
-      people: 5,
-      hunger: 100,
-      happiness: 80,
-      dietaryNeeds: {
-        carrot: 2,
-        wheat: 3,
-        tomato: 1,
+        sprinklers: 0,
       },
     },
     tools: [
@@ -113,66 +101,98 @@ export function createInitialState(): GameState {
       },
       {
         name: 'watering_can',
-        cost: 20,
-        description: 'Water single tile (speeds growth 20%)',
-        unlocked: false,
+        cost: 0,
+        description: 'Water single tile for the day',
+        unlocked: true,
       },
       {
         name: 'water_sprinkler',
-        cost: 50,
-        description: 'Water 3x3 area around you (speeds growth 20%)',
+        cost: 100,
+        description: 'Place sprinkler (auto-waters 5x5 area daily)',
         unlocked: false,
       },
     ],
+    currentDay: 1,
+    dayProgress: 0,
     gameTime: 0,
     isPaused: false,
-    lastFeedTime: 0,
   };
 }
-
-const HUNGER_DEPLETION_RATE = 0.5; // Hunger decreases by 0.5% per second (200 seconds = ~3 minutes to empty)
 
 export function updateGameState(state: GameState, deltaTime: number): GameState {
   if (state.isPaused) return state;
 
-  const newGrid = state.grid.map(row =>
+  const newGameTime = state.gameTime + deltaTime;
+  const newDayProgress = ((newGameTime % DAY_LENGTH) / DAY_LENGTH) * 100;
+  const previousDay = state.currentDay;
+  const newDay = Math.floor(newGameTime / DAY_LENGTH) + 1;
+
+  // Check if a new day has started
+  const isNewDay = newDay > previousDay;
+
+  let newGrid = state.grid;
+
+  // If new day started, auto-water tiles with sprinklers and reset watered flags
+  if (isNewDay) {
+    newGrid = state.grid.map((row, y) =>
+      row.map((tile, x) => {
+        // Reset watered flag for all tiles
+        let wateredToday = false;
+
+        // Check if any sprinkler is in range of this tile
+        for (let sy = 0; sy < GAME_CONFIG.gridHeight; sy++) {
+          for (let sx = 0; sx < GAME_CONFIG.gridWidth; sx++) {
+            const otherTile = state.grid[sy][sx];
+            if (otherTile.hasSprinkler) {
+              const dx = Math.abs(x - sx);
+              const dy = Math.abs(y - sy);
+              if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
+                wateredToday = true;
+                break;
+              }
+            }
+          }
+          if (wateredToday) break;
+        }
+
+        return { ...tile, wateredToday };
+      })
+    );
+  }
+
+  // Update crop growth - only if watered
+  newGrid = newGrid.map(row =>
     row.map(tile => {
-      if (tile.type === 'planted' && tile.crop && tile.growthStage < 100) {
-        const quality = state.player.inventory.seedQuality[tile.crop];
-        const growthMultiplier = quality ? quality.growthSpeed : 1.0;
+      if (tile.type === 'planted' && tile.crop && tile.plantedDay !== undefined) {
+        const cropInfo = CROP_INFO[tile.crop];
+        const daysSincePlanted = newDay - tile.plantedDay;
 
-        const newGrowthStage = Math.min(
-          100,
-          tile.growthStage + (deltaTime / GROWTH_TIME) * 100 * growthMultiplier
-        );
+        // Only grow if watered today
+        if (tile.wateredToday) {
+          const quality = state.player.inventory.seedQuality[tile.crop];
+          const growthMultiplier = quality ? quality.growthSpeed : 1.0;
+          const adjustedDaysToGrow = cropInfo.daysToGrow / growthMultiplier;
 
-        return {
-          ...tile,
-          growthStage: newGrowthStage,
-          type: (newGrowthStage >= 99 ? 'grown' : 'planted') as TileType,
-        };
+          const growthPercentage = (daysSincePlanted / adjustedDaysToGrow) * 100;
+          const newGrowthStage = Math.min(100, growthPercentage);
+
+          return {
+            ...tile,
+            growthStage: newGrowthStage,
+            type: (newGrowthStage >= 100 ? 'grown' : 'planted') as TileType,
+          };
+        }
       }
       return tile;
     })
   );
 
-  const hungerDepletion = (deltaTime / 1000) * HUNGER_DEPLETION_RATE;
-  const newHunger = Math.max(0, state.community.hunger - hungerDepletion);
-
-  let happiness = state.community.happiness;
-  if (newHunger < 30) {
-    happiness = Math.max(0, happiness - (deltaTime / 1000) * 5);
-  }
-
   return {
     ...state,
     grid: newGrid,
-    community: {
-      ...state.community,
-      hunger: newHunger,
-      happiness,
-    },
-    gameTime: state.gameTime + deltaTime,
+    currentDay: newDay,
+    dayProgress: newDayProgress,
+    gameTime: newGameTime,
   };
 }
 
@@ -219,6 +239,7 @@ export function plantSeed(
           type: 'planted' as TileType,
           crop: cropType,
           growthStage: 0,
+          plantedDay: state.currentDay, // Track when planted
         };
       }
       return t;
@@ -247,8 +268,8 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
 
   const cropType = tile.crop;
   const quality = state.player.inventory.seedQuality[cropType];
-  const basePrice = CROP_PRICES[cropType];
-  const price = Math.floor(basePrice * quality.yield);
+  const cropInfo = CROP_INFO[cropType];
+  // Note: No money earned on harvest - crops go to inventory to sell later
 
   const newGrid = state.grid.map((row, y) =>
     row.map((t, x) => {
@@ -258,6 +279,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           type: 'dirt' as TileType,
           crop: null,
           growthStage: 0,
+          plantedDay: undefined,
         };
       }
       return t;
@@ -278,7 +300,6 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
     grid: newGrid,
     player: {
       ...state.player,
-      money: state.player.money + price,
       inventory: {
         ...state.player.inventory,
         harvested: {
@@ -300,14 +321,14 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
 
 export function waterTile(state: GameState, tileX: number, tileY: number): GameState {
   const tile = state.grid[tileY]?.[tileX];
-  if (!tile || (tile.type !== 'planted' && tile.type !== 'grown')) return state;
+  if (!tile || (tile.type !== 'planted' && tile.type !== 'grown' && tile.type !== 'dirt')) return state;
 
   const newGrid = state.grid.map((row, y) =>
     row.map((t, x) => {
-      if (x === tileX && y === tileY && (t.type === 'planted' || t.type === 'grown')) {
+      if (x === tileX && y === tileY) {
         return {
           ...t,
-          growthStage: Math.min(100, t.growthStage + 20),
+          wateredToday: true,
         };
       }
       return t;
@@ -320,16 +341,17 @@ export function waterTile(state: GameState, tileX: number, tileY: number): GameS
   };
 }
 
-export function waterArea(state: GameState, centerX: number, centerY: number): GameState {
+// This is for placing a permanent sprinkler on a tile
+export function placeSprinkler(state: GameState, tileX: number, tileY: number): GameState {
+  const tile = state.grid[tileY]?.[tileX];
+  if (!tile || tile.hasSprinkler || state.player.inventory.sprinklers <= 0) return state;
+
   const newGrid = state.grid.map((row, y) =>
     row.map((t, x) => {
-      const dx = Math.abs(x - centerX);
-      const dy = Math.abs(y - centerY);
-
-      if (dx <= 1 && dy <= 1 && (t.type === 'planted' || t.type === 'grown')) {
+      if (x === tileX && y === tileY) {
         return {
           ...t,
-          growthStage: Math.min(100, t.growthStage + 20),
+          hasSprinkler: true,
         };
       }
       return t;
@@ -339,6 +361,13 @@ export function waterArea(state: GameState, centerX: number, centerY: number): G
   return {
     ...state,
     grid: newGrid,
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        sprinklers: state.player.inventory.sprinklers - 1,
+      },
+    },
   };
 }
 
@@ -361,7 +390,8 @@ export function buyTool(state: GameState, toolName: string): GameState {
 export function buySeeds(state: GameState, cropType: CropType, amount: number): GameState {
   if (!cropType) return state;
 
-  const cost = SEED_COSTS[cropType] * amount;
+  const cropInfo = CROP_INFO[cropType];
+  const cost = cropInfo.seedCost * amount;
   if (state.player.money < cost) return state;
 
   return {
@@ -380,54 +410,61 @@ export function buySeeds(state: GameState, cropType: CropType, amount: number): 
   };
 }
 
-export function feedCommunity(state: GameState): {
+export function buySprinklers(state: GameState, amount: number): GameState {
+  const cost = SPRINKLER_COST * amount;
+  if (state.player.money < cost) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - cost,
+      inventory: {
+        ...state.player.inventory,
+        sprinklers: state.player.inventory.sprinklers + amount,
+      },
+    },
+  };
+}
+
+export function sellCrop(state: GameState, cropType: Exclude<CropType, null>, amount: number): {
   success: boolean;
   state: GameState;
   message: string;
 } {
-  const needs = state.community.dietaryNeeds;
-  const harvested = state.player.inventory.harvested;
+  const harvested = state.player.inventory.harvested[cropType];
 
-  const hasEnoughCarrots = harvested.carrot >= needs.carrot;
-  const hasEnoughWheat = harvested.wheat >= needs.wheat;
-  const hasEnoughTomatoes = harvested.tomato >= needs.tomato;
-
-  if (!hasEnoughCarrots || !hasEnoughWheat || !hasEnoughTomatoes) {
+  if (harvested < amount) {
     return {
       success: false,
       state,
-      message: `Not enough food! Need: ${needs.carrot} carrots, ${needs.wheat} wheat, ${needs.tomato} tomatoes`,
+      message: `Not enough ${cropType}! You only have ${harvested}.`,
     };
   }
 
-  const varietyBonus = 10;
-  const newHappiness = Math.min(100, state.community.happiness + varietyBonus);
+  const cropInfo = CROP_INFO[cropType];
+  const quality = state.player.inventory.seedQuality[cropType];
+  const pricePerCrop = Math.floor(cropInfo.sellPrice * quality.yield);
+  const totalEarned = pricePerCrop * amount;
 
   const newState: GameState = {
     ...state,
     player: {
       ...state.player,
+      money: state.player.money + totalEarned,
       inventory: {
         ...state.player.inventory,
         harvested: {
-          carrot: harvested.carrot - needs.carrot,
-          wheat: harvested.wheat - needs.wheat,
-          tomato: harvested.tomato - needs.tomato,
-          null: 0,
+          ...state.player.inventory.harvested,
+          [cropType]: harvested - amount,
         },
       },
     },
-    community: {
-      ...state.community,
-      hunger: 100,
-      happiness: newHappiness,
-    },
-    lastFeedTime: state.gameTime,
   };
 
   return {
     success: true,
     state: newState,
-    message: `Community fed successfully! Happiness +${varietyBonus}!`,
+    message: `Sold ${amount} ${cropType} for $${totalEarned}!`,
   };
 }

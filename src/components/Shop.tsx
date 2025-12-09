@@ -1,21 +1,23 @@
 'use client';
 
 import { GameState, CropType } from '@/types/game';
+import { CROP_INFO, SPRINKLER_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
   onClose: () => void;
   onBuySeeds: (crop: CropType, amount: number) => void;
   onBuyTool: (toolName: string) => void;
+  onBuySprinklers: (amount: number) => void;
 }
 
 const SEED_INFO = {
-  carrot: { name: 'Carrot Seeds', price: 2, emoji: '🥕', nutrition: 3 },
-  wheat: { name: 'Wheat Seeds', price: 1, emoji: '🌾', nutrition: 2 },
-  tomato: { name: 'Tomato Seeds', price: 4, emoji: '🍅', nutrition: 4 },
+  carrot: { name: 'Carrot Seeds', emoji: '🥕', daysToGrow: 1 },
+  wheat: { name: 'Wheat Seeds', emoji: '🌾', daysToGrow: 1 },
+  tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2 },
 };
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers }: ShopProps) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
@@ -40,8 +42,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool }: Shop
             {Object.entries(SEED_INFO).map(([cropKey, info]) => {
               const crop = cropKey as Exclude<CropType, null>;
               const owned = gameState.player.inventory.seeds[crop];
-              const canBuy1 = gameState.player.money >= info.price;
-              const canBuy5 = gameState.player.money >= info.price * 5;
+              const cropInfo = CROP_INFO[crop];
+              const canBuy1 = gameState.player.money >= cropInfo.seedCost;
+              const canBuy5 = gameState.player.money >= cropInfo.seedCost * 5;
 
               return (
                 <div
@@ -53,10 +56,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool }: Shop
                       <span className="text-2xl mr-2">{info.emoji}</span>
                       <span className="font-bold">{info.name}</span>
                     </div>
-                    <div className="text-amber-300 font-bold">${info.price} each</div>
+                    <div className="text-amber-300 font-bold">${cropInfo.seedCost} each</div>
                   </div>
                   <div className="text-sm mb-2">
-                    <span className="text-green-400">Nutrition: {info.nutrition}/crop</span>
+                    <span className="text-green-400">Grows in: {info.daysToGrow} day{info.daysToGrow > 1 ? 's' : ''}</span>
+                    {' • '}
+                    <span className="text-purple-400">Sells for: ${cropInfo.sellPrice}</span>
                     {' • '}
                     <span className="text-blue-400">Owned: {owned}</span>
                   </div>
@@ -81,12 +86,55 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool }: Shop
                           : 'bg-gray-600 cursor-not-allowed'
                       }`}
                     >
-                      Buy 5 (${info.price * 5})
+                      Buy 5 (${cropInfo.seedCost * 5})
                     </button>
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Sprinklers Section */}
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold mb-4 text-amber-300">💦 Sprinklers</h3>
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">💦</span>
+                <span className="font-bold">Auto Sprinkler</span>
+              </div>
+              <div className="text-amber-300 font-bold">${SPRINKLER_COST} each</div>
+            </div>
+            <div className="text-sm mb-2">
+              <span className="text-green-400">Auto-waters 5x5 area daily</span>
+              {' • '}
+              <span className="text-blue-400">Owned: {gameState.player.inventory.sprinklers}</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onBuySprinklers(1)}
+                disabled={gameState.player.money < SPRINKLER_COST}
+                className={`px-4 py-2 rounded font-bold flex-1 ${
+                  gameState.player.money >= SPRINKLER_COST
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Buy 1
+              </button>
+              <button
+                onClick={() => onBuySprinklers(3)}
+                disabled={gameState.player.money < SPRINKLER_COST * 3}
+                className={`px-4 py-2 rounded font-bold flex-1 ${
+                  gameState.player.money >= SPRINKLER_COST * 3
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Buy 3 (${SPRINKLER_COST * 3})
+              </button>
+            </div>
           </div>
         </div>
 

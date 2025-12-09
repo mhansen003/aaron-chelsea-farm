@@ -7,14 +7,14 @@ export const GAME_CONFIG: GameConfig = {
   tileSize: 48,
 };
 
-export const CROP_PRICES: Record<CropType, number> = {
+export const CROP_PRICES: Record<Exclude<CropType, null>, number> & { null: number } = {
   carrot: 5,
   wheat: 3,
   tomato: 8,
   null: 0,
 };
 
-export const SEED_COSTS: Record<CropType, number> = {
+export const SEED_COSTS: Record<Exclude<CropType, null>, number> & { null: number } = {
   carrot: 2,
   wheat: 1,
   tomato: 4,

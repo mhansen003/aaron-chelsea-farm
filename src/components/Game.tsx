@@ -310,10 +310,22 @@ export default function Game() {
           // Draw grass texture
           ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'tree' && treeImageRef.current) {
-          // Draw tree sprite
+          // Draw grass background first, then tree sprite
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(treeImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'rock' && rockImageRef.current) {
-          // Draw rock sprite
+          // Draw grass background first, then rock sprite
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(rockImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'dirt' && dirtImageRef.current) {
           // Draw grass background first, then dirt sprite on top
@@ -325,7 +337,13 @@ export default function Game() {
           }
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'shop' && shopImageRef.current) {
-          // Draw shop sprite
+          // Draw grass background first, then shop sprite
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
@@ -746,8 +764,7 @@ export default function Game() {
                           ...prev,
                           player: {
                             ...prev.player,
-                            selectedCrop: 'carrot',
-                            selectedTool: 'hoe' // Collapse menu by switching tool
+                            selectedCrop: 'carrot'
                           },
                         }));
                       }}
@@ -766,8 +783,7 @@ export default function Game() {
                           ...prev,
                           player: {
                             ...prev.player,
-                            selectedCrop: 'wheat',
-                            selectedTool: 'hoe' // Collapse menu by switching tool
+                            selectedCrop: 'wheat'
                           },
                         }));
                       }}
@@ -786,8 +802,7 @@ export default function Game() {
                           ...prev,
                           player: {
                             ...prev.player,
-                            selectedCrop: 'tomato',
-                            selectedTool: 'hoe' // Collapse menu by switching tool
+                            selectedCrop: 'tomato'
                           },
                         }));
                       }}

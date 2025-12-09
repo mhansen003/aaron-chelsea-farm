@@ -279,6 +279,7 @@ export function createInitialState(): GameState {
     isPaused: false,
     warehouse: [], // Empty warehouse storage
     waterBots: [], // No water bots initially
+    harvestBots: [], // No harvest bots initially
   };
 }
 
@@ -414,6 +415,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'place_mechanic':
           newState = placeMechanicShop(newState, task.tileX, task.tileY);
+          break;
+        case 'place_well':
+          newState = placeWell(newState, task.tileX, task.tileY);
           break;
         case 'deposit':
           newState = depositToWarehouse(newState);
@@ -1137,18 +1141,42 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
   const cost = HARVESTBOT_COST * amount;
+
+  // Check if player can afford it
   if (state.player.money < cost) return state;
+
+  const actualAmount = amount;
+  const actualCost = HARVESTBOT_COST * actualAmount;
+
+  // Create actual HarvestBot entities
+  const newBots: import('@/types/game').HarvestBot[] = [];
+  for (let i = 0; i < actualAmount; i++) {
+    const botId = `harvestbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const spawnX = state.player.x + (i + 1);
+    const spawnY = state.player.y + 1;
+    newBots.push({
+      id: botId,
+      inventory: [], // Start with empty inventory
+      inventoryCapacity: 8, // Same as player basket capacity
+      status: 'idle',
+      x: spawnX, // Spawn near player
+      y: spawnY,
+      visualX: spawnX, // Initialize visual position to match
+      visualY: spawnY,
+    });
+  }
 
   return {
     ...state,
     player: {
       ...state.player,
-      money: state.player.money - cost,
+      money: state.player.money - actualCost,
       inventory: {
         ...state.player.inventory,
-        harvestbots: state.player.inventory.harvestbots + amount,
+        harvestbots: state.player.inventory.harvestbots + actualAmount,
       },
     },
+    harvestBots: [...state.harvestBots, ...newBots],
   };
 }
 

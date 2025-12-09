@@ -132,6 +132,19 @@ export interface WaterBot {
   visualY?: number; // Animated visual position Y
 }
 
+export interface HarvestBot {
+  id: string; // Unique bot ID
+  inventory: BasketItem[]; // Crops currently held (max 8)
+  inventoryCapacity: number; // Max inventory size (8)
+  status: 'idle' | 'harvesting' | 'depositing' | 'traveling';
+  targetX?: number; // Target tile X
+  targetY?: number; // Target tile Y
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -145,6 +158,7 @@ export interface GameState {
   isPaused: boolean;
   warehouse: BasketItem[]; // Warehouse storage for deposited crops
   waterBots: WaterBot[]; // Active water bots with their state
+  harvestBots: HarvestBot[]; // Active harvest bots with their state
 }
 
 export interface GameConfig {

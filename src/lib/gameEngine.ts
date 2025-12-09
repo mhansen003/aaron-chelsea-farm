@@ -59,6 +59,7 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       let type: TileType = 'grass';
       let archDirection: 'north' | 'south' | 'east' | 'west' | undefined = undefined;
       let archTargetZone: { x: number; y: number } | undefined = undefined;
+      const hasTheme = theme && theme !== 'farm';
 
       // Theme-specific zone generation
       if (isBeach) {
@@ -100,7 +101,6 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       // Mechanic building (2x2) - if placed by player
       // Will be handled separately when player places it
       // Arches (only in farm zones, not themed zones)
-      const hasTheme = theme && theme !== 'farm';
       // North arch (top center) - NOT in themed zones
       else if (!hasTheme && y === 0 && x === centerX) {
         type = 'arch';
@@ -257,6 +257,7 @@ export function createInitialState(): GameState {
         sprinklers: 0,
         waterbots: 0,
         harvestbots: 0,
+        seedbots: 0,
         mechanicShop: 0,
         mechanicShopPlaced: false,
         well: 0,

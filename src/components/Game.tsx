@@ -675,9 +675,9 @@ export default function Game() {
   };
 
   return (
-    <div className="relative flex gap-2 p-2">
+    <div className="fixed inset-0 flex gap-2 p-2 overflow-hidden">
       {/* Main Game Area */}
-      <div className="flex flex-col items-center gap-2 flex-1">
+      <div className="flex flex-col items-center gap-2 flex-1 min-h-0">
       {/* Compact Top Bar */}
       <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white flex items-center justify-between">
         {/* Left: Title & Actions */}
@@ -694,18 +694,9 @@ export default function Game() {
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
-          <div className="flex items-center gap-1"><span>📅</span><span>Day {gameState.currentDay}</span></div>
           <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/{gameState.player.basketCapacity}</span></div>
           <div className="flex items-center gap-1"><span>💦</span><span>{gameState.player.inventory.sprinklers}</span></div>
         </div>
-      </div>
-
-      {/* Day Progress Bar */}
-      <div className="w-full h-2 bg-gray-700 rounded-full">
-        <div
-          className="h-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-500 rounded-full transition-all"
-          style={{ width: `${gameState.dayProgress}%` }}
-        />
       </div>
 
 
@@ -717,35 +708,6 @@ export default function Game() {
         className="border-4 border-white rounded-lg shadow-2xl"
         onClick={handleCanvasClick}
       />
-
-      {/* Current Task Progress */}
-      {gameState.currentTask && (
-        <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-bold">
-              {gameState.currentTask.type === 'clear' ? '⛏️ Clearing...' :
-               gameState.currentTask.type === 'plant' ? '🌱 Planting...' :
-               gameState.currentTask.type === 'water' ? '💧 Watering...' :
-               gameState.currentTask.type === 'harvest' ? '🌾 Harvesting...' :
-               '💦 Placing Sprinkler...'}
-            </span>
-            <span className="text-sm">{Math.floor(gameState.currentTask.progress)}%</span>
-          </div>
-          <div className="w-full h-2 bg-gray-700 rounded-full">
-            <div
-              className="h-2 bg-green-500 rounded-full transition-all"
-              style={{ width: `${gameState.currentTask.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Task Queue Count */}
-      {gameState.taskQueue.length > 0 && (
-        <div className="text-sm text-white bg-black/70 px-3 py-1 rounded-lg">
-          📋 {gameState.taskQueue.length} {gameState.taskQueue.length === 1 ? 'task' : 'tasks'} queued
-        </div>
-      )}
 
       {/* Tool & Crop Selection (Compact) */}
       <div className="flex gap-2 w-full">
@@ -1014,7 +976,7 @@ export default function Game() {
       </div>
 
       {/* Compact Basket Sidebar */}
-      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2">
+      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 overflow-y-auto max-h-screen">
         <div className="text-sm font-bold text-center">🧺 {gameState.player.basket.length}/{gameState.player.basketCapacity}</div>
 
         {/* Basket Grid - Dynamic based on capacity */}

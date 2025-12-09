@@ -708,7 +708,8 @@ export default function Game() {
         ref={canvasRef}
         width={GAME_CONFIG.gridWidth * GAME_CONFIG.tileSize}
         height={GAME_CONFIG.gridHeight * GAME_CONFIG.tileSize}
-        className="border-4 border-white rounded-lg shadow-2xl"
+        className="border-4 border-white rounded-lg shadow-2xl flex-1 min-h-0"
+        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
         onClick={handleCanvasClick}
       />
 

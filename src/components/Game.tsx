@@ -16,6 +16,7 @@ import {
   buyWaterbots,
   buyHarvestbots,
   upgradeBag,
+  getCurrentGrid,
   GAME_CONFIG,
   CROP_INFO,
 } from '@/lib/gameEngine';
@@ -154,13 +155,15 @@ export default function Game() {
   // Auto-open shop when player is on shop tile
   useEffect(() => {
     const { x, y } = gameState.player;
-    const tile = gameState.grid[y]?.[x];
+    const zoneKey = `${gameState.currentZone.x},${gameState.currentZone.y}`;
+    const grid = gameState.zones[zoneKey]?.grid;
+    const tile = grid?.[y]?.[x];
     if (tile?.type === 'shop') {
       setShowShop(true);
     } else {
       setShowShop(false);
     }
-  }, [gameState.player.x, gameState.player.y, gameState.grid]);
+  }, [gameState.player.x, gameState.player.y, gameState.zones, gameState.currentZone]);
 
   // Background music
   useEffect(() => {
@@ -229,7 +232,8 @@ export default function Game() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw grid
-    gameState.grid.forEach((row, y) => {
+    const currentGrid = getCurrentGrid(gameState);
+    currentGrid.forEach((row, y) => {
       row.forEach((tile, x) => {
         const px = x * GAME_CONFIG.tileSize;
         const py = y * GAME_CONFIG.tileSize;
@@ -347,7 +351,8 @@ export default function Game() {
   // Handle tool-based interactions
   const handleInteraction = useCallback(() => {
     const { x, y, selectedTool, selectedCrop } = gameState.player;
-    const tile = gameState.grid[y]?.[x];
+    const currentGrid = getCurrentGrid(gameState);
+    const tile = currentGrid[y]?.[x];
     if (!tile) return;
 
     switch (selectedTool) {

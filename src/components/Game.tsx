@@ -41,9 +41,11 @@ const COLORS = {
   grid: '#ffffff20',
   shop: '#ff9800',
   export: '#9c27b0',
+  warehouse: '#795548',
   waterbot: '#00bcd4',
   arch: '#9e9e9e',
   archActive: '#4caf50',
+  mechanic: '#ff5722',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {

@@ -1,17 +1,18 @@
 'use client';
 
 import { GameState } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST } from '@/lib/gameEngine';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST } from '@/lib/gameEngine';
 
 interface MechanicShopProps {
   gameState: GameState;
   onClose: () => void;
   onBuyWaterbots: (amount: number) => void;
   onBuyHarvestbots: (amount: number) => void;
+  onBuySeedbots: (amount: number) => void;
   onRelocate: () => void;
 }
 
-export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onRelocate }: MechanicShopProps) {
+export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onRelocate }: MechanicShopProps) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white p-8 rounded-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto border-4 border-orange-600">
@@ -103,8 +104,8 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               </button>
             </div>
 
-            {/* Seed Planting Bot - Coming Soon */}
-            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-gray-600 opacity-50 flex flex-col items-center">
+            {/* Seed Bot */}
+            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-green-600 flex flex-col items-center">
               {/* Icon */}
               <div className="text-5xl mb-2">🌱</div>
 
@@ -113,14 +114,22 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
 
               {/* Stats */}
               <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-gray-400">Auto-plants seeds</div>
-                <div className="text-gray-400">Coming Soon</div>
+                <div className="text-green-400">Auto-plants seeds</div>
+                <div className="text-blue-400">Owned: {gameState.player.inventory.seedbots}</div>
               </div>
 
               {/* Buy Button */}
-              <div className="w-full px-3 py-2 rounded font-bold text-sm bg-gray-800/40 text-gray-500 text-center">
-                Locked
-              </div>
+              <button
+                onClick={() => onBuySeedbots(1)}
+                disabled={gameState.player.money < SEEDBOT_COST}
+                className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                  gameState.player.money >= SEEDBOT_COST
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                ${SEEDBOT_COST}
+              </button>
             </div>
           </div>
         </div>

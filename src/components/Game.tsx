@@ -15,6 +15,8 @@ import {
   buySprinklers,
   buyWaterbots,
   buyHarvestbots,
+  buySeedbots,
+  updateSeedBotJobs,
   upgradeBag,
   buyMechanicShop,
   buyWell,
@@ -31,6 +33,7 @@ import {
   getZoneKey,
   GAME_CONFIG,
   CROP_INFO,
+  SEEDBOT_COST,
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType, Tile, Zone } from '@/types/game';
 import Shop from './Shop';
@@ -40,6 +43,7 @@ import MechanicShop from './MechanicShop';
 import WarehouseModal from './WarehouseModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import NoSeedsModal from './NoSeedsModal';
+import SeedBotConfigModal from './SeedBotConfigModal';
 
 const COLORS = {
   grass: '#7cb342',
@@ -130,6 +134,13 @@ export default function Game() {
           if (parsed.harvestBots === undefined) {
             parsed.harvestBots = [];
           }
+          // Add seed bots array if missing (for old saves)
+          if (parsed.seedBots === undefined) {
+            parsed.seedBots = [];
+          }
+          if (parsed.player.inventory.seedbots === undefined) {
+            parsed.player.inventory.seedbots = 0;
+          }
 
           return parsed as GameState;
         } catch (e) {
@@ -161,6 +172,14 @@ export default function Game() {
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
   const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | null>(null);
+  const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
+  const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
+  const [tileSelectionMode, setTileSelectionMode] = useState<{
+    active: boolean;
+    jobId: string;
+    cropType: Exclude<CropType, null>;
+    selectedTiles: Array<{ x: number; y: number }>;
+  } | null>(null);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -182,6 +201,7 @@ export default function Game() {
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
+  const seedBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
@@ -269,6 +289,12 @@ export default function Game() {
     harvestBotImg.src = '/harvest-bot.png';
     harvestBotImg.onload = () => {
       harvestBotImageRef.current = harvestBotImg;
+    };
+
+    const seedBotImg = new Image();
+    seedBotImg.src = '/seed-bot.png';
+    seedBotImg.onload = () => {
+      seedBotImageRef.current = seedBotImg;
     };
 
     const archImg = new Image();
@@ -1190,6 +1216,37 @@ export default function Game() {
       }
     });
 
+    // Draw seed bots using visual position for smooth movement
+    gameState.seedBots.forEach(bot => {
+      if (bot.x !== undefined && bot.y !== undefined) {
+        const visualX = bot.visualX ?? bot.x;
+        const visualY = bot.visualY ?? bot.y;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
+
+        if (seedBotImageRef.current) {
+          ctx.drawImage(seedBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to green circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#8bc34a';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw job indicator if bot has jobs configured
+        if (bot.jobs.length > 0) {
+          ctx.fillStyle = '#66bb6a';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(bot.jobs.length.toString(), botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize - 8);
+        }
+      }
+    });
+
   }, [gameState]);
 
   // Play water splash sound effect
@@ -1299,6 +1356,49 @@ export default function Game() {
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
+
+    // Handle tile selection mode for seed bot job configuration
+    if (tileSelectionMode && tileSelectionMode.active) {
+      // Only allow selecting dirt tiles that are cleared and plantable
+      if (tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler) {
+        const tileCoord = { x: tileX, y: tileY };
+        const existingIndex = tileSelectionMode.selectedTiles.findIndex(
+          t => t.x === tileX && t.y === tileY
+        );
+
+        let newSelectedTiles;
+        if (existingIndex >= 0) {
+          // Remove tile if already selected
+          newSelectedTiles = tileSelectionMode.selectedTiles.filter((_, i) => i !== existingIndex);
+        } else if (tileSelectionMode.selectedTiles.length < 10) {
+          // Add tile if under limit (10 per job)
+          newSelectedTiles = [...tileSelectionMode.selectedTiles, tileCoord];
+        } else {
+          // Already at max, don't add
+          return;
+        }
+
+        // Update the seed bot's job with new tiles
+        if (selectedSeedBot) {
+          const seedBot = gameState.seedBots.find(b => b.id === selectedSeedBot);
+          if (seedBot) {
+            const updatedJobs = seedBot.jobs.map(job =>
+              job.id === tileSelectionMode.jobId
+                ? { ...job, targetTiles: newSelectedTiles }
+                : job
+            );
+            setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, updatedJobs, seedBot.autoBuySeeds));
+          }
+        }
+
+        // Update tile selection mode state
+        setTileSelectionMode({
+          ...tileSelectionMode,
+          selectedTiles: newSelectedTiles,
+        });
+      }
+      return;
+    }
 
     // Handle placement mode (sprinklers, mechanic shop, etc.) - instant placement
     if (placementMode === 'sprinkler') {
@@ -1992,7 +2092,41 @@ export default function Game() {
           onClose={() => setShowMechanicShop(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+          onBuySeedbots={amount => setGameState(prev => buySeedbots(prev, amount))}
           onRelocate={() => setGameState(prev => relocateMechanicShop(prev))}
+        />
+      )}
+
+      {/* Seed Bot Config Modal */}
+      {showSeedBotConfig && selectedSeedBot && (
+        <SeedBotConfigModal
+          seedBot={gameState.seedBots.find(b => b.id === selectedSeedBot)!}
+          gameState={gameState}
+          onClose={() => {
+            setShowSeedBotConfig(false);
+            setSelectedSeedBot(null);
+            setTileSelectionMode(null);
+          }}
+          onUpdateJobs={(jobs, autoBuySeeds) => {
+            setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, jobs, autoBuySeeds));
+            setShowSeedBotConfig(false);
+            setSelectedSeedBot(null);
+            setTileSelectionMode(null);
+          }}
+          onEnterTileSelectionMode={(jobId, cropType) => {
+            // Get the current job's selected tiles
+            const seedBot = gameState.seedBots.find(b => b.id === selectedSeedBot);
+            const job = seedBot?.jobs.find(j => j.id === jobId);
+            const selectedTiles = job?.targetTiles || [];
+
+            setTileSelectionMode({
+              active: true,
+              jobId,
+              cropType,
+              selectedTiles,
+            });
+            setShowSeedBotConfig(false);
+          }}
         />
       )}
 
@@ -2350,6 +2484,49 @@ export default function Game() {
                       <div className="text-[10px] text-orange-300/80 mt-0.5 text-center">
                         {bot.inventory.length}/{bot.inventoryCapacity} crops
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Seed Bot Section */}
+          {gameState.seedBots.length > 0 && (
+            <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border-2 border-green-500/60 rounded-lg p-2 mt-2 shadow-lg">
+              <div className="text-xs text-green-300 font-bold mb-2 flex items-center gap-1">
+                <span className="text-base">🌱</span>
+                SEED BOTS
+                <span className="ml-auto bg-green-600/30 px-1.5 rounded text-green-200">{gameState.seedBots.length}</span>
+              </div>
+              <div className="space-y-1.5">
+                {gameState.seedBots.map((bot, idx) => {
+                  const jobCount = bot.jobs.length;
+                  const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-green-600/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-green-100">Bot #{idx + 1}</span>
+                        <span className="text-[10px] text-green-300">
+                          {bot.status === 'traveling' && '🚶 Moving'}
+                          {bot.status === 'planting' && '🌱 Planting'}
+                          {bot.status === 'idle' && '😴 Idle'}
+                        </span>
+                      </div>
+                      {/* Job Stats */}
+                      <div className="text-[10px] text-green-300/80 mb-1 text-center">
+                        {jobCount} job{jobCount !== 1 ? 's' : ''} • {totalTiles} tile{totalTiles !== 1 ? 's' : ''}
+                      </div>
+                      {/* Config Button */}
+                      <button
+                        onClick={() => {
+                          setSelectedSeedBot(bot.id);
+                          setShowSeedBotConfig(true);
+                        }}
+                        className="w-full px-2 py-1 bg-green-600/40 hover:bg-green-600/60 rounded text-[10px] font-semibold text-green-100 transition-colors"
+                      >
+                        ⚙️ Configure
+                      </button>
                     </div>
                   );
                 })}

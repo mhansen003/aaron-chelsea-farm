@@ -1139,6 +1139,186 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     }
   }
 
+  // ========== SEED BOT AI ==========
+  if (newState.seedBots && newState.seedBots.length > 0) {
+    const currentZoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
+    const currentZone = newZones[currentZoneKey];
+
+    if (currentZone && currentZone.owned) {
+      const grid = currentZone.grid;
+      let updatedGrid = grid;
+      const updatedSeedBots = newState.seedBots.map(bot => {
+        // Skip if bot doesn't have position
+        if (bot.x === undefined || bot.y === undefined) return bot;
+
+        const botX = bot.x;
+        const botY = bot.y;
+
+        // Initialize visual position if not set
+        let visualX = bot.visualX ?? botX;
+        let visualY = bot.visualY ?? botY;
+
+        // Smoothly interpolate visual position toward actual position
+        const dx = botX - visualX;
+        const dy = botY - visualY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0.01) {
+          visualX += dx * MOVE_SPEED;
+          visualY += dy * MOVE_SPEED;
+        } else {
+          visualX = botX;
+          visualY = botY;
+        }
+
+        // If no jobs configured, go idle
+        if (bot.jobs.length === 0) {
+          return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
+        }
+
+        // Find the current job or pick the first available
+        let currentJob = bot.jobs.find(j => j.id === bot.currentJobId);
+        if (!currentJob) {
+          currentJob = bot.jobs[0];
+        }
+
+        // Filter target tiles to only those that are plantable (dirt and cleared)
+        const plantableTiles = currentJob.targetTiles.filter(targetTile => {
+          const tile = grid[targetTile.y]?.[targetTile.x];
+          return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        });
+
+        // If no plantable tiles in current job, try next job
+        if (plantableTiles.length === 0) {
+          const currentJobIndex = bot.jobs.findIndex(j => j.id === currentJob?.id);
+          const nextJobIndex = (currentJobIndex + 1) % bot.jobs.length;
+          const nextJob = bot.jobs[nextJobIndex];
+
+          // Check if next job has plantable tiles
+          const nextPlantableTiles = nextJob.targetTiles.filter(targetTile => {
+            const tile = grid[targetTile.y]?.[targetTile.x];
+            return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+          });
+
+          if (nextPlantableTiles.length > 0) {
+            currentJob = nextJob;
+          } else {
+            // No plantable tiles in any job - idle
+            return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
+          }
+        }
+
+        const cropType = currentJob.cropType;
+        const currentSeeds = newState.player.inventory.seeds[cropType];
+
+        // Auto-buy seeds if enabled and low/out of stock
+        if (bot.autoBuySeeds && currentSeeds < 5) {
+          const seedCost = CROP_INFO[cropType].seedCost;
+          const amountToBuy = 10;
+          const totalCost = seedCost * amountToBuy;
+
+          if (newState.player.money >= totalCost) {
+            newState = {
+              ...newState,
+              player: {
+                ...newState.player,
+                money: newState.player.money - totalCost,
+                inventory: {
+                  ...newState.player.inventory,
+                  seeds: {
+                    ...newState.player.inventory.seeds,
+                    [cropType]: newState.player.inventory.seeds[cropType] + amountToBuy,
+                  },
+                },
+              },
+            };
+          }
+        }
+
+        // Check if we have seeds to plant
+        if (newState.player.inventory.seeds[cropType] <= 0) {
+          return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+        }
+
+        // Get refreshed plantable tiles after potential state changes
+        const refreshedPlantableTiles = currentJob.targetTiles.filter(targetTile => {
+          const tile = updatedGrid[targetTile.y]?.[targetTile.x];
+          return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        });
+
+        if (refreshedPlantableTiles.length > 0) {
+          // Find nearest plantable tile
+          let nearest = refreshedPlantableTiles[0];
+          let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
+          refreshedPlantableTiles.forEach(tile => {
+            const dist = Math.abs(botX - tile.x) + Math.abs(botY - tile.y);
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = tile;
+            }
+          });
+
+          // If at tile location, plant seed
+          if (botX === nearest.x && botY === nearest.y) {
+            const tile = updatedGrid[nearest.y]?.[nearest.x];
+            if (tile && tile.type === 'dirt' && tile.cleared && !tile.crop) {
+              // Plant the seed
+              updatedGrid = updatedGrid.map((row, rowY) =>
+                row.map((t, tileX) => {
+                  if (tileX === nearest.x && rowY === nearest.y) {
+                    return {
+                      ...t,
+                      type: 'planted' as import('@/types/game').TileType,
+                      crop: cropType,
+                      growthStage: 0,
+                    };
+                  }
+                  return t;
+                })
+              );
+
+              // Deduct seed from player inventory
+              newState = {
+                ...newState,
+                player: {
+                  ...newState.player,
+                  inventory: {
+                    ...newState.player.inventory,
+                    seeds: {
+                      ...newState.player.inventory.seeds,
+                      [cropType]: newState.player.inventory.seeds[cropType] - 1,
+                    },
+                  },
+                },
+              };
+
+              return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY };
+            }
+          } else {
+            // Move toward tile
+            let newX = botX;
+            let newY = botY;
+            if (Math.random() < (deltaTime / 500)) {
+              if (botX < nearest.x) newX++;
+              else if (botX > nearest.x) newX--;
+              else if (botY < nearest.y) newY++;
+              else if (botY > nearest.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, currentJobId: currentJob.id, visualX, visualY };
+          }
+        } else {
+          // No plantable tiles - idle
+          return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+        }
+
+        return { ...bot, visualX, visualY };
+      });
+
+      newState = { ...newState, seedBots: updatedSeedBots };
+      newZones[currentZoneKey] = { ...currentZone, grid: updatedGrid };
+    }
+  }
+
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);
 
@@ -1529,6 +1709,63 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
       },
     },
     harvestBots: [...state.harvestBots, ...newBots],
+  };
+}
+
+export function buySeedbots(state: GameState, amount: number): GameState {
+  const cost = SEEDBOT_COST * amount;
+
+  // Check if player can afford it
+  if (state.player.money < cost) return state;
+
+  const actualAmount = amount;
+  const actualCost = SEEDBOT_COST * actualAmount;
+
+  // Create actual SeedBot entities
+  const newBots: import('@/types/game').SeedBot[] = [];
+  for (let i = 0; i < actualAmount; i++) {
+    const botId = `seedbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const spawnX = state.player.x + (i + 1);
+    const spawnY = state.player.y + 1;
+    newBots.push({
+      id: botId,
+      jobs: [], // Start with no jobs configured
+      status: 'idle',
+      autoBuySeeds: false, // Auto-buy seeds disabled by default
+      x: spawnX, // Spawn near player
+      y: spawnY,
+      visualX: spawnX, // Initialize visual position to match
+      visualY: spawnY,
+    });
+  }
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - actualCost,
+      inventory: {
+        ...state.player.inventory,
+        seedbots: state.player.inventory.seedbots + actualAmount,
+      },
+    },
+    seedBots: [...state.seedBots, ...newBots],
+  };
+}
+
+export function updateSeedBotJobs(
+  state: GameState,
+  botId: string,
+  jobs: import('@/types/game').SeedBotJob[],
+  autoBuySeeds: boolean
+): GameState {
+  return {
+    ...state,
+    seedBots: state.seedBots.map((bot) =>
+      bot.id === botId
+        ? { ...bot, jobs, autoBuySeeds }
+        : bot
+    ),
   };
 }
 

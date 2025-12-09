@@ -996,8 +996,8 @@ export default function Game() {
       return { action: 'harvest' as const, cursor: 'url("/harvest.png") 16 16, pointer' };
     }
 
-    // Grass/cleared dirt can be planted if we have a seed selected
-    if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && selectedCrop) {
+    // Grass/cleared dirt can be planted if we have a seed selected and no sprinkler
+    if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && !tile.hasSprinkler && selectedCrop) {
       return { action: 'plant' as const, cursor: 'url("/cursor-plant.png") 16 16, pointer' };
     }
 

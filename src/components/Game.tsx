@@ -623,7 +623,7 @@ export default function Game() {
           let selectedArchImage = archImageRef.current; // Fallback to default arch
           if (targetZone) {
             switch (targetZone.theme) {
-              case 'farm':
+              case 'desert':
                 selectedArchImage = archFarmImageRef.current || archImageRef.current;
                 break;
               case 'beach':

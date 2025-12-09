@@ -26,6 +26,7 @@ import {
   removeTask,
   depositToWarehouse,
   getCurrentGrid,
+  updateCurrentGrid,
   createZone,
   getZoneKey,
   GAME_CONFIG,
@@ -1217,6 +1218,41 @@ export default function Game() {
 
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
+
+    // Check if tile has a sprinkler - if so, uninstall it
+    const currentGrid = getCurrentGrid(gameState);
+    const tile = currentGrid[tileY]?.[tileX];
+
+    if (tile?.hasSprinkler) {
+      // Uninstall sprinkler and return it to inventory
+      setGameState(prev => {
+        const grid = getCurrentGrid(prev);
+        const newGrid = grid.map((row, y) =>
+          row.map((t, x) => {
+            if (x === tileX && y === tileY) {
+              return {
+                ...t,
+                hasSprinkler: false,
+              };
+            }
+            return t;
+          })
+        );
+
+        const updatedState = updateCurrentGrid(prev, newGrid);
+        return {
+          ...updatedState,
+          player: {
+            ...updatedState.player,
+            inventory: {
+              ...updatedState.player.inventory,
+              sprinklers: updatedState.player.inventory.sprinklers + 1,
+            },
+          },
+        };
+      });
+      return;
+    }
 
     // Find and remove tasks for this tile, refunding seeds if cancelled
     setGameState(prev => {

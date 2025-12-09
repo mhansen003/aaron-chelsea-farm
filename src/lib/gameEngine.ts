@@ -22,6 +22,7 @@ export const WATERBOT_COST = 150; // Cost to buy one water bot
 export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
 export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
+export const SEEDBOT_COST = 250; // Cost to buy one seed bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -59,18 +60,30 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       let archDirection: 'north' | 'south' | 'east' | 'west' | undefined = undefined;
       let archTargetZone: { x: number; y: number } | undefined = undefined;
 
-      // Beach zone: top half water, bottom half sand with seaweed/shells
+      // Theme-specific zone generation
       if (isBeach) {
+        // Beach: top half water, bottom half sand with seaweed/shells
         if (y < GAME_CONFIG.gridHeight / 2) {
-          // Top half: water
           type = 'ocean';
         } else {
-          // Bottom half: sand with decorations
           type = 'sand';
           const rand = Math.random();
           if (rand < 0.30) type = 'seaweed'; // 30% seaweed
           else if (rand < 0.50) type = 'shells'; // 20% shells
         }
+      } else if (theme === 'desert') {
+        // Desert: sand with cactus and rocks
+        type = 'sand';
+        const rand = Math.random();
+        if (rand < 0.30) type = 'cactus'; // 30% cactus
+        else if (rand < 0.50) type = 'rocks'; // 20% rocks
+      } else if (theme === 'mountain') {
+        // Mountain: dirt/rocky terrain with caves and mountains
+        type = 'dirt';
+        const rand = Math.random();
+        if (rand < 0.20) type = 'mountain'; // 20% mountain formations
+        else if (rand < 0.35) type = 'cave'; // 15% caves
+        else if (rand < 0.50) type = 'rocks'; // 15% rocks
       }
       // Shop building at top-left corner (2x2) of starting zone only
       else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
@@ -86,35 +99,37 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       }
       // Mechanic building (2x2) - if placed by player
       // Will be handled separately when player places it
-      // North arch (top center) - NOT in beach zones
-      else if (!isBeach && y === 0 && x === centerX) {
+      // Arches (only in farm zones, not themed zones)
+      const hasTheme = theme && theme !== 'farm';
+      // North arch (top center) - NOT in themed zones
+      else if (!hasTheme && y === 0 && x === centerX) {
         type = 'arch';
         archDirection = 'north';
         archTargetZone = { x: zoneX, y: zoneY + 1 };
       }
-      // South arch (bottom center) - NOT in beach zones
-      else if (!isBeach && y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
+      // South arch (bottom center) - NOT in themed zones
+      else if (!hasTheme && y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
         type = 'arch';
         archDirection = 'south';
         archTargetZone = { x: zoneX, y: zoneY - 1 };
       }
-      // East arch (right center) - NOT in beach zones
-      else if (!isBeach && x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
+      // East arch (right center) - NOT in themed zones
+      else if (!hasTheme && x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
         type = 'arch';
         archDirection = 'east';
         archTargetZone = { x: zoneX + 1, y: zoneY };
       }
-      // West arch (left center) - NOT in beach zones
-      else if (!isBeach && x === 0 && y === centerY) {
+      // West arch (left center) - NOT in themed zones
+      else if (!hasTheme && x === 0 && y === centerY) {
         type = 'arch';
         archDirection = 'west';
         archTargetZone = { x: zoneX - 1, y: zoneY };
       }
-      // Random obstacles (but not where arches are) - doubled density
-      else if (!isBeach) {
+      // Random obstacles (only in non-themed zones)
+      else if (!hasTheme) {
         const rand = Math.random();
-        if (rand < 0.30) type = 'rock'; // 30% rocks (was 15%)
-        else if (rand < 0.50) type = 'tree'; // 20% trees (was 10%)
+        if (rand < 0.30) type = 'rock'; // 30% rocks
+        else if (rand < 0.50) type = 'tree'; // 20% trees
       }
 
       row.push({
@@ -170,7 +185,7 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
   return {
     x,
     y,
-    grid: createInitialGrid(x, y),
+    grid: createInitialGrid(x, y, theme),
     owned,
     purchasePrice: owned ? 0 : purchasePrice,
     theme,
@@ -294,6 +309,7 @@ export function createInitialState(): GameState {
     warehouse: [], // Empty warehouse storage
     waterBots: [], // No water bots initially
     harvestBots: [], // No harvest bots initially
+    seedBots: [], // No seed bots initially
   };
 }
 

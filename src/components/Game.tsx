@@ -62,6 +62,10 @@ const COLORS = {
   sand: '#f4a460',
   seaweed: '#2e7d32',
   shells: '#faf0e6',
+  cactus: '#228b22',
+  rocks: '#808080',
+  cave: '#2f4f4f',
+  mountain: '#a9a9a9',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {
@@ -188,6 +192,14 @@ export default function Game() {
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
   const mechanicImageRef = useRef<HTMLImageElement | null>(null);
   const wellImageRef = useRef<HTMLImageElement | null>(null);
+  const oceanImageRef = useRef<HTMLImageElement | null>(null);
+  const sandImageRef = useRef<HTMLImageElement | null>(null);
+  const seaweedImageRef = useRef<HTMLImageElement | null>(null);
+  const shellsImageRef = useRef<HTMLImageElement | null>(null);
+  const cactusImageRef = useRef<HTMLImageElement | null>(null);
+  const rocksImageRef = useRef<HTMLImageElement | null>(null);
+  const caveImageRef = useRef<HTMLImageElement | null>(null);
+  const mountainImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all non-themed textures (themed tiles loaded separately based on zone)
   useEffect(() => {
@@ -375,6 +387,69 @@ export default function Game() {
     treeImg.onload = () => {
       treeImageRef.current = treeImg;
     };
+
+    // Load themed tiles (beach, desert, mountain)
+    if (theme === 'beach') {
+      const oceanImg = new Image();
+      oceanImg.src = '/ocean.png';
+      oceanImg.onload = () => {
+        oceanImageRef.current = oceanImg;
+      };
+
+      const sandImg = new Image();
+      sandImg.src = '/sand.png';
+      sandImg.onload = () => {
+        sandImageRef.current = sandImg;
+      };
+
+      const seaweedImg = new Image();
+      seaweedImg.src = '/seaweed.png';
+      seaweedImg.onload = () => {
+        seaweedImageRef.current = seaweedImg;
+      };
+
+      const shellsImg = new Image();
+      shellsImg.src = '/shells.png';
+      shellsImg.onload = () => {
+        shellsImageRef.current = shellsImg;
+      };
+    } else if (theme === 'desert') {
+      const sandImg = new Image();
+      sandImg.src = '/sand.png';
+      sandImg.onload = () => {
+        sandImageRef.current = sandImg;
+      };
+
+      const cactusImg = new Image();
+      cactusImg.src = '/cactus.png';
+      cactusImg.onload = () => {
+        cactusImageRef.current = cactusImg;
+      };
+
+      const rocksImg = new Image();
+      rocksImg.src = '/rocks.png';
+      rocksImg.onload = () => {
+        rocksImageRef.current = rocksImg;
+      };
+    } else if (theme === 'mountain') {
+      const mountainImg = new Image();
+      mountainImg.src = '/mountain.png';
+      mountainImg.onload = () => {
+        mountainImageRef.current = mountainImg;
+      };
+
+      const caveImg = new Image();
+      caveImg.src = '/cave entrance.png';
+      caveImg.onload = () => {
+        caveImageRef.current = caveImg;
+      };
+
+      const rocksImg = new Image();
+      rocksImg.src = '/rocks.png';
+      rocksImg.onload = () => {
+        rocksImageRef.current = rocksImg;
+      };
+    }
   }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
 
   // Save game state to localStorage whenever it changes
@@ -707,6 +782,68 @@ export default function Game() {
             );
             ctx.restore();
           }
+        } else if (tile.type === 'ocean' && oceanImageRef.current) {
+          // Beach theme: ocean water
+          ctx.drawImage(oceanImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'sand' && sandImageRef.current) {
+          // Beach/Desert theme: sand
+          ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'seaweed' && seaweedImageRef.current) {
+          // Beach theme: seaweed on sand
+          if (sandImageRef.current) {
+            ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.sand;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(seaweedImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'shells' && shellsImageRef.current) {
+          // Beach theme: shells on sand
+          if (sandImageRef.current) {
+            ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.sand;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(shellsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'cactus' && cactusImageRef.current) {
+          // Desert theme: cactus on sand
+          if (sandImageRef.current) {
+            ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.sand;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(cactusImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'rocks' && rocksImageRef.current) {
+          // Desert/Mountain theme: rocks on sand or dirt
+          if (sandImageRef.current) {
+            ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(rocksImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'cave' && caveImageRef.current) {
+          // Mountain theme: cave on dirt
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(caveImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'mountain' && mountainImageRef.current) {
+          // Mountain theme: mountain formation on dirt
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(mountainImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw grass background first, then dirt, then planted crop sprite on top
           if (grassImageRef.current) {

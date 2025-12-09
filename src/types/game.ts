@@ -17,7 +17,11 @@ export type TileType =
   | 'ocean'
   | 'sand'
   | 'seaweed'
-  | 'shells';
+  | 'shells'
+  | 'cactus'
+  | 'rocks'
+  | 'cave'
+  | 'mountain';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
@@ -85,6 +89,7 @@ export interface Player {
     sprinklers: number; // How many sprinklers the player owns
     waterbots: number; // How many water bots the player owns
     harvestbots: number; // How many harvest bots the player owns
+    seedbots: number; // How many seed bots the player owns
     mechanicShop: number; // How many mechanic shops the player owns (max 1)
     mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
     well: number; // How many wells the player owns (max 1 per zone)
@@ -150,6 +155,27 @@ export interface HarvestBot {
   idleStartTime?: number; // Game time when bot became idle with inventory
 }
 
+export interface SeedBotJob {
+  id: string; // Unique job ID
+  cropType: Exclude<CropType, null>; // What crop to plant
+  targetTiles: Array<{ x: number; y: number }>; // Tiles to plant (max 10)
+  maxTiles: number; // Maximum tiles for this job (10)
+}
+
+export interface SeedBot {
+  id: string; // Unique bot ID
+  jobs: SeedBotJob[]; // Up to 3 jobs (30 total tiles)
+  status: 'idle' | 'planting' | 'traveling';
+  currentJobId?: string; // Which job is currently being worked on
+  targetX?: number; // Target tile X
+  targetY?: number; // Target tile Y
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
+  autoBuySeeds: boolean; // Whether to auto-buy seeds when low
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -164,6 +190,7 @@ export interface GameState {
   warehouse: BasketItem[]; // Warehouse storage for deposited crops
   waterBots: WaterBot[]; // Active water bots with their state
   harvestBots: HarvestBot[]; // Active harvest bots with their state
+  seedBots: SeedBot[]; // Active seed bots with their job configuration
 }
 
 export interface GameConfig {

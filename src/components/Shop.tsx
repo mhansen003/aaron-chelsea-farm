@@ -291,8 +291,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 : 'border-amber-600'
             }`}>
               {/* Icon */}
-              <div className="text-5xl mb-2">
-                {gameState.player.inventory.well >= 1 ? '✓' : '🪣'}
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                {gameState.player.inventory.well >= 1 ? (
+                  <span className="text-5xl">✓</span>
+                ) : (
+                  <Image src="/well.png" alt="Water Well" width={80} height={80} className="object-contain" />
+                )}
               </div>
 
               {/* Name */}
@@ -349,3 +353,4 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
     </div>
   );
 }
+

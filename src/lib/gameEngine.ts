@@ -339,10 +339,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     if (isNewDay) {
       newGrid = zone.grid.map((row, y) =>
         row.map((tile, x) => {
-          // Reset watered flag for all tiles
-          let wateredToday = false;
-
           // Check if any sprinkler is in range of this tile
+          let wateredToday = false;
           for (let sy = 0; sy < GAME_CONFIG.gridHeight; sy++) {
             for (let sx = 0; sx < GAME_CONFIG.gridWidth; sx++) {
               const otherTile = zone.grid[sy][sx];
@@ -387,10 +385,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const growthPercentage = (timeSinceWatered / adjustedGrowTime) * 100;
             const newGrowthStage = Math.min(100, growthPercentage);
 
+            // Determine if crop needs water: only after 50% of growth time has elapsed
+            const needsWater = timeSinceWatered > (adjustedGrowTime * 0.5) && !tile.wateredToday;
+
             return {
               ...tile,
               growthStage: newGrowthStage,
               type: (newGrowthStage >= 100 ? 'grown' : 'planted') as TileType,
+              wateredToday: !needsWater, // If it needs water, set wateredToday to false
             };
           }
         }
@@ -453,6 +455,8 @@ export function plantSeed(
           crop: cropType,
           growthStage: 0,
           plantedDay: state.currentDay, // Track when planted
+          wateredTimestamp: state.gameTime, // Track planting time for watering logic
+          wateredToday: true, // Crop doesn't need water immediately after planting
         };
       }
       return t;

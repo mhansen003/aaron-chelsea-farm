@@ -795,6 +795,31 @@ export default function Game() {
     }
   }, [gameState, playWaterSplash, getActionForTile]);
 
+  // Handle right-click to cancel queued tasks
+  const handleCanvasRightClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent context menu
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
+    const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
+
+    // Find and remove tasks for this tile
+    setGameState(prev => ({
+      ...prev,
+      taskQueue: prev.taskQueue.filter(task =>
+        !(task.tileX === tileX && task.tileY === tileY)
+      ),
+    }));
+  }, []);
+
   // Keyboard shortcuts (no movement)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -959,6 +984,7 @@ export default function Game() {
         className="border-4 border-white rounded-lg shadow-2xl flex-1 min-h-0"
         style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', cursor: cursorType }}
         onClick={handleCanvasClick}
+        onContextMenu={handleCanvasRightClick}
         onMouseMove={handleCanvasMouseMove}
       />
 

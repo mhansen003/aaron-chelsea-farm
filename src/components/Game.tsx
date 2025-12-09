@@ -47,8 +47,11 @@ export default function Game() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
+  const treeImageRef = useRef<HTMLImageElement | null>(null);
+  const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
+  const carrotsImageRef = useRef<HTMLImageElement | null>(null);
 
-  // Load grass texture
+  // Load all textures
   useEffect(() => {
     const grassImg = new Image();
     grassImg.src = '/grass.png';
@@ -60,6 +63,24 @@ export default function Game() {
     farmerImg.src = '/farmer.png';
     farmerImg.onload = () => {
       farmerImageRef.current = farmerImg;
+    };
+
+    const treeImg = new Image();
+    treeImg.src = '/forest.png';
+    treeImg.onload = () => {
+      treeImageRef.current = treeImg;
+    };
+
+    const plantedImg = new Image();
+    plantedImg.src = '/planted crop.png';
+    plantedImg.onload = () => {
+      plantedCropImageRef.current = plantedImg;
+    };
+
+    const carrotsImg = new Image();
+    carrotsImg.src = '/carrots.png';
+    carrotsImg.onload = () => {
+      carrotsImageRef.current = carrotsImg;
     };
   }, []);
 
@@ -130,22 +151,34 @@ export default function Game() {
         if (tile.type === 'grass' && grassImageRef.current) {
           // Draw grass texture
           ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        } else {
-          // Draw solid color for other tiles
-          ctx.fillStyle = COLORS[tile.type] || COLORS.grass;
+        } else if (tile.type === 'tree' && treeImageRef.current) {
+          // Draw tree sprite
+          ctx.drawImage(treeImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'planted' && plantedCropImageRef.current) {
+          // Draw dirt first, then planted crop sprite on top
+          ctx.fillStyle = COLORS.dirt;
           ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        }
-
-        // Growth indicator
-        if (tile.type === 'planted' || tile.type === 'grown') {
-          const growthHeight = (tile.growthStage / 100) * GAME_CONFIG.tileSize;
-          ctx.fillStyle = tile.type === 'grown' ? '#ffd700' : '#90ee90';
+          ctx.drawImage(plantedCropImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'carrot' && carrotsImageRef.current) {
+          // Draw dirt first, then grown carrots sprite on top
+          ctx.fillStyle = COLORS.dirt;
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          ctx.drawImage(carrotsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown') {
+          // Draw dirt + generic grown crop (golden)
+          ctx.fillStyle = COLORS.dirt;
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          ctx.fillStyle = COLORS.grown;
           ctx.fillRect(
             px + GAME_CONFIG.tileSize / 4,
-            py + GAME_CONFIG.tileSize - growthHeight,
+            py + GAME_CONFIG.tileSize / 4,
             GAME_CONFIG.tileSize / 2,
-            growthHeight
+            GAME_CONFIG.tileSize / 2
           );
+        } else {
+          // Draw solid color for other tiles (rock, dirt, etc.)
+          ctx.fillStyle = COLORS[tile.type] || COLORS.grass;
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         }
 
         // Grid lines

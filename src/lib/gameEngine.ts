@@ -2,7 +2,7 @@
 import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
-  gridWidth: 16,
+  gridWidth: 20, // Increased from 16 to make farm wider
   gridHeight: 12,
   tileSize: 72, // 50% bigger than before
 };

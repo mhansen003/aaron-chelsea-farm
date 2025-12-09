@@ -787,6 +787,179 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     }
   }
 
+  // ========== HARVEST BOT AI ==========
+  if (newState.harvestBots && newState.harvestBots.length > 0) {
+    const currentZoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
+    const currentZone = newZones[currentZoneKey];
+
+    if (currentZone && currentZone.owned) {
+      const grid = currentZone.grid;
+      let updatedGrid = grid;
+      const updatedHarvestBots = newState.harvestBots.map(bot => {
+        // Skip if bot doesn't have position
+        if (bot.x === undefined || bot.y === undefined) return bot;
+
+        const botX = bot.x;
+        const botY = bot.y;
+
+        // Initialize visual position if not set
+        let visualX = bot.visualX ?? botX;
+        let visualY = bot.visualY ?? botY;
+
+        // Smoothly interpolate visual position toward actual position
+        const dx = botX - visualX;
+        const dy = botY - visualY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0.01) {
+          visualX += dx * MOVE_SPEED;
+          visualY += dy * MOVE_SPEED;
+        } else {
+          visualX = botX;
+          visualY = botY;
+        }
+
+        // Check if inventory is full
+        const isInventoryFull = bot.inventory.length >= bot.inventoryCapacity;
+
+        // If inventory is full, go to warehouse to deposit
+        if (isInventoryFull) {
+          // Find warehouse tile
+          let warehousePos: { x: number; y: number } | null = null;
+          grid.forEach((row, y) => {
+            row.forEach((tile, x) => {
+              if (tile.type === 'warehouse') {
+                warehousePos = { x, y };
+              }
+            });
+          });
+
+          if (warehousePos) {
+            // Store in const to help TypeScript narrowing
+            const warehouse: { x: number; y: number } = warehousePos;
+            // If at warehouse, deposit crops
+            if (botX === warehouse.x && botY === warehouse.y) {
+              newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
+              return { ...bot, inventory: [], status: 'depositing' as const, visualX, visualY };
+            } else {
+              // Move toward warehouse
+              let newX = botX;
+              let newY = botY;
+              if (Math.random() < (deltaTime / 500)) {
+                if (botX < warehouse.x) newX++;
+                else if (botX > warehouse.x) newX--;
+                else if (botY < warehouse.y) newY++;
+                else if (botY > warehouse.y) newY--;
+              }
+              return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
+            }
+          }
+        }
+
+        // Find grown crops to harvest
+        const grownCrops: Array<{ x: number; y: number }> = [];
+        grid.forEach((row, y) => {
+          row.forEach((tile, x) => {
+            if (tile.type === 'grown' && tile.crop) {
+              grownCrops.push({ x, y });
+            }
+          });
+        });
+
+        // Harvest grown crops if inventory not full
+        if (!isInventoryFull && grownCrops.length > 0) {
+          // Find nearest grown crop
+          let nearest = grownCrops[0];
+          let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
+          grownCrops.forEach(crop => {
+            const dist = Math.abs(botX - crop.x) + Math.abs(botY - crop.y);
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = crop;
+            }
+          });
+
+          // If at crop location, harvest it
+          if (botX === nearest.x && botY === nearest.y) {
+            const tile = updatedGrid[nearest.y]?.[nearest.x];
+            if (tile && tile.type === 'grown' && tile.crop) {
+              const cropType = tile.crop;
+              const quality = newState.player.inventory.seedQuality[cropType];
+
+              // Harvest the crop
+              updatedGrid = updatedGrid.map((row, rowY) =>
+                row.map((t, tileX) => {
+                  if (tileX === nearest.x && rowY === nearest.y) {
+                    return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined };
+                  }
+                  return t;
+                })
+              );
+
+              // Improve quality 10% of the time
+              const improvedQuality = Math.random() < 0.1 ? { generation: quality.generation + 1, yield: Math.min(3.0, quality.yield + 0.1), growthSpeed: Math.min(2.0, quality.growthSpeed + 0.05) } : quality;
+
+              // Give back 1 seed to player
+              newState = {
+                ...newState,
+                player: {
+                  ...newState.player,
+                  inventory: {
+                    ...newState.player.inventory,
+                    seeds: { ...newState.player.inventory.seeds, [cropType]: newState.player.inventory.seeds[cropType] + 1 },
+                    seedQuality: { ...newState.player.inventory.seedQuality, [cropType]: improvedQuality },
+                  },
+                },
+              };
+
+              return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY };
+            }
+          } else {
+            // Move toward crop
+            let newX = botX;
+            let newY = botY;
+            if (Math.random() < (deltaTime / 500)) {
+              if (botX < nearest.x) newX++;
+              else if (botX > nearest.x) newX--;
+              else if (botY < nearest.y) newY++;
+              else if (botY > nearest.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
+          }
+        } else {
+          // Idle wandering when no crops to harvest or inventory full (but can't find warehouse)
+          if (Math.random() < (deltaTime / 2000)) {
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable = tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'planted' || tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY };
+            }
+          }
+        }
+
+        return { ...bot, visualX, visualY };
+      });
+
+      newState = { ...newState, harvestBots: updatedHarvestBots };
+      newZones[currentZoneKey] = { ...currentZone, grid: updatedGrid };
+    }
+  }
+
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);
 

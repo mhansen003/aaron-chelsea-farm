@@ -167,6 +167,7 @@ export default function Game() {
   const warehouseImageRef = useRef<HTMLImageElement | null>(null);
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
+  const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
@@ -240,6 +241,12 @@ export default function Game() {
     waterBotImg.src = '/water-bot.png';
     waterBotImg.onload = () => {
       waterBotImageRef.current = waterBotImg;
+    };
+
+    const harvestBotImg = new Image();
+    harvestBotImg.src = '/harvest-bot.png';
+    harvestBotImg.onload = () => {
+      harvestBotImageRef.current = harvestBotImg;
     };
 
     const archImg = new Image();
@@ -964,6 +971,37 @@ export default function Game() {
           ctx.beginPath();
           ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
           ctx.fill();
+        }
+      }
+    });
+
+    // Draw harvest bots using visual position for smooth movement
+    gameState.harvestBots.forEach(bot => {
+      if (bot.x !== undefined && bot.y !== undefined) {
+        const visualX = bot.visualX ?? bot.x;
+        const visualY = bot.visualY ?? bot.y;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
+
+        if (harvestBotImageRef.current) {
+          ctx.drawImage(harvestBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to orange circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#ff9800';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw inventory indicator
+        if (bot.inventory.length > 0) {
+          ctx.fillStyle = '#4caf50';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(bot.inventory.length.toString(), botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize - 8);
         }
       }
     });

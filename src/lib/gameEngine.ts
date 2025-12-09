@@ -722,16 +722,26 @@ export function buySprinklers(state: GameState, amount: number): GameState {
 
 export function buyWaterbots(state: GameState, amount: number): GameState {
   const cost = WATERBOT_COST * amount;
+  const MAX_WATERBOTS = 2;
+
+  // Check if player can afford it
   if (state.player.money < cost) return state;
+
+  // Check if player has reached max capacity
+  if (state.player.inventory.waterbots >= MAX_WATERBOTS) return state;
+
+  // Limit purchase to not exceed max capacity
+  const actualAmount = Math.min(amount, MAX_WATERBOTS - state.player.inventory.waterbots);
+  const actualCost = WATERBOT_COST * actualAmount;
 
   return {
     ...state,
     player: {
       ...state.player,
-      money: state.player.money - cost,
+      money: state.player.money - actualCost,
       inventory: {
         ...state.player.inventory,
-        waterbots: state.player.inventory.waterbots + amount,
+        waterbots: state.player.inventory.waterbots + actualAmount,
       },
     },
   };

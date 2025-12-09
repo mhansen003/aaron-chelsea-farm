@@ -43,23 +43,29 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="text-orange-300 font-bold">${WATERBOT_COST} each</div>
             </div>
             <div className="text-sm mb-2">
-              <span className="text-green-400">Auto-waters 7x7 area daily</span>
+              <span className="text-green-400">Automatically patrols and waters crops</span>
               {' • '}
-              <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}</span>
+              <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}/2</span>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onBuyWaterbots(1)}
-                disabled={gameState.player.money < WATERBOT_COST}
-                className={`px-4 py-2 rounded font-bold flex-1 ${
-                  gameState.player.money >= WATERBOT_COST
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-              >
-                Buy 1
-              </button>
-            </div>
+            {gameState.player.inventory.waterbots >= 2 ? (
+              <div className="px-4 py-2 rounded font-bold bg-gray-600 text-center text-gray-400">
+                Max Capacity (2/2)
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onBuyWaterbots(1)}
+                  disabled={gameState.player.money < WATERBOT_COST}
+                  className={`px-4 py-2 rounded font-bold flex-1 ${
+                    gameState.player.money >= WATERBOT_COST
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  Buy 1
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Harvest Bots */}

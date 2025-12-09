@@ -701,26 +701,35 @@ export default function Game() {
         }
 
         // Draw task progress bar if farmer is working on this tile
+        // Only show when farmer has reached the tile (not while traveling)
         if (gameState.currentTask &&
             gameState.currentTask.tileX === x &&
             gameState.currentTask.tileY === y) {
-          const barHeight = 8;
-          const barY = py + GAME_CONFIG.tileSize - barHeight - 4; // Position at bottom
-          const barWidth = GAME_CONFIG.tileSize - 8;
+          const visualX = gameState.player.visualX ?? gameState.player.x;
+          const visualY = gameState.player.visualY ?? gameState.player.y;
 
-          // Background
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-          ctx.fillRect(px + 4, barY, barWidth, barHeight);
+          // Check if farmer has reached the tile (within 0.1 tiles)
+          const hasReachedTile = Math.abs(visualX - x) < 0.1 && Math.abs(visualY - y) < 0.1;
 
-          // Progress
-          const progressWidth = (barWidth * gameState.currentTask.progress) / 100;
-          ctx.fillStyle = '#4caf50';
-          ctx.fillRect(px + 4, barY, progressWidth, barHeight);
+          if (hasReachedTile) {
+            const barHeight = 8;
+            const barY = py + GAME_CONFIG.tileSize - barHeight - 4; // Position at bottom
+            const barWidth = GAME_CONFIG.tileSize - 8;
 
-          // Border
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(px + 4, barY, barWidth, barHeight);
+            // Background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(px + 4, barY, barWidth, barHeight);
+
+            // Progress
+            const progressWidth = (barWidth * gameState.currentTask.progress) / 100;
+            ctx.fillStyle = '#4caf50';
+            ctx.fillRect(px + 4, barY, progressWidth, barHeight);
+
+            // Border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px + 4, barY, barWidth, barHeight);
+          }
         }
 
         // Grid lines
@@ -1760,6 +1769,27 @@ export default function Game() {
                      task.type === 'harvest' ? '🌾' :
                      '💦'}
                     <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Robot Section */}
+          {gameState.player.inventory.waterbots > 0 && (
+            <div className="bg-cyan-900/30 border border-cyan-600 rounded px-2 py-1 mt-2">
+              <div className="text-xs text-cyan-300 font-bold mb-1">🤖 ROBOTS ({gameState.player.inventory.waterbots}):</div>
+              <div className="space-y-1">
+                {Array.from({ length: gameState.player.inventory.waterbots }).map((_, idx) => (
+                  <div key={idx} className="bg-cyan-900/50 border border-cyan-500 rounded px-2 py-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">💧</span>
+                      <div className="flex-1">
+                        <div className="text-xs font-bold text-cyan-200">Water Bot #{idx + 1}</div>
+                        <div className="text-xs text-cyan-400">Auto-watering crops</div>
+                      </div>
+                      <div className="text-xs text-green-400">●  Active</div>
+                    </div>
                   </div>
                 ))}
               </div>

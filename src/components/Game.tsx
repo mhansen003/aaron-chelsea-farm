@@ -430,54 +430,97 @@ export default function Game() {
           }
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'shop' && shopImageRef.current) {
-          // Draw grass background
-          if (grassImageRef.current) {
-            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.grass;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Only draw grass background for non-top-left tiles
+          if (!(x === 0 && y === 0)) {
+            if (grassImageRef.current) {
+              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            } else {
+              ctx.fillStyle = COLORS.grass;
+              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            }
           }
           // Draw 2x2 building only from top-left tile (0,0)
           // Each building image covers 2x2 tiles
           if (x === 0 && y === 0) {
+            // Draw grass background first for full 2x2 area
+            if (grassImageRef.current) {
+              for (let by = 0; by < 2; by++) {
+                for (let bx = 0; bx < 2; bx++) {
+                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+                }
+              }
+            }
             ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'export' && exportImageRef.current) {
-          // Draw grass background
-          if (grassImageRef.current) {
-            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.grass;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Only draw grass background for non-top-left tiles
+          if (!(x === 14 && y === 0)) {
+            if (grassImageRef.current) {
+              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            } else {
+              ctx.fillStyle = COLORS.grass;
+              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            }
           }
           // Draw 2x2 building only from top-left tile (x=14 for 16-wide grid)
           if (x === 14 && y === 0) {
+            // Draw grass background first for full 2x2 area
+            if (grassImageRef.current) {
+              for (let by = 0; by < 2; by++) {
+                for (let bx = 0; bx < 2; bx++) {
+                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+                }
+              }
+            }
             ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
-          // Draw grass background
-          if (grassImageRef.current) {
-            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.grass;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Only draw grass background for non-top-left tiles
+          if (!(x === 12 && y === 0)) {
+            if (grassImageRef.current) {
+              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            } else {
+              ctx.fillStyle = COLORS.grass;
+              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            }
           }
           // Draw 2x2 building only from top-left tile (x=12 for 16-wide grid)
           if (x === 12 && y === 0) {
+            // Draw grass background first for full 2x2 area
+            if (grassImageRef.current) {
+              for (let by = 0; by < 2; by++) {
+                for (let bx = 0; bx < 2; bx++) {
+                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+                }
+              }
+            }
             ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
-          // Draw grass background
-          if (grassImageRef.current) {
-            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.grass;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Check if this is the top-left corner (even coordinates)
+          const isTopLeft = x % 2 === 0 && y % 2 === 0;
+
+          // Only draw grass background for non-top-left tiles
+          if (!isTopLeft) {
+            if (grassImageRef.current) {
+              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            } else {
+              ctx.fillStyle = COLORS.grass;
+              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            }
           }
+
           // Draw 2x2 mechanic building (position varies based on where player placed it)
           // Only draw if this is the top-left corner of the mechanic building
-          // For now, we'll need to check if it's an even x and y coordinate
-          if (x % 2 === 0 && y % 2 === 0) {
+          if (isTopLeft) {
+            // Draw grass background first for full 2x2 area
+            if (grassImageRef.current) {
+              for (let by = 0; by < 2; by++) {
+                for (let bx = 0; bx < 2; bx++) {
+                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+                }
+              }
+            }
             ctx.drawImage(mechanicImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {

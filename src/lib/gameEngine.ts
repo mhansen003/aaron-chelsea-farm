@@ -260,7 +260,21 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   // Process current task
   if (newState.currentTask) {
-    const newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
+    // Check if player has reached the task location
+    const playerAtTaskLocation =
+      newState.player.x === newState.currentTask.tileX &&
+      newState.player.y === newState.currentTask.tileY;
+
+    let newProgress = newState.currentTask.progress;
+
+    // Only progress the task if player is at the location
+    if (playerAtTaskLocation) {
+      newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
+    } else {
+      // Move player toward task location
+      newState.player.x = newState.currentTask.tileX;
+      newState.player.y = newState.currentTask.tileY;
+    }
 
     if (newProgress >= 100) {
       // Task complete - execute it
@@ -286,11 +300,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
       }
 
-      // Move player to task location
-      newState.player.x = task.tileX;
-      newState.player.y = task.tileY;
-
-      // Clear current task
+      // Clear current task (player is already at location)
       newState.currentTask = null;
     } else {
       // Update progress

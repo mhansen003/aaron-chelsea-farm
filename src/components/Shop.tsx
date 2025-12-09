@@ -21,7 +21,7 @@ const SEED_INFO = {
   tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2 },
 };
 
-type ShopTab = 'seeds' | 'tools' | 'robots';
+type ShopTab = 'seeds' | 'tools' | 'robots' | 'animals';
 
 export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
@@ -74,6 +74,16 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
             }`}
           >
             🤖 Robots
+          </button>
+          <button
+            onClick={() => setActiveTab('animals')}
+            className={`flex-1 px-4 py-3 rounded-lg font-bold transition-all ${
+              activeTab === 'animals'
+                ? 'bg-pink-600 ring-2 ring-pink-300'
+                : 'bg-black/40 hover:bg-black/60'
+            }`}
+          >
+            🐄 Animals
           </button>
         </div>
 
@@ -142,7 +152,37 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {activeTab === 'tools' && (
         <div>
           <div className="grid gap-4">
-            {gameState.tools.map(tool => (
+            {/* Basket Upgrade */}
+            <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">🎒</span>
+                  <span className="font-bold">Basket Upgrade</span>
+                </div>
+                <div className="text-amber-300 font-bold">${BAG_UPGRADE_COST}</div>
+              </div>
+              <div className="text-sm mb-2 text-gray-300">
+                Additional inventory for harvesting
+                {' • '}
+                <span className="text-green-400">+4 basket capacity</span>
+                {' • '}
+                <span className="text-blue-400">Current: {gameState.player.basketCapacity}</span>
+              </div>
+              <button
+                onClick={() => onUpgradeBag()}
+                disabled={gameState.player.money < BAG_UPGRADE_COST}
+                className={`px-4 py-2 rounded font-bold w-full ${
+                  gameState.player.money >= BAG_UPGRADE_COST
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Upgrade Basket
+              </button>
+            </div>
+
+            {/* Water Sprinkler Tool */}
+            {gameState.tools.filter(tool => tool.name === 'water_sprinkler').map(tool => (
               <div
                 key={tool.name}
                 className={`p-4 rounded-lg border-2 ${
@@ -184,33 +224,6 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {/* Robots Tab Content */}
         {activeTab === 'robots' && (
         <div className="mb-6">
-
-          {/* Bag Upgrade */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">🎒</span>
-                <span className="font-bold">Basket Upgrade</span>
-              </div>
-              <div className="text-amber-300 font-bold">${BAG_UPGRADE_COST}</div>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-green-400">+4 basket capacity</span>
-              {' • '}
-              <span className="text-blue-400">Current: {gameState.player.basketCapacity}</span>
-            </div>
-            <button
-              onClick={() => onUpgradeBag()}
-              disabled={gameState.player.money < BAG_UPGRADE_COST}
-              className={`px-4 py-2 rounded font-bold w-full ${
-                gameState.player.money >= BAG_UPGRADE_COST
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-600 cursor-not-allowed'
-              }`}
-            >
-              Upgrade Basket
-            </button>
-          </div>
 
           {/* Sprinklers */}
           <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
@@ -308,6 +321,62 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 Buy 1
               </button>
             </div>
+          </div>
+        </div>
+        )}
+
+        {/* Animals Tab Content */}
+        {activeTab === 'animals' && (
+        <div className="mb-6">
+          {/* Cows */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-gray-600 mb-4 opacity-60">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🐄</span>
+                <span className="font-bold">Cows</span>
+              </div>
+              <span className="text-gray-400 font-bold">Coming Soon</span>
+            </div>
+            <div className="text-sm mb-2 text-gray-400">
+              Produce milk daily for extra income
+            </div>
+            <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+              Not Available Yet
+            </button>
+          </div>
+
+          {/* Sheep */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-gray-600 mb-4 opacity-60">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🐑</span>
+                <span className="font-bold">Sheep</span>
+              </div>
+              <span className="text-gray-400 font-bold">Coming Soon</span>
+            </div>
+            <div className="text-sm mb-2 text-gray-400">
+              Produce wool that can be sold or processed
+            </div>
+            <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+              Not Available Yet
+            </button>
+          </div>
+
+          {/* Chickens */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-gray-600 opacity-60">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🐔</span>
+                <span className="font-bold">Chickens</span>
+              </div>
+              <span className="text-gray-400 font-bold">Coming Soon</span>
+            </div>
+            <div className="text-sm mb-2 text-gray-400">
+              Lay eggs daily that can be sold
+            </div>
+            <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+              Not Available Yet
+            </button>
           </div>
         </div>
         )}

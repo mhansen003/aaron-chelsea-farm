@@ -1817,6 +1817,7 @@ export default function Game() {
                  gameState.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
                  gameState.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
                  gameState.currentTask.type === 'place_well' ? '🪣 Digging Well' :
+                 gameState.currentTask.type === 'deposit' ? '📦 Depositing' :
                  '🔨 Working'}
               </div>
               <div className="w-full h-1 bg-gray-700 rounded-full mt-1">
@@ -1847,6 +1848,7 @@ export default function Game() {
                      task.type === 'place_sprinkler' ? '💦' :
                      task.type === 'place_mechanic' ? '⚙️' :
                      task.type === 'place_well' ? '🪣' :
+                     task.type === 'deposit' ? '📦' :
                      '🔨'}
                     <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
                   </div>

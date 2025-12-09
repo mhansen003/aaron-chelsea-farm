@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -355,6 +355,33 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           newState = waterTile(newState, task.tileX, task.tileY);
           break;
         case 'harvest':
+          // Check if basket is full before harvesting
+          if (newState.player.basket.length >= newState.player.basketCapacity) {
+            // Basket is full! Insert deposit task before this harvest task
+            const warehousePos = findWarehouseTile(newState);
+            if (warehousePos) {
+              // Create deposit task at warehouse location
+              const depositTask: Task = {
+                id: `${Date.now()}-${Math.random()}`,
+                type: 'deposit',
+                tileX: warehousePos.x,
+                tileY: warehousePos.y,
+                zoneX: newState.currentZone.x,
+                zoneY: newState.currentZone.y,
+                progress: 0,
+                duration: TASK_DURATIONS.deposit,
+              };
+
+              // Put harvest task back at front of queue, and add deposit task as current
+              newState.taskQueue = [task, ...newState.taskQueue];
+              newState.currentTask = depositTask;
+              // Reset player position to move to warehouse
+              newState.player.x = warehousePos.x;
+              newState.player.y = warehousePos.y;
+              break; // Exit switch without harvesting
+            }
+          }
+          // Basket has space, proceed with harvest
           newState = harvestCrop(newState, task.tileX, task.tileY);
           break;
         case 'place_sprinkler':
@@ -363,10 +390,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'place_mechanic':
           newState = placeMechanicShop(newState, task.tileX, task.tileY);
           break;
+        case 'deposit':
+          newState = depositToWarehouse(newState);
+          break;
       }
 
-      // Clear current task (player is already at location)
-      newState.currentTask = null;
+      // Clear current task (player is already at location) - unless we just inserted a deposit task
+      if (newState.currentTask?.id === task.id) {
+        newState.currentTask = null;
+      }
     } else {
       // Update progress
       newState.currentTask = { ...newState.currentTask, progress: newProgress };

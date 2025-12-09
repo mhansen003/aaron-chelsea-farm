@@ -22,6 +22,7 @@ export const SEED_COSTS: Record<Exclude<CropType, null>, number> & { null: numbe
 };
 
 export const GROWTH_TIME = 5000; // ms for full growth
+export const WATER_BOOST = 0.2; // 20% growth speed boost when watered
 
 export function createInitialGrid(): Tile[][] {
   const grid: Tile[][] = [];
@@ -58,7 +59,8 @@ export function createInitialState(): GameState {
       x: 1,
       y: 1,
       money: 30,
-      selectedTool: null,
+      selectedTool: 'hoe',
+      selectedCrop: 'carrot',
       inventory: {
         seeds: {
           carrot: 5,
@@ -85,9 +87,9 @@ export function createInitialState(): GameState {
       hunger: 100,
       happiness: 80,
       dietaryNeeds: {
-        carrot: 2, // Need 2 carrots per feeding
-        wheat: 3,  // Need 3 wheat per feeding
-        tomato: 1, // Need 1 tomato per feeding
+        carrot: 2,
+        wheat: 3,
+        tomato: 1,
       },
     },
     tools: [
@@ -98,21 +100,27 @@ export function createInitialState(): GameState {
         unlocked: true,
       },
       {
-        name: 'watering_can',
-        cost: 15,
-        description: 'Water crops to speed growth',
-        unlocked: false,
+        name: 'seed_bag',
+        cost: 0,
+        description: 'Plant seeds on cleared soil',
+        unlocked: true,
       },
       {
         name: 'scythe',
-        cost: 30,
-        description: 'Harvest crops faster',
+        cost: 0,
+        description: 'Harvest grown crops',
+        unlocked: true,
+      },
+      {
+        name: 'watering_can',
+        cost: 20,
+        description: 'Water single tile (speeds growth 20%)',
         unlocked: false,
       },
       {
-        name: 'auto_harvester',
-        cost: 100,
-        description: 'Automatically harvests nearby crops',
+        name: 'water_sprinkler',
+        cost: 50,
+        description: 'Water 3x3 area around you (speeds growth 20%)',
         unlocked: false,
       },
     ],
@@ -122,7 +130,7 @@ export function createInitialState(): GameState {
   };
 }
 
-const HUNGER_DEPLETION_RATE = 2; // Hunger decreases by 2 per second
+const HUNGER_DEPLETION_RATE = 2;
 
 export function updateGameState(state: GameState, deltaTime: number): GameState {
   if (state.isPaused) return state;
@@ -130,7 +138,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   const newGrid = state.grid.map(row =>
     row.map(tile => {
       if (tile.type === 'planted' && tile.crop && tile.growthStage < 100) {
-        // Apply seed quality growth speed multiplier
         const quality = state.player.inventory.seedQuality[tile.crop];
         const growthMultiplier = quality ? quality.growthSpeed : 1.0;
 
@@ -149,14 +156,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     })
   );
 
-  // Deplete hunger over time
   const hungerDepletion = (deltaTime / 1000) * HUNGER_DEPLETION_RATE;
   const newHunger = Math.max(0, state.community.hunger - hungerDepletion);
 
-  // Calculate happiness based on hunger and diet diversity
   let happiness = state.community.happiness;
   if (newHunger < 30) {
-    happiness = Math.max(0, happiness - (deltaTime / 1000) * 5); // Lose happiness when hungry
+    happiness = Math.max(0, happiness - (deltaTime / 1000) * 5);
   }
 
   return {
@@ -259,13 +264,12 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
     })
   );
 
-  // Improve seed quality when harvesting (10% chance to get better generation)
   const improvedQuality =
     Math.random() < 0.1
       ? {
           generation: quality.generation + 1,
-          yield: Math.min(3.0, quality.yield + 0.1), // Max 3x yield
-          growthSpeed: Math.min(2.0, quality.growthSpeed + 0.05), // Max 2x speed
+          yield: Math.min(3.0, quality.yield + 0.1),
+          growthSpeed: Math.min(2.0, quality.growthSpeed + 0.05),
         }
       : quality;
 
@@ -283,7 +287,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
         },
         seeds: {
           ...state.player.inventory.seeds,
-          [cropType]: state.player.inventory.seeds[cropType] + 1, // Get 1 seed back
+          [cropType]: state.player.inventory.seeds[cropType] + 1,
         },
         seedQuality: {
           ...state.player.inventory.seedQuality,
@@ -291,6 +295,50 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
         },
       },
     },
+  };
+}
+
+export function waterTile(state: GameState, tileX: number, tileY: number): GameState {
+  const tile = state.grid[tileY]?.[tileX];
+  if (!tile || (tile.type !== 'planted' && tile.type !== 'grown')) return state;
+
+  const newGrid = state.grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY && (t.type === 'planted' || t.type === 'grown')) {
+        return {
+          ...t,
+          growthStage: Math.min(100, t.growthStage + 20),
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    grid: newGrid,
+  };
+}
+
+export function waterArea(state: GameState, centerX: number, centerY: number): GameState {
+  const newGrid = state.grid.map((row, y) =>
+    row.map((t, x) => {
+      const dx = Math.abs(x - centerX);
+      const dy = Math.abs(y - centerY);
+
+      if (dx <= 1 && dy <= 1 && (t.type === 'planted' || t.type === 'grown')) {
+        return {
+          ...t,
+          growthStage: Math.min(100, t.growthStage + 20),
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    grid: newGrid,
   };
 }
 
@@ -340,7 +388,6 @@ export function feedCommunity(state: GameState): {
   const needs = state.community.dietaryNeeds;
   const harvested = state.player.inventory.harvested;
 
-  // Check if we have enough of each crop type
   const hasEnoughCarrots = harvested.carrot >= needs.carrot;
   const hasEnoughWheat = harvested.wheat >= needs.wheat;
   const hasEnoughTomatoes = harvested.tomato >= needs.tomato;
@@ -353,7 +400,6 @@ export function feedCommunity(state: GameState): {
     };
   }
 
-  // Calculate happiness bonus based on variety
   const varietyBonus = 10;
   const newHappiness = Math.min(100, state.community.happiness + varietyBonus);
 
@@ -373,7 +419,7 @@ export function feedCommunity(state: GameState): {
     },
     community: {
       ...state.community,
-      hunger: 100, // Fully fed
+      hunger: 100,
       happiness: newHappiness,
     },
     lastFeedTime: state.gameTime,

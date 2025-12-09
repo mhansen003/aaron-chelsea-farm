@@ -10,7 +10,7 @@ export type TileType =
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
-export type ToolType = 'hoe' | 'watering_can' | 'scythe' | 'auto_harvester';
+export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
 export interface Tile {
   type: TileType;
@@ -31,7 +31,8 @@ export interface Player {
   x: number;
   y: number;
   money: number;
-  selectedTool: ToolType | null;
+  selectedTool: ToolType;
+  selectedCrop: CropType;
   inventory: {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
     harvested: Record<Exclude<CropType, null>, number> & { null: number };

@@ -7,12 +7,14 @@ import {
   clearTile,
   plantSeed,
   harvestCrop,
+  waterTile,
+  waterArea,
   feedCommunity,
   buySeeds,
   buyTool,
   GAME_CONFIG,
 } from '@/lib/gameEngine';
-import { GameState, CropType } from '@/types/game';
+import { GameState, CropType, ToolType } from '@/types/game';
 import Shop from './Shop';
 
 const COLORS = {
@@ -26,14 +28,46 @@ const COLORS = {
   grid: '#ffffff20',
 };
 
+const TOOL_ICONS: Record<ToolType, string> = {
+  hoe: '⛏️',
+  seed_bag: '🌱',
+  scythe: '🌾',
+  watering_can: '💧',
+  water_sprinkler: '💦',
+};
+
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<GameState>(createInitialState());
-  const [selectedCrop, setSelectedCrop] = useState<CropType>('carrot');
   const [showShop, setShowShop] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [feedMessage, setFeedMessage] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Background music
+  useEffect(() => {
+    audioRef.current = new Audio('/harvest-dreams.mp3');
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.5;
+
+    // Auto-play attempt (may require user interaction)
+    const playPromise = audioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Auto-play was prevented, will need user click
+        console.log('Audio autoplay prevented');
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // Game loop
   useEffect(() => {
@@ -42,7 +76,6 @@ export default function Game() {
       lastTimeRef.current = timestamp;
 
       if (deltaTime < 1000) {
-        // Prevent large jumps
         setGameState(prev => updateGameState(prev, deltaTime));
       }
 
@@ -107,6 +140,54 @@ export default function Game() {
     ctx.arc(playerPx, playerPy, GAME_CONFIG.tileSize / 3, 0, Math.PI * 2);
     ctx.fill();
 
+    // Draw tool icon above player
+    const toolIcon = TOOL_ICONS[gameState.player.selectedTool];
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(toolIcon, playerPx, playerPy - GAME_CONFIG.tileSize / 2);
+
+  }, [gameState]);
+
+  // Handle tool-based interactions
+  const handleInteraction = useCallback(() => {
+    const { x, y, selectedTool, selectedCrop } = gameState.player;
+    const tile = gameState.grid[y]?.[x];
+    if (!tile) return;
+
+    switch (selectedTool) {
+      case 'hoe':
+        // Clear rocks and trees
+        if (!tile.cleared) {
+          setGameState(prev => clearTile(prev, x, y));
+        }
+        break;
+
+      case 'seed_bag':
+        // Plant seeds
+        if (tile.cleared && !tile.crop && selectedCrop) {
+          setGameState(prev => plantSeed(prev, x, y, selectedCrop));
+        }
+        break;
+
+      case 'scythe':
+        // Harvest crops
+        if (tile.type === 'grown') {
+          setGameState(prev => harvestCrop(prev, x, y));
+        }
+        break;
+
+      case 'watering_can':
+        // Water single tile
+        if (tile.type === 'planted' || tile.type === 'grown') {
+          setGameState(prev => waterTile(prev, x, y));
+        }
+        break;
+
+      case 'water_sprinkler':
+        // Water 3x3 area
+        setGameState(prev => waterArea(prev, x, y));
+        break;
+    }
   }, [gameState]);
 
   // Keyboard controls
@@ -135,20 +216,36 @@ export default function Game() {
           break;
         case ' ':
         case 'e':
-          // Interact with tile
-          handleInteraction(x, y);
+          handleInteraction();
           return;
         case 'b':
           setShowShop(!showShop);
           return;
         case 'f':
-          // Feed the community
           const result = feedCommunity(gameState);
           setFeedMessage(result.message);
           if (result.success) {
             setGameState(result.state);
           }
           setTimeout(() => setFeedMessage(''), 3000);
+          return;
+        case 'h':
+          setShowInstructions(!showInstructions);
+          return;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+          // Number keys select tools
+          const toolIndex = parseInt(e.key) - 1;
+          const unlockedTools = gameState.tools.filter(t => t.unlocked);
+          if (toolIndex < unlockedTools.length) {
+            setGameState(prev => ({
+              ...prev,
+              player: { ...prev.player, selectedTool: unlockedTools[toolIndex].name },
+            }));
+          }
           return;
       }
 
@@ -162,33 +259,35 @@ export default function Game() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, selectedCrop, showShop]);
+  }, [gameState, handleInteraction, showShop, showInstructions]);
 
-  const handleInteraction = useCallback(
-    (x: number, y: number) => {
-      const tile = gameState.grid[y]?.[x];
-      if (!tile) return;
-
-      if (!tile.cleared) {
-        // Clear the tile
-        setGameState(prev => clearTile(prev, x, y));
-      } else if (tile.type === 'dirt' && selectedCrop) {
-        // Plant a seed
-        setGameState(prev => plantSeed(prev, x, y, selectedCrop));
-      } else if (tile.type === 'grown') {
-        // Harvest the crop
-        setGameState(prev => harvestCrop(prev, x, y));
-      }
-    },
-    [gameState, selectedCrop]
-  );
+  const handleNewGame = () => {
+    setGameState(createInitialState());
+    setFeedMessage('');
+    setShowShop(false);
+    setShowInstructions(false);
+  };
 
   return (
     <div className="relative flex flex-col items-center gap-4 p-4">
       {/* Game Title */}
-      <h1 className="text-4xl font-bold text-white">
-        🌾 Aaron & Chelsea&apos;s Farm 🌾
-      </h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-4xl font-bold text-white">
+          🌾 Aaron & Chelsea&apos;s Farm 🌾
+        </h1>
+        <button
+          onClick={handleNewGame}
+          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold"
+        >
+          🔄 New Game
+        </button>
+        <button
+          onClick={() => setShowInstructions(true)}
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold"
+        >
+          ❓ Help
+        </button>
+      </div>
 
       {/* Stats Bar */}
       <div className="grid grid-cols-2 gap-4 w-full max-w-4xl">
@@ -252,21 +351,57 @@ export default function Game() {
         className="border-4 border-white rounded-lg shadow-2xl"
       />
 
-      {/* Controls */}
-      <div className="flex gap-4 items-center flex-wrap justify-center">
-        <div className="text-white bg-black/50 px-4 py-2 rounded-lg">
+      {/* Tool Selection */}
+      <div className="bg-black/50 px-6 py-4 rounded-lg text-white w-full max-w-4xl">
+        <h3 className="font-bold text-lg mb-3">🛠️ Tools (Press 1-5 or click to select):</h3>
+        <div className="flex gap-3 flex-wrap">
+          {gameState.tools
+            .filter(t => t.unlocked)
+            .map((tool, idx) => (
+              <button
+                key={tool.name}
+                onClick={() =>
+                  setGameState(prev => ({
+                    ...prev,
+                    player: { ...prev.player, selectedTool: tool.name },
+                  }))
+                }
+                className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                  gameState.player.selectedTool === tool.name
+                    ? 'bg-blue-600 ring-4 ring-blue-300 scale-110'
+                    : 'bg-gray-700 hover:bg-gray-600'
+                }`}
+              >
+                <div className="text-2xl mb-1">{TOOL_ICONS[tool.name]}</div>
+                <div className="text-xs">{idx + 1}. {tool.description}</div>
+              </button>
+            ))}
+        </div>
+      </div>
+
+      {/* Crop Selection (for seed bag) */}
+      {gameState.player.selectedTool === 'seed_bag' && (
+        <div className="bg-black/50 px-6 py-3 rounded-lg text-white">
           <strong>Selected Crop:</strong>
           <select
-            value={selectedCrop || ''}
-            onChange={e => setSelectedCrop(e.target.value as CropType)}
+            value={gameState.player.selectedCrop || ''}
+            onChange={e =>
+              setGameState(prev => ({
+                ...prev,
+                player: { ...prev.player, selectedCrop: e.target.value as CropType },
+              }))
+            }
             className="ml-2 px-2 py-1 rounded bg-gray-700 text-white"
           >
-            <option value="carrot">🥕 Carrot</option>
-            <option value="wheat">🌾 Wheat</option>
-            <option value="tomato">🍅 Tomato</option>
+            <option value="carrot">🥕 Carrot ({gameState.player.inventory.seeds.carrot} seeds)</option>
+            <option value="wheat">🌾 Wheat ({gameState.player.inventory.seeds.wheat} seeds)</option>
+            <option value="tomato">🍅 Tomato ({gameState.player.inventory.seeds.tomato} seeds)</option>
           </select>
         </div>
+      )}
 
+      {/* Controls */}
+      <div className="flex gap-4 items-center flex-wrap justify-center">
         <button
           onClick={() => setShowShop(!showShop)}
           className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold"
@@ -291,45 +426,113 @@ export default function Game() {
 
       {/* Feed Message */}
       {feedMessage && (
-        <div className={`text-white px-6 py-3 rounded-lg font-bold ${
-          feedMessage.includes('successfully') ? 'bg-green-600' : 'bg-red-600'
-        }`}>
+        <div
+          className={`text-white px-6 py-3 rounded-lg font-bold ${
+            feedMessage.includes('successfully') ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
           {feedMessage}
         </div>
       )}
 
       {/* Dietary Needs */}
       <div className="text-white bg-black/50 px-6 py-3 rounded-lg">
-        <strong>Community Needs per Feeding:</strong> 🥕 {gameState.community.dietaryNeeds.carrot} | 🌾 {gameState.community.dietaryNeeds.wheat} | 🍅 {gameState.community.dietaryNeeds.tomato}
+        <strong>Community Needs per Feeding:</strong> 🥕 {gameState.community.dietaryNeeds.carrot} | 🌾{' '}
+        {gameState.community.dietaryNeeds.wheat} | 🍅 {gameState.community.dietaryNeeds.tomato}
       </div>
 
-      {/* Instructions */}
-      <div className="text-white bg-black/50 px-6 py-4 rounded-lg max-w-2xl">
-        <h3 className="font-bold mb-2">How to Play:</h3>
-        <ul className="list-disc list-inside space-y-1 text-sm">
-          <li><strong>WASD/Arrow Keys:</strong> Move your farmer</li>
-          <li><strong>Space/E:</strong> Interact (clear rocks/trees, plant seeds, harvest crops)</li>
-          <li><strong>B:</strong> Open shop to buy seeds and tools</li>
-          <li><strong>F:</strong> Feed your community (requires balanced diet!)</li>
-          <li>Clear obstacles (rocks/trees) to make farmable land</li>
-          <li>Plant seeds on cleared dirt and wait for them to grow</li>
-          <li>Harvest crops for money AND to get seeds back!</li>
-          <li><strong>Seed Quality:</strong> When harvesting, you get 1 seed back. Seeds have a 10% chance to improve in generation, yielding more money and growing faster!</li>
-          <li><strong>Keep Your Community Fed:</strong> Their hunger depletes over time. Feed them a balanced diet (carrots, wheat, tomatoes) to keep happiness high!</li>
-        </ul>
-      </div>
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border-4 border-green-600">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold">📖 How to Play</h2>
+              <button
+                onClick={() => setShowInstructions(false)}
+                className="text-2xl hover:text-red-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Movement:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>WASD or Arrow Keys:</strong> Move your farmer around the grid</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Tools:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>Press 1-5 or Click:</strong> Select a tool</li>
+                  <li><strong>Space or E:</strong> Use the selected tool</li>
+                  <li><strong>{TOOL_ICONS.hoe} Hoe (1):</strong> Clear rocks and trees to prepare soil</li>
+                  <li><strong>{TOOL_ICONS.seed_bag} Seed Bag (2):</strong> Plant seeds on cleared brown dirt</li>
+                  <li><strong>{TOOL_ICONS.scythe} Scythe (3):</strong> Harvest golden grown crops</li>
+                  <li><strong>{TOOL_ICONS.watering_can} Watering Can:</strong> Water 1 tile (+20% growth)</li>
+                  <li><strong>{TOOL_ICONS.water_sprinkler} Sprinkler:</strong> Water 3x3 area (+20% growth)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Gameplay Loop:</h3>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Use <strong>Hoe</strong> to clear rocks/trees → creates brown dirt</li>
+                  <li>Select <strong>Seed Bag</strong> and choose a crop</li>
+                  <li>Stand on brown dirt and press Space to plant</li>
+                  <li>Wait for crops to grow (or speed up with watering)</li>
+                  <li>Use <strong>Scythe</strong> on golden crops to harvest</li>
+                  <li>Harvesting gives you money + 1 seed back!</li>
+                </ol>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Community Management:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>Press F:</strong> Feed your community</li>
+                  <li>Requires: 2 carrots, 3 wheat, 1 tomato (balanced diet!)</li>
+                  <li>Hunger depletes 2% per second - don&apos;t let them starve!</li>
+                  <li>Happiness increases when fed, decreases when hungry</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Seed Quality System:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>10% chance per harvest to upgrade seed generation</li>
+                  <li>Higher generations = more money (up to 3x) and faster growth (up to 2x)</li>
+                  <li>Build up your seed quality for exponential gains!</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Other Controls:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>B:</strong> Open shop to buy seeds and tools</li>
+                  <li><strong>H:</strong> Toggle this help screen</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowInstructions(false)}
+              className="mt-6 w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg"
+            >
+              Got it! Let&apos;s Farm! 🌾
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Shop Modal */}
       {showShop && (
         <Shop
           gameState={gameState}
           onClose={() => setShowShop(false)}
-          onBuySeeds={(crop, amount) =>
-            setGameState(prev => buySeeds(prev, crop, amount))
-          }
-          onBuyTool={toolName =>
-            setGameState(prev => buyTool(prev, toolName))
-          }
+          onBuySeeds={(crop, amount) => setGameState(prev => buySeeds(prev, crop, amount))}
+          onBuyTool={toolName => setGameState(prev => buyTool(prev, toolName))}
         />
       )}
     </div>

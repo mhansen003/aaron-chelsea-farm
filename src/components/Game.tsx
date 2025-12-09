@@ -24,7 +24,7 @@ import {
   GAME_CONFIG,
   CROP_INFO,
 } from '@/lib/gameEngine';
-import { GameState, CropType, ToolType } from '@/types/game';
+import { GameState, CropType, ToolType, Tile } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 

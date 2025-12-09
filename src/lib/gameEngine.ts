@@ -762,27 +762,55 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           // If at crop location AND visual position has caught up, water it
           const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
           if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
-            // Water the crop
-            updatedGrid = updatedGrid.map((row, rowY) =>
-              row.map((tile, tileX) => {
-                if (tileX === nearest.x && rowY === nearest.y) {
-                  return {
-                    ...tile,
-                    wateredToday: true,
-                    wateredTimestamp: tile.wateredTimestamp ?? newGameTime,
-                  };
-                }
-                return tile;
-              })
-            );
+            const ACTION_DURATION = 1500; // 1.5 seconds to water
 
-            return {
-              ...bot,
-              waterLevel: bot.waterLevel - 1,
-              status: 'watering' as const,
-              visualX,
-              visualY,
-            };
+            // Check if action is in progress
+            if (bot.actionStartTime !== undefined) {
+              const elapsed = newGameTime - bot.actionStartTime;
+              if (elapsed >= ACTION_DURATION) {
+                // Action complete - water the crop
+                updatedGrid = updatedGrid.map((row, rowY) =>
+                  row.map((tile, tileX) => {
+                    if (tileX === nearest.x && rowY === nearest.y) {
+                      return {
+                        ...tile,
+                        wateredToday: true,
+                        wateredTimestamp: tile.wateredTimestamp ?? newGameTime,
+                      };
+                    }
+                    return tile;
+                  })
+                );
+
+                return {
+                  ...bot,
+                  waterLevel: bot.waterLevel - 1,
+                  status: 'watering' as const,
+                  visualX,
+                  visualY,
+                  actionStartTime: undefined,
+                  actionDuration: undefined,
+                };
+              } else {
+                // Action still in progress
+                return {
+                  ...bot,
+                  status: 'watering' as const,
+                  visualX,
+                  visualY,
+                };
+              }
+            } else {
+              // Start the action
+              return {
+                ...bot,
+                status: 'watering' as const,
+                visualX,
+                visualY,
+                actionStartTime: newGameTime,
+                actionDuration: ACTION_DURATION,
+              };
+            }
           } else {
             // Move toward crop (one tile at a time)
             let newX = botX;
@@ -1089,36 +1117,50 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
             const tile = updatedGrid[nearest.y]?.[nearest.x];
             if (tile && tile.type === 'grown' && tile.crop) {
-              const cropType = tile.crop;
-              const quality = newState.player.inventory.seedQuality[cropType];
+              const ACTION_DURATION = 1500; // 1.5 seconds to harvest
 
-              // Harvest the crop
-              updatedGrid = updatedGrid.map((row, rowY) =>
-                row.map((t, tileX) => {
-                  if (tileX === nearest.x && rowY === nearest.y) {
-                    return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined };
-                  }
-                  return t;
-                })
-              );
+              // Check if action is in progress
+              if (bot.actionStartTime !== undefined) {
+                const elapsed = newState.gameTime - bot.actionStartTime;
+                if (elapsed >= ACTION_DURATION) {
+                  // Action complete - harvest the crop
+                  const cropType = tile.crop;
+                  const quality = newState.player.inventory.seedQuality[cropType];
 
-              // Improve quality 10% of the time
-              const improvedQuality = Math.random() < 0.1 ? { generation: quality.generation + 1, yield: Math.min(3.0, quality.yield + 0.1), growthSpeed: Math.min(2.0, quality.growthSpeed + 0.05) } : quality;
+                  updatedGrid = updatedGrid.map((row, rowY) =>
+                    row.map((t, tileX) => {
+                      if (tileX === nearest.x && rowY === nearest.y) {
+                        return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined };
+                      }
+                      return t;
+                    })
+                  );
 
-              // Give back 1 seed to player
-              newState = {
-                ...newState,
-                player: {
-                  ...newState.player,
-                  inventory: {
-                    ...newState.player.inventory,
-                    seeds: { ...newState.player.inventory.seeds, [cropType]: newState.player.inventory.seeds[cropType] + 1 },
-                    seedQuality: { ...newState.player.inventory.seedQuality, [cropType]: improvedQuality },
-                  },
-                },
-              };
+                  // Improve quality 10% of the time
+                  const improvedQuality = Math.random() < 0.1 ? { generation: quality.generation + 1, yield: Math.min(3.0, quality.yield + 0.1), growthSpeed: Math.min(2.0, quality.growthSpeed + 0.05) } : quality;
 
-              return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY };
+                  // Give back 1 seed to player
+                  newState = {
+                    ...newState,
+                    player: {
+                      ...newState.player,
+                      inventory: {
+                        ...newState.player.inventory,
+                        seeds: { ...newState.player.inventory.seeds, [cropType]: newState.player.inventory.seeds[cropType] + 1 },
+                        seedQuality: { ...newState.player.inventory.seedQuality, [cropType]: improvedQuality },
+                      },
+                    },
+                  };
+
+                  return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                } else {
+                  // Action still in progress
+                  return { ...bot, status: 'harvesting' as const, visualX, visualY };
+                }
+              } else {
+                // Start the action
+                return { ...bot, status: 'harvesting' as const, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
+              }
             }
           } else {
             // Move toward crop
@@ -1342,37 +1384,51 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
             const tile = updatedGrid[nearest.y]?.[nearest.x];
             if (tile && tile.type === 'dirt' && tile.cleared && !tile.crop) {
-              // Plant the seed
-              updatedGrid = updatedGrid.map((row, rowY) =>
-                row.map((t, tileX) => {
-                  if (tileX === nearest.x && rowY === nearest.y) {
-                    return {
-                      ...t,
-                      type: 'planted' as import('@/types/game').TileType,
-                      crop: cropType,
-                      growthStage: 0,
-                    };
-                  }
-                  return t;
-                })
-              );
+              const ACTION_DURATION = 1500; // 1.5 seconds to plant
 
-              // Deduct seed from player inventory
-              newState = {
-                ...newState,
-                player: {
-                  ...newState.player,
-                  inventory: {
-                    ...newState.player.inventory,
-                    seeds: {
-                      ...newState.player.inventory.seeds,
-                      [cropType]: newState.player.inventory.seeds[cropType] - 1,
+              // Check if action is in progress
+              if (bot.actionStartTime !== undefined) {
+                const elapsed = newState.gameTime - bot.actionStartTime;
+                if (elapsed >= ACTION_DURATION) {
+                  // Action complete - plant the seed
+                  updatedGrid = updatedGrid.map((row, rowY) =>
+                    row.map((t, tileX) => {
+                      if (tileX === nearest.x && rowY === nearest.y) {
+                        return {
+                          ...t,
+                          type: 'planted' as import('@/types/game').TileType,
+                          crop: cropType,
+                          growthStage: 0,
+                        };
+                      }
+                      return t;
+                    })
+                  );
+
+                  // Deduct seed from player inventory
+                  newState = {
+                    ...newState,
+                    player: {
+                      ...newState.player,
+                      inventory: {
+                        ...newState.player.inventory,
+                        seeds: {
+                          ...newState.player.inventory.seeds,
+                          [cropType]: newState.player.inventory.seeds[cropType] - 1,
+                        },
+                      },
                     },
-                  },
-                },
-              };
+                  };
 
-              return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY };
+                  return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                } else {
+                  // Action still in progress
+                  return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY };
+                }
+              } else {
+                // Start the action
+                return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
+              }
             }
           } else {
             // Move toward tile

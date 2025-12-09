@@ -1203,6 +1203,76 @@ export default function Game() {
       }
     }
 
+    // Draw progress bars for bot actions
+    // Water bots
+    gameState.waterBots?.forEach(bot => {
+      if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
+        const elapsed = gameState.gameTime - bot.actionStartTime;
+        const progress = Math.min(1, elapsed / bot.actionDuration);
+        const px = bot.x * GAME_CONFIG.tileSize;
+        const py = bot.y * GAME_CONFIG.tileSize;
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+
+        // Progress fill
+        ctx.fillStyle = '#3b82f6'; // Blue for watering
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
+
+        // Border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+      }
+    });
+
+    // Harvest bots
+    gameState.harvestBots?.forEach(bot => {
+      if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
+        const elapsed = gameState.gameTime - bot.actionStartTime;
+        const progress = Math.min(1, elapsed / bot.actionDuration);
+        const px = bot.x * GAME_CONFIG.tileSize;
+        const py = bot.y * GAME_CONFIG.tileSize;
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+
+        // Progress fill
+        ctx.fillStyle = '#eab308'; // Yellow for harvesting
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
+
+        // Border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+      }
+    });
+
+    // Seed bots
+    gameState.seedBots?.forEach(bot => {
+      if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
+        const elapsed = gameState.gameTime - bot.actionStartTime;
+        const progress = Math.min(1, elapsed / bot.actionDuration);
+        const px = bot.x * GAME_CONFIG.tileSize;
+        const py = bot.y * GAME_CONFIG.tileSize;
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+
+        // Progress fill
+        ctx.fillStyle = '#22c55e'; // Green for planting
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
+
+        // Border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+      }
+    });
+
     // Draw player using visual position for smooth movement
     const visualX = gameState.player.visualX ?? gameState.player.x;
     const visualY = gameState.player.visualY ?? gameState.player.y;

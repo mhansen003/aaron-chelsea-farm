@@ -127,6 +127,9 @@ export interface Zone {
   theme: ZoneTheme; // Visual theme of the zone
   name: string; // Display name
   description: string; // Description shown when previewing
+  waterBots: WaterBot[]; // Water bots active in this zone
+  harvestBots: HarvestBot[]; // Harvest bots active in this zone
+  seedBots: SeedBot[]; // Seed bots active in this zone
 }
 
 export interface WaterBot {
@@ -139,6 +142,8 @@ export interface WaterBot {
   y?: number; // Current tile position Y
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
 }
 
 export interface HarvestBot {
@@ -153,6 +158,8 @@ export interface HarvestBot {
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
   idleStartTime?: number; // Game time when bot became idle with inventory
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
 }
 
 export interface SeedBotJob {
@@ -174,6 +181,8 @@ export interface SeedBot {
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
   autoBuySeeds: boolean; // Whether to auto-buy seeds when low
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
 }
 
 export interface GameState {

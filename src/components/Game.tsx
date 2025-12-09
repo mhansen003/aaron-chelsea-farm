@@ -71,6 +71,12 @@ export default function Game() {
           if (!parsed.player.basketCapacity) {
             parsed.player.basketCapacity = 8;
           }
+          if (parsed.player.visualX === undefined) {
+            parsed.player.visualX = parsed.player.x;
+          }
+          if (parsed.player.visualY === undefined) {
+            parsed.player.visualY = parsed.player.y;
+          }
 
           return parsed as GameState;
         } catch (e) {
@@ -352,9 +358,11 @@ export default function Game() {
       });
     });
 
-    // Draw player
-    const playerPx = gameState.player.x * GAME_CONFIG.tileSize;
-    const playerPy = gameState.player.y * GAME_CONFIG.tileSize;
+    // Draw player using visual position for smooth movement
+    const visualX = gameState.player.visualX ?? gameState.player.x;
+    const visualY = gameState.player.visualY ?? gameState.player.y;
+    const playerPx = visualX * GAME_CONFIG.tileSize;
+    const playerPy = visualY * GAME_CONFIG.tileSize;
 
     if (farmerImageRef.current) {
       // Draw farmer sprite

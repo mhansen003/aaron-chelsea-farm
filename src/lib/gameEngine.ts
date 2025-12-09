@@ -24,6 +24,7 @@ export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
 export const BAG_UPGRADE_COST = 100; // Cost to upgrade basket capacity by 4
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
+export const MOVE_SPEED = 0.05; // Movement interpolation speed (0-1, higher = faster)
 
 // Task durations in milliseconds
 export const TASK_DURATIONS = {
@@ -199,6 +200,29 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   const isNewDay = newDay > previousDay;
 
   let newState = { ...state };
+
+  // Initialize visual position if not set
+  if (newState.player.visualX === undefined) {
+    newState.player.visualX = newState.player.x;
+  }
+  if (newState.player.visualY === undefined) {
+    newState.player.visualY = newState.player.y;
+  }
+
+  // Smoothly interpolate visual position toward actual position
+  const dx = newState.player.x - newState.player.visualX;
+  const dy = newState.player.y - newState.player.visualY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance > 0.01) {
+    // Move toward target position
+    newState.player.visualX += dx * MOVE_SPEED;
+    newState.player.visualY += dy * MOVE_SPEED;
+  } else {
+    // Snap to target when close enough
+    newState.player.visualX = newState.player.x;
+    newState.player.visualY = newState.player.y;
+  }
 
   // Process current task
   if (newState.currentTask) {

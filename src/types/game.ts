@@ -54,6 +54,8 @@ export interface BasketItem {
 export interface Player {
   x: number;
   y: number;
+  visualX?: number; // Animated visual position
+  visualY?: number; // Animated visual position
   money: number;
   farmName: string; // Name of the farm
   selectedTool: ToolType;

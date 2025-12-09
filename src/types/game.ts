@@ -13,7 +13,11 @@ export type TileType =
   | 'waterbot'
   | 'arch'
   | 'mechanic'
-  | 'well';
+  | 'well'
+  | 'ocean'
+  | 'sand'
+  | 'seaweed'
+  | 'shells';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 

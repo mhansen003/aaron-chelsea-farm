@@ -43,9 +43,10 @@ export const TASK_DURATIONS = {
   deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 
-export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
+export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('@/types/game').ZoneTheme): Tile[][] {
   const grid: Tile[][] = [];
   const isStartingZone = zoneX === 0 && zoneY === 0;
+  const isBeach = theme === 'beach';
 
   // Calculate center positions for arches
   const centerX = Math.floor(GAME_CONFIG.gridWidth / 2);
@@ -58,8 +59,21 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       let archDirection: 'north' | 'south' | 'east' | 'west' | undefined = undefined;
       let archTargetZone: { x: number; y: number } | undefined = undefined;
 
+      // Beach zone: top half water, bottom half sand with seaweed/shells
+      if (isBeach) {
+        if (y < GAME_CONFIG.gridHeight / 2) {
+          // Top half: water
+          type = 'ocean';
+        } else {
+          // Bottom half: sand with decorations
+          type = 'sand';
+          const rand = Math.random();
+          if (rand < 0.30) type = 'seaweed'; // 30% seaweed
+          else if (rand < 0.50) type = 'shells'; // 20% shells
+        }
+      }
       // Shop building at top-left corner (2x2) of starting zone only
-      if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+      else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
       // Export building at top-right corner (2x2) of starting zone only
@@ -72,32 +86,32 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       }
       // Mechanic building (2x2) - if placed by player
       // Will be handled separately when player places it
-      // North arch (top center)
-      else if (y === 0 && x === centerX) {
+      // North arch (top center) - NOT in beach zones
+      else if (!isBeach && y === 0 && x === centerX) {
         type = 'arch';
         archDirection = 'north';
         archTargetZone = { x: zoneX, y: zoneY + 1 };
       }
-      // South arch (bottom center)
-      else if (y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
+      // South arch (bottom center) - NOT in beach zones
+      else if (!isBeach && y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
         type = 'arch';
         archDirection = 'south';
         archTargetZone = { x: zoneX, y: zoneY - 1 };
       }
-      // East arch (right center)
-      else if (x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
+      // East arch (right center) - NOT in beach zones
+      else if (!isBeach && x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
         type = 'arch';
         archDirection = 'east';
         archTargetZone = { x: zoneX + 1, y: zoneY };
       }
-      // West arch (left center)
-      else if (x === 0 && y === centerY) {
+      // West arch (left center) - NOT in beach zones
+      else if (!isBeach && x === 0 && y === centerY) {
         type = 'arch';
         archDirection = 'west';
         archTargetZone = { x: zoneX - 1, y: zoneY };
       }
       // Random obstacles (but not where arches are) - doubled density
-      else {
+      else if (!isBeach) {
         const rand = Math.random();
         if (rand < 0.30) type = 'rock'; // 30% rocks (was 15%)
         else if (rand < 0.50) type = 'tree'; // 20% trees (was 10%)
@@ -741,9 +755,54 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               visualY,
             };
           }
-        } else {
-          // Idle wandering when no crops to water or out of water
-          if (Math.random() < (deltaTime / 2000)) { // Wander every 2 seconds on average
+        } else if (bot.waterLevel === 0) {
+          // Out of water - find well to refill
+          let wellPos: { x: number; y: number } | null = null;
+          grid.forEach((row, y) => {
+            row.forEach((tile, x) => {
+              if (tile.type === 'well') {
+                wellPos = { x, y };
+              }
+            });
+          });
+
+          if (wellPos) {
+            // Store in const to help TypeScript narrowing
+            const well: { x: number; y: number } = wellPos;
+            // Navigate to well
+            if (botX === well.x && botY === well.y) {
+              // At well - refill water (instant for now, can add timer later)
+              return {
+                ...bot,
+                waterLevel: WATERBOT_MAX_WATER,
+                status: 'refilling' as const,
+                visualX,
+                visualY,
+              };
+            } else {
+              // Move toward well
+              let newX = botX;
+              let newY = botY;
+              if (Math.random() < (deltaTime / 500)) {
+                if (botX < well.x) newX++;
+                else if (botX > well.x) newX--;
+                else if (botY < well.y) newY++;
+                else if (botY > well.y) newY--;
+              }
+              return {
+                ...bot,
+                x: newX,
+                y: newY,
+                status: 'traveling' as const,
+                targetX: well.x,
+                targetY: well.y,
+                visualX,
+                visualY,
+              };
+            }
+          }
+          // No well available - idle wander
+          if (Math.random() < (deltaTime / 2000)) {
             const walkableTiles: Array<{ x: number; y: number }> = [];
             grid.forEach((row, y) => {
               row.forEach((tile, x) => {
@@ -758,7 +817,41 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               });
             });
 
-            // Pick nearby random tile
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return {
+                ...bot,
+                x: randomTile.x,
+                y: randomTile.y,
+                status: 'idle' as const,
+                visualX,
+                visualY,
+              };
+            }
+          }
+        } else {
+          // Has water but no crops - idle wander
+          if (Math.random() < (deltaTime / 2000)) {
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable =
+                  tile.type === 'grass' ||
+                  (tile.type === 'dirt' && tile.cleared) ||
+                  tile.type === 'planted' ||
+                  tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
             const nearbyTiles = walkableTiles.filter(t => {
               const dx = Math.abs(t.x - botX);
               const dy = Math.abs(t.y - botY);
@@ -1443,8 +1536,8 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
 
-  // Can only place on grass or dirt tiles, and must have one in inventory
-  if (!tile || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
+  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
+  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
     return state;
   }
 
@@ -1669,8 +1762,8 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
 
-  // Can only place on grass or dirt tiles, and must have one in inventory
-  if (!tile || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
+  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
+  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
     return state;
   }
 

@@ -58,6 +58,10 @@ const COLORS = {
   archActive: '#4caf50',
   mechanic: '#ff5722',
   well: '#03a9f4',
+  ocean: '#1976d2',
+  sand: '#f4a460',
+  seaweed: '#2e7d32',
+  shells: '#faf0e6',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {
@@ -586,6 +590,30 @@ export default function Game() {
             workingImageRef.current,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
+
+          // Draw construction progress bar
+          if (tile.constructionStartTime !== undefined && tile.constructionDuration !== undefined) {
+            const elapsedTime = gameState.gameTime - tile.constructionStartTime;
+            const progress = Math.min(100, (elapsedTime / tile.constructionDuration) * 100);
+
+            const barHeight = 8;
+            const barY = py + GAME_CONFIG.tileSize - barHeight - 4;
+            const barWidth = GAME_CONFIG.tileSize - 8;
+
+            // Background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(px + 4, barY, barWidth, barHeight);
+
+            // Progress
+            const progressWidth = (barWidth * progress) / 100;
+            ctx.fillStyle = '#ff9800'; // Orange for construction
+            ctx.fillRect(px + 4, barY, progressWidth, barHeight);
+
+            // Border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px + 4, barY, barWidth, barHeight);
+          }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
           // Draw grass background
           if (grassImageRef.current) {

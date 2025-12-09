@@ -36,7 +36,8 @@ export interface Tile {
   crop: CropType;
   growthStage: number; // 0-100
   cleared: boolean;
-  plantedDay?: number; // Which day the crop was planted
+  plantedDay?: number; // DEPRECATED: Which day the crop was planted
+  wateredTimestamp?: number; // Game time when first watered (triggers growth)
   wateredToday: boolean; // Whether this tile has been watered today
   hasSprinkler: boolean; // Whether this tile has a sprinkler placed on it
   archDirection?: 'north' | 'south' | 'east' | 'west'; // Direction this arch leads to
@@ -80,7 +81,8 @@ export interface Player {
 }
 
 export interface CropGrowthInfo {
-  daysToGrow: number; // How many days it takes to fully grow
+  daysToGrow: number; // DEPRECATED: kept for compatibility
+  growTime: number; // Milliseconds to fully grow after watering
   sellPrice: number; // How much you can sell it for
   seedCost: number; // How much seeds cost in shop
 }

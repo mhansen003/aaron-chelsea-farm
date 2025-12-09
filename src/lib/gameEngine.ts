@@ -7,12 +7,12 @@ export const GAME_CONFIG: GameConfig = {
   tileSize: 90, // Increased from 72 to fill header width (16 * 90 = 1440px)
 };
 
-// Crop information: growth days, sell price, seed cost
+// Crop information: growth time (ms), sell price, seed cost
 export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
-  carrot: { daysToGrow: 1, sellPrice: 5, seedCost: 2 },
-  wheat: { daysToGrow: 1, sellPrice: 3, seedCost: 1 },
-  tomato: { daysToGrow: 2, sellPrice: 8, seedCost: 4 },
-  null: { daysToGrow: 0, sellPrice: 0, seedCost: 0 },
+  carrot: { daysToGrow: 1, growTime: 30000, sellPrice: 5, seedCost: 2 }, // 30 seconds
+  wheat: { daysToGrow: 1, growTime: 45000, sellPrice: 3, seedCost: 1 }, // 45 seconds
+  tomato: { daysToGrow: 2, growTime: 90000, sellPrice: 8, seedCost: 4 }, // 90 seconds
+  null: { daysToGrow: 0, growTime: 0, sellPrice: 0, seedCost: 0 },
 };
 
 export const DAY_LENGTH = 60000; // 60 seconds = 1 day
@@ -359,20 +359,28 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       );
     }
 
-    // Update crop growth - only if watered
+    // Update crop growth - time-based growth after watering
     newGrid = newGrid.map(row =>
       row.map(tile => {
-        if (tile.type === 'planted' && tile.crop && tile.plantedDay !== undefined) {
+        if (tile.type === 'planted' && tile.crop) {
           const cropInfo = CROP_INFO[tile.crop];
-          const daysSincePlanted = newDay - tile.plantedDay;
 
-          // Only grow if watered today
-          if (tile.wateredToday) {
+          // Start growth timer when first watered
+          if (tile.wateredToday && !tile.wateredTimestamp) {
+            return {
+              ...tile,
+              wateredTimestamp: newState.gameTime,
+            };
+          }
+
+          // Calculate growth based on elapsed time since watering
+          if (tile.wateredTimestamp !== undefined) {
+            const timeSinceWatered = newState.gameTime - tile.wateredTimestamp;
             const quality = newState.player.inventory.seedQuality[tile.crop];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
-            const adjustedDaysToGrow = cropInfo.daysToGrow / growthMultiplier;
+            const adjustedGrowTime = cropInfo.growTime / growthMultiplier;
 
-            const growthPercentage = (daysSincePlanted / adjustedDaysToGrow) * 100;
+            const growthPercentage = (timeSinceWatered / adjustedGrowTime) * 100;
             const newGrowthStage = Math.min(100, growthPercentage);
 
             return {

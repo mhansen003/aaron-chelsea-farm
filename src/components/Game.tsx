@@ -100,6 +100,7 @@ export default function Game() {
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const waterSplashRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef = useRef<HTMLImageElement | null>(null);
@@ -201,13 +202,18 @@ export default function Game() {
     }
   }, [gameState.player.x, gameState.player.y, gameState.zones, gameState.currentZone]);
 
-  // Background music
+  // Background music and sound effects
   useEffect(() => {
+    // Background music
     audioRef.current = new Audio('/harvest-dreams.mp3');
     audioRef.current.loop = true;
     audioRef.current.volume = 0.5;
 
-    // Try to play immediately
+    // Water splash sound effect
+    waterSplashRef.current = new Audio('/water-splash.mp3');
+    waterSplashRef.current.volume = 0.4;
+
+    // Try to play music immediately
     const playMusic = () => {
       if (audioRef.current) {
         audioRef.current.play().catch(() => {
@@ -229,6 +235,9 @@ export default function Game() {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
+      }
+      if (waterSplashRef.current) {
+        waterSplashRef.current = null;
       }
     };
   }, []);
@@ -532,14 +541,16 @@ export default function Game() {
       case 'watering_can':
         // Water single tile for the day
         setGameState(prev => addTask(prev, 'water', tileX, tileY));
+        playWaterSplash();
         break;
 
       case 'water_sprinkler':
         // Place permanent sprinkler
         setGameState(prev => addTask(prev, 'place_sprinkler', tileX, tileY));
+        playWaterSplash(); // Also play sound for sprinkler placement
         break;
     }
-  }, [gameState]);
+  }, [gameState, playWaterSplash]);
 
   // Keyboard shortcuts (no movement)
   useEffect(() => {
@@ -604,6 +615,16 @@ export default function Game() {
     setShowSellShop(false);
     setShowInstructions(false);
   };
+
+  // Play water splash sound effect
+  const playWaterSplash = useCallback(() => {
+    if (waterSplashRef.current) {
+      waterSplashRef.current.currentTime = 0; // Reset to start
+      waterSplashRef.current.play().catch(() => {
+        // Ignore errors if audio hasn't been initialized yet
+      });
+    }
+  }, []);
 
   return (
     <div className="relative flex gap-2 p-2">

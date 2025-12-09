@@ -1338,7 +1338,7 @@ export default function Game() {
     }
 
     // Draw water bots using visual position for smooth movement
-    gameState.waterBots.forEach(bot => {
+    gameState.waterBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -1393,7 +1393,7 @@ export default function Game() {
     });
 
     // Draw harvest bots using visual position for smooth movement
-    gameState.harvestBots.forEach(bot => {
+    gameState.harvestBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -2669,15 +2669,15 @@ export default function Game() {
           )}
 
           {/* Water Robot Section */}
-          {gameState.waterBots.length > 0 && (
+          {(gameState.waterBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border-2 border-cyan-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-cyan-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">💧</span>
                 WATER BOTS
-                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{gameState.waterBots.length}</span>
+                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{gameState.waterBots?.length ?? 0}</span>
               </div>
               <div className="space-y-1.5">
-                {gameState.waterBots.map((bot, idx) => {
+                {gameState.waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
                   return (
                     <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-cyan-600/30">
@@ -2708,15 +2708,15 @@ export default function Game() {
           )}
 
           {/* Harvest Robot Section */}
-          {gameState.harvestBots.length > 0 && (
+          {(gameState.harvestBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">🌾</span>
                 HARVEST BOTS
-                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{gameState.harvestBots.length}</span>
+                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{gameState.harvestBots?.length ?? 0}</span>
               </div>
               <div className="space-y-1.5">
-                {gameState.harvestBots.map((bot, idx) => {
+                {gameState.harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   return (
                     <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">

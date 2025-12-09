@@ -194,6 +194,9 @@ export interface GameState {
   gameTime: number;
   isPaused: boolean;
   warehouse: BasketItem[]; // Warehouse storage for deposited crops
+  waterBots?: WaterBot[]; // Water bots in the game
+  harvestBots?: HarvestBot[]; // Harvest bots in the game
+  seedBots?: SeedBot[]; // Seed bots in the game
 }
 
 export interface GameConfig {

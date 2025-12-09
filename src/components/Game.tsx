@@ -96,6 +96,7 @@ export default function Game() {
   const [showSellShop, setShowSellShop] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showFarmNameEditor, setShowFarmNameEditor] = useState(false);
+  const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const lastTimeRef = useRef<number>(0);
@@ -623,9 +624,11 @@ export default function Game() {
         break;
 
       case 'watering_can':
-        // Water single tile for the day
-        setGameState(prev => addTask(prev, 'water', tileX, tileY));
-        playWaterSplash();
+        // Water single tile - only if it's a planted crop that needs watering
+        if (tile.type === 'planted' && !tile.wateredToday) {
+          setGameState(prev => addTask(prev, 'water', tileX, tileY));
+          playWaterSplash();
+        }
         break;
 
       case 'water_sprinkler':
@@ -692,12 +695,23 @@ export default function Game() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState, showShop, showSellShop, showInstructions]);
 
-  const handleNewGame = () => {
+  const confirmNewGame = () => {
     setGameState(createInitialState());
     setSellMessage('');
     setShowShop(false);
     setShowSellShop(false);
     setShowInstructions(false);
+    setShowNewGameConfirm(false);
+  };
+
+  const addDebugMoney = () => {
+    setGameState(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        money: prev.player.money + 1000,
+      },
+    }));
   };
 
   return (
@@ -711,8 +725,9 @@ export default function Game() {
           <h1 className="text-xl font-bold cursor-pointer hover:text-green-300 transition-colors" onClick={() => setShowFarmNameEditor(true)}>
             🌾 {gameState.player.farmName} ✏️
           </h1>
-          <button onClick={handleNewGame} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
+          <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
+          <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
         </div>
 
         {/* Right: Stats Icons */}
@@ -958,6 +973,40 @@ export default function Game() {
             setTimeout(() => setSellMessage(''), 3000);
           }}
         />
+      )}
+
+      {/* New Game Confirmation Modal */}
+      {showNewGameConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-red-900 to-red-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-red-600">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">⚠️ Start New Farm?</h2>
+              <button
+                onClick={() => setShowNewGameConfirm(false)}
+                className="text-2xl hover:text-red-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-lg mb-6">
+              Are you sure you want to start a new farm? All your current progress will be lost!
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowNewGameConfirm(false)}
+                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmNewGame}
+                className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+              >
+                Start New Farm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Farm Name Editor Modal */}

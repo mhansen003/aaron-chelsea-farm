@@ -20,11 +20,13 @@ export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
 export const SPRINKLER_RANGE = 2; // 5x5 area (2 tiles in each direction)
 export const WATERBOT_COST = 150; // Cost to buy one water bot
 export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
+export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
 export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
 export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
+export const WELL_COST = 100; // Cost to buy a well
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
@@ -37,6 +39,7 @@ export const TASK_DURATIONS = {
   harvest: 2000, // 2 seconds to harvest
   place_sprinkler: 3000, // 3 seconds to place sprinkler
   place_mechanic: 60000, // 1 minute to install mechanic shop
+  place_well: 30000, // 30 seconds to dig/place well
 };
 
 export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
@@ -226,6 +229,8 @@ export function createInitialState(): GameState {
         harvestbots: 0,
         mechanicShop: 0,
         mechanicShopPlaced: false,
+        well: 0,
+        wellPlaced: false,
       },
       autoBuy: {
         carrot: false,
@@ -272,6 +277,7 @@ export function createInitialState(): GameState {
     gameTime: 0,
     isPaused: false,
     warehouse: [], // Empty warehouse storage
+    waterBots: [], // No water bots initially
   };
 }
 
@@ -543,6 +549,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     }
   }
 
+  // Check and auto-refill seeds if enabled
+  newState = checkAndAutoRefill(newState);
+
   return {
     ...newState,
     zones: newZones,
@@ -754,6 +763,41 @@ export function buySeeds(state: GameState, cropType: CropType, amount: number): 
       },
     },
   };
+}
+
+export function toggleAutoBuy(state: GameState, cropType: Exclude<CropType, null>): GameState {
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      autoBuy: {
+        ...state.player.autoBuy,
+        [cropType]: !state.player.autoBuy[cropType],
+      },
+    },
+  };
+}
+
+export function checkAndAutoRefill(state: GameState): GameState {
+  let newState = state;
+
+  // Check each crop type
+  const cropTypes: Array<Exclude<CropType, null>> = ['carrot', 'wheat', 'tomato'];
+
+  for (const cropType of cropTypes) {
+    // If auto-buy is enabled and seeds are at 0, buy 1 seed
+    if (newState.player.autoBuy[cropType] && newState.player.inventory.seeds[cropType] === 0) {
+      const cropInfo = CROP_INFO[cropType];
+      const cost = cropInfo.seedCost;
+
+      // Only buy if player has enough money
+      if (newState.player.money >= cost) {
+        newState = buySeeds(newState, cropType, 1);
+      }
+    }
+  }
+
+  return newState;
 }
 
 export function buySprinklers(state: GameState, amount: number): GameState {

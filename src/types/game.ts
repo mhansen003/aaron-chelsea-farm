@@ -12,13 +12,14 @@ export type TileType =
   | 'warehouse'
   | 'waterbot'
   | 'arch'
-  | 'mechanic';
+  | 'mechanic'
+  | 'well';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well';
 
 export interface Task {
   id: string;
@@ -78,6 +79,8 @@ export interface Player {
     harvestbots: number; // How many harvest bots the player owns
     mechanicShop: number; // How many mechanic shops the player owns (max 1)
     mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
+    well: number; // How many wells the player owns (max 1 per zone)
+    wellPlaced: boolean; // Whether a well has been placed in current zone
   };
   autoBuy: {
     carrot: boolean;
@@ -113,6 +116,16 @@ export interface Zone {
   description: string; // Description shown when previewing
 }
 
+export interface WaterBot {
+  id: string; // Unique bot ID
+  waterLevel: number; // Current water (0-10)
+  status: 'idle' | 'watering' | 'refilling' | 'traveling';
+  targetX?: number; // Target tile X
+  targetY?: number; // Target tile Y
+  x?: number; // Current visual position X
+  y?: number; // Current visual position Y
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -125,6 +138,7 @@ export interface GameState {
   gameTime: number;
   isPaused: boolean;
   warehouse: BasketItem[]; // Warehouse storage for deposited crops
+  waterBots: WaterBot[]; // Active water bots with their state
 }
 
 export interface GameConfig {

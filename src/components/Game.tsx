@@ -18,6 +18,7 @@ import {
   upgradeBag,
   buyMechanicShop,
   relocateMechanicShop,
+  toggleAutoBuy,
   addTask,
   removeTask,
   depositToWarehouse,
@@ -52,6 +53,7 @@ const COLORS = {
   arch: '#9e9e9e',
   archActive: '#4caf50',
   mechanic: '#ff5722',
+  well: '#03a9f4',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {
@@ -654,16 +656,32 @@ export default function Game() {
           }
         }
 
-        // Draw blinking task-specific icon for queued tasks (small, bottom-right corner)
-        const queuedTask = gameState.taskQueue.find(task =>
+        // Draw blinking task-specific icon for queued OR current tasks (until farmer arrives)
+        // Check both taskQueue and currentTask
+        let taskForThisTile = gameState.taskQueue.find(task =>
           task.tileX === x && task.tileY === y
         );
-        if (queuedTask) {
+
+        // If no queued task, check if this is the current task and farmer hasn't arrived yet
+        if (!taskForThisTile && gameState.currentTask &&
+            gameState.currentTask.tileX === x &&
+            gameState.currentTask.tileY === y) {
+          const visualX = gameState.player.visualX ?? gameState.player.x;
+          const visualY = gameState.player.visualY ?? gameState.player.y;
+          const hasReachedTile = Math.abs(visualX - x) < 0.1 && Math.abs(visualY - y) < 0.1;
+
+          // Only show icon if farmer hasn't reached yet
+          if (!hasReachedTile) {
+            taskForThisTile = gameState.currentTask;
+          }
+        }
+
+        if (taskForThisTile) {
           const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
           if (blink === 0) {
             // Determine which icon to show based on task type
             let taskIcon: HTMLImageElement | null = null;
-            switch (queuedTask.type) {
+            switch (taskForThisTile.type) {
               case 'clear':
                 taskIcon = clearToolImageRef.current;
                 break;
@@ -675,11 +693,11 @@ export default function Game() {
                 break;
               case 'plant':
                 // Show the specific crop icon being planted
-                if (queuedTask.cropType === 'carrot') {
+                if (taskForThisTile.cropType === 'carrot') {
                   taskIcon = carrotsImageRef.current;
-                } else if (queuedTask.cropType === 'wheat') {
+                } else if (taskForThisTile.cropType === 'wheat') {
                   taskIcon = wheatImageRef.current;
-                } else if (queuedTask.cropType === 'tomato') {
+                } else if (taskForThisTile.cropType === 'tomato') {
                   taskIcon = tomatoImageRef.current;
                 } else {
                   taskIcon = plantedCropImageRef.current; // Fallback
@@ -1462,6 +1480,7 @@ export default function Game() {
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
           onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
           onRelocateMechanicShop={() => setGameState(prev => relocateMechanicShop(prev))}
+          onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
 

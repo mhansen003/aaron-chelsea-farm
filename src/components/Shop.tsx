@@ -15,6 +15,7 @@ interface ShopProps {
   onUpgradeBag: () => void;
   onBuyMechanicShop: () => void;
   onRelocateMechanicShop: () => void;
+  onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
 const SEED_INFO = {
@@ -25,7 +26,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onRelocateMechanicShop }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onRelocateMechanicShop, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -78,6 +79,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               const owned = gameState.player.inventory.seeds[crop];
               const cropInfo = CROP_INFO[crop];
               const canBuy1 = gameState.player.money >= cropInfo.seedCost;
+              const autoBuyEnabled = gameState.player.autoBuy[crop];
 
               return (
                 <div
@@ -96,6 +98,18 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                     <div className="text-purple-400">Sells: ${cropInfo.sellPrice}</div>
                     <div className="text-blue-400">Owned: {owned}</div>
                   </div>
+
+                  {/* Auto-Refill Toggle */}
+                  <button
+                    onClick={() => onToggleAutoBuy(crop)}
+                    className={`w-full px-2 py-1 rounded text-xs font-bold mb-2 transition-colors ${
+                      autoBuyEnabled
+                        ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                    }`}
+                  >
+                    {autoBuyEnabled ? '🔄 Auto-Refill ON' : '🔄 Auto-Refill OFF'}
+                  </button>
 
                   {/* Buy Button */}
                   <button

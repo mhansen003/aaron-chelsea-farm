@@ -18,6 +18,8 @@ import {
   upgradeBag,
   buyMechanicShop,
   buyWell,
+  placeMechanicShop,
+  placeWell,
   relocateMechanicShop,
   toggleAutoBuy,
   addTask,
@@ -135,7 +137,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | null>(null);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -155,12 +157,17 @@ export default function Game() {
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
+  const archFarmImageRef = useRef<HTMLImageElement | null>(null);
+  const archBeachImageRef = useRef<HTMLImageElement | null>(null);
+  const archBarnImageRef = useRef<HTMLImageElement | null>(null);
+  const archMountainImageRef = useRef<HTMLImageElement | null>(null);
   const workingImageRef = useRef<HTMLImageElement | null>(null);
   const coinImageRef = useRef<HTMLImageElement | null>(null);
   const clearToolImageRef = useRef<HTMLImageElement | null>(null);
   const waterdropletImageRef = useRef<HTMLImageElement | null>(null);
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
   const mechanicImageRef = useRef<HTMLImageElement | null>(null);
+  const wellImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all non-themed textures (themed tiles loaded separately based on zone)
   useEffect(() => {
@@ -230,6 +237,30 @@ export default function Game() {
       archImageRef.current = archImg;
     };
 
+    const archFarmImg = new Image();
+    archFarmImg.src = '/images/buildings/arch-farm.png';
+    archFarmImg.onload = () => {
+      archFarmImageRef.current = archFarmImg;
+    };
+
+    const archBeachImg = new Image();
+    archBeachImg.src = '/images/buildings/arch-beach.png';
+    archBeachImg.onload = () => {
+      archBeachImageRef.current = archBeachImg;
+    };
+
+    const archBarnImg = new Image();
+    archBarnImg.src = '/images/buildings/arch-barn.png';
+    archBarnImg.onload = () => {
+      archBarnImageRef.current = archBarnImg;
+    };
+
+    const archMountainImg = new Image();
+    archMountainImg.src = '/images/buildings/arch-mountain.png';
+    archMountainImg.onload = () => {
+      archMountainImageRef.current = archMountainImg;
+    };
+
     const workingImg = new Image();
     workingImg.src = '/working.png';
     workingImg.onload = () => {
@@ -264,6 +295,12 @@ export default function Game() {
     mechanicImg.src = '/mechanic.png';
     mechanicImg.onload = () => {
       mechanicImageRef.current = mechanicImg;
+    };
+
+    const wellImg = new Image();
+    wellImg.src = '/well.png';
+    wellImg.onload = () => {
+      wellImageRef.current = wellImg;
     };
   }, []);
 
@@ -545,8 +582,8 @@ export default function Game() {
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        } else if (tile.type === 'arch' && archImageRef.current && tile.archTargetZone) {
-          // Draw arch - check if target zone is owned to determine color
+        } else if (tile.type === 'arch' && tile.archTargetZone) {
+          // Draw arch - select themed arch based on target zone
           const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
           const targetZone = gameState.zones[zoneKey];
           const isActive = targetZone?.owned || false;
@@ -559,17 +596,40 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Draw arch sprite
-          ctx.drawImage(archImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Select the appropriate themed arch image based on target zone theme
+          let selectedArchImage = archImageRef.current; // Fallback to default arch
+          if (targetZone) {
+            switch (targetZone.theme) {
+              case 'farm':
+                selectedArchImage = archFarmImageRef.current || archImageRef.current;
+                break;
+              case 'beach':
+                selectedArchImage = archBeachImageRef.current || archImageRef.current;
+                break;
+              case 'barn':
+                selectedArchImage = archBarnImageRef.current || archImageRef.current;
+                break;
+              case 'mountain':
+                selectedArchImage = archMountainImageRef.current || archImageRef.current;
+                break;
+              default:
+                selectedArchImage = archImageRef.current;
+            }
+          }
+
+          // Draw the themed arch sprite
+          if (selectedArchImage) {
+            ctx.drawImage(selectedArchImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
 
           // Draw spinning coin in center if not owned (purchasable)
           if (!isActive && coinImageRef.current) {
-            const iconSize = GAME_CONFIG.tileSize * 0.4; // 40% of tile size
+            const iconSize = GAME_CONFIG.tileSize * 0.5; // 50% of tile size
             const centerX = px + GAME_CONFIG.tileSize / 2;
             const centerY = py + GAME_CONFIG.tileSize / 2;
 
-            // Calculate spin animation (0 to 1, repeats every 2 seconds)
-            const spinTime = (Date.now() % 2000) / 2000;
+            // Calculate spin animation (0 to 1, repeats every 4 seconds - slower spin)
+            const spinTime = (Date.now() % 4000) / 4000;
             // Create a sine wave for smooth spinning: 0 -> 1 -> 0 -> -1 -> 0
             const spinScale = Math.sin(spinTime * Math.PI * 2);
 
@@ -949,6 +1009,15 @@ export default function Game() {
       // Only allow placing mechanic shop on grass tiles
       if (tile.type === 'grass') {
         setGameState(prev => addTask(prev, 'place_mechanic', tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
+    if (placementMode === 'well') {
+      // Only allow placing well on grass tiles
+      if (tile.type === 'grass') {
+        setGameState(prev => addTask(prev, 'place_well', tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }
       return;
@@ -1363,7 +1432,7 @@ export default function Game() {
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}
-      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced)) && (
+      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced)) && (
         <div className="w-full bg-gradient-to-r from-blue-900/90 to-purple-900/90 p-3 rounded-lg border-2 border-blue-500 flex items-center gap-3 shadow-lg">
           <div className="text-white font-bold text-base flex items-center gap-2">
             <span className="text-2xl">🔨</span>
@@ -1395,6 +1464,20 @@ export default function Game() {
               }`}
             >
               ⚙️ Mechanic Shop
+            </button>
+          )}
+
+          {/* Well Placement Button */}
+          {gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'well' ? null : 'well')}
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+                placementMode === 'well'
+                  ? 'bg-blue-500 ring-4 ring-blue-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+              }`}
+            >
+              🪣 Water Well
             </button>
           )}
 

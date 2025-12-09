@@ -1347,3 +1347,8 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
     },
   };
 }
+
+// Handle place_well task in task execution
+function handlePlaceWellTask(state: GameState, task: Task): GameState {
+  return placeWell(state, task.tileX, task.tileY);
+}

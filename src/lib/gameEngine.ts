@@ -1592,6 +1592,9 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
     });
   }
 
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
     player: {
@@ -1602,7 +1605,13 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
         waterbots: state.player.inventory.waterbots + actualAmount,
       },
     },
-    waterBots: [...state.waterBots, ...newBots],
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        waterBots: [...currentZone.waterBots, ...newBots],
+      },
+    },
   };
 }
 
@@ -1633,6 +1642,9 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
     });
   }
 
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
     player: {
@@ -1643,7 +1655,13 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
         harvestbots: state.player.inventory.harvestbots + actualAmount,
       },
     },
-    harvestBots: [...state.harvestBots, ...newBots],
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        harvestBots: [...currentZone.harvestBots, ...newBots],
+      },
+    },
   };
 }
 
@@ -1674,6 +1692,9 @@ export function buySeedbots(state: GameState, amount: number): GameState {
     });
   }
 
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
     player: {
@@ -1684,7 +1705,13 @@ export function buySeedbots(state: GameState, amount: number): GameState {
         seedbots: state.player.inventory.seedbots + actualAmount,
       },
     },
-    seedBots: [...state.seedBots, ...newBots],
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        seedBots: [...currentZone.seedBots, ...newBots],
+      },
+    },
   };
 }
 
@@ -1694,13 +1721,22 @@ export function updateSeedBotJobs(
   jobs: import('@/types/game').SeedBotJob[],
   autoBuySeeds: boolean
 ): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
-    seedBots: state.seedBots.map((bot) =>
-      bot.id === botId
-        ? { ...bot, jobs, autoBuySeeds }
-        : bot
-    ),
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        seedBots: currentZone.seedBots.map((bot) =>
+          bot.id === botId
+            ? { ...bot, jobs, autoBuySeeds }
+            : bot
+        ),
+      },
+    },
   };
 }
 

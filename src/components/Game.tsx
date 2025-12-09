@@ -44,6 +44,15 @@ import WarehouseModal from './WarehouseModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
+import WelcomeSplash from './WelcomeSplash';
+import SaveGameModal from './SaveGameModal';
+import {
+  generateSaveCode,
+  loadFromSaveCode,
+  saveToLocalStorage,
+  loadFromLocalStorage,
+  hasAutosave,
+} from '@/lib/saveSystem';
 
 const COLORS = {
   grass: '#7cb342',
@@ -227,6 +236,9 @@ export default function Game() {
     cropType: Exclude<CropType, null>;
     selectedTiles: Array<{ x: number; y: number }>;
   } | null>(null);
+  const [showWelcome, setShowWelcome] = useState<boolean>(!hasAutosave());
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1983,6 +1995,38 @@ export default function Game() {
     setTimeout(() => setSellMessage(''), 3000);
   };
 
+  // Welcome Splash Handlers
+  const handleStartNew = () => {
+    setGameState(createInitialState());
+    setShowWelcome(false);
+  };
+
+  const handleContinue = () => {
+    const saved = loadFromLocalStorage();
+    if (saved) {
+      setGameState(saved);
+    }
+    setShowWelcome(false);
+  };
+
+  const handleLoadFromCode = async (code: string) => {
+    const loaded = await loadFromSaveCode(code);
+    setGameState(loaded);
+    setShowWelcome(false);
+  };
+
+  // Save Game Handler
+  const handleSaveGame = async () => {
+    try {
+      const code = await generateSaveCode(gameState);
+      setCurrentSaveCode(code);
+      setShowSaveModal(true);
+    } catch (error) {
+      console.error('Failed to save game:', error);
+      alert('Failed to save game. Please try again.');
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Main Game Area */}
@@ -1994,6 +2038,7 @@ export default function Game() {
           <h1 className="text-xl font-bold cursor-pointer hover:text-green-300 transition-colors" onClick={() => setShowFarmNameEditor(true)}>
             🌾 {gameState.player.farmName} ✏️
           </h1>
+          <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold" title="Save Game">💾</button>
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
@@ -2790,6 +2835,23 @@ export default function Game() {
           )}
         </div>
       </div>
+
+      {/* Welcome Splash */}
+      {showWelcome && (
+        <WelcomeSplash
+          onStartNew={handleStartNew}
+          onLoadGame={handleLoadFromCode}
+          onContinue={handleContinue}
+        />
+      )}
+
+      {/* Save Game Modal */}
+      {showSaveModal && (
+        <SaveGameModal
+          saveCode={currentSaveCode}
+          onClose={() => setShowSaveModal(false)}
+        />
+      )}
     </div>
   );
 }

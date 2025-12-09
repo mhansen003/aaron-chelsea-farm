@@ -1817,17 +1817,17 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     return state;
   }
 
-  // Start construction immediately (no farmer movement required)
-  const CONSTRUCTION_TIME = 60000; // 1 minute
+  // Place mechanic shop instantly
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
           ...t,
-          isConstructing: true,
-          constructionTarget: 'mechanic' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_TIME,
+          type: 'mechanic' as const,
+          isConstructing: false,
+          constructionTarget: undefined,
+          constructionStartTime: undefined,
+          constructionDuration: undefined,
         };
       }
       return t;
@@ -2043,17 +2043,17 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
     return state;
   }
 
-  // Start construction immediately (no farmer movement required)
-  const CONSTRUCTION_TIME = 60000; // 1 minute
+  // Place well instantly
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
           ...t,
-          isConstructing: true,
-          constructionTarget: 'well' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_TIME,
+          type: 'well' as const,
+          isConstructing: false,
+          constructionTarget: undefined,
+          constructionStartTime: undefined,
+          constructionDuration: undefined,
         };
       }
       return t;

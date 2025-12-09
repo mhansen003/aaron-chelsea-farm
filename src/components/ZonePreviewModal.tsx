@@ -25,6 +25,14 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
     desert: 'from-yellow-900 to-orange-950',
   };
 
+  const themeArchImages = {
+    farm: '/arch.png',
+    beach: '/arch-beach.png',
+    barn: '/arch-barn.png',
+    mountain: '/arch-mountain.png',
+    desert: '/arch-farm.png',
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-8 rounded-xl max-w-2xl w-full border-4 border-amber-600`}>
@@ -39,6 +47,15 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
           >
             ✕
           </button>
+        </div>
+
+        {/* Large themed arch image */}
+        <div className="mb-6 flex justify-center">
+          <img
+            src={themeArchImages[zone.theme]}
+            alt={`${zone.theme} zone`}
+            className="w-64 h-64 object-contain drop-shadow-2xl"
+          />
         </div>
 
         <div className="mb-6">

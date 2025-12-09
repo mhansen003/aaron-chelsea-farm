@@ -31,7 +31,7 @@ export default function Game() {
   const [showShop, setShowShop] = useState(false);
   const [feedMessage, setFeedMessage] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
 
   // Game loop
   useEffect(() => {

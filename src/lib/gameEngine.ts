@@ -370,6 +370,49 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newState.taskQueue = remainingQueue;
   }
 
+  // Idle wandering: If no tasks, randomly move the farmer around
+  if (!newState.currentTask && newState.taskQueue.length === 0) {
+    // Check if player has reached their current target (visual position matches logical position)
+    const visualX = newState.player.visualX ?? newState.player.x;
+    const visualY = newState.player.visualY ?? newState.player.y;
+    const dx = Math.abs(visualX - newState.player.x);
+    const dy = Math.abs(visualY - newState.player.y);
+    const hasReachedTarget = dx < 0.1 && dy < 0.1;
+
+    // Every 3 seconds (on average), pick a new random tile to wander to
+    if (hasReachedTarget && Math.random() < deltaTime / 3000) {
+      const grid = getCurrentGrid(newState);
+      const walkableTiles: { x: number; y: number }[] = [];
+
+      // Find all walkable tiles (grass, dirt, planted crops)
+      grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          const isWalkable =
+            tile.type === 'grass' ||
+            (tile.type === 'dirt' && tile.cleared) ||
+            tile.type === 'planted' ||
+            tile.type === 'grown';
+          if (isWalkable) {
+            walkableTiles.push({ x, y });
+          }
+        });
+      });
+
+      // Pick a random walkable tile nearby (within 5 tiles)
+      const nearbyTiles = walkableTiles.filter(t => {
+        const dx = Math.abs(t.x - newState.player.x);
+        const dy = Math.abs(t.y - newState.player.y);
+        return dx <= 5 && dy <= 5 && (dx > 0 || dy > 0); // Not current position
+      });
+
+      if (nearbyTiles.length > 0) {
+        const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+        newState.player.x = randomTile.x;
+        newState.player.y = randomTile.y;
+      }
+    }
+  }
+
   // Update all zones
   const newZones = { ...newState.zones };
 

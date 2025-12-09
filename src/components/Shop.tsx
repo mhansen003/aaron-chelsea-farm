@@ -72,57 +72,43 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {/* Seeds Tab Content */}
         {activeTab === 'seeds' && (
         <div className="mb-6">
-          <div className="grid gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {Object.entries(SEED_INFO).map(([cropKey, info]) => {
               const crop = cropKey as Exclude<CropType, null>;
               const owned = gameState.player.inventory.seeds[crop];
               const cropInfo = CROP_INFO[crop];
               const canBuy1 = gameState.player.money >= cropInfo.seedCost;
-              const canBuy5 = gameState.player.money >= cropInfo.seedCost * 5;
 
               return (
                 <div
                   key={crop}
-                  className="bg-black/40 p-4 rounded-lg border-2 border-amber-700"
+                  className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-amber-600 flex flex-col items-center"
                 >
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <span className="text-2xl mr-2">{info.emoji}</span>
-                      <span className="font-bold">{info.name}</span>
-                    </div>
-                    <div className="text-amber-300 font-bold">${cropInfo.seedCost} each</div>
+                  {/* Icon */}
+                  <div className="text-5xl mb-2">{info.emoji}</div>
+
+                  {/* Name */}
+                  <div className="font-bold text-center mb-1 text-sm">{info.name}</div>
+
+                  {/* Stats */}
+                  <div className="text-xs text-center mb-2 space-y-1">
+                    <div className="text-green-400">{info.daysToGrow} day{info.daysToGrow > 1 ? 's' : ''}</div>
+                    <div className="text-purple-400">Sells: ${cropInfo.sellPrice}</div>
+                    <div className="text-blue-400">Owned: {owned}</div>
                   </div>
-                  <div className="text-sm mb-2">
-                    <span className="text-green-400">Grows in: {info.daysToGrow} day{info.daysToGrow > 1 ? 's' : ''}</span>
-                    {' • '}
-                    <span className="text-purple-400">Sells for: ${cropInfo.sellPrice}</span>
-                    {' • '}
-                    <span className="text-blue-400">Owned: {owned}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onBuySeeds(crop, 1)}
-                      disabled={!canBuy1}
-                      className={`px-4 py-2 rounded font-bold flex-1 ${
-                        canBuy1
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-gray-600 cursor-not-allowed'
-                      }`}
-                    >
-                      Buy 1
-                    </button>
-                    <button
-                      onClick={() => onBuySeeds(crop, 5)}
-                      disabled={!canBuy5}
-                      className={`px-4 py-2 rounded font-bold flex-1 ${
-                        canBuy5
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-gray-600 cursor-not-allowed'
-                      }`}
-                    >
-                      Buy 5 (${cropInfo.seedCost * 5})
-                    </button>
-                  </div>
+
+                  {/* Buy Button */}
+                  <button
+                    onClick={() => onBuySeeds(crop, 1)}
+                    disabled={!canBuy1}
+                    className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                      canBuy1
+                        ? 'bg-green-600 hover:bg-green-700'
+                        : 'bg-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    ${cropInfo.seedCost}
+                  </button>
                 </div>
               );
             })}
@@ -133,138 +119,121 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {/* Tools Tab Content */}
         {activeTab === 'tools' && (
         <div>
-          <div className="grid gap-4">
-            {/* Basket Upgrade - 3 Tier System */}
-            <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <span className="text-2xl mr-2">🎒</span>
-                  <span className="font-bold">Basket Upgrade</span>
-                </div>
-                <span className="text-blue-400">Current: {gameState.player.basketCapacity}</span>
-              </div>
+          <div className="grid grid-cols-3 gap-4">
+            {/* Basket Upgrades - Individual Tiles */}
+            {[0, 1, 2].map((tier) => {
+              const currentUpgrades = gameState.player.bagUpgrades || 0;
+              const isOwned = currentUpgrades > tier;
+              const isCurrent = currentUpgrades === tier;
+              const isLocked = currentUpgrades < tier;
+              const canAfford = gameState.player.money >= BAG_UPGRADE_COSTS[tier];
 
-              {/* Tier Grid */}
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {[0, 1, 2].map((tier) => {
-                  const currentUpgrades = gameState.player.bagUpgrades || 0;
-                  const isOwned = currentUpgrades > tier;
-                  const isCurrent = currentUpgrades === tier;
-                  const isLocked = currentUpgrades < tier;
-
-                  return (
-                    <div
-                      key={tier}
-                      className={`p-3 rounded-lg border-2 text-center ${
-                        isOwned
-                          ? 'bg-green-900/40 border-green-600'
-                          : isCurrent
-                          ? 'bg-blue-900/40 border-blue-500 ring-2 ring-blue-300'
-                          : 'bg-gray-800/40 border-gray-600 opacity-50'
-                      }`}
-                    >
-                      <div className="text-2xl mb-1">
-                        {isOwned ? '✓' : isLocked ? '🔒' : '🎒'}
-                      </div>
-                      <div className="text-xs font-bold mb-1">
-                        Tier {tier + 1}
-                      </div>
-                      <div className="text-xs text-gray-300">
-                        ${BAG_UPGRADE_COSTS[tier]}
-                      </div>
-                      <div className="text-xs text-green-400">
-                        +4 slots
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Upgrade Button */}
-              {(gameState.player.bagUpgrades || 0) < MAX_BAG_UPGRADES ? (
-                <button
-                  onClick={() => onUpgradeBag()}
-                  disabled={gameState.player.money < BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]}
-                  className={`px-4 py-2 rounded font-bold w-full ${
-                    gameState.player.money >= BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-gray-600 cursor-not-allowed'
+              return (
+                <div
+                  key={tier}
+                  className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+                    isOwned
+                      ? 'border-green-600'
+                      : isCurrent
+                      ? 'border-blue-500 ring-2 ring-blue-300'
+                      : 'border-gray-600 opacity-50'
                   }`}
                 >
-                  Upgrade to Tier {(gameState.player.bagUpgrades || 0) + 1} (${BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]})
-                </button>
-              ) : (
-                <div className="text-center text-green-400 font-bold py-2">
-                  ✓ All Upgrades Unlocked!
+                  {/* Icon */}
+                  <div className="text-5xl mb-2">
+                    {isOwned ? '✓' : isLocked ? '🔒' : '🎒'}
+                  </div>
+
+                  {/* Name */}
+                  <div className="font-bold text-center mb-1 text-sm">
+                    Basket Tier {tier + 1}
+                  </div>
+
+                  {/* Stats */}
+                  <div className="text-xs text-center mb-2 space-y-1">
+                    <div className="text-green-400">+4 capacity</div>
+                    <div className="text-blue-400">
+                      {isOwned ? 'Owned' : isLocked ? 'Locked' : 'Available'}
+                    </div>
+                  </div>
+
+                  {/* Buy Button */}
+                  {isOwned ? (
+                    <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                      Owned
+                    </div>
+                  ) : isCurrent ? (
+                    <button
+                      onClick={() => onUpgradeBag()}
+                      disabled={!canAfford}
+                      className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                        canAfford
+                          ? 'bg-blue-600 hover:bg-blue-700'
+                          : 'bg-gray-600 cursor-not-allowed'
+                      }`}
+                    >
+                      ${BAG_UPGRADE_COSTS[tier]}
+                    </button>
+                  ) : (
+                    <div className="w-full px-3 py-2 rounded font-bold text-sm bg-gray-800/40 text-gray-500 text-center">
+                      Locked
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
 
             {/* Mechanic Shop */}
-            <div className={`p-4 rounded-lg border-2 ${
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
               gameState.player.inventory.mechanicShop >= 1
-                ? 'bg-green-900/40 border-green-600'
-                : 'bg-black/40 border-amber-700'
+                ? 'border-green-600'
+                : 'border-amber-600'
             }`}>
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <span className="text-2xl mr-2">⚙️</span>
-                  <span className="font-bold">Mechanic Shop</span>
-                </div>
-                {gameState.player.inventory.mechanicShop >= 1 ? (
-                  <span className="text-green-400 font-bold">✓ OWNED</span>
-                ) : (
-                  <span className="text-amber-300 font-bold">${MECHANIC_SHOP_COST}</span>
-                )}
+              {/* Icon */}
+              <div className="text-5xl mb-2">
+                {gameState.player.inventory.mechanicShop >= 1 ? '✓' : '⚙️'}
               </div>
 
-              {/* Single Tier Indicator */}
-              <div className="mb-3">
-                <div className={`p-3 rounded-lg border-2 text-center ${
-                  gameState.player.inventory.mechanicShop >= 1
-                    ? 'bg-green-900/40 border-green-600'
-                    : 'bg-purple-900/40 border-purple-500'
-                }`}>
-                  <div className="text-3xl mb-1">
-                    {gameState.player.inventory.mechanicShop >= 1 ? '✓' : '⚙️'}
-                  </div>
-                  <div className="text-sm font-bold mb-1">
-                    {gameState.player.inventory.mechanicShop >= 1 ? 'Owned' : 'Premium Building'}
-                  </div>
-                  <div className="text-xs text-gray-300">
-                    {gameState.player.inventory.mechanicShopPlaced ? (
-                      <span className="text-green-400">Installed on Farm</span>
-                    ) : gameState.player.inventory.mechanicShop >= 1 ? (
-                      <span className="text-yellow-400">Ready to Place!</span>
-                    ) : (
-                      <>Unlocks Bot Purchases</>
-                    )}
-                  </div>
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Mechanic Shop</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-purple-400">Premium Building</div>
+                <div className="text-blue-400">
+                  {gameState.player.inventory.mechanicShopPlaced ? (
+                    <span className="text-green-400">Installed</span>
+                  ) : gameState.player.inventory.mechanicShop >= 1 ? (
+                    <span className="text-yellow-400">Ready!</span>
+                  ) : (
+                    'Not Owned'
+                  )}
                 </div>
               </div>
 
+              {/* Buy/Action Button */}
               {gameState.player.inventory.mechanicShop < 1 ? (
                 <button
                   onClick={() => onBuyMechanicShop()}
                   disabled={gameState.player.money < MECHANIC_SHOP_COST}
-                  className={`px-4 py-2 rounded font-bold w-full ${
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
                     gameState.player.money >= MECHANIC_SHOP_COST
                       ? 'bg-purple-600 hover:bg-purple-700'
                       : 'bg-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  Purchase Mechanic Shop (${MECHANIC_SHOP_COST})
+                  ${MECHANIC_SHOP_COST}
                 </button>
               ) : gameState.player.inventory.mechanicShopPlaced ? (
                 <button
                   onClick={() => onRelocateMechanicShop()}
-                  className="px-4 py-2 rounded font-bold w-full bg-yellow-600 hover:bg-yellow-700"
+                  className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-600 hover:bg-yellow-700"
                 >
-                  🔄 Relocate Shop (Pick Up)
+                  🔄 Relocate
                 </button>
               ) : (
-                <div className="text-center text-yellow-400 font-bold py-2">
-                  Ready to place! Use Mechanic tool on farm.
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
+                  Place It!
                 </div>
               )}
             </div>
@@ -273,56 +242,44 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
             {gameState.tools.filter(tool => tool.name === 'water_sprinkler').map(tool => (
               <div
                 key={tool.name}
-                className={`p-4 rounded-lg border-2 ${
-                  tool.unlocked
-                    ? 'bg-green-900/40 border-green-600'
-                    : 'bg-black/40 border-amber-700'
+                className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+                  tool.unlocked ? 'border-green-600' : 'border-amber-600'
                 }`}
               >
-                <div className="flex justify-between items-center mb-3">
-                  <div>
-                    <span className="text-2xl mr-2">💦</span>
-                    <span className="font-bold capitalize">
-                      {tool.name.replace('_', ' ')}
-                    </span>
-                  </div>
-                  {tool.unlocked ? (
-                    <span className="text-green-400 font-bold">✓ UNLOCKED</span>
-                  ) : (
-                    <span className="text-amber-300 font-bold">${tool.cost}</span>
-                  )}
+                {/* Icon */}
+                <div className="text-5xl mb-2">
+                  {tool.unlocked ? '✓' : '💦'}
                 </div>
 
-                {/* Single Tier Indicator */}
-                <div className="mb-3">
-                  <div className={`p-3 rounded-lg border-2 text-center ${
-                    tool.unlocked
-                      ? 'bg-green-900/40 border-green-600'
-                      : 'bg-blue-900/40 border-blue-500'
-                  }`}>
-                    <div className="text-3xl mb-1">
-                      {tool.unlocked ? '✓' : '💦'}
-                    </div>
-                    <div className="text-sm font-bold mb-1">
-                      {tool.unlocked ? 'Unlocked' : 'Special Tool'}
-                    </div>
-                    <div className="text-xs text-gray-300">
-                      {tool.description}
-                    </div>
+                {/* Name */}
+                <div className="font-bold text-center mb-1 text-sm capitalize">
+                  {tool.name.replace('_', ' ')}
+                </div>
+
+                {/* Stats */}
+                <div className="text-xs text-center mb-2 space-y-1">
+                  <div className="text-blue-400">Special Tool</div>
+                  <div className="text-green-400">
+                    {tool.unlocked ? 'Unlocked' : 'Available'}
                   </div>
                 </div>
 
-                {!tool.unlocked && (
+                {/* Buy Button */}
+                {tool.unlocked ? (
+                  <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                    Unlocked
+                  </div>
+                ) : (
                   <button
                     onClick={() => onBuyTool(tool.name)}
                     disabled={gameState.player.money < tool.cost}
-                    className={`px-4 py-2 rounded font-bold w-full ${
+                    className={`w-full px-3 py-2 rounded font-bold text-sm ${
                       gameState.player.money >= tool.cost
                         ? 'bg-blue-600 hover:bg-blue-700'
                         : 'bg-gray-600 cursor-not-allowed'
                     }`}
                   >
-                    Unlock Tool (${tool.cost})
+                    ${tool.cost}
                   </button>
                 )}
               </div>

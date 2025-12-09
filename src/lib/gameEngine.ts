@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -863,6 +863,19 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   const actualAmount = Math.min(amount, MAX_WATERBOTS - state.player.inventory.waterbots);
   const actualCost = WATERBOT_COST * actualAmount;
 
+  // Create actual WaterBot entities
+  const newBots: WaterBot[] = [];
+  for (let i = 0; i < actualAmount; i++) {
+    const botId = `waterbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    newBots.push({
+      id: botId,
+      waterLevel: WATERBOT_MAX_WATER, // Start with full water
+      status: 'idle',
+      x: state.player.x + (i + 1), // Spawn near player
+      y: state.player.y,
+    });
+  }
+
   return {
     ...state,
     player: {
@@ -873,6 +886,7 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
         waterbots: state.player.inventory.waterbots + actualAmount,
       },
     },
+    waterBots: [...state.waterBots, ...newBots],
   };
 }
 

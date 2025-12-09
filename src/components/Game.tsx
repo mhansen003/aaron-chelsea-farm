@@ -790,6 +790,26 @@ export default function Game() {
       ctx.fill();
     }
 
+    // Draw water bots
+    gameState.waterBots.forEach(bot => {
+      if (bot.x !== undefined && bot.y !== undefined) {
+        const botPx = bot.x * GAME_CONFIG.tileSize;
+        const botPy = bot.y * GAME_CONFIG.tileSize;
+
+        if (waterdropletImageRef.current) {
+          ctx.drawImage(waterdropletImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to cyan circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#00bcd4';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    });
+
   }, [gameState]);
 
   // Play water splash sound effect

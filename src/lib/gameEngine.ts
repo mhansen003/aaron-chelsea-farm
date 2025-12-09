@@ -260,18 +260,20 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   // Process current task
   if (newState.currentTask) {
-    // Check if player has reached the task location
-    const playerAtTaskLocation =
-      newState.player.x === newState.currentTask.tileX &&
-      newState.player.y === newState.currentTask.tileY;
+    // Check if player has VISUALLY reached the task location (within small threshold)
+    const visualX = newState.player.visualX ?? newState.player.x;
+    const visualY = newState.player.visualY ?? newState.player.y;
+    const dx = Math.abs(visualX - newState.currentTask.tileX);
+    const dy = Math.abs(visualY - newState.currentTask.tileY);
+    const playerVisuallyAtLocation = dx < 0.1 && dy < 0.1;
 
     let newProgress = newState.currentTask.progress;
 
-    // Only progress the task if player is at the location
-    if (playerAtTaskLocation) {
+    // Only progress the task if player has VISUALLY arrived
+    if (playerVisuallyAtLocation) {
       newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
     } else {
-      // Move player toward task location
+      // Move player toward task location (logical position, visual will catch up)
       newState.player.x = newState.currentTask.tileX;
       newState.player.y = newState.currentTask.tileY;
     }

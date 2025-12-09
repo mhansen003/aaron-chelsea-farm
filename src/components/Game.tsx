@@ -118,7 +118,7 @@ export default function Game() {
   // Load all textures
   useEffect(() => {
     const grassImg = new Image();
-    grassImg.src = '/grass.png';
+    grassImg.src = '/grass.jpg';
     grassImg.onload = () => {
       grassImageRef.current = grassImg;
     };

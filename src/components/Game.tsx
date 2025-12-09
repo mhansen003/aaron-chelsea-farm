@@ -67,6 +67,7 @@ export default function Game() {
   const [showShop, setShowShop] = useState(false);
   const [showSellShop, setShowSellShop] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showFarmNameEditor, setShowFarmNameEditor] = useState(false);
   const [sellMessage, setSellMessage] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -502,7 +503,9 @@ export default function Game() {
       <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white flex items-center justify-between">
         {/* Left: Title & Actions */}
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">🌾 Aaron & Chelsea's Farm</h1>
+          <h1 className="text-xl font-bold cursor-pointer hover:text-green-300 transition-colors" onClick={() => setShowFarmNameEditor(true)}>
+            🌾 {gameState.player.farmName} ✏️
+          </h1>
           <button onClick={handleNewGame} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
           <button onClick={() => setShowShop(!showShop)} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">🏪 Buy</button>
@@ -752,6 +755,52 @@ export default function Game() {
             setTimeout(() => setSellMessage(''), 3000);
           }}
         />
+      )}
+
+      {/* Farm Name Editor Modal */}
+      {showFarmNameEditor && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-green-600">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">🌾 Rename Your Farm</h2>
+              <button
+                onClick={() => setShowFarmNameEditor(false)}
+                className="text-2xl hover:text-red-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <input
+              type="text"
+              value={gameState.player.farmName}
+              onChange={(e) => setGameState(prev => ({
+                ...prev,
+                player: { ...prev.player, farmName: e.target.value }
+              }))}
+              className="w-full px-4 py-3 rounded-lg text-black font-bold text-xl mb-4"
+              placeholder="Enter farm name..."
+              maxLength={30}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setShowFarmNameEditor(false);
+                }
+              }}
+            />
+
+            <div className="text-sm text-gray-300 mb-4">
+              {gameState.player.farmName.length}/30 characters
+            </div>
+
+            <button
+              onClick={() => setShowFarmNameEditor(false)}
+              className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg"
+            >
+              Save Name
+            </button>
+          </div>
+        </div>
       )}
       </div>
 

@@ -114,6 +114,7 @@ export function createInitialState(): GameState {
       x: 1,
       y: 1,
       money: 30,
+      farmName: "Aaron & Chelsea's Farm",
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
       basket: [], // Empty basket to start

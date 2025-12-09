@@ -41,6 +41,7 @@ export interface Player {
   x: number;
   y: number;
   money: number;
+  farmName: string; // Name of the farm
   selectedTool: ToolType;
   selectedCrop: CropType;
   basket: BasketItem[]; // Max 8 items

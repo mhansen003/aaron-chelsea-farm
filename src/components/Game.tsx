@@ -116,8 +116,8 @@ export default function Game() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#1a1a1a';
+    // Clear canvas with green farm background
+    ctx.fillStyle = '#7cb342'; // Green grass color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw grid

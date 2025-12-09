@@ -319,7 +319,13 @@ export default function Game() {
           // Draw rock sprite
           ctx.drawImage(rockImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'dirt' && dirtImageRef.current) {
-          // Draw dirt sprite
+          // Draw grass background first, then dirt sprite on top
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'shop' && shopImageRef.current) {
           // Draw shop sprite
@@ -417,6 +423,29 @@ export default function Game() {
               ctx.fillText('💧', px + GAME_CONFIG.tileSize / 2, py + 20);
             }
           }
+        }
+
+        // Draw task progress bar if farmer is working on this tile
+        if (gameState.currentTask &&
+            gameState.currentTask.tileX === x &&
+            gameState.currentTask.tileY === y) {
+          const barHeight = 8;
+          const barY = py + GAME_CONFIG.tileSize / 2 - barHeight / 2;
+          const barWidth = GAME_CONFIG.tileSize - 8;
+
+          // Background
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          ctx.fillRect(px + 4, barY, barWidth, barHeight);
+
+          // Progress
+          const progressWidth = (barWidth * gameState.currentTask.progress) / 100;
+          ctx.fillStyle = '#4caf50';
+          ctx.fillRect(px + 4, barY, progressWidth, barHeight);
+
+          // Border
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(px + 4, barY, barWidth, barHeight);
         }
 
         // Grid lines

@@ -370,6 +370,30 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       // Clear current task (player is already at location)
       newState.currentTask = null;
+
+      // IMPORTANT: If basket just became full after harvest, insert deposit task immediately
+      if (task.type === 'harvest' && newState.player.basket.length >= newState.player.basketCapacity) {
+        const warehousePos = findWarehouseTile(newState);
+        if (warehousePos) {
+          // Create deposit task at warehouse location
+          const depositTask: Task = {
+            id: `${Date.now()}-${Math.random()}`,
+            type: 'deposit',
+            tileX: warehousePos.x,
+            tileY: warehousePos.y,
+            zoneX: newState.currentZone.x,
+            zoneY: newState.currentZone.y,
+            progress: 0,
+            duration: TASK_DURATIONS.deposit,
+          };
+
+          // Insert deposit as current task
+          newState.currentTask = depositTask;
+          // Set player position to warehouse so they walk there
+          newState.player.x = warehousePos.x;
+          newState.player.y = warehousePos.y;
+        }
+      }
     } else {
       // Update progress
       newState.currentTask = { ...newState.currentTask, progress: newProgress };
@@ -405,6 +429,29 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         newState.player.x = warehousePos.x;
         newState.player.y = warehousePos.y;
       }
+    }
+  }
+
+  // AUTO-DEPOSIT: If basket is full and no tasks, go deposit immediately
+  if (!newState.currentTask && newState.taskQueue.length === 0 && newState.player.basket.length >= newState.player.basketCapacity) {
+    const warehousePos = findWarehouseTile(newState);
+    if (warehousePos) {
+      // Create deposit task at warehouse location
+      const depositTask: Task = {
+        id: `${Date.now()}-${Math.random()}`,
+        type: 'deposit',
+        tileX: warehousePos.x,
+        tileY: warehousePos.y,
+        zoneX: newState.currentZone.x,
+        zoneY: newState.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.deposit,
+      };
+
+      newState.currentTask = depositTask;
+      // Set player position to warehouse so they walk there
+      newState.player.x = warehousePos.x;
+      newState.player.y = warehousePos.y;
     }
   }
 

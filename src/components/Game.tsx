@@ -1361,20 +1361,23 @@ export default function Game() {
 
       {/* Placement Toolbar - Compact menu for placing items */}
       {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced)) && (
-        <div className="w-full bg-black/70 p-2 rounded-lg flex items-center gap-2">
-          <div className="text-white font-bold text-sm">🔨 Place:</div>
+        <div className="w-full bg-gradient-to-r from-blue-900/90 to-purple-900/90 p-3 rounded-lg border-2 border-blue-500 flex items-center gap-3 shadow-lg">
+          <div className="text-white font-bold text-base flex items-center gap-2">
+            <span className="text-2xl">🔨</span>
+            <span>Place Items:</span>
+          </div>
 
           {/* Sprinkler Placement Button */}
           {gameState.player.inventory.sprinklers > 0 && (
             <button
               onClick={() => setPlacementMode(placementMode === 'sprinkler' ? null : 'sprinkler')}
-              className={`px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'sprinkler'
-                  ? 'bg-blue-600 ring-2 ring-blue-300'
-                  : 'bg-gray-700 hover:bg-gray-600'
+                  ? 'bg-cyan-500 ring-4 ring-cyan-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
               }`}
             >
-              💦 Sprinkler <span className="text-xs">({gameState.player.inventory.sprinklers})</span>
+              💦 Sprinkler <span className="text-sm bg-black/30 px-2 py-1 rounded">×{gameState.player.inventory.sprinklers}</span>
             </button>
           )}
 
@@ -1382,10 +1385,10 @@ export default function Game() {
           {gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
             <button
               onClick={() => setPlacementMode(placementMode === 'mechanic' ? null : 'mechanic')}
-              className={`px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'mechanic'
-                  ? 'bg-purple-600 ring-2 ring-purple-300'
-                  : 'bg-gray-700 hover:bg-gray-600'
+                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
               }`}
             >
               ⚙️ Mechanic Shop
@@ -1396,16 +1399,16 @@ export default function Game() {
           {placementMode && (
             <button
               onClick={() => setPlacementMode(null)}
-              className="px-3 py-2 rounded-lg font-bold text-sm bg-red-600 hover:bg-red-700 ml-auto"
+              className="px-4 py-2 rounded-lg font-bold text-base bg-red-600 hover:bg-red-700 ml-auto flex items-center gap-2"
             >
-              ✕ Cancel
+              ✕ Cancel Placement
             </button>
           )}
 
           {/* Help Text */}
           {placementMode && (
-            <div className="text-gray-300 text-xs ml-2">
-              {placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' : 'Click any grass tile to place mechanic shop (2 min install)'}
+            <div className="text-yellow-300 text-sm font-bold ml-2 bg-black/40 px-3 py-1 rounded">
+              👉 {placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' : 'Click grass tile to place shop (2 min build)'}
             </div>
           )}
         </div>

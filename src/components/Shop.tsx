@@ -248,52 +248,33 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               )}
             </div>
 
-            {/* Water Sprinkler Tool */}
-            {gameState.tools.filter(tool => tool.name === 'water_sprinkler').map(tool => (
-              <div
-                key={tool.name}
-                className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-                  tool.unlocked ? 'border-green-600' : 'border-amber-600'
+            {/* Sprinkler Items - Buy individual sprinklers */}
+            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-cyan-600 flex flex-col items-center">
+              {/* Icon */}
+              <div className="text-5xl mb-2">💦</div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Sprinklers</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-cyan-400">Auto-waters 5×5 area</div>
+                <div className="text-blue-400">Owned: {gameState.player.inventory.sprinklers}</div>
+              </div>
+
+              {/* Buy Button */}
+              <button
+                onClick={() => onBuySprinklers(1)}
+                disabled={gameState.player.money < SPRINKLER_COST}
+                className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                  gameState.player.money >= SPRINKLER_COST
+                    ? 'bg-cyan-600 hover:bg-cyan-700'
+                    : 'bg-gray-600 cursor-not-allowed'
                 }`}
               >
-                {/* Icon */}
-                <div className="text-5xl mb-2">
-                  {tool.unlocked ? '✓' : '💦'}
-                </div>
-
-                {/* Name */}
-                <div className="font-bold text-center mb-1 text-sm capitalize">
-                  {tool.name.replace('_', ' ')}
-                </div>
-
-                {/* Stats */}
-                <div className="text-xs text-center mb-2 space-y-1">
-                  <div className="text-blue-400">Special Tool</div>
-                  <div className="text-green-400">
-                    {tool.unlocked ? 'Unlocked' : 'Available'}
-                  </div>
-                </div>
-
-                {/* Buy Button */}
-                {tool.unlocked ? (
-                  <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                    Unlocked
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => onBuyTool(tool.name)}
-                    disabled={gameState.player.money < tool.cost}
-                    className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                      gameState.player.money >= tool.cost
-                        ? 'bg-blue-600 hover:bg-blue-700'
-                        : 'bg-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    ${tool.cost}
-                  </button>
-                )}
-              </div>
-            ))}
+                ${SPRINKLER_COST}
+              </button>
+            </div>
           </div>
         </div>
         )}

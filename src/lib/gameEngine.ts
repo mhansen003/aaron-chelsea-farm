@@ -416,7 +416,7 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
       if (x === tileX && y === tileY && !t.cleared) {
         return {
           ...t,
-          type: 'dirt' as TileType,
+          type: 'grass' as TileType,
           cleared: true,
         };
       }

@@ -97,6 +97,8 @@ export default function Game() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [showFarmNameEditor, setShowFarmNameEditor] = useState(false);
   const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [purchaseZoneKey, setPurchaseZoneKey] = useState<string>('');
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const lastTimeRef = useRef<number>(0);
@@ -115,6 +117,7 @@ export default function Game() {
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
   const workingImageRef = useRef<HTMLImageElement | null>(null);
+  const coinImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all textures
   useEffect(() => {
@@ -188,6 +191,12 @@ export default function Game() {
     workingImg.src = '/working.png';
     workingImg.onload = () => {
       workingImageRef.current = workingImg;
+    };
+
+    const coinImg = new Image();
+    coinImg.src = '/coin.png';
+    coinImg.onload = () => {
+      coinImageRef.current = coinImg;
     };
   }, []);
 
@@ -363,13 +372,15 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Draw arch with tint overlay (gray if locked, green if active)
+          // Draw arch sprite
           ctx.drawImage(archImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
 
-          if (!isActive) {
-            // Gray tint for locked arch
-            ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Draw coin icon in bottom-right if not owned (purchasable)
+          if (!isActive && coinImageRef.current) {
+            const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
+            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+            ctx.drawImage(coinImageRef.current, iconX, iconY, iconSize, iconSize);
           }
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw grass background first, then dirt, then planted crop sprite on top
@@ -565,23 +576,9 @@ export default function Game() {
       }
 
       if (!targetZone.owned) {
-        // Show purchase prompt
-        const canAfford = gameState.player.money >= targetZone.purchasePrice;
-        if (confirm(`Purchase this farmland for $${targetZone.purchasePrice}?${!canAfford ? '\n\nYou need more money!' : ''}`)) {
-          if (canAfford) {
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                money: prev.player.money - targetZone.purchasePrice,
-              },
-              zones: {
-                ...prev.zones,
-                [zoneKey]: { ...targetZone, owned: true },
-              },
-            }));
-          }
-        }
+        // Show styled purchase modal
+        setPurchaseZoneKey(zoneKey);
+        setShowPurchaseModal(true);
       } else {
         // Travel to owned zone
         setGameState(prev => ({
@@ -712,6 +709,28 @@ export default function Game() {
         money: prev.player.money + 1000,
       },
     }));
+  };
+
+  const handlePurchaseZone = () => {
+    const targetZone = gameState.zones[purchaseZoneKey];
+    if (!targetZone) return;
+
+    const canAfford = gameState.player.money >= targetZone.purchasePrice;
+    if (canAfford) {
+      setGameState(prev => ({
+        ...prev,
+        player: {
+          ...prev.player,
+          money: prev.player.money - targetZone.purchasePrice,
+        },
+        zones: {
+          ...prev.zones,
+          [purchaseZoneKey]: { ...targetZone, owned: true },
+        },
+      }));
+      setShowPurchaseModal(false);
+      setPurchaseZoneKey('');
+    }
   };
 
   return (
@@ -1051,6 +1070,62 @@ export default function Game() {
             >
               Save Name
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Zone Purchase Modal */}
+      {showPurchaseModal && purchaseZoneKey && gameState.zones[purchaseZoneKey] && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-amber-600">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">🌳 Purchase Farmland</h2>
+              <button
+                onClick={() => { setShowPurchaseModal(false); setPurchaseZoneKey(''); }}
+                className="text-2xl hover:text-amber-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-lg mb-4">
+              Expand your farm to new territory! This will unlock a new area to grow crops and build your farming empire.
+            </p>
+            <div className="bg-black/30 px-4 py-3 rounded mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-lg">Price:</span>
+                <span className="text-2xl font-bold">💰 ${gameState.zones[purchaseZoneKey].purchasePrice}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-lg">Your Money:</span>
+                <span className={`text-xl font-bold ${gameState.player.money >= gameState.zones[purchaseZoneKey].purchasePrice ? 'text-green-400' : 'text-red-400'}`}>
+                  ${gameState.player.money}
+                </span>
+              </div>
+            </div>
+            {gameState.player.money < gameState.zones[purchaseZoneKey].purchasePrice && (
+              <div className="bg-red-900/30 border border-red-600 px-4 py-2 rounded mb-4 text-center">
+                Not enough money! Keep farming and selling crops.
+              </div>
+            )}
+            <div className="flex gap-4">
+              <button
+                onClick={() => { setShowPurchaseModal(false); setPurchaseZoneKey(''); }}
+                className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePurchaseZone}
+                disabled={gameState.player.money < gameState.zones[purchaseZoneKey].purchasePrice}
+                className={`flex-1 px-6 py-3 rounded-lg font-bold text-lg ${
+                  gameState.player.money >= gameState.zones[purchaseZoneKey].purchasePrice
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : 'bg-gray-500 cursor-not-allowed opacity-50'
+                }`}
+              >
+                Purchase
+              </button>
+            </div>
           </div>
         </div>
       )}

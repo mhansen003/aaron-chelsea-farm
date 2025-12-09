@@ -28,7 +28,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
+      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold">🏪 Farm Shop</h2>
           <button

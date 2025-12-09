@@ -38,7 +38,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool }: Shop
           <h3 className="text-2xl font-bold mb-4 text-amber-300">🌱 Seeds</h3>
           <div className="grid gap-4">
             {Object.entries(SEED_INFO).map(([cropKey, info]) => {
-              const crop = cropKey as CropType;
+              const crop = cropKey as Exclude<CropType, null>;
               const owned = gameState.player.inventory.seeds[crop];
               const canBuy1 = gameState.player.money >= info.price;
               const canBuy5 = gameState.player.money >= info.price * 5;

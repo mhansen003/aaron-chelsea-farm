@@ -130,7 +130,7 @@ export function createInitialState(): GameState {
   };
 }
 
-const HUNGER_DEPLETION_RATE = 2;
+const HUNGER_DEPLETION_RATE = 0.5; // Hunger decreases by 0.5% per second (200 seconds = ~3 minutes to empty)
 
 export function updateGameState(state: GameState, deltaTime: number): GameState {
   if (state.isPaused) return state;

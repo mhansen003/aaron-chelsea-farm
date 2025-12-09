@@ -46,13 +46,20 @@ export default function Game() {
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
+  const farmerImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load grass texture
   useEffect(() => {
-    const img = new Image();
-    img.src = '/grass.png';
-    img.onload = () => {
-      grassImageRef.current = img;
+    const grassImg = new Image();
+    grassImg.src = '/grass.png';
+    grassImg.onload = () => {
+      grassImageRef.current = grassImg;
+    };
+
+    const farmerImg = new Image();
+    farmerImg.src = '/farmer.png';
+    farmerImg.onload = () => {
+      farmerImageRef.current = farmerImg;
     };
   }, []);
 
@@ -148,19 +155,27 @@ export default function Game() {
     });
 
     // Draw player
-    const playerPx = gameState.player.x * GAME_CONFIG.tileSize + GAME_CONFIG.tileSize / 2;
-    const playerPy = gameState.player.y * GAME_CONFIG.tileSize + GAME_CONFIG.tileSize / 2;
+    const playerPx = gameState.player.x * GAME_CONFIG.tileSize;
+    const playerPy = gameState.player.y * GAME_CONFIG.tileSize;
 
-    ctx.fillStyle = COLORS.player;
-    ctx.beginPath();
-    ctx.arc(playerPx, playerPy, GAME_CONFIG.tileSize / 3, 0, Math.PI * 2);
-    ctx.fill();
+    if (farmerImageRef.current) {
+      // Draw farmer sprite
+      ctx.drawImage(farmerImageRef.current, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+    } else {
+      // Fallback to blue circle
+      const centerX = playerPx + GAME_CONFIG.tileSize / 2;
+      const centerY = playerPy + GAME_CONFIG.tileSize / 2;
+      ctx.fillStyle = COLORS.player;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Draw tool icon above player
     const toolIcon = TOOL_ICONS[gameState.player.selectedTool];
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(toolIcon, playerPx, playerPy - GAME_CONFIG.tileSize / 2);
+    ctx.fillText(toolIcon, playerPx + GAME_CONFIG.tileSize / 2, playerPy - 8);
 
   }, [gameState]);
 
@@ -262,6 +277,27 @@ export default function Game() {
               player: { ...prev.player, selectedTool: unlockedTools[toolIndex].name },
             }));
           }
+          return;
+        case '6':
+        case '7':
+        case '8':
+        case 'q':
+          // Quick crop selection
+          e.preventDefault();
+          const crops: Array<Exclude<CropType, null>> = ['carrot', 'wheat', 'tomato'];
+          let cropIndex = 0;
+          if (e.key === '6' || e.key === 'q') cropIndex = 0; // Carrot
+          else if (e.key === '7') cropIndex = 1; // Wheat
+          else if (e.key === '8') cropIndex = 2; // Tomato
+
+          setGameState(prev => ({
+            ...prev,
+            player: {
+              ...prev.player,
+              selectedCrop: crops[cropIndex],
+              selectedTool: 'seed_bag', // Auto-switch to seed bag
+            },
+          }));
           return;
       }
 
@@ -395,26 +431,60 @@ export default function Game() {
         </div>
       </div>
 
-      {/* Crop Selection (for seed bag) */}
-      {gameState.player.selectedTool === 'seed_bag' && (
-        <div className="bg-black/50 px-6 py-3 rounded-lg text-white">
-          <strong>Selected Crop:</strong>
-          <select
-            value={gameState.player.selectedCrop || ''}
-            onChange={e =>
+      {/* Crop Selection - Quick Buttons */}
+      <div className="bg-black/50 px-6 py-4 rounded-lg text-white w-full max-w-4xl">
+        <h3 className="font-bold text-lg mb-3">🌱 Quick Crop Select (Press 6/7/8 or Q, auto-switches to Seed Bag):</h3>
+        <div className="flex gap-3">
+          <button
+            onClick={() =>
               setGameState(prev => ({
                 ...prev,
-                player: { ...prev.player, selectedCrop: e.target.value as CropType },
+                player: { ...prev.player, selectedCrop: 'carrot', selectedTool: 'seed_bag' },
               }))
             }
-            className="ml-2 px-2 py-1 rounded bg-gray-700 text-white"
+            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+              gameState.player.selectedCrop === 'carrot' && gameState.player.selectedTool === 'seed_bag'
+                ? 'bg-orange-600 ring-4 ring-orange-300 scale-105'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
           >
-            <option value="carrot">🥕 Carrot ({gameState.player.inventory.seeds.carrot} seeds)</option>
-            <option value="wheat">🌾 Wheat ({gameState.player.inventory.seeds.wheat} seeds)</option>
-            <option value="tomato">🍅 Tomato ({gameState.player.inventory.seeds.tomato} seeds)</option>
-          </select>
+            <div className="text-2xl mb-1">🥕</div>
+            <div className="text-xs">6/Q. Carrot ({gameState.player.inventory.seeds.carrot} seeds)</div>
+          </button>
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: { ...prev.player, selectedCrop: 'wheat', selectedTool: 'seed_bag' },
+              }))
+            }
+            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+              gameState.player.selectedCrop === 'wheat' && gameState.player.selectedTool === 'seed_bag'
+                ? 'bg-yellow-600 ring-4 ring-yellow-300 scale-105'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <div className="text-2xl mb-1">🌾</div>
+            <div className="text-xs">7. Wheat ({gameState.player.inventory.seeds.wheat} seeds)</div>
+          </button>
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: { ...prev.player, selectedCrop: 'tomato', selectedTool: 'seed_bag' },
+              }))
+            }
+            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+              gameState.player.selectedCrop === 'tomato' && gameState.player.selectedTool === 'seed_bag'
+                ? 'bg-red-600 ring-4 ring-red-300 scale-105'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <div className="text-2xl mb-1">🍅</div>
+            <div className="text-xs">8. Tomato ({gameState.player.inventory.seeds.tomato} seeds)</div>
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Controls */}
       <div className="flex gap-4 items-center flex-wrap justify-center">
@@ -520,6 +590,16 @@ export default function Game() {
                   <li>10% chance per harvest to upgrade seed generation</li>
                   <li>Higher generations = more money (up to 3x) and faster growth (up to 2x)</li>
                   <li>Build up your seed quality for exponential gains!</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-bold text-lg mb-2 text-green-300">Quick Crop Selection:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  <li><strong>6 or Q:</strong> Select Carrot + auto-switch to Seed Bag</li>
+                  <li><strong>7:</strong> Select Wheat + auto-switch to Seed Bag</li>
+                  <li><strong>8:</strong> Select Tomato + auto-switch to Seed Bag</li>
+                  <li>No more dropdown! Instantly switch crops and start planting</li>
                 </ul>
               </div>
 

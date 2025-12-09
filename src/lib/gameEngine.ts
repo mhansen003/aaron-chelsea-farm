@@ -355,7 +355,59 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           newState = waterTile(newState, task.tileX, task.tileY);
           break;
         case 'harvest':
+          // Check if basket is full BEFORE harvesting - if so, don't harvest and trigger deposit instead
+          if (newState.player.basket.length >= newState.player.basketCapacity) {
+            const warehousePos = findWarehouseTile(newState);
+            if (warehousePos) {
+              // Create deposit task at warehouse location
+              const depositTask: Task = {
+                id: `${Date.now()}-${Math.random()}`,
+                type: 'deposit',
+                tileX: warehousePos.x,
+                tileY: warehousePos.y,
+                zoneX: newState.currentZone.x,
+                zoneY: newState.currentZone.y,
+                progress: 0,
+                duration: TASK_DURATIONS.deposit,
+              };
+
+              // Re-queue this harvest task and make deposit current
+              newState.taskQueue = [task, ...newState.taskQueue];
+              newState.currentTask = depositTask;
+              // Set player position to warehouse so they walk there
+              newState.player.x = warehousePos.x;
+              newState.player.y = warehousePos.y;
+              break; // Don't execute harvest, deposit first
+            }
+          }
+          // Basket has space, proceed with harvest
           newState = harvestCrop(newState, task.tileX, task.tileY);
+
+          // Check if basket became full AFTER this harvest
+          if (newState.player.basket.length >= newState.player.basketCapacity) {
+            const warehousePos = findWarehouseTile(newState);
+            if (warehousePos) {
+              // Create deposit task at warehouse location
+              const depositTask: Task = {
+                id: `${Date.now()}-${Math.random()}`,
+                type: 'deposit',
+                tileX: warehousePos.x,
+                tileY: warehousePos.y,
+                zoneX: newState.currentZone.x,
+                zoneY: newState.currentZone.y,
+                progress: 0,
+                duration: TASK_DURATIONS.deposit,
+              };
+
+              // Make deposit the next task (will be picked up after current task clears)
+              // But we need to insert it BEFORE clearing currentTask, so do it now
+              newState.currentTask = depositTask;
+              // Set player position to warehouse so they walk there
+              newState.player.x = warehousePos.x;
+              newState.player.y = warehousePos.y;
+              break; // Don't clear current task, keep the deposit task
+            }
+          }
           break;
         case 'place_sprinkler':
           newState = placeSprinkler(newState, task.tileX, task.tileY);
@@ -370,30 +422,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       // Clear current task (player is already at location)
       newState.currentTask = null;
-
-      // IMPORTANT: If basket just became full after harvest, insert deposit task immediately
-      if (task.type === 'harvest' && newState.player.basket.length >= newState.player.basketCapacity) {
-        const warehousePos = findWarehouseTile(newState);
-        if (warehousePos) {
-          // Create deposit task at warehouse location
-          const depositTask: Task = {
-            id: `${Date.now()}-${Math.random()}`,
-            type: 'deposit',
-            tileX: warehousePos.x,
-            tileY: warehousePos.y,
-            zoneX: newState.currentZone.x,
-            zoneY: newState.currentZone.y,
-            progress: 0,
-            duration: TASK_DURATIONS.deposit,
-          };
-
-          // Insert deposit as current task
-          newState.currentTask = depositTask;
-          // Set player position to warehouse so they walk there
-          newState.player.x = warehousePos.x;
-          newState.player.y = warehousePos.y;
-        }
-      }
     } else {
       // Update progress
       newState.currentTask = { ...newState.currentTask, progress: newProgress };

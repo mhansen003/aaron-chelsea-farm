@@ -1138,6 +1138,54 @@ export default function Game() {
       }
     }
 
+    // Draw tile selection highlights when in tile selection mode
+    if (tileSelectionMode && tileSelectionMode.active) {
+      tileSelectionMode.selectedTiles.forEach(selectedTile => {
+        const px = selectedTile.x * GAME_CONFIG.tileSize;
+        const py = selectedTile.y * GAME_CONFIG.tileSize;
+
+        // Draw green highlight for selected tiles
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
+        ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+        // Draw thick green border
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.9)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+        // Draw checkmark
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('✓', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
+      });
+
+      // Highlight hovered tile if it's plantable
+      if (hoveredTile) {
+        const currentGrid = getCurrentGrid(gameState);
+        const hoveredTileData = currentGrid[hoveredTile.y]?.[hoveredTile.x];
+        const isAlreadySelected = tileSelectionMode.selectedTiles.some(
+          t => t.x === hoveredTile.x && t.y === hoveredTile.y
+        );
+
+        if (hoveredTileData && hoveredTileData.type === 'dirt' && hoveredTileData.cleared && !hoveredTileData.crop && !hoveredTileData.hasSprinkler) {
+          const px = hoveredTile.x * GAME_CONFIG.tileSize;
+          const py = hoveredTile.y * GAME_CONFIG.tileSize;
+
+          if (isAlreadySelected) {
+            // Show red overlay for deselection
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else if (tileSelectionMode.selectedTiles.length < 10) {
+            // Show green overlay for selection
+            ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+        }
+      }
+    }
+
     // Draw player using visual position for smooth movement
     const visualX = gameState.player.visualX ?? gameState.player.x;
     const visualY = gameState.player.visualY ?? gameState.player.y;
@@ -2152,6 +2200,33 @@ export default function Game() {
           }}
           onTravel={handleZoneTravel}
         />
+      )}
+
+      {/* Tile Selection Mode Overlay */}
+      {tileSelectionMode && tileSelectionMode.active && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-green-600 to-lime-600 text-white px-8 py-4 rounded-xl shadow-2xl border-4 border-green-300">
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-2">🌱 Tile Selection Mode</div>
+            <div className="text-sm mb-3">
+              Click on cleared dirt tiles to select planting zones for {tileSelectionMode.cropType}
+            </div>
+            <div className="flex items-center justify-center gap-4 mb-3">
+              <div className="bg-white/20 px-4 py-2 rounded-lg">
+                <span className="text-lg font-bold">{tileSelectionMode.selectedTiles.length}/10</span>
+                <span className="text-xs ml-2">tiles selected</span>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setTileSelectionMode(null);
+                setShowSeedBotConfig(true);
+              }}
+              className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-100 transition-colors"
+            >
+              ✓ Done Selecting
+            </button>
+          </div>
+        </div>
       )}
 
       {/* No Seeds Modal */}

@@ -202,7 +202,6 @@ export default function Game() {
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
   const seedBotImageRef = useRef<HTMLImageElement | null>(null);
-  const archImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
   const archBarnImageRef = useRef<HTMLImageElement | null>(null);
@@ -297,11 +296,6 @@ export default function Game() {
       seedBotImageRef.current = seedBotImg;
     };
 
-    const archImg = new Image();
-    archImg.src = '/arch.png';
-    archImg.onload = () => {
-      archImageRef.current = archImg;
-    };
 
     const archFarmImg = new Image();
     archFarmImg.src = '/arch-farm.png';
@@ -770,23 +764,23 @@ export default function Game() {
           }
 
           // Select the appropriate themed arch image based on target zone theme
-          let selectedArchImage = archImageRef.current; // Fallback to default arch
+          let selectedArchImage = archFarmImageRef.current; // Fallback to default arch
           if (targetZone) {
             switch (targetZone.theme) {
               case 'desert':
-                selectedArchImage = archFarmImageRef.current || archImageRef.current;
+                selectedArchImage = archFarmImageRef.current || archFarmImageRef.current;
                 break;
               case 'beach':
-                selectedArchImage = archBeachImageRef.current || archImageRef.current;
+                selectedArchImage = archBeachImageRef.current || archFarmImageRef.current;
                 break;
               case 'barn':
-                selectedArchImage = archBarnImageRef.current || archImageRef.current;
+                selectedArchImage = archBarnImageRef.current || archFarmImageRef.current;
                 break;
               case 'mountain':
-                selectedArchImage = archMountainImageRef.current || archImageRef.current;
+                selectedArchImage = archMountainImageRef.current || archFarmImageRef.current;
                 break;
               default:
-                selectedArchImage = archImageRef.current;
+                selectedArchImage = archFarmImageRef.current;
             }
           }
 
@@ -1230,6 +1224,39 @@ export default function Game() {
           ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        // Draw glowing red indicator on right side if out of water
+        if (bot.waterLevel === 0) {
+          const indicatorX = botPx + GAME_CONFIG.tileSize - 15;
+          const indicatorY = botPy + GAME_CONFIG.tileSize / 2;
+
+          // Pulsing glow effect
+          const pulseTime = Date.now() % 1000;
+          const pulseIntensity = 0.5 + 0.5 * Math.sin((pulseTime / 1000) * Math.PI * 2);
+
+          // Outer glow
+          const gradient = ctx.createRadialGradient(indicatorX, indicatorY, 0, indicatorX, indicatorY, 12);
+          gradient.addColorStop(0, `rgba(239, 68, 68, ${0.8 * pulseIntensity})`);
+          gradient.addColorStop(0.5, `rgba(239, 68, 68, ${0.4 * pulseIntensity})`);
+          gradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(indicatorX, indicatorY, 12, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Solid red circle
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(indicatorX, indicatorY, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          // White exclamation mark
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 10px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('!', indicatorX, indicatorY);
+        }
       }
     });
 
@@ -1571,7 +1598,7 @@ export default function Game() {
         }
         break;
     }
-  }, [gameState, playWaterSplash, getActionForTile, placementMode]);
+  }, [gameState, playWaterSplash, getActionForTile, placementMode, tileSelectionMode, selectedSeedBot]);
 
   // Handle right-click to cancel queued tasks
   const handleCanvasRightClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {

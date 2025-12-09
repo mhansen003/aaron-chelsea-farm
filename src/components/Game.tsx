@@ -118,6 +118,7 @@ export default function Game() {
   const [showMechanicShop, setShowMechanicShop] = useState(false);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
+  const [isMounted, setIsMounted] = useState(false);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -279,6 +280,11 @@ export default function Game() {
       localStorage.setItem('aaron-chelsea-farm-save', JSON.stringify(gameState));
     }
   }, [gameState]);
+
+  // Set mounted state to prevent hydration errors
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Removed auto-open shop effect - shop now opens only on click or 'B' key
 
@@ -1182,7 +1188,7 @@ export default function Game() {
       </div>
 
       {/* Mechanic Shop Placement Button */}
-      {gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
+      {isMounted && gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
         <div className="w-full bg-purple-900/90 p-3 rounded-lg border-2 border-purple-500 animate-pulse">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

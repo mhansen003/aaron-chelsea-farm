@@ -739,6 +739,29 @@ export default function Game() {
           ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         }
 
+        // Draw sprinkler coverage indicator (light blue tint for tiles in range)
+        const currentGrid = getCurrentGrid(gameState);
+        let isInSprinklerRange = false;
+        for (let sy = 0; sy < currentGrid.length; sy++) {
+          for (let sx = 0; sx < currentGrid[sy].length; sx++) {
+            const otherTile = currentGrid[sy][sx];
+            if (otherTile.hasSprinkler) {
+              const dx = Math.abs(x - sx);
+              const dy = Math.abs(y - sy);
+              if (dx <= 3 && dy <= 3) { // 7x7 area (3 tiles in each direction)
+                isInSprinklerRange = true;
+                break;
+              }
+            }
+          }
+          if (isInSprinklerRange) break;
+        }
+
+        if (isInSprinklerRange) {
+          ctx.fillStyle = 'rgba(100, 200, 255, 0.15)'; // Light blue tint
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        }
+
         // Draw sprinkler if placed on this tile
         if (tile.hasSprinkler && sprinklerImageRef.current) {
           ctx.drawImage(sprinklerImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

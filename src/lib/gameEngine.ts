@@ -17,7 +17,7 @@ export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null
 
 export const DAY_LENGTH = 60000; // 60 seconds = 1 day
 export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
-export const SPRINKLER_RANGE = 2; // 5x5 area (2 tiles in each direction)
+export const SPRINKLER_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_COST = 150; // Cost to buy one water bot
 export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
@@ -267,7 +267,7 @@ export function createInitialState(): GameState {
       {
         name: 'water_sprinkler',
         cost: 100,
-        description: 'Place sprinkler (auto-waters 5x5 area daily)',
+        description: 'Place sprinkler (auto-waters 7x7 area daily)',
         unlocked: false,
       },
     ],

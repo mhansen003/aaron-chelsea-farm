@@ -561,7 +561,16 @@ export default function Game() {
                 taskIcon = harvestImageRef.current;
                 break;
               case 'plant':
-                taskIcon = plantedCropImageRef.current;
+                // Show the specific crop icon being planted
+                if (queuedTask.cropType === 'carrot') {
+                  taskIcon = carrotsImageRef.current;
+                } else if (queuedTask.cropType === 'wheat') {
+                  taskIcon = wheatImageRef.current;
+                } else if (queuedTask.cropType === 'tomato') {
+                  taskIcon = tomatoImageRef.current;
+                } else {
+                  taskIcon = plantedCropImageRef.current; // Fallback
+                }
                 break;
               case 'place_sprinkler':
                 taskIcon = workingImageRef.current; // Fallback to working icon

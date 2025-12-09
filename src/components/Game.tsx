@@ -9,7 +9,7 @@ import {
   harvestCrop,
   waterTile,
   placeSprinkler,
-  sellCrop,
+  sellBasket,
   buySeeds,
   buyTool,
   buySprinklers,
@@ -251,6 +251,22 @@ export default function Game() {
           ctx.drawImage(sprinklerImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         }
 
+        // Draw growth progress bar for planted crops
+        if (tile.type === 'planted' && tile.crop) {
+          const barHeight = 4;
+          const barY = py + GAME_CONFIG.tileSize - barHeight - 2;
+          const barWidth = GAME_CONFIG.tileSize - 4;
+
+          // Background
+          ctx.fillStyle = '#00000088';
+          ctx.fillRect(px + 2, barY, barWidth, barHeight);
+
+          // Progress
+          const progressWidth = (barWidth * tile.growthStage) / 100;
+          ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
+          ctx.fillRect(px + 2, barY, progressWidth, barHeight);
+        }
+
         // Grid lines
         ctx.strokeStyle = COLORS.grid;
         ctx.strokeRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -418,7 +434,9 @@ export default function Game() {
   };
 
   return (
-    <div className="relative flex flex-col items-center gap-2 p-2">
+    <div className="relative flex gap-2 p-2">
+      {/* Main Game Area */}
+      <div className="flex flex-col items-center gap-2 flex-1">
       {/* Compact Top Bar */}
       <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white flex items-center justify-between">
         {/* Left: Title & Actions */}
@@ -434,9 +452,7 @@ export default function Game() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
           <div className="flex items-center gap-1"><span>📅</span><span>Day {gameState.currentDay}</span></div>
-          <div className="flex items-center gap-1"><span>🥕</span><span>{gameState.player.inventory.seeds.carrot}</span></div>
-          <div className="flex items-center gap-1"><span>🌾</span><span>{gameState.player.inventory.seeds.wheat}</span></div>
-          <div className="flex items-center gap-1"><span>🍅</span><span>{gameState.player.inventory.seeds.tomato}</span></div>
+          <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/8</span></div>
           <div className="flex items-center gap-1"><span>💦</span><span>{gameState.player.inventory.sprinklers}</span></div>
         </div>
       </div>
@@ -449,13 +465,6 @@ export default function Game() {
         />
       </div>
 
-      {/* Harvested (compact) */}
-      <div className="w-full bg-black/50 px-4 py-1 rounded text-white text-sm flex gap-4">
-        <span>Harvested:</span>
-        <span>🥕 {gameState.player.inventory.harvested.carrot}</span>
-        <span>🌾 {gameState.player.inventory.harvested.wheat}</span>
-        <span>🍅 {gameState.player.inventory.harvested.tomato}</span>
-      </div>
 
       {/* Canvas */}
       <canvas
@@ -501,7 +510,7 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'carrot', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-3 py-2 rounded font-bold text-2xl ${
+            className={`px-3 py-2 rounded font-bold text-2xl relative ${
               gameState.player.selectedCrop === 'carrot' && gameState.player.selectedTool === 'seed_bag'
                 ? 'bg-orange-600 ring-2 ring-orange-300'
                 : 'bg-gray-700 hover:bg-gray-600'
@@ -509,6 +518,7 @@ export default function Game() {
             title="6/Q: Plant Carrots"
           >
             🥕
+            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.carrot}</div>
           </button>
           <button
             onClick={() =>
@@ -517,7 +527,7 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'wheat', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-3 py-2 rounded font-bold text-2xl ${
+            className={`px-3 py-2 rounded font-bold text-2xl relative ${
               gameState.player.selectedCrop === 'wheat' && gameState.player.selectedTool === 'seed_bag'
                 ? 'bg-yellow-600 ring-2 ring-yellow-300'
                 : 'bg-gray-700 hover:bg-gray-600'
@@ -525,6 +535,7 @@ export default function Game() {
             title="7: Plant Wheat"
           >
             🌾
+            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.wheat}</div>
           </button>
           <button
             onClick={() =>
@@ -533,7 +544,7 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'tomato', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-3 py-2 rounded font-bold text-2xl ${
+            className={`px-3 py-2 rounded font-bold text-2xl relative ${
               gameState.player.selectedCrop === 'tomato' && gameState.player.selectedTool === 'seed_bag'
                 ? 'bg-red-600 ring-2 ring-red-300'
                 : 'bg-gray-700 hover:bg-gray-600'
@@ -541,6 +552,7 @@ export default function Game() {
             title="8: Plant Tomatoes"
           >
             🍅
+            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.tomato}</div>
           </button>
         </div>
       </div>
@@ -667,8 +679,8 @@ export default function Game() {
         <SellShop
           gameState={gameState}
           onClose={() => setShowSellShop(false)}
-          onSellCrop={(crop, amount) => {
-            const result = sellCrop(gameState, crop, amount);
+          onSellCrop={() => {
+            const result = sellBasket(gameState);
             setSellMessage(result.message);
             if (result.success) {
               setGameState(result.state);
@@ -677,6 +689,59 @@ export default function Game() {
           }}
         />
       )}
+      </div>
+
+      {/* Basket Sidebar */}
+      <div className="w-64 bg-black/70 p-4 rounded-lg text-white flex flex-col gap-2">
+        <h2 className="text-xl font-bold text-center">🧺 Basket</h2>
+        <div className="text-sm text-center text-gray-300">{gameState.player.basket.length} / 8 items</div>
+
+        {/* Basket Grid - 2x4 */}
+        <div className="grid grid-cols-2 gap-2 flex-1">
+          {Array.from({ length: 8 }).map((_, idx) => {
+            const item = gameState.player.basket[idx];
+            return (
+              <div
+                key={idx}
+                className={`aspect-square rounded border-2 flex items-center justify-center text-4xl ${
+                  item ? 'bg-amber-900/50 border-amber-600' : 'bg-gray-800/50 border-gray-600'
+                }`}
+              >
+                {item && (
+                  <div className="relative">
+                    <div>{item.crop === 'carrot' ? '🥕' : item.crop === 'wheat' ? '🌾' : '🍅'}</div>
+                    {item.quality.generation > 1 && (
+                      <div className="absolute -top-1 -right-1 text-xs bg-purple-600 rounded-full w-4 h-4 flex items-center justify-center">
+                        {item.quality.generation}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sell Basket Button */}
+        <button
+          onClick={() => {
+            const result = sellBasket(gameState);
+            setSellMessage(result.message);
+            if (result.success) {
+              setGameState(result.state);
+            }
+            setTimeout(() => setSellMessage(''), 3000);
+          }}
+          disabled={gameState.player.basket.length === 0}
+          className={`px-4 py-2 rounded font-bold ${
+            gameState.player.basket.length > 0
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-gray-600 cursor-not-allowed'
+          }`}
+        >
+          💰 Sell All (V)
+        </button>
+      </div>
     </div>
   );
 }

@@ -64,17 +64,12 @@ export function createInitialState(): GameState {
       money: 30,
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
+      basket: [], // Empty basket to start
       inventory: {
         seeds: {
           carrot: 5,
           wheat: 3,
           tomato: 1,
-          null: 0,
-        },
-        harvested: {
-          carrot: 0,
-          wheat: 0,
-          tomato: 0,
           null: 0,
         },
         seedQuality: {
@@ -273,10 +268,11 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   const tile = state.grid[tileY]?.[tileX];
   if (!tile || tile.type !== 'grown' || !tile.crop) return state;
 
+  // Check if basket is full (max 8 items)
+  if (state.player.basket.length >= 8) return state;
+
   const cropType = tile.crop;
   const quality = state.player.inventory.seedQuality[cropType];
-  const cropInfo = CROP_INFO[cropType];
-  // Note: No money earned on harvest - crops go to inventory to sell later
 
   const newGrid = state.grid.map((row, y) =>
     row.map((t, x) => {
@@ -302,17 +298,18 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
         }
       : quality;
 
+  // Add harvested crop to basket
+  const newBasket = [...state.player.basket, { crop: cropType, quality: improvedQuality }];
+
   return {
     ...state,
     grid: newGrid,
     player: {
       ...state.player,
+      basket: newBasket,
       inventory: {
         ...state.player.inventory,
-        harvested: {
-          ...state.player.inventory.harvested,
-          [cropType]: state.player.inventory.harvested[cropType] + 1,
-        },
+        // Give back 1 seed
         seeds: {
           ...state.player.inventory.seeds,
           [cropType]: state.player.inventory.seeds[cropType] + 1,
@@ -434,44 +431,45 @@ export function buySprinklers(state: GameState, amount: number): GameState {
   };
 }
 
-export function sellCrop(state: GameState, cropType: Exclude<CropType, null>, amount: number): {
+export function sellBasket(state: GameState): {
   success: boolean;
   state: GameState;
   message: string;
 } {
-  const harvested = state.player.inventory.harvested[cropType];
-
-  if (harvested < amount) {
+  if (state.player.basket.length === 0) {
     return {
       success: false,
       state,
-      message: `Not enough ${cropType}! You only have ${harvested}.`,
+      message: 'Your basket is empty!',
     };
   }
 
-  const cropInfo = CROP_INFO[cropType];
-  const quality = state.player.inventory.seedQuality[cropType];
-  const pricePerCrop = Math.floor(cropInfo.sellPrice * quality.yield);
-  const totalEarned = pricePerCrop * amount;
+  let totalEarned = 0;
+  const cropCounts: Record<string, number> = {};
+
+  state.player.basket.forEach(item => {
+    const cropInfo = CROP_INFO[item.crop];
+    const pricePerCrop = Math.floor(cropInfo.sellPrice * item.quality.yield);
+    totalEarned += pricePerCrop;
+    cropCounts[item.crop] = (cropCounts[item.crop] || 0) + 1;
+  });
+
+  const summary = Object.entries(cropCounts)
+    .map(([crop, count]) => `${count} ${crop}`)
+    .join(', ');
 
   const newState: GameState = {
     ...state,
     player: {
       ...state.player,
       money: state.player.money + totalEarned,
-      inventory: {
-        ...state.player.inventory,
-        harvested: {
-          ...state.player.inventory.harvested,
-          [cropType]: harvested - amount,
-        },
-      },
+      basket: [], // Empty the basket
     },
   };
 
   return {
     success: true,
     state: newState,
-    message: `Sold ${amount} ${cropType} for $${totalEarned}!`,
+    message: `Sold ${summary} for $${totalEarned}!`,
   };
 }

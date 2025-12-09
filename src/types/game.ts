@@ -32,15 +32,20 @@ export interface SeedQuality {
   growthSpeed: number; // Multiplier for growth speed
 }
 
+export interface BasketItem {
+  crop: Exclude<CropType, null>;
+  quality: SeedQuality;
+}
+
 export interface Player {
   x: number;
   y: number;
   money: number;
   selectedTool: ToolType;
   selectedCrop: CropType;
+  basket: BasketItem[]; // Max 8 items
   inventory: {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
-    harvested: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
     sprinklers: number; // How many sprinklers the player owns
     waterbots: number; // How many water bots the player owns

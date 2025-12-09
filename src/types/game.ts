@@ -8,6 +8,7 @@ export type TileType =
   | 'planted'
   | 'grown'
   | 'shop'
+  | 'export'
   | 'waterbot'
   | 'arch';
 

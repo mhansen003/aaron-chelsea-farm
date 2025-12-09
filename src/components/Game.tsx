@@ -27,6 +27,7 @@ import {
 import { GameState, CropType, ToolType, Tile } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
+import ExportShop from './ExportShop';
 
 const COLORS = {
   grass: '#7cb342',
@@ -38,6 +39,7 @@ const COLORS = {
   player: '#2196f3',
   grid: '#ffffff20',
   shop: '#ff9800',
+  export: '#9c27b0',
   waterbot: '#00bcd4',
   arch: '#9e9e9e',
   archActive: '#4caf50',
@@ -94,6 +96,7 @@ export default function Game() {
   const [gameState, setGameState] = useState<GameState>(loadSavedGame());
   const [showShop, setShowShop] = useState(false);
   const [showSellShop, setShowSellShop] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showFarmNameEditor, setShowFarmNameEditor] = useState(false);
   const [showNewGameConfirm, setShowNewGameConfirm] = useState(false);
@@ -117,6 +120,7 @@ export default function Game() {
   const rockImageRef = useRef<HTMLImageElement | null>(null);
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
+  const exportImageRef = useRef<HTMLImageElement | null>(null);
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
@@ -183,6 +187,12 @@ export default function Game() {
     shopImg.src = '/shop.png';
     shopImg.onload = () => {
       shopImageRef.current = shopImg;
+    };
+
+    const exportImg = new Image();
+    exportImg.src = '/export.png';
+    exportImg.onload = () => {
+      exportImageRef.current = exportImg;
     };
 
     const sprinklerImg = new Image();
@@ -371,6 +381,15 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'export' && exportImageRef.current) {
+          // Draw grass background first, then export sprite
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -603,6 +622,11 @@ export default function Game() {
       return { action: 'shop' as const, cursor: 'pointer' };
     }
 
+    // Export tile
+    if (tile.type === 'export') {
+      return { action: 'export' as const, cursor: 'pointer' };
+    }
+
     // Arch tile
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -708,6 +732,12 @@ export default function Game() {
     // Handle shop tile clicks
     if (tile.type === 'shop') {
       setShowShop(true);
+      return;
+    }
+
+    // Handle export tile clicks
+    if (tile.type === 'export') {
+      setShowExportModal(true);
       return;
     }
 
@@ -832,6 +862,40 @@ export default function Game() {
       setShowPurchaseModal(false);
       setPurchaseZoneKey('');
     }
+  };
+
+  const sellToVendor = (vendorIndex: number, cropType: Exclude<CropType, null>, vendorPrice: number) => {
+    // Filter crops of the specified type from basket
+    const cropsToSell = gameState.player.basket.filter(item => item.crop === cropType);
+
+    if (cropsToSell.length === 0) {
+      setSellMessage('No crops of that type in basket!');
+      setTimeout(() => setSellMessage(''), 3000);
+      return;
+    }
+
+    // Calculate total earnings with quality multiplier
+    let totalEarned = 0;
+    cropsToSell.forEach(item => {
+      const pricePerCrop = Math.floor(vendorPrice * item.quality.yield);
+      totalEarned += pricePerCrop;
+    });
+
+    // Remove sold crops from basket
+    const remainingBasket = gameState.player.basket.filter(item => item.crop !== cropType);
+
+    // Update game state
+    setGameState(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        money: prev.player.money + totalEarned,
+        basket: remainingBasket,
+      },
+    }));
+
+    setSellMessage(`Sold ${cropsToSell.length} ${cropType}(s) for $${totalEarned}!`);
+    setTimeout(() => setSellMessage(''), 3000);
   };
 
   return (
@@ -1062,6 +1126,15 @@ export default function Game() {
             }
             setTimeout(() => setSellMessage(''), 3000);
           }}
+        />
+      )}
+
+      {/* Export Shop Modal */}
+      {showExportModal && (
+        <ExportShop
+          gameState={gameState}
+          onClose={() => setShowExportModal(false)}
+          onSellToVendor={sellToVendor}
         />
       )}
 

@@ -54,6 +54,10 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       if (isStartingZone && x === 0 && y === 0) {
         type = 'shop';
       }
+      // Export building at top-right corner of starting zone only
+      else if (isStartingZone && x === GAME_CONFIG.gridWidth - 1 && y === 0) {
+        type = 'export';
+      }
       // North arch (top center)
       else if (y === 0 && x === centerX) {
         type = 'arch';
@@ -78,11 +82,11 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
         archDirection = 'west';
         archTargetZone = { x: zoneX - 1, y: zoneY };
       }
-      // Random obstacles (but not where arches are)
+      // Random obstacles (but not where arches are) - doubled density
       else {
         const rand = Math.random();
-        if (rand < 0.15) type = 'rock';
-        else if (rand < 0.25) type = 'tree';
+        if (rand < 0.30) type = 'rock'; // 30% rocks (was 15%)
+        else if (rand < 0.50) type = 'tree'; // 20% trees (was 10%)
       }
 
       row.push({

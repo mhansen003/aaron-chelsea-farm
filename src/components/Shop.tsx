@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
 import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST } from '@/lib/gameEngine';
 
@@ -204,8 +205,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 : 'border-amber-600'
             }`}>
               {/* Icon */}
-              <div className="text-5xl mb-2">
-                {gameState.player.inventory.mechanicShop >= 1 ? '✓' : '⚙️'}
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                {gameState.player.inventory.mechanicShop >= 1 ? (
+                  <span className="text-5xl">✓</span>
+                ) : (
+                  <Image src="/mechanic.png" alt="Mechanic Shop" width={80} height={80} className="object-contain" />
+                )}
               </div>
 
               {/* Name */}
@@ -252,7 +257,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
             {/* Sprinkler Items - Buy individual sprinklers */}
             <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-cyan-600 flex flex-col items-center">
               {/* Icon */}
-              <div className="text-5xl mb-2">💦</div>
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                <Image src="/sprinkler.png" alt="Sprinkler" width={80} height={80} className="object-contain" />
+              </div>
 
               {/* Name */}
               <div className="font-bold text-center mb-1 text-sm">Sprinklers</div>

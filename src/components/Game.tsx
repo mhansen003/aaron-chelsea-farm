@@ -238,25 +238,25 @@ export default function Game() {
     };
 
     const archFarmImg = new Image();
-    archFarmImg.src = '/images/buildings/arch-farm.png';
+    archFarmImg.src = '/arch-farm.png';
     archFarmImg.onload = () => {
       archFarmImageRef.current = archFarmImg;
     };
 
     const archBeachImg = new Image();
-    archBeachImg.src = '/images/buildings/arch-beach.png';
+    archBeachImg.src = '/arch-beach.png';
     archBeachImg.onload = () => {
       archBeachImageRef.current = archBeachImg;
     };
 
     const archBarnImg = new Image();
-    archBarnImg.src = '/images/buildings/arch-barn.png';
+    archBarnImg.src = '/arch-barn.png';
     archBarnImg.onload = () => {
       archBarnImageRef.current = archBarnImg;
     };
 
     const archMountainImg = new Image();
-    archMountainImg.src = '/images/buildings/arch-mountain.png';
+    archMountainImg.src = '/arch-mountain.png';
     archMountainImg.onload = () => {
       archMountainImageRef.current = archMountainImg;
     };

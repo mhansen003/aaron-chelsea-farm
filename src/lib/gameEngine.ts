@@ -853,7 +853,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   if (!tile || tile.type !== 'grown' || !tile.crop) return state;
 
   // Check if basket is full
-  if (state.player.basket.length >= state.player.basketCapacity) return state;
+  if (state.player.basket && state.player.basket.length >= state.player.basketCapacity) return state;
 
   const cropType = tile.crop;
   const quality = state.player.inventory.seedQuality[cropType];

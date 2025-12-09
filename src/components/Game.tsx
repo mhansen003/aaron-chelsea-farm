@@ -452,6 +452,16 @@ export default function Game() {
 
   }, [gameState]);
 
+  // Play water splash sound effect
+  const playWaterSplash = useCallback(() => {
+    if (waterSplashRef.current) {
+      waterSplashRef.current.currentTime = 0; // Reset to start
+      waterSplashRef.current.play().catch(() => {
+        // Ignore errors if audio hasn't been initialized yet
+      });
+    }
+  }, []);
+
   // Handle canvas click to queue tasks
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -607,16 +617,6 @@ export default function Game() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState, showShop, showSellShop, showInstructions]);
-
-  // Play water splash sound effect
-  const playWaterSplash = useCallback(() => {
-    if (waterSplashRef.current) {
-      waterSplashRef.current.currentTime = 0; // Reset to start
-      waterSplashRef.current.play().catch(() => {
-        // Ignore errors if audio hasn't been initialized yet
-      });
-    }
-  }, []);
 
   const handleNewGame = () => {
     setGameState(createInitialState());

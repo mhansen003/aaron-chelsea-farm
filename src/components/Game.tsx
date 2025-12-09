@@ -315,6 +315,16 @@ export default function Game() {
           const progressWidth = (barWidth * tile.growthStage) / 100;
           ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
           ctx.fillRect(px + 2, barY, progressWidth, barHeight);
+
+          // Blinking water droplet if not watered today
+          if (!tile.wateredToday) {
+            const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
+            if (blink === 0) {
+              ctx.font = '20px Arial';
+              ctx.textAlign = 'center';
+              ctx.fillText('💧', px + GAME_CONFIG.tileSize / 2, py + 20);
+            }
+          }
         }
 
         // Grid lines

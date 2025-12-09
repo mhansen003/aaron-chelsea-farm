@@ -186,66 +186,76 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   // Check if a new day has started
   const isNewDay = newDay > previousDay;
 
-  let newGrid = state.grid;
+  // Update all zones
+  const newZones = { ...state.zones };
 
-  // If new day started, auto-water tiles with sprinklers and reset watered flags
-  if (isNewDay) {
-    newGrid = state.grid.map((row, y) =>
-      row.map((tile, x) => {
-        // Reset watered flag for all tiles
-        let wateredToday = false;
+  // Process each owned zone
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    if (!zone.owned) return; // Skip unowned zones
 
-        // Check if any sprinkler is in range of this tile
-        for (let sy = 0; sy < GAME_CONFIG.gridHeight; sy++) {
-          for (let sx = 0; sx < GAME_CONFIG.gridWidth; sx++) {
-            const otherTile = state.grid[sy][sx];
-            if (otherTile.hasSprinkler) {
-              const dx = Math.abs(x - sx);
-              const dy = Math.abs(y - sy);
-              if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
-                wateredToday = true;
-                break;
+    let newGrid = zone.grid;
+
+    // If new day started, auto-water tiles with sprinklers and reset watered flags
+    if (isNewDay) {
+      newGrid = zone.grid.map((row, y) =>
+        row.map((tile, x) => {
+          // Reset watered flag for all tiles
+          let wateredToday = false;
+
+          // Check if any sprinkler is in range of this tile
+          for (let sy = 0; sy < GAME_CONFIG.gridHeight; sy++) {
+            for (let sx = 0; sx < GAME_CONFIG.gridWidth; sx++) {
+              const otherTile = zone.grid[sy][sx];
+              if (otherTile.hasSprinkler) {
+                const dx = Math.abs(x - sx);
+                const dy = Math.abs(y - sy);
+                if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
+                  wateredToday = true;
+                  break;
+                }
               }
             }
+            if (wateredToday) break;
           }
-          if (wateredToday) break;
-        }
 
-        return { ...tile, wateredToday };
+          return { ...tile, wateredToday };
+        })
+      );
+    }
+
+    // Update crop growth - only if watered
+    newGrid = newGrid.map(row =>
+      row.map(tile => {
+        if (tile.type === 'planted' && tile.crop && tile.plantedDay !== undefined) {
+          const cropInfo = CROP_INFO[tile.crop];
+          const daysSincePlanted = newDay - tile.plantedDay;
+
+          // Only grow if watered today
+          if (tile.wateredToday) {
+            const quality = state.player.inventory.seedQuality[tile.crop];
+            const growthMultiplier = quality ? quality.growthSpeed : 1.0;
+            const adjustedDaysToGrow = cropInfo.daysToGrow / growthMultiplier;
+
+            const growthPercentage = (daysSincePlanted / adjustedDaysToGrow) * 100;
+            const newGrowthStage = Math.min(100, growthPercentage);
+
+            return {
+              ...tile,
+              growthStage: newGrowthStage,
+              type: (newGrowthStage >= 100 ? 'grown' : 'planted') as TileType,
+            };
+          }
+        }
+        return tile;
       })
     );
-  }
 
-  // Update crop growth - only if watered
-  newGrid = newGrid.map(row =>
-    row.map(tile => {
-      if (tile.type === 'planted' && tile.crop && tile.plantedDay !== undefined) {
-        const cropInfo = CROP_INFO[tile.crop];
-        const daysSincePlanted = newDay - tile.plantedDay;
-
-        // Only grow if watered today
-        if (tile.wateredToday) {
-          const quality = state.player.inventory.seedQuality[tile.crop];
-          const growthMultiplier = quality ? quality.growthSpeed : 1.0;
-          const adjustedDaysToGrow = cropInfo.daysToGrow / growthMultiplier;
-
-          const growthPercentage = (daysSincePlanted / adjustedDaysToGrow) * 100;
-          const newGrowthStage = Math.min(100, growthPercentage);
-
-          return {
-            ...tile,
-            growthStage: newGrowthStage,
-            type: (newGrowthStage >= 100 ? 'grown' : 'planted') as TileType,
-          };
-        }
-      }
-      return tile;
-    })
-  );
+    newZones[zoneKey] = { ...zone, grid: newGrid };
+  });
 
   return {
     ...state,
-    grid: newGrid,
+    zones: newZones,
     currentDay: newDay,
     dayProgress: newDayProgress,
     gameTime: newGameTime,

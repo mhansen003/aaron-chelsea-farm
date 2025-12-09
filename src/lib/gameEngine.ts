@@ -54,6 +54,10 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       if (isStartingZone && x === 0 && y === 0) {
         type = 'shop';
       }
+      // Warehouse building to the left of export building
+      else if (isStartingZone && x === GAME_CONFIG.gridWidth - 2 && y === 0) {
+        type = 'warehouse';
+      }
       // Export building at top-right corner of starting zone only
       else if (isStartingZone && x === GAME_CONFIG.gridWidth - 1 && y === 0) {
         type = 'export';
@@ -95,7 +99,7 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
         y,
         crop: null,
         growthStage: 0,
-        cleared: type === 'grass' || type === 'shop' || type === 'arch',
+        cleared: type === 'grass' || type === 'shop' || type === 'warehouse' || type === 'export' || type === 'arch',
         wateredToday: false,
         hasSprinkler: false,
         archDirection,
@@ -228,6 +232,7 @@ export function createInitialState(): GameState {
     dayProgress: 0,
     gameTime: 0,
     isPaused: false,
+    warehouse: [], // Empty warehouse storage
   };
 }
 
@@ -440,9 +445,7 @@ export function plantSeed(
   const tile = grid[tileY]?.[tileX];
   if (!tile || !tile.cleared || tile.crop || !cropType) return state;
 
-  const seedCount = state.player.inventory.seeds[cropType];
-  if (seedCount <= 0) return state;
-
+  // Seed count is already decreased when task was queued, so just plant
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
@@ -460,21 +463,7 @@ export function plantSeed(
     })
   );
 
-  const updatedState = updateCurrentGrid(state, newGrid);
-
-  return {
-    ...updatedState,
-    player: {
-      ...updatedState.player,
-      inventory: {
-        ...updatedState.player.inventory,
-        seeds: {
-          ...updatedState.player.inventory.seeds,
-          [cropType]: seedCount - 1,
-        },
-      },
-    },
-  };
+  return updateCurrentGrid(state, newGrid);
 }
 
 export function harvestCrop(state: GameState, tileX: number, tileY: number): GameState {
@@ -740,6 +729,18 @@ export function removeTask(state: GameState, taskId: string): GameState {
   return {
     ...state,
     taskQueue: state.taskQueue.filter(t => t.id !== taskId),
+  };
+}
+
+// Deposit all items from basket to warehouse
+export function depositToWarehouse(state: GameState): GameState {
+  return {
+    ...state,
+    warehouse: [...state.warehouse, ...state.player.basket],
+    player: {
+      ...state.player,
+      basket: [], // Empty the basket
+    },
   };
 }
 

@@ -18,6 +18,7 @@ import {
   upgradeBag,
   addTask,
   removeTask,
+  depositToWarehouse,
   getCurrentGrid,
   createZone,
   getZoneKey,
@@ -121,6 +122,7 @@ export default function Game() {
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
   const exportImageRef = useRef<HTMLImageElement | null>(null);
+  const warehouseImageRef = useRef<HTMLImageElement | null>(null);
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const archImageRef = useRef<HTMLImageElement | null>(null);
@@ -196,6 +198,12 @@ export default function Game() {
     exportImg.src = '/export.png';
     exportImg.onload = () => {
       exportImageRef.current = exportImg;
+    };
+
+    const warehouseImg = new Image();
+    warehouseImg.src = '/warehouse.png';
+    warehouseImg.onload = () => {
+      warehouseImageRef.current = warehouseImg;
     };
 
     const sprinklerImg = new Image();
@@ -411,6 +419,15 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
+          // Draw grass background first, then warehouse sprite
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -679,6 +696,11 @@ export default function Game() {
       return { action: 'export' as const, cursor: 'pointer' };
     }
 
+    // Warehouse tile
+    if (tile.type === 'warehouse') {
+      return { action: 'warehouse' as const, cursor: 'pointer' };
+    }
+
     // Arch tile
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -778,6 +800,13 @@ export default function Game() {
       return;
     }
 
+    // Handle warehouse tile clicks
+    if (tile.type === 'warehouse') {
+      // Deposit all items from basket to warehouse
+      setGameState(prev => depositToWarehouse(prev));
+      return;
+    }
+
     // Get context-aware action for this tile
     const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
@@ -798,7 +827,28 @@ export default function Game() {
 
       case 'plant':
         if (gameState.player.selectedCrop) {
-          setGameState(prev => addTask(prev, 'plant', tileX, tileY, gameState.player.selectedCrop!));
+          const crop = gameState.player.selectedCrop;
+          // Check if we have seeds available
+          if (gameState.player.inventory.seeds[crop] > 0) {
+            setGameState(prev => {
+              // Decrease seed count immediately when queuing
+              const newState = {
+                ...prev,
+                player: {
+                  ...prev.player,
+                  inventory: {
+                    ...prev.player.inventory,
+                    seeds: {
+                      ...prev.player.inventory.seeds,
+                      [crop]: prev.player.inventory.seeds[crop] - 1,
+                    },
+                  },
+                },
+              };
+              // Then add the task
+              return addTask(newState, 'plant', tileX, tileY, crop);
+            });
+          }
         }
         break;
     }
@@ -820,13 +870,36 @@ export default function Game() {
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
 
-    // Find and remove tasks for this tile
-    setGameState(prev => ({
-      ...prev,
-      taskQueue: prev.taskQueue.filter(task =>
-        !(task.tileX === tileX && task.tileY === tileY)
-      ),
-    }));
+    // Find and remove tasks for this tile, refunding seeds if cancelled
+    setGameState(prev => {
+      const cancelledTasks = prev.taskQueue.filter(
+        task => task.tileX === tileX && task.tileY === tileY &&
+                task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y
+      );
+
+      // Refund seeds for cancelled plant tasks
+      let newSeeds = { ...prev.player.inventory.seeds };
+      cancelledTasks.forEach(task => {
+        if (task.type === 'plant' && task.cropType) {
+          newSeeds[task.cropType] = newSeeds[task.cropType] + 1;
+        }
+      });
+
+      return {
+        ...prev,
+        taskQueue: prev.taskQueue.filter(task =>
+          !(task.tileX === tileX && task.tileY === tileY &&
+            task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y)
+        ),
+        player: {
+          ...prev.player,
+          inventory: {
+            ...prev.player.inventory,
+            seeds: newSeeds,
+          },
+        },
+      };
+    });
   }, []);
 
   // Keyboard shortcuts (no movement)

@@ -9,14 +9,16 @@ export type TileType =
   | 'grown'
   | 'shop'
   | 'export'
+  | 'warehouse'
   | 'waterbot'
-  | 'arch';
+  | 'arch'
+  | 'mechanic';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic';
 
 export interface Task {
   id: string;
@@ -73,6 +75,8 @@ export interface Player {
     sprinklers: number; // How many sprinklers the player owns
     waterbots: number; // How many water bots the player owns
     harvestbots: number; // How many harvest bots the player owns
+    mechanicShop: number; // How many mechanic shops the player owns (max 1)
+    mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
   };
   autoBuy: {
     carrot: boolean;
@@ -114,6 +118,7 @@ export interface GameState {
   dayProgress: number; // 0-100, progress through current day
   gameTime: number;
   isPaused: boolean;
+  warehouse: BasketItem[]; // Warehouse storage for deposited crops
 }
 
 export interface GameConfig {

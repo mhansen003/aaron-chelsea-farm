@@ -513,6 +513,19 @@ export default function Game() {
             offsetX, offsetY, 512, 512,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
+        } else if (tile.isConstructing && workingImageRef.current) {
+          // Draw grass background for construction site
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          // Draw working icon to show construction in progress
+          ctx.drawImage(
+            workingImageRef.current,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
           // Draw grass background
           if (grassImageRef.current) {
@@ -1479,7 +1492,6 @@ export default function Game() {
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
           onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
-          onRelocateMechanicShop={() => setGameState(prev => relocateMechanicShop(prev))}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
@@ -1516,6 +1528,7 @@ export default function Game() {
           onClose={() => setShowMechanicShop(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+          onRelocate={() => setGameState(prev => relocateMechanicShop(prev))}
         />
       )}
 

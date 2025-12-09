@@ -14,7 +14,6 @@ interface ShopProps {
   onBuyHarvestbots: (amount: number) => void;
   onUpgradeBag: () => void;
   onBuyMechanicShop: () => void;
-  onRelocateMechanicShop: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
@@ -26,7 +25,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onRelocateMechanicShop, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -239,12 +238,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   ${MECHANIC_SHOP_COST}
                 </button>
               ) : gameState.player.inventory.mechanicShopPlaced ? (
-                <button
-                  onClick={() => onRelocateMechanicShop()}
-                  className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-600 hover:bg-yellow-700"
-                >
-                  🔄 Relocate
-                </button>
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Owned
+                </div>
               ) : (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
                   Place It!

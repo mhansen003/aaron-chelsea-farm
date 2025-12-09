@@ -496,6 +496,38 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, grid: newGrid };
   });
 
+  // Complete building construction when timer expires
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    if (!zone.owned) return;
+
+    let hasConstructionUpdates = false;
+    const updatedGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Check if tile is under construction and ready to complete
+        if (tile.isConstructing && tile.constructionStartTime !== undefined && tile.constructionDuration !== undefined && tile.constructionTarget) {
+          const elapsedTime = newState.gameTime - tile.constructionStartTime;
+          if (elapsedTime >= tile.constructionDuration) {
+            // Construction complete! Convert to final building type
+            hasConstructionUpdates = true;
+            return {
+              ...tile,
+              type: tile.constructionTarget,
+              isConstructing: false,
+              constructionTarget: undefined,
+              constructionStartTime: undefined,
+              constructionDuration: undefined,
+            };
+          }
+        }
+        return tile;
+      })
+    );
+
+    if (hasConstructionUpdates) {
+      newZones[zoneKey] = { ...zone, grid: updatedGrid };
+    }
+  });
+
   // Water Bot AI: Autonomously water unwatered crops
   if (newState.player.inventory.waterbots > 0) {
     // Get current zone
@@ -909,12 +941,17 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     return state;
   }
 
+  // Start construction immediately (no farmer movement required)
+  const CONSTRUCTION_TIME = 60000; // 1 minute
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
           ...t,
-          type: 'mechanic' as const,
+          isConstructing: true,
+          constructionTarget: 'mechanic' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_TIME,
         };
       }
       return t;

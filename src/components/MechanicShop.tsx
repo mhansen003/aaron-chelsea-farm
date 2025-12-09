@@ -8,9 +8,10 @@ interface MechanicShopProps {
   onClose: () => void;
   onBuyWaterbots: (amount: number) => void;
   onBuyHarvestbots: (amount: number) => void;
+  onRelocate: () => void;
 }
 
-export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots }: MechanicShopProps) {
+export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onRelocate }: MechanicShopProps) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white p-8 rounded-xl max-w-3xl w-full max-h-[80vh] overflow-y-auto border-4 border-orange-600">
@@ -124,9 +125,20 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
           </div>
         </div>
 
+        {/* Relocate Button */}
+        <button
+          onClick={() => {
+            onRelocate();
+            onClose();
+          }}
+          className="mt-6 w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg"
+        >
+          🔄 Relocate Mechanic Shop
+        </button>
+
         <button
           onClick={onClose}
-          className="mt-6 w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+          className="mt-4 w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
         >
           Close Mechanic Shop
         </button>

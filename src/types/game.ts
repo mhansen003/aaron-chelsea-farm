@@ -46,6 +46,10 @@ export interface Tile {
   hasSprinkler: boolean; // Whether this tile has a sprinkler placed on it
   archDirection?: 'north' | 'south' | 'east' | 'west'; // Direction this arch leads to
   archTargetZone?: { x: number; y: number }; // Target zone coordinates
+  isConstructing?: boolean; // Whether this tile is currently under construction
+  constructionTarget?: TileType; // What building type it will become
+  constructionStartTime?: number; // Game time when construction started
+  constructionDuration?: number; // How long construction takes (ms)
 }
 
 export interface SeedQuality {

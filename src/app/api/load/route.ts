@@ -1,5 +1,7 @@
-import { kv } from '@vercel/kv';
+import { neon } from '@neondatabase/serverless';
 import { NextRequest, NextResponse } from 'next/server';
+
+const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,17 +14,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Load the game state
-    const gameStateJson = await kv.get<string>(`save:${code}`);
+    // Load the game state and check expiration
+    const result = await sql`
+      SELECT game_state, expires_at
+      FROM game_saves
+      WHERE code = ${code}
+      AND expires_at > NOW()
+    `;
 
-    if (!gameStateJson) {
+    if (result.length === 0) {
       return NextResponse.json(
         { error: 'Save code not found or expired' },
         { status: 404 }
       );
     }
 
-    const gameState = JSON.parse(gameStateJson);
+    const gameState = result[0].game_state;
 
     return NextResponse.json({ gameState });
   } catch (error) {

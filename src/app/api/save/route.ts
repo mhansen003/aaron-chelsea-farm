@@ -1,5 +1,7 @@
-import { kv } from '@vercel/kv';
+import { neon } from '@neondatabase/serverless';
 import { NextRequest, NextResponse } from 'next/server';
+
+const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +19,15 @@ export async function POST(request: NextRequest) {
     let attempts = 0;
 
     // Keep trying until we find a unique code
-    while (await kv.exists(`save:${code}`) && attempts < 100) {
+    while (attempts < 100) {
+      const existing = await sql`
+        SELECT code FROM game_saves WHERE code = ${code}
+      `;
+
+      if (existing.length === 0) {
+        break; // Code is unique
+      }
+
       code = generateCode();
       attempts++;
     }
@@ -29,10 +39,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Save the game state with 30-day expiration
-    await kv.set(`save:${code}`, JSON.stringify(gameState), {
-      ex: 60 * 60 * 24 * 30, // 30 days in seconds
-    });
+    // Save the game state
+    await sql`
+      INSERT INTO game_saves (code, game_state, expires_at)
+      VALUES (
+        ${code},
+        ${JSON.stringify(gameState)},
+        NOW() + INTERVAL '30 days'
+      )
+      ON CONFLICT (code)
+      DO UPDATE SET
+        game_state = ${JSON.stringify(gameState)},
+        expires_at = NOW() + INTERVAL '30 days'
+    `;
 
     return NextResponse.json({ code });
   } catch (error) {

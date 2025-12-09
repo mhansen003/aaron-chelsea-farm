@@ -180,7 +180,7 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
       if (x === tileX && y === tileY && !t.cleared) {
         return {
           ...t,
-          type: 'dirt',
+          type: 'dirt' as TileType,
           cleared: true,
         };
       }
@@ -211,7 +211,7 @@ export function plantSeed(
       if (x === tileX && y === tileY) {
         return {
           ...t,
-          type: 'planted',
+          type: 'planted' as TileType,
           crop: cropType,
           growthStage: 0,
         };
@@ -250,7 +250,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
       if (x === tileX && y === tileY) {
         return {
           ...t,
-          type: 'dirt',
+          type: 'dirt' as TileType,
           crop: null,
           growthStage: 0,
         };

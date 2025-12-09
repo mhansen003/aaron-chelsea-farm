@@ -8,7 +8,8 @@ export type TileType =
   | 'planted'
   | 'grown'
   | 'shop'
-  | 'waterbot';
+  | 'waterbot'
+  | 'arch';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
@@ -38,6 +39,8 @@ export interface Tile {
   plantedDay?: number; // Which day the crop was planted
   wateredToday: boolean; // Whether this tile has been watered today
   hasSprinkler: boolean; // Whether this tile has a sprinkler placed on it
+  archDirection?: 'north' | 'south' | 'east' | 'west'; // Direction this arch leads to
+  archTargetZone?: { x: number; y: number }; // Target zone coordinates
 }
 
 export interface SeedQuality {

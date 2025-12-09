@@ -2,9 +2,9 @@
 import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
-  gridWidth: 20, // Increased from 16 to make farm wider
+  gridWidth: 16,
   gridHeight: 12,
-  tileSize: 72, // 50% bigger than before
+  tileSize: 90, // Increased from 72 to fill header width (16 * 90 = 1440px)
 };
 
 // Crop information: growth days, sell price, seed cost
@@ -39,15 +39,47 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
   const grid: Tile[][] = [];
   const isStartingZone = zoneX === 0 && zoneY === 0;
 
+  // Calculate center positions for arches
+  const centerX = Math.floor(GAME_CONFIG.gridWidth / 2);
+  const centerY = Math.floor(GAME_CONFIG.gridHeight / 2);
+
   for (let y = 0; y < GAME_CONFIG.gridHeight; y++) {
     const row: Tile[] = [];
     for (let x = 0; x < GAME_CONFIG.gridWidth; x++) {
-      // Shop building at top-left corner of starting zone only
       let type: TileType = 'grass';
+      let archDirection: 'north' | 'south' | 'east' | 'west' | undefined = undefined;
+      let archTargetZone: { x: number; y: number } | undefined = undefined;
+
+      // Shop building at top-left corner of starting zone only
       if (isStartingZone && x === 0 && y === 0) {
         type = 'shop';
-      } else {
-        // Random obstacles
+      }
+      // North arch (top center)
+      else if (y === 0 && x === centerX) {
+        type = 'arch';
+        archDirection = 'north';
+        archTargetZone = { x: zoneX, y: zoneY + 1 };
+      }
+      // South arch (bottom center)
+      else if (y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
+        type = 'arch';
+        archDirection = 'south';
+        archTargetZone = { x: zoneX, y: zoneY - 1 };
+      }
+      // East arch (right center)
+      else if (x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
+        type = 'arch';
+        archDirection = 'east';
+        archTargetZone = { x: zoneX + 1, y: zoneY };
+      }
+      // West arch (left center)
+      else if (x === 0 && y === centerY) {
+        type = 'arch';
+        archDirection = 'west';
+        archTargetZone = { x: zoneX - 1, y: zoneY };
+      }
+      // Random obstacles (but not where arches are)
+      else {
         const rand = Math.random();
         if (rand < 0.15) type = 'rock';
         else if (rand < 0.25) type = 'tree';
@@ -59,9 +91,11 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
         y,
         crop: null,
         growthStage: 0,
-        cleared: type === 'grass' || type === 'shop',
+        cleared: type === 'grass' || type === 'shop' || type === 'arch',
         wateredToday: false,
         hasSprinkler: false,
+        archDirection,
+        archTargetZone,
       });
     }
     grid.push(row);

@@ -19,6 +19,8 @@ import {
   addTask,
   removeTask,
   getCurrentGrid,
+  createZone,
+  getZoneKey,
   GAME_CONFIG,
   CROP_INFO,
 } from '@/lib/gameEngine';
@@ -37,6 +39,8 @@ const COLORS = {
   grid: '#ffffff20',
   shop: '#ff9800',
   waterbot: '#00bcd4',
+  arch: '#9e9e9e',
+  archActive: '#4caf50',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {
@@ -106,6 +110,7 @@ export default function Game() {
   const shopImageRef = useRef<HTMLImageElement | null>(null);
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
+  const archImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all textures
   useEffect(() => {
@@ -167,6 +172,12 @@ export default function Game() {
     waterBotImg.src = '/water bot.png';
     waterBotImg.onload = () => {
       waterBotImageRef.current = waterBotImg;
+    };
+
+    const archImg = new Image();
+    archImg.src = '/arch.png';
+    archImg.onload = () => {
+      archImageRef.current = archImg;
     };
   }, []);
 
@@ -307,6 +318,28 @@ export default function Game() {
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'arch' && archImageRef.current && tile.archTargetZone) {
+          // Draw arch - check if target zone is owned to determine color
+          const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
+          const targetZone = gameState.zones[zoneKey];
+          const isActive = targetZone?.owned || false;
+
+          // Draw grass background first
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+
+          // Draw arch with tint overlay (gray if locked, green if active)
+          ctx.drawImage(archImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+          if (!isActive) {
+            // Gray tint for locked arch
+            ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw dirt first, then planted crop sprite on top
           if (dirtImageRef.current) {
@@ -425,6 +458,51 @@ export default function Game() {
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
+
+    // Handle arch clicks for zone purchase/travel
+    if (tile.type === 'arch' && tile.archTargetZone) {
+      const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
+      let targetZone = gameState.zones[zoneKey];
+
+      // Create zone if it doesn't exist
+      if (!targetZone) {
+        targetZone = createZone(tile.archTargetZone.x, tile.archTargetZone.y, false);
+        setGameState(prev => ({
+          ...prev,
+          zones: {
+            ...prev.zones,
+            [zoneKey]: targetZone,
+          },
+        }));
+      }
+
+      if (!targetZone.owned) {
+        // Show purchase prompt
+        const canAfford = gameState.player.money >= targetZone.purchasePrice;
+        if (confirm(`Purchase this farmland for $${targetZone.purchasePrice}?${!canAfford ? '\n\nYou need more money!' : ''}`)) {
+          if (canAfford) {
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                money: prev.player.money - targetZone.purchasePrice,
+              },
+              zones: {
+                ...prev.zones,
+                [zoneKey]: { ...targetZone, owned: true },
+              },
+            }));
+          }
+        }
+      } else {
+        // Travel to owned zone
+        setGameState(prev => ({
+          ...prev,
+          currentZone: tile.archTargetZone!,
+        }));
+      }
+      return;
+    }
 
     const { selectedTool, selectedCrop } = gameState.player;
 

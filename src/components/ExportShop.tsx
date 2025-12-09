@@ -63,6 +63,27 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
     }, {} as Record<Exclude<CropType, null>, number>);
   }, [gameState.player.basket]);
 
+  // Count warehouse items by crop type
+  const warehouseCounts = useMemo(() => {
+    return gameState.warehouse.reduce((acc, item) => {
+      acc[item.crop] = (acc[item.crop] || 0) + 1;
+      return acc;
+    }, {} as Record<Exclude<CropType, null>, number>);
+  }, [gameState.warehouse]);
+
+  // Combined total counts (basket + warehouse)
+  const totalCounts = useMemo(() => {
+    const combined: Record<Exclude<CropType, null>, number> = {
+      carrot: 0,
+      wheat: 0,
+      tomato: 0,
+    };
+    (['carrot', 'wheat', 'tomato'] as const).forEach(crop => {
+      combined[crop] = (basketCounts[crop] || 0) + (warehouseCounts[crop] || 0);
+    });
+    return combined;
+  }, [basketCounts, warehouseCounts]);
+
   const cropEmojis: Record<Exclude<CropType, null>, string> = {
     carrot: '🥕',
     wheat: '🌾',
@@ -87,20 +108,51 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
         </div>
 
         <div className="mb-6 bg-black/30 px-4 py-3 rounded">
-          <h3 className="text-lg font-bold mb-2">Your Basket ({gameState.player.basket.length}/{gameState.player.basketCapacity}):</h3>
-          <div className="flex gap-4">
-            {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
-              <div key={crop} className="flex items-center gap-2">
-                <span className="text-2xl">{cropEmojis[crop]}</span>
-                <span className="text-lg font-bold">{basketCounts[crop] || 0}</span>
-              </div>
-            ))}
+          <h3 className="text-lg font-bold mb-3">Available to Sell:</h3>
+
+          {/* Basket Inventory */}
+          <div className="mb-3">
+            <div className="text-sm text-gray-300 mb-1">🧺 Basket ({gameState.player.basket.length}/{gameState.player.basketCapacity}):</div>
+            <div className="flex gap-4">
+              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+                <div key={crop} className="flex items-center gap-2">
+                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <span className="text-lg font-bold">{basketCounts[crop] || 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Warehouse Inventory */}
+          <div className="mb-3">
+            <div className="text-sm text-gray-300 mb-1">🏛️ Warehouse ({gameState.warehouse.length} items):</div>
+            <div className="flex gap-4">
+              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+                <div key={crop} className="flex items-center gap-2">
+                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <span className="text-lg font-bold">{warehouseCounts[crop] || 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Total Available */}
+          <div className="border-t border-white/20 pt-2 mt-2">
+            <div className="text-sm text-green-300 mb-1">📊 Total Available:</div>
+            <div className="flex gap-4">
+              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+                <div key={crop} className="flex items-center gap-2">
+                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <span className="text-lg font-bold text-green-300">{totalCounts[crop]}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {gameState.player.basket.length === 0 ? (
+        {gameState.player.basket.length === 0 && gameState.warehouse.length === 0 ? (
           <div className="text-center text-gray-400 my-8 text-lg">
-            Your basket is empty! Harvest some crops first.
+            Your basket and warehouse are empty! Harvest some crops first.
           </div>
         ) : (
           <div className="space-y-4">
@@ -118,7 +170,7 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
 
                 <div className="grid grid-cols-3 gap-3">
                   {(['carrot', 'wheat', 'tomato'] as const).map((crop) => {
-                    const count = basketCounts[crop] || 0;
+                    const count = totalCounts[crop]; // Use combined basket + warehouse count
                     const price = vendor.prices[crop];
                     const totalValue = count * price;
                     const hasItems = count > 0;

@@ -216,6 +216,9 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     theme,
     name,
     description,
+    waterBots: [],
+    harvestBots: [],
+    seedBots: [],
   };
 }
 
@@ -333,9 +336,6 @@ export function createInitialState(): GameState {
     gameTime: 0,
     isPaused: false,
     warehouse: [], // Empty warehouse storage
-    waterBots: [], // No water bots initially
-    harvestBots: [], // No harvest bots initially
-    seedBots: [], // No seed bots initially
   };
 }
 

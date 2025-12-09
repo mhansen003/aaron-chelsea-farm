@@ -149,6 +149,45 @@ export default function Game() {
           if (parsed.zones === undefined) {
             parsed.zones = {};
           }
+          
+          // Ensure all zones have bot arrays initialized
+          if (parsed.zones) {
+            Object.keys(parsed.zones).forEach(zoneKey => {
+              if (!parsed.zones[zoneKey].waterBots) {
+                parsed.zones[zoneKey].waterBots = [];
+              }
+              if (!parsed.zones[zoneKey].harvestBots) {
+                parsed.zones[zoneKey].harvestBots = [];
+              }
+              if (!parsed.zones[zoneKey].seedBots) {
+                parsed.zones[zoneKey].seedBots = [];
+              }
+            });
+          }
+          
+          // MIGRATION: Move global bots to current zone's bot arrays
+          if (parsed.waterBots !== undefined) {
+            const currentZoneKey = getZoneKey(parsed.currentZone?.x || 0, parsed.currentZone?.y || 0);
+            if (parsed.zones && parsed.zones[currentZoneKey]) {
+              if (!parsed.zones[currentZoneKey].waterBots) {
+                parsed.zones[currentZoneKey].waterBots = [];
+              }
+              if (!parsed.zones[currentZoneKey].harvestBots) {
+                parsed.zones[currentZoneKey].harvestBots = [];
+              }
+              if (!parsed.zones[currentZoneKey].seedBots) {
+                parsed.zones[currentZoneKey].seedBots = [];
+              }
+              // Migrate global bots to current zone
+              parsed.zones[currentZoneKey].waterBots = [...(parsed.zones[currentZoneKey].waterBots || []), ...(parsed.waterBots || [])];
+              parsed.zones[currentZoneKey].harvestBots = [...(parsed.zones[currentZoneKey].harvestBots || []), ...(parsed.harvestBots || [])];
+              parsed.zones[currentZoneKey].seedBots = [...(parsed.zones[currentZoneKey].seedBots || []), ...(parsed.seedBots || [])];
+            }
+            // Remove global bot arrays from state
+            delete parsed.waterBots;
+            delete parsed.harvestBots;
+            delete parsed.seedBots;
+          }
 
           return parsed as GameState;
         } catch (e) {
@@ -1907,24 +1946,27 @@ export default function Game() {
   };
 
   const sellToVendor = (vendorIndex: number, cropType: Exclude<CropType, null>, vendorPrice: number) => {
-    // Filter crops of the specified type from basket
-    const cropsToSell = gameState.player.basket.filter(item => item.crop === cropType);
+    // Filter crops of the specified type from basket AND warehouse
+    const basketCrops = gameState.player.basket.filter(item => item.crop === cropType);
+    const warehouseCrops = gameState.warehouse.filter(item => item.crop === cropType);
+    const allCropsToSell = [...basketCrops, ...warehouseCrops];
 
-    if (cropsToSell.length === 0) {
-      setSellMessage('No crops of that type in basket!');
+    if (allCropsToSell.length === 0) {
+      setSellMessage('No crops of that type available!');
       setTimeout(() => setSellMessage(''), 3000);
       return;
     }
 
     // Calculate total earnings with quality multiplier
     let totalEarned = 0;
-    cropsToSell.forEach(item => {
+    allCropsToSell.forEach(item => {
       const pricePerCrop = Math.floor(vendorPrice * item.quality.yield);
       totalEarned += pricePerCrop;
     });
 
-    // Remove sold crops from basket
+    // Remove sold crops from basket and warehouse
     const remainingBasket = gameState.player.basket.filter(item => item.crop !== cropType);
+    const remainingWarehouse = gameState.warehouse.filter(item => item.crop !== cropType);
 
     // Update game state
     setGameState(prev => ({
@@ -1934,9 +1976,10 @@ export default function Game() {
         money: prev.player.money + totalEarned,
         basket: remainingBasket,
       },
+      warehouse: remainingWarehouse,
     }));
 
-    setSellMessage(`Sold ${cropsToSell.length} ${cropType}(s) for $${totalEarned}!`);
+    setSellMessage(`Sold ${allCropsToSell.length} ${cropType}(s) (${basketCrops.length} from basket, ${warehouseCrops.length} from warehouse) for $${totalEarned}!`);
     setTimeout(() => setSellMessage(''), 3000);
   };
 

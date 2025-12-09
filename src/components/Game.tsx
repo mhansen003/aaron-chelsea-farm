@@ -608,14 +608,6 @@ export default function Game() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState, showShop, showSellShop, showInstructions]);
 
-  const handleNewGame = () => {
-    setGameState(createInitialState());
-    setSellMessage('');
-    setShowShop(false);
-    setShowSellShop(false);
-    setShowInstructions(false);
-  };
-
   // Play water splash sound effect
   const playWaterSplash = useCallback(() => {
     if (waterSplashRef.current) {
@@ -625,6 +617,14 @@ export default function Game() {
       });
     }
   }, []);
+
+  const handleNewGame = () => {
+    setGameState(createInitialState());
+    setSellMessage('');
+    setShowShop(false);
+    setShowSellShop(false);
+    setShowInstructions(false);
+  };
 
   return (
     <div className="relative flex gap-2 p-2">

@@ -655,6 +655,21 @@ export default function Game() {
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
 
+    // Debug logging
+    console.log('Click debug:', {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      rectLeft: rect.left,
+      rectTop: rect.top,
+      scaleX,
+      scaleY,
+      clickX,
+      clickY,
+      tileX,
+      tileY,
+      tileSize: GAME_CONFIG.tileSize
+    });
+
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;

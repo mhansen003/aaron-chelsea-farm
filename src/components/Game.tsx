@@ -107,6 +107,16 @@ export default function Game() {
           if (parsed.player.inventory.mechanicShopPlaced === undefined) {
             parsed.player.inventory.mechanicShopPlaced = false;
           }
+          // Add basket if missing (for old saves)
+          if (parsed.player.basket === undefined) {
+            parsed.player.basket = [];
+          }
+          if (parsed.player.basketCapacity === undefined) {
+            parsed.player.basketCapacity = 8;
+          }
+          if (parsed.player.bagUpgrades === undefined) {
+            parsed.player.bagUpgrades = 0;
+          }
 
           return parsed as GameState;
         } catch (e) {

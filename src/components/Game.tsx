@@ -119,6 +119,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | null>(null);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -434,6 +435,7 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           // Draw 2x2 building only from top-left tile (0,0)
+          // Each building image covers 2x2 tiles
           if (x === 0 && y === 0) {
             ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
@@ -445,8 +447,8 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw 2x2 building only from top-left tile
-          if (x === GAME_CONFIG.gridWidth - 2 && y === 0) {
+          // Draw 2x2 building only from top-left tile (x=14 for 16-wide grid)
+          if (x === 14 && y === 0) {
             ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
@@ -457,8 +459,8 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw 2x2 building only from top-left tile
-          if (x === GAME_CONFIG.gridWidth - 4 && y === 0) {
+          // Draw 2x2 building only from top-left tile (x=12 for 16-wide grid)
+          if (x === 12 && y === 0) {
             ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
           }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
@@ -808,6 +810,22 @@ export default function Game() {
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
+
+    // Handle placement mode (sprinklers, mechanic shop, etc.)
+    if (placementMode === 'sprinkler') {
+      setGameState(prev => addTask(prev, 'place_sprinkler', tileX, tileY));
+      setPlacementMode(null); // Clear placement mode after placing
+      return;
+    }
+
+    if (placementMode === 'mechanic') {
+      // Only allow placing mechanic shop on grass tiles
+      if (tile.type === 'grass') {
+        setGameState(prev => addTask(prev, 'place_mechanic', tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
 
     // Handle arch clicks for zone purchase/travel
     if (tile.type === 'arch' && tile.archTargetZone) {
@@ -1187,35 +1205,55 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Mechanic Shop Placement Button */}
-      {isMounted && gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
-        <div className="w-full bg-purple-900/90 p-3 rounded-lg border-2 border-purple-500 animate-pulse">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">⚙️</span>
-              <div>
-                <div className="text-white font-bold text-lg">Mechanic Shop Ready!</div>
-                <div className="text-purple-200 text-sm">Click any grass tile to install (takes 2 minutes)</div>
-              </div>
-            </div>
+      {/* Placement Toolbar - Compact menu for placing items */}
+      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced)) && (
+        <div className="w-full bg-black/70 p-2 rounded-lg flex items-center gap-2">
+          <div className="text-white font-bold text-sm">🔨 Place:</div>
+
+          {/* Sprinkler Placement Button */}
+          {gameState.player.inventory.sprinklers > 0 && (
             <button
-              onClick={() => {
-                // Find a grass tile to place it
-                const grid = getCurrentGrid(gameState);
-                for (let y = 0; y < GAME_CONFIG.gridHeight; y++) {
-                  for (let x = 0; x < GAME_CONFIG.gridWidth; x++) {
-                    if (grid[y][x].type === 'grass') {
-                      setGameState(prev => addTask(prev, 'place_mechanic', x, y));
-                      return;
-                    }
-                  }
-                }
-              }}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-white transition-all"
+              onClick={() => setPlacementMode(placementMode === 'sprinkler' ? null : 'sprinkler')}
+              className={`px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${
+                placementMode === 'sprinkler'
+                  ? 'bg-blue-600 ring-2 ring-blue-300'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
             >
-              Place Now
+              💦 Sprinkler <span className="text-xs">({gameState.player.inventory.sprinklers})</span>
             </button>
-          </div>
+          )}
+
+          {/* Mechanic Shop Placement Button */}
+          {gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'mechanic' ? null : 'mechanic')}
+              className={`px-3 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all ${
+                placementMode === 'mechanic'
+                  ? 'bg-purple-600 ring-2 ring-purple-300'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              }`}
+            >
+              ⚙️ Mechanic Shop
+            </button>
+          )}
+
+          {/* Cancel/Clear Selection */}
+          {placementMode && (
+            <button
+              onClick={() => setPlacementMode(null)}
+              className="px-3 py-2 rounded-lg font-bold text-sm bg-red-600 hover:bg-red-700 ml-auto"
+            >
+              ✕ Cancel
+            </button>
+          )}
+
+          {/* Help Text */}
+          {placementMode && (
+            <div className="text-gray-300 text-xs ml-2">
+              {placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' : 'Click any grass tile to place mechanic shop (2 min install)'}
+            </div>
+          )}
         </div>
       )}
 

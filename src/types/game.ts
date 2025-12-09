@@ -33,9 +33,9 @@ export interface Player {
   money: number;
   selectedTool: ToolType | null;
   inventory: {
-    seeds: Record<CropType, number>;
-    harvested: Record<CropType, number>;
-    seedQuality: Record<CropType, SeedQuality>;
+    seeds: Record<Exclude<CropType, null>, number> & { null: number };
+    harvested: Record<Exclude<CropType, null>, number> & { null: number };
+    seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
   };
 }
 

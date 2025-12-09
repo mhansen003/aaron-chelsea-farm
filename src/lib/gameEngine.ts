@@ -40,6 +40,7 @@ export const TASK_DURATIONS = {
   place_sprinkler: 3000, // 3 seconds to place sprinkler
   place_mechanic: 60000, // 1 minute to install mechanic shop
   place_well: 30000, // 30 seconds to dig/place well
+  deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 
 export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
@@ -1184,6 +1185,19 @@ export function removeTask(state: GameState, taskId: string): GameState {
     ...state,
     taskQueue: state.taskQueue.filter(t => t.id !== taskId),
   };
+}
+
+// Find warehouse tile coordinates in current zone
+function findWarehouseTile(state: GameState): { x: number; y: number } | null {
+  const grid = getCurrentGrid(state);
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x].type === 'warehouse') {
+        return { x, y };
+      }
+    }
+  }
+  return null;
 }
 
 // Deposit all items from basket to warehouse

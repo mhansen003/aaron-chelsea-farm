@@ -272,6 +272,12 @@ export default function Game() {
       warehouseImageRef.current = warehouseImg;
     };
 
+    const warehouseFullImg = new Image();
+    warehouseFullImg.src = '/warehouse-full.png';
+    warehouseFullImg.onload = () => {
+      warehouseFullImageRef.current = warehouseFullImg;
+    };
+
     const sprinklerImg = new Image();
     sprinklerImg.src = '/sprinklers.png';
     sprinklerImg.onload = () => {
@@ -665,7 +671,7 @@ export default function Game() {
             offsetX, offsetY, 512, 512,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
-        } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
+        } else if (tile.type === 'warehouse') {
           // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -673,14 +679,23 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
+
+          // Select warehouse image based on inventory
+          const hasInventory = gameState.warehouse.length > 0;
+          const warehouseImg = (hasInventory && warehouseFullImageRef.current)
+            ? warehouseFullImageRef.current
+            : warehouseImageRef.current;
+
           // Warehouse building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          const offsetX = (x - 12) * 512; // x can be 12 or 13
-          const offsetY = (y - 0) * 512; // y can be 0 or 1
-          ctx.drawImage(
-            warehouseImageRef.current,
-            offsetX, offsetY, 512, 512,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
-          );
+          if (warehouseImg) {
+            const offsetX = (x - 12) * 512; // x can be 12 or 13
+            const offsetY = (y - 0) * 512; // y can be 0 or 1
+            ctx.drawImage(
+              warehouseImg,
+              offsetX, offsetY, 512, 512,
+              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+            );
+          }
         } else if (tile.isConstructing && workingImageRef.current) {
           // Draw grass background for construction site
           if (grassImageRef.current) {

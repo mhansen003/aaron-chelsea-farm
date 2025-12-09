@@ -734,8 +734,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           });
 
-          // If at crop location, water it
-          if (botX === nearest.x && botY === nearest.y) {
+          // If at crop location AND visual position has caught up, water it
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+          if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
             // Water the crop
             updatedGrid = updatedGrid.map((row, rowY) =>
               row.map((tile, tileX) => {
@@ -1058,8 +1059,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           });
 
-          // If at crop location, harvest it
-          if (botX === nearest.x && botY === nearest.y) {
+          // If at crop location AND visual position has caught up, harvest it
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+          if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
             const tile = updatedGrid[nearest.y]?.[nearest.x];
             if (tile && tile.type === 'grown' && tile.crop) {
               const cropType = tile.crop;
@@ -1258,8 +1260,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           });
 
-          // If at tile location, plant seed
-          if (botX === nearest.x && botY === nearest.y) {
+          // If at tile location AND visual position has caught up, plant seed
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+          if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
             const tile = updatedGrid[nearest.y]?.[nearest.x];
             if (tile && tile.type === 'dirt' && tile.cleared && !tile.crop) {
               // Plant the seed

@@ -1217,7 +1217,7 @@ export default function Game() {
     });
 
     // Draw seed bots using visual position for smooth movement
-    gameState.seedBots.forEach(bot => {
+    gameState.seedBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -1379,7 +1379,7 @@ export default function Game() {
         }
 
         // Update the seed bot's job with new tiles
-        if (selectedSeedBot) {
+        if (selectedSeedBot && gameState.seedBots) {
           const seedBot = gameState.seedBots.find(b => b.id === selectedSeedBot);
           if (seedBot) {
             const updatedJobs = seedBot.jobs.map(job =>
@@ -2098,7 +2098,7 @@ export default function Game() {
       )}
 
       {/* Seed Bot Config Modal */}
-      {showSeedBotConfig && selectedSeedBot && (
+      {showSeedBotConfig && selectedSeedBot && gameState.seedBots && (
         <SeedBotConfigModal
           seedBot={gameState.seedBots.find(b => b.id === selectedSeedBot)!}
           gameState={gameState}
@@ -2115,7 +2115,7 @@ export default function Game() {
           }}
           onEnterTileSelectionMode={(jobId, cropType) => {
             // Get the current job's selected tiles
-            const seedBot = gameState.seedBots.find(b => b.id === selectedSeedBot);
+            const seedBot = gameState.seedBots?.find(b => b.id === selectedSeedBot);
             const job = seedBot?.jobs.find(j => j.id === jobId);
             const selectedTiles = job?.targetTiles || [];
 
@@ -2492,7 +2492,7 @@ export default function Game() {
           )}
 
           {/* Seed Bot Section */}
-          {gameState.seedBots.length > 0 && (
+          {gameState.seedBots && gameState.seedBots.length > 0 && (
             <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border-2 border-green-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-green-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">🌱</span>

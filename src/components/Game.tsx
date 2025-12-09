@@ -534,10 +534,12 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Mechanic building is 1x1 - draw the full image scaled to fit
+          // Mechanic building is 1x1 - draw larger to fill more space (120% size, centered)
+          const mechanicSize = GAME_CONFIG.tileSize * 1.2;
+          const mechanicOffset = (GAME_CONFIG.tileSize - mechanicSize) / 2;
           ctx.drawImage(
             mechanicImageRef.current,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+            px + mechanicOffset, py + mechanicOffset, mechanicSize, mechanicSize
           );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite

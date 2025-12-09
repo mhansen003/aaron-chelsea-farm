@@ -364,30 +364,39 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
-          // Draw dirt first, then planted crop sprite on top
+          // Draw grass background first, then dirt, then planted crop sprite on top
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           if (dirtImageRef.current) {
             ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.dirt;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(plantedCropImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown' && tile.crop === 'carrot' && carrotsImageRef.current) {
-          // Draw dirt first, then grown carrots sprite on top
+          // Draw grass background first, then dirt, then grown carrots sprite on top
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           if (dirtImageRef.current) {
             ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.dirt;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(carrotsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown') {
-          // Draw dirt + generic grown crop (golden)
+          // Draw grass background first, then dirt + generic grown crop (golden)
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           if (dirtImageRef.current) {
             ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else {
-            ctx.fillStyle = COLORS.dirt;
-            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.fillStyle = COLORS.grown;
           ctx.fillRect(
@@ -682,9 +691,9 @@ export default function Game() {
   };
 
   return (
-    <div className="fixed inset-0 flex gap-2 p-2 overflow-hidden">
+    <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Main Game Area */}
-      <div className="flex flex-col items-center gap-2 flex-1 min-h-0">
+      <div className="flex flex-col items-center gap-2 flex-1 min-h-0 pb-2">
       {/* Compact Top Bar */}
       <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white flex items-center justify-between">
         {/* Left: Title & Actions */}
@@ -694,8 +703,6 @@ export default function Game() {
           </h1>
           <button onClick={handleNewGame} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
-          <button onClick={() => setShowShop(!showShop)} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">🏪 Buy</button>
-          <button onClick={() => setShowSellShop(!showSellShop)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">💰 Sell</button>
         </div>
 
         {/* Right: Stats Icons */}

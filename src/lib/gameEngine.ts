@@ -461,7 +461,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // AUTO-DEPOSIT: If basket is full and no tasks, go deposit immediately
-  if (!newState.currentTask && newState.taskQueue.length === 0 && newState.player.basket.length >= newState.player.basketCapacity) {
+  if (!newState.currentTask && newState.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
     const warehousePos = findWarehouseTile(newState);
     if (warehousePos) {
       // Create deposit task at warehouse location

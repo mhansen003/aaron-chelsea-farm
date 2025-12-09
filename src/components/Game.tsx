@@ -197,18 +197,7 @@ export default function Game() {
     }
   }, [gameState]);
 
-  // Auto-open shop when player is on shop tile
-  useEffect(() => {
-    const { x, y } = gameState.player;
-    const zoneKey = `${gameState.currentZone.x},${gameState.currentZone.y}`;
-    const grid = gameState.zones[zoneKey]?.grid;
-    const tile = grid?.[y]?.[x];
-    if (tile?.type === 'shop') {
-      setShowShop(true);
-    } else {
-      setShowShop(false);
-    }
-  }, [gameState.player.x, gameState.player.y, gameState.zones, gameState.currentZone]);
+  // Removed auto-open shop effect - shop now opens only on click or 'B' key
 
   // Background music and sound effects
   useEffect(() => {
@@ -459,7 +448,7 @@ export default function Game() {
             gameState.currentTask.tileX === x &&
             gameState.currentTask.tileY === y) {
           const barHeight = 8;
-          const barY = py + GAME_CONFIG.tileSize / 2 - barHeight / 2;
+          const barY = py + GAME_CONFIG.tileSize - barHeight - 4; // Position at bottom
           const barWidth = GAME_CONFIG.tileSize - 8;
 
           // Background
@@ -754,7 +743,11 @@ export default function Game() {
                         e.stopPropagation();
                         setGameState(prev => ({
                           ...prev,
-                          player: { ...prev.player, selectedCrop: 'carrot' },
+                          player: {
+                            ...prev.player,
+                            selectedCrop: 'carrot',
+                            selectedTool: 'hoe' // Collapse menu by switching tool
+                          },
                         }));
                       }}
                       className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
@@ -770,7 +763,11 @@ export default function Game() {
                         e.stopPropagation();
                         setGameState(prev => ({
                           ...prev,
-                          player: { ...prev.player, selectedCrop: 'wheat' },
+                          player: {
+                            ...prev.player,
+                            selectedCrop: 'wheat',
+                            selectedTool: 'hoe' // Collapse menu by switching tool
+                          },
                         }));
                       }}
                       className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
@@ -786,7 +783,11 @@ export default function Game() {
                         e.stopPropagation();
                         setGameState(prev => ({
                           ...prev,
-                          player: { ...prev.player, selectedCrop: 'tomato' },
+                          player: {
+                            ...prev.player,
+                            selectedCrop: 'tomato',
+                            selectedTool: 'hoe' // Collapse menu by switching tool
+                          },
                         }));
                       }}
                       className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
@@ -988,7 +989,7 @@ export default function Game() {
       </div>
 
       {/* Compact Basket Sidebar */}
-      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 overflow-y-auto max-h-screen">
+      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-hidden">
         <div className="text-sm font-bold text-center">🧺 {gameState.player.basket.length}/{gameState.player.basketCapacity}</div>
 
         {/* Basket Grid - Dynamic based on capacity */}
@@ -1038,7 +1039,7 @@ export default function Game() {
         </button>
 
         {/* Farmer Status and Task Queue */}
-        <div className="border-t border-gray-600 pt-2">
+        <div className="border-t border-gray-600 pt-2 flex-1 flex flex-col min-h-0">
           <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>
 
           {/* Current Task */}
@@ -1067,10 +1068,10 @@ export default function Game() {
 
           {/* Task Queue */}
           {gameState.taskQueue.length > 0 && (
-            <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1">
+            <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1 flex-1 flex flex-col min-h-0">
               <div className="text-[10px] text-blue-300 font-bold mb-1">QUEUE ({gameState.taskQueue.length}):</div>
-              <div className="space-y-0.5 max-h-24 overflow-y-auto">
-                {gameState.taskQueue.slice(0, 5).map((task, idx) => (
+              <div className="space-y-0.5 overflow-y-auto flex-1">
+                {gameState.taskQueue.map((task, idx) => (
                   <div key={task.id} className="text-xs flex items-center gap-1">
                     <span className="text-gray-400">{idx + 1}.</span>
                     {task.type === 'clear' ? '⛏️' :
@@ -1081,9 +1082,6 @@ export default function Game() {
                     <span className="text-gray-300 text-[10px]">({task.tileX},{task.tileY})</span>
                   </div>
                 ))}
-                {gameState.taskQueue.length > 5 && (
-                  <div className="text-[10px] text-gray-500">+{gameState.taskQueue.length - 5} more...</div>
-                )}
               </div>
             </div>
           )}

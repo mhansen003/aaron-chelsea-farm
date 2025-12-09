@@ -4,7 +4,7 @@ import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo } from 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
   gridHeight: 12,
-  tileSize: 48,
+  tileSize: 72, // 50% bigger than before
 };
 
 // Crop information: growth days, sell price, seed cost

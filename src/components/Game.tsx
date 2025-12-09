@@ -54,6 +54,11 @@ export default function Game() {
   const treeImageRef = useRef<HTMLImageElement | null>(null);
   const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
   const carrotsImageRef = useRef<HTMLImageElement | null>(null);
+  const rockImageRef = useRef<HTMLImageElement | null>(null);
+  const dirtImageRef = useRef<HTMLImageElement | null>(null);
+  const shopImageRef = useRef<HTMLImageElement | null>(null);
+  const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
+  const waterBotImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all textures
   useEffect(() => {
@@ -85,6 +90,36 @@ export default function Game() {
     carrotsImg.src = '/carrots.png';
     carrotsImg.onload = () => {
       carrotsImageRef.current = carrotsImg;
+    };
+
+    const rockImg = new Image();
+    rockImg.src = '/rocks.png';
+    rockImg.onload = () => {
+      rockImageRef.current = rockImg;
+    };
+
+    const dirtImg = new Image();
+    dirtImg.src = '/dirt.png';
+    dirtImg.onload = () => {
+      dirtImageRef.current = dirtImg;
+    };
+
+    const shopImg = new Image();
+    shopImg.src = '/shop.png';
+    shopImg.onload = () => {
+      shopImageRef.current = shopImg;
+    };
+
+    const sprinklerImg = new Image();
+    sprinklerImg.src = '/sprinklers.png';
+    sprinklerImg.onload = () => {
+      sprinklerImageRef.current = sprinklerImg;
+    };
+
+    const waterBotImg = new Image();
+    waterBotImg.src = '/water bot.png';
+    waterBotImg.onload = () => {
+      waterBotImageRef.current = waterBotImg;
     };
   }, []);
 
@@ -158,20 +193,38 @@ export default function Game() {
         } else if (tile.type === 'tree' && treeImageRef.current) {
           // Draw tree sprite
           ctx.drawImage(treeImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'rock' && rockImageRef.current) {
+          // Draw rock sprite
+          ctx.drawImage(rockImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'dirt' && dirtImageRef.current) {
+          // Draw dirt sprite
+          ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw dirt first, then planted crop sprite on top
-          ctx.fillStyle = COLORS.dirt;
-          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(plantedCropImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown' && tile.crop === 'carrot' && carrotsImageRef.current) {
           // Draw dirt first, then grown carrots sprite on top
-          ctx.fillStyle = COLORS.dirt;
-          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.drawImage(carrotsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown') {
           // Draw dirt + generic grown crop (golden)
-          ctx.fillStyle = COLORS.dirt;
-          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.dirt;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
           ctx.fillStyle = COLORS.grown;
           ctx.fillRect(
             px + GAME_CONFIG.tileSize / 4,
@@ -180,9 +233,14 @@ export default function Game() {
             GAME_CONFIG.tileSize / 2
           );
         } else {
-          // Draw solid color for other tiles (rock, dirt, etc.)
+          // Draw solid color for other tiles
           ctx.fillStyle = COLORS[tile.type] || COLORS.grass;
           ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        }
+
+        // Draw sprinkler if placed on this tile
+        if (tile.hasSprinkler && sprinklerImageRef.current) {
+          ctx.drawImage(sprinklerImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         }
 
         // Grid lines
@@ -352,68 +410,43 @@ export default function Game() {
   };
 
   return (
-    <div className="relative flex flex-col items-center gap-4 p-4">
-      {/* Game Title */}
-      <div className="flex items-center gap-4">
-        <h1 className="text-4xl font-bold text-white">
-          🌾 Aaron & Chelsea&apos;s Farm 🌾
-        </h1>
-        <button
-          onClick={handleNewGame}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold"
-        >
-          🔄 New Game
-        </button>
-        <button
-          onClick={() => setShowInstructions(true)}
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold"
-        >
-          ❓ Help
-        </button>
-      </div>
-
-      {/* Stats Bar */}
-      <div className="grid grid-cols-2 gap-4 w-full max-w-4xl">
-        {/* Player Stats */}
-        <div className="bg-black/50 px-6 py-4 rounded-lg text-white">
-          <h3 className="font-bold text-xl mb-2">👨‍🌾 Player Stats</h3>
-          <div className="space-y-1">
-            <div className="font-bold">💰 Money: ${gameState.player.money}</div>
-            <div>🥕 Carrot Seeds: {gameState.player.inventory.seeds.carrot} (Gen {gameState.player.inventory.seedQuality.carrot.generation})</div>
-            <div>🌾 Wheat Seeds: {gameState.player.inventory.seeds.wheat} (Gen {gameState.player.inventory.seedQuality.wheat.generation})</div>
-            <div>🍅 Tomato Seeds: {gameState.player.inventory.seeds.tomato} (Gen {gameState.player.inventory.seedQuality.tomato.generation})</div>
-            <div>💦 Sprinklers: {gameState.player.inventory.sprinklers}</div>
-          </div>
+    <div className="relative flex flex-col items-center gap-2 p-2">
+      {/* Compact Top Bar */}
+      <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white flex items-center justify-between">
+        {/* Left: Title & Actions */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold">🌾 Aaron & Chelsea's Farm</h1>
+          <button onClick={handleNewGame} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
+          <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
+          <button onClick={() => setShowShop(!showShop)} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">🏪 Buy</button>
+          <button onClick={() => setShowSellShop(!showSellShop)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">💰 Sell</button>
         </div>
 
-        {/* Day & Time */}
-        <div className="bg-black/50 px-6 py-4 rounded-lg text-white">
-          <h3 className="font-bold text-xl mb-2">📅 Day {gameState.currentDay}</h3>
-          <div className="space-y-2">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span>⏰ Day Progress:</span>
-                <span>{Math.floor(gameState.dayProgress)}%</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-500 h-3 rounded-full transition-all"
-                  style={{ width: `${gameState.dayProgress}%` }}
-                />
-              </div>
-            </div>
-            <div className="text-sm text-gray-300">
-              <div>🌱 Growth Tips:</div>
-              <div>• Plants need water daily to grow</div>
-              <div>• Use sprinklers for auto-watering</div>
-            </div>
-          </div>
+        {/* Right: Stats Icons */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
+          <div className="flex items-center gap-1"><span>📅</span><span>Day {gameState.currentDay}</span></div>
+          <div className="flex items-center gap-1"><span>🥕</span><span>{gameState.player.inventory.seeds.carrot}</span></div>
+          <div className="flex items-center gap-1"><span>🌾</span><span>{gameState.player.inventory.seeds.wheat}</span></div>
+          <div className="flex items-center gap-1"><span>🍅</span><span>{gameState.player.inventory.seeds.tomato}</span></div>
+          <div className="flex items-center gap-1"><span>💦</span><span>{gameState.player.inventory.sprinklers}</span></div>
         </div>
       </div>
 
-      {/* Harvested Crops */}
-      <div className="bg-black/50 px-6 py-3 rounded-lg text-white">
-        <strong>Harvested:</strong> 🥕 {gameState.player.inventory.harvested.carrot} | 🌾 {gameState.player.inventory.harvested.wheat} | 🍅 {gameState.player.inventory.harvested.tomato}
+      {/* Day Progress Bar */}
+      <div className="w-full h-2 bg-gray-700 rounded-full">
+        <div
+          className="h-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-blue-500 rounded-full transition-all"
+          style={{ width: `${gameState.dayProgress}%` }}
+        />
+      </div>
+
+      {/* Harvested (compact) */}
+      <div className="w-full bg-black/50 px-4 py-1 rounded text-white text-sm flex gap-4">
+        <span>Harvested:</span>
+        <span>🥕 {gameState.player.inventory.harvested.carrot}</span>
+        <span>🌾 {gameState.player.inventory.harvested.wheat}</span>
+        <span>🍅 {gameState.player.inventory.harvested.tomato}</span>
       </div>
 
       {/* Canvas */}
@@ -424,10 +457,10 @@ export default function Game() {
         className="border-4 border-white rounded-lg shadow-2xl"
       />
 
-      {/* Tool Selection */}
-      <div className="bg-black/50 px-6 py-4 rounded-lg text-white w-full max-w-4xl">
-        <h3 className="font-bold text-lg mb-3">🛠️ Tools (Press 1-5 or click to select):</h3>
-        <div className="flex gap-3 flex-wrap">
+      {/* Tool & Crop Selection (Compact) */}
+      <div className="flex gap-2 w-full">
+        {/* Tools */}
+        <div className="flex gap-2">
           {gameState.tools
             .filter(t => t.unlocked)
             .map((tool, idx) => (
@@ -439,23 +472,20 @@ export default function Game() {
                     player: { ...prev.player, selectedTool: tool.name },
                   }))
                 }
-                className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                className={`px-3 py-2 rounded font-bold transition-all text-2xl ${
                   gameState.player.selectedTool === tool.name
-                    ? 'bg-blue-600 ring-4 ring-blue-300 scale-110'
+                    ? 'bg-blue-600 ring-2 ring-blue-300'
                     : 'bg-gray-700 hover:bg-gray-600'
                 }`}
+                title={`${idx + 1}. ${tool.description}`}
               >
-                <div className="text-2xl mb-1">{TOOL_ICONS[tool.name]}</div>
-                <div className="text-xs">{idx + 1}. {tool.description}</div>
+                {TOOL_ICONS[tool.name]}
               </button>
             ))}
         </div>
-      </div>
 
-      {/* Crop Selection - Quick Buttons */}
-      <div className="bg-black/50 px-6 py-4 rounded-lg text-white w-full max-w-4xl">
-        <h3 className="font-bold text-lg mb-3">🌱 Quick Crop Select (Press 6/7/8 or Q, auto-switches to Seed Bag):</h3>
-        <div className="flex gap-3">
+        {/* Crops */}
+        <div className="flex gap-2">
           <button
             onClick={() =>
               setGameState(prev => ({
@@ -463,14 +493,14 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'carrot', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+            className={`px-3 py-2 rounded font-bold text-2xl ${
               gameState.player.selectedCrop === 'carrot' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-orange-600 ring-4 ring-orange-300 scale-105'
+                ? 'bg-orange-600 ring-2 ring-orange-300'
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
+            title="6/Q: Plant Carrots"
           >
-            <div className="text-2xl mb-1">🥕</div>
-            <div className="text-xs">6/Q. Carrot ({gameState.player.inventory.seeds.carrot} seeds)</div>
+            🥕
           </button>
           <button
             onClick={() =>
@@ -479,14 +509,14 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'wheat', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+            className={`px-3 py-2 rounded font-bold text-2xl ${
               gameState.player.selectedCrop === 'wheat' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-yellow-600 ring-4 ring-yellow-300 scale-105'
+                ? 'bg-yellow-600 ring-2 ring-yellow-300'
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
+            title="7: Plant Wheat"
           >
-            <div className="text-2xl mb-1">🌾</div>
-            <div className="text-xs">7. Wheat ({gameState.player.inventory.seeds.wheat} seeds)</div>
+            🌾
           </button>
           <button
             onClick={() =>
@@ -495,33 +525,16 @@ export default function Game() {
                 player: { ...prev.player, selectedCrop: 'tomato', selectedTool: 'seed_bag' },
               }))
             }
-            className={`px-6 py-3 rounded-lg font-bold transition-all flex-1 ${
+            className={`px-3 py-2 rounded font-bold text-2xl ${
               gameState.player.selectedCrop === 'tomato' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-red-600 ring-4 ring-red-300 scale-105'
+                ? 'bg-red-600 ring-2 ring-red-300'
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
+            title="8: Plant Tomatoes"
           >
-            <div className="text-2xl mb-1">🍅</div>
-            <div className="text-xs">8. Tomato ({gameState.player.inventory.seeds.tomato} seeds)</div>
+            🍅
           </button>
         </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex gap-4 items-center flex-wrap justify-center">
-        <button
-          onClick={() => setShowShop(!showShop)}
-          className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold"
-        >
-          🏪 Buy Seeds & Tools (B)
-        </button>
-
-        <button
-          onClick={() => setShowSellShop(!showSellShop)}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold"
-        >
-          💰 Sell Crops (V)
-        </button>
       </div>
 
       {/* Sell Message */}

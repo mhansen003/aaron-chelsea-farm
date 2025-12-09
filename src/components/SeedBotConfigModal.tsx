@@ -19,7 +19,7 @@ const CROP_INFO = {
 
 export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpdateJobs, onEnterTileSelectionMode }: SeedBotConfigModalProps) {
   const [jobs, setJobs] = useState<SeedBotJob[]>(seedBot.jobs);
-  const [autoBuySeeds, setAutoBuySeeds] = useState(seedBot.autoBuySeeds);
+  const [autoBuySeeds, setAutoBuySeeds] = useState(seedBot.autoBuySeeds ?? true); // Default to true
 
   const addJob = () => {
     if (jobs.length >= 3) return; // Max 3 jobs

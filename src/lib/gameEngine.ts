@@ -1198,8 +1198,34 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           visualY = botY;
         }
 
-        // If no jobs configured, go idle
+        // If no jobs configured, idle wander
         if (bot.jobs.length === 0) {
+          if (Math.random() < (deltaTime / 2000)) {
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable =
+                  tile.type === 'grass' ||
+                  (tile.type === 'dirt' && tile.cleared) ||
+                  tile.type === 'planted' ||
+                  tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
+            }
+          }
           return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
         }
 
@@ -1262,8 +1288,34 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         }
 
-        // Check if we have seeds to plant
+        // Check if we have seeds to plant - if not, idle wander
         if (newState.player.inventory.seeds[cropType] <= 0) {
+          if (Math.random() < (deltaTime / 2000)) {
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable =
+                  tile.type === 'grass' ||
+                  (tile.type === 'dirt' && tile.cleared) ||
+                  tile.type === 'planted' ||
+                  tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+            }
+          }
           return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
         }
 
@@ -1335,7 +1387,33 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, currentJobId: currentJob.id, visualX, visualY };
           }
         } else {
-          // No plantable tiles - idle
+          // No plantable tiles - idle wander
+          if (Math.random() < (deltaTime / 2000)) {
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable =
+                  tile.type === 'grass' ||
+                  (tile.type === 'dirt' && tile.cleared) ||
+                  tile.type === 'planted' ||
+                  tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+            }
+          }
           return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
         }
 

@@ -2268,6 +2268,23 @@ export default function Game() {
             </div>
             <button
               onClick={() => {
+                // Save the selected tiles to the job before closing
+                if (tileSelectionMode && selectedSeedBot) {
+                  setGameState(prev => {
+                    const seedBot = prev.seedBots?.find(b => b.id === selectedSeedBot);
+                    if (!seedBot) return prev;
+
+                    const updatedJobs = seedBot.jobs.map(job => {
+                      if (job.id === tileSelectionMode.jobId) {
+                        return { ...job, targetTiles: tileSelectionMode.selectedTiles };
+                      }
+                      return job;
+                    });
+
+                    return updateSeedBotJobs(prev, selectedSeedBot, updatedJobs, seedBot.autoBuySeeds);
+                  });
+                }
+
                 setTileSelectionMode(null);
                 setShowSeedBotConfig(true);
               }}

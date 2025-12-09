@@ -29,6 +29,8 @@ const COLORS = {
   grown: '#fdd835',
   player: '#2196f3',
   grid: '#ffffff20',
+  shop: '#ff9800',
+  waterbot: '#00bcd4',
 };
 
 const TOOL_ICONS: Record<ToolType, string> = {
@@ -199,6 +201,12 @@ export default function Game() {
         } else if (tile.type === 'dirt' && dirtImageRef.current) {
           // Draw dirt sprite
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'shop' && shopImageRef.current) {
+          // Draw shop sprite
+          ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
+          // Draw water bot sprite
+          ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw dirt first, then planted crop sprite on top
           if (dirtImageRef.current) {

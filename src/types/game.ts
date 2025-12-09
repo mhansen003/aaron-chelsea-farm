@@ -6,7 +6,9 @@ export type TileType =
   | 'rock'
   | 'tree'
   | 'planted'
-  | 'grown';
+  | 'grown'
+  | 'shop'
+  | 'waterbot';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
@@ -41,6 +43,7 @@ export interface Player {
     harvested: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
     sprinklers: number; // How many sprinklers the player owns
+    waterbots: number; // How many water bots the player owns
   };
 }
 

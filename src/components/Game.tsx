@@ -30,6 +30,7 @@ import { GameState, CropType, ToolType, Tile } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
+import MechanicShop from './MechanicShop';
 
 const COLORS = {
   grass: '#7cb342',
@@ -723,7 +724,7 @@ export default function Game() {
 
     // Grass/cleared dirt can be planted if we have a seed selected
     if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && selectedCrop) {
-      return { action: 'plant' as const, cursor: 'url("/planted%20crop.png") 12 12, pointer' };
+      return { action: 'plant' as const, cursor: 'url("/plant%20seeds.png") 12 12, pointer' };
     }
 
     // Shop tile
@@ -1180,6 +1181,38 @@ export default function Game() {
         </button>
       </div>
 
+      {/* Mechanic Shop Placement Button */}
+      {gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
+        <div className="w-full bg-purple-900/90 p-3 rounded-lg border-2 border-purple-500 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">⚙️</span>
+              <div>
+                <div className="text-white font-bold text-lg">Mechanic Shop Ready!</div>
+                <div className="text-purple-200 text-sm">Click any grass tile to install (takes 2 minutes)</div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                // Find a grass tile to place it
+                const grid = getCurrentGrid(gameState);
+                for (let y = 0; y < GAME_CONFIG.gridHeight; y++) {
+                  for (let x = 0; x < GAME_CONFIG.gridWidth; x++) {
+                    if (grid[y][x].type === 'grass') {
+                      setGameState(prev => addTask(prev, 'place_mechanic', x, y));
+                      return;
+                    }
+                  }
+                }
+              }}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold text-white transition-all"
+            >
+              Place Now
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sell Message */}
       {sellMessage && (
         <div
@@ -1323,6 +1356,16 @@ export default function Game() {
           gameState={gameState}
           onClose={() => setShowExportModal(false)}
           onSellToVendor={sellToVendor}
+        />
+      )}
+
+      {/* Mechanic Shop Modal */}
+      {showMechanicShop && (
+        <MechanicShop
+          gameState={gameState}
+          onClose={() => setShowMechanicShop(false)}
+          onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
+          onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
         />
       )}
 

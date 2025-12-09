@@ -269,6 +269,25 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {activeTab === 'robots' && (
         <div className="mb-6">
 
+          {/* Mechanic Shop Required Message for Bots */}
+          {!gameState.player.inventory.mechanicShopPlaced && (
+            <div className="bg-purple-900/50 border-2 border-purple-500 p-4 rounded-lg mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">⚙️</span>
+                <div>
+                  <div className="font-bold text-lg text-purple-200">Advanced Bots Require Mechanic Shop</div>
+                  <div className="text-sm text-purple-300 mt-1">
+                    {gameState.player.inventory.mechanicShop >= 1 ? (
+                      <span>You own a mechanic shop! Place it on your farm to unlock bot purchases.</span>
+                    ) : (
+                      <span>Purchase and install a Mechanic Shop from the Tools tab to unlock Water Bots and Harvest Bots!</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sprinklers */}
           <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
             <div className="flex justify-between items-center mb-2">
@@ -309,63 +328,79 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
             </div>
           </div>
 
-          {/* Water Bots */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">🤖</span>
-                <span className="font-bold">Water Bot</span>
+          {/* Water Bots - Only available if mechanic shop is placed */}
+          {gameState.player.inventory.mechanicShopPlaced ? (
+            <div className="bg-gray-700/50 p-4 rounded-lg border-2 border-gray-600 mb-4 opacity-60">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">🤖</span>
+                  <span className="font-bold">Water Bot</span>
+                </div>
+                <div className="text-gray-400 font-bold">Visit Mechanic Shop</div>
               </div>
-              <div className="text-amber-300 font-bold">${WATERBOT_COST} each</div>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-green-400">Auto-waters 7x7 area daily</span>
-              {' • '}
-              <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onBuyWaterbots(1)}
-                disabled={gameState.player.money < WATERBOT_COST}
-                className={`px-4 py-2 rounded font-bold flex-1 ${
-                  gameState.player.money >= WATERBOT_COST
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-              >
-                Buy 1
+              <div className="text-sm mb-2 text-gray-400">
+                Available at your Mechanic Shop building
+                {' • '}
+                <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}</span>
+              </div>
+              <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+                Buy at Mechanic Shop
               </button>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gray-700/50 p-4 rounded-lg border-2 border-gray-600 mb-4 opacity-60">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">🤖</span>
+                  <span className="font-bold">Water Bot</span>
+                </div>
+                <div className="text-gray-400 font-bold">🔒 Locked</div>
+              </div>
+              <div className="text-sm mb-2 text-gray-400">
+                Requires Mechanic Shop to be placed
+              </div>
+              <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+                Mechanic Shop Required
+              </button>
+            </div>
+          )}
 
-          {/* Harvest Bots */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">🤖</span>
-                <span className="font-bold">Harvest Bot</span>
+          {/* Harvest Bots - Only available if mechanic shop is placed */}
+          {gameState.player.inventory.mechanicShopPlaced ? (
+            <div className="bg-gray-700/50 p-4 rounded-lg border-2 border-gray-600 opacity-60">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">🤖</span>
+                  <span className="font-bold">Harvest Bot</span>
+                </div>
+                <div className="text-gray-400 font-bold">Visit Mechanic Shop</div>
               </div>
-              <div className="text-amber-300 font-bold">${HARVESTBOT_COST} each</div>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-green-400">Auto-harvests grown crops</span>
-              {' • '}
-              <span className="text-blue-400">Owned: {gameState.player.inventory.harvestbots}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => onBuyHarvestbots(1)}
-                disabled={gameState.player.money < HARVESTBOT_COST}
-                className={`px-4 py-2 rounded font-bold flex-1 ${
-                  gameState.player.money >= HARVESTBOT_COST
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-              >
-                Buy 1
+              <div className="text-sm mb-2 text-gray-400">
+                Available at your Mechanic Shop building
+                {' • '}
+                <span className="text-blue-400">Owned: {gameState.player.inventory.harvestbots}</span>
+              </div>
+              <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+                Buy at Mechanic Shop
               </button>
             </div>
-          </div>
+          ) : (
+            <div className="bg-gray-700/50 p-4 rounded-lg border-2 border-gray-600 opacity-60">
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <span className="text-2xl mr-2">🤖</span>
+                  <span className="font-bold">Harvest Bot</span>
+                </div>
+                <div className="text-gray-400 font-bold">🔒 Locked</div>
+              </div>
+              <div className="text-sm mb-2 text-gray-400">
+                Requires Mechanic Shop to be placed
+              </div>
+              <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
+                Mechanic Shop Required
+              </button>
+            </div>
+          )}
         </div>
         )}
 

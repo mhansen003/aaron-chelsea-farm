@@ -126,6 +126,9 @@ export default function Game() {
   const archImageRef = useRef<HTMLImageElement | null>(null);
   const workingImageRef = useRef<HTMLImageElement | null>(null);
   const coinImageRef = useRef<HTMLImageElement | null>(null);
+  const clearToolImageRef = useRef<HTMLImageElement | null>(null);
+  const waterdropletImageRef = useRef<HTMLImageElement | null>(null);
+  const harvestImageRef = useRef<HTMLImageElement | null>(null);
 
   // Load all textures
   useEffect(() => {
@@ -223,6 +226,24 @@ export default function Game() {
     coinImg.src = '/coin.png';
     coinImg.onload = () => {
       coinImageRef.current = coinImg;
+    };
+
+    const clearToolImg = new Image();
+    clearToolImg.src = '/clear tool.png';
+    clearToolImg.onload = () => {
+      clearToolImageRef.current = clearToolImg;
+    };
+
+    const waterdropletImg = new Image();
+    waterdropletImg.src = '/waterdroplet.png';
+    waterdropletImg.onload = () => {
+      waterdropletImageRef.current = waterdropletImg;
+    };
+
+    const harvestImg = new Image();
+    harvestImg.src = '/harvest.png';
+    harvestImg.onload = () => {
+      harvestImageRef.current = harvestImg;
     };
   }, []);
 
@@ -520,18 +541,40 @@ export default function Game() {
           }
         }
 
-        // Draw blinking working icon for queued tasks (small, bottom-right corner)
+        // Draw blinking task-specific icon for queued tasks (small, bottom-right corner)
         const queuedTask = gameState.taskQueue.find(task =>
           task.tileX === x && task.tileY === y
         );
-        if (queuedTask && workingImageRef.current) {
+        if (queuedTask) {
           const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
           if (blink === 0) {
-            // Draw small working icon in bottom-right corner
-            const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
-            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
-            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
-            ctx.drawImage(workingImageRef.current, iconX, iconY, iconSize, iconSize);
+            // Determine which icon to show based on task type
+            let taskIcon: HTMLImageElement | null = null;
+            switch (queuedTask.type) {
+              case 'clear':
+                taskIcon = clearToolImageRef.current;
+                break;
+              case 'water':
+                taskIcon = waterdropletImageRef.current;
+                break;
+              case 'harvest':
+                taskIcon = harvestImageRef.current;
+                break;
+              case 'plant':
+                taskIcon = plantedCropImageRef.current;
+                break;
+              case 'place_sprinkler':
+                taskIcon = workingImageRef.current; // Fallback to working icon
+                break;
+            }
+
+            // Draw small task icon in bottom-right corner if available
+            if (taskIcon) {
+              const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
+              const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+              const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+              ctx.drawImage(taskIcon, iconX, iconY, iconSize, iconSize);
+            }
           }
         }
 

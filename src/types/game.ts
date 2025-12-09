@@ -99,12 +99,17 @@ export interface Tool {
   unlocked: boolean;
 }
 
+export type ZoneTheme = 'farm' | 'beach' | 'barn' | 'mountain' | 'desert';
+
 export interface Zone {
   x: number; // Zone coordinate (0,0 is starting zone)
   y: number;
   grid: Tile[][];
   owned: boolean; // Whether player owns this zone
   purchasePrice: number; // Cost to buy this zone
+  theme: ZoneTheme; // Visual theme of the zone
+  name: string; // Display name
+  description: string; // Description shown when previewing
 }
 
 export interface GameState {

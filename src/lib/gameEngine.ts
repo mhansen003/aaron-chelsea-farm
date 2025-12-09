@@ -120,12 +120,42 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
   const distanceFromStart = Math.abs(x) + Math.abs(y);
   const purchasePrice = Math.floor(BASE_ZONE_PRICE * Math.pow(ZONE_PRICE_MULTIPLIER, distanceFromStart - 1));
 
+  // Determine theme based on position relative to starting zone
+  let theme: import('@/types/game').ZoneTheme = 'farm';
+  let name = "Aaron & Chelsea's Farm";
+  let description = "Your home farm with rich soil perfect for growing crops.";
+
+  if (x === 0 && y === 1) {
+    // North - Beach
+    theme = 'beach';
+    name = "Sunny Beach";
+    description = "A tropical paradise with sandy shores and palm trees. Perfect for fishing and relaxation!";
+  } else if (x === -1 && y === 0) {
+    // West - Barn
+    theme = 'barn';
+    name = "Animal Barn";
+    description = "A cozy barn area where you can raise livestock and collect resources like milk, eggs, and wool.";
+  } else if (x === 1 && y === 0) {
+    // East - Mountain
+    theme = 'mountain';
+    name = "Mountain Range";
+    description = "Rugged mountainous terrain rich with minerals and rare resources. Challenging but rewarding!";
+  } else if (x === 0 && y === -1) {
+    // South - Desert
+    theme = 'desert';
+    name = "Desert Oasis";
+    description = "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
+  }
+
   return {
     x,
     y,
     grid: createInitialGrid(x, y),
     owned,
     purchasePrice: owned ? 0 : purchasePrice,
+    theme,
+    name,
+    description,
   };
 }
 

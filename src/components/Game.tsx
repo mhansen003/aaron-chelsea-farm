@@ -26,11 +26,12 @@ import {
   GAME_CONFIG,
   CROP_INFO,
 } from '@/lib/gameEngine';
-import { GameState, CropType, ToolType, Tile } from '@/types/game';
+import { GameState, CropType, ToolType, Tile, Zone } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
+import ZonePreviewModal from './ZonePreviewModal';
 
 const COLORS = {
   grass: '#7cb342',
@@ -116,6 +117,8 @@ export default function Game() {
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const [showMechanicShop, setShowMechanicShop] = useState(false);
+  const [showZonePreview, setShowZonePreview] = useState(false);
+  const [previewZone, setPreviewZone] = useState<Zone | null>(null);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
@@ -844,17 +847,10 @@ export default function Game() {
         }));
       }
 
-      if (!targetZone.owned) {
-        // Show styled purchase modal
-        setPurchaseZoneKey(zoneKey);
-        setShowPurchaseModal(true);
-      } else {
-        // Travel to owned zone
-        setGameState(prev => ({
-          ...prev,
-          currentZone: tile.archTargetZone!,
-        }));
-      }
+      // Show zone preview modal
+      setPreviewZone(targetZone);
+      setPurchaseZoneKey(zoneKey);
+      setShowZonePreview(true);
       return;
     }
 
@@ -1072,6 +1068,39 @@ export default function Game() {
       }));
       setShowPurchaseModal(false);
       setPurchaseZoneKey('');
+    }
+  };
+
+  const handleZoneTravel = () => {
+    if (!previewZone) return;
+
+    if (previewZone.owned) {
+      // Just travel
+      setGameState(prev => ({
+        ...prev,
+        currentZone: { x: previewZone.x, y: previewZone.y },
+      }));
+      setShowZonePreview(false);
+      setPreviewZone(null);
+    } else {
+      // Purchase and travel
+      const canAfford = gameState.player.money >= previewZone.purchasePrice;
+      if (canAfford) {
+        setGameState(prev => ({
+          ...prev,
+          player: {
+            ...prev.player,
+            money: prev.player.money - previewZone.purchasePrice,
+          },
+          zones: {
+            ...prev.zones,
+            [purchaseZoneKey]: { ...previewZone, owned: true },
+          },
+          currentZone: { x: previewZone.x, y: previewZone.y },
+        }));
+        setShowZonePreview(false);
+        setPreviewZone(null);
+      }
     }
   };
 
@@ -1410,6 +1439,18 @@ export default function Game() {
           onClose={() => setShowMechanicShop(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+        />
+      )}
+
+      {/* Zone Preview Modal */}
+      {showZonePreview && previewZone && (
+        <ZonePreviewModal
+          zone={previewZone}
+          onClose={() => {
+            setShowZonePreview(false);
+            setPreviewZone(null);
+          }}
+          onTravel={handleZoneTravel}
         />
       )}
 

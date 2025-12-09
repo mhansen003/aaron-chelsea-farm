@@ -16,6 +16,8 @@ import {
   buyWaterbots,
   buyHarvestbots,
   upgradeBag,
+  addTask,
+  removeTask,
   getCurrentGrid,
   GAME_CONFIG,
   CROP_INFO,
@@ -359,75 +361,63 @@ export default function Game() {
 
   }, [gameState]);
 
-  // Handle tool-based interactions
-  const handleInteraction = useCallback(() => {
-    const { x, y, selectedTool, selectedCrop } = gameState.player;
+  // Handle canvas click to queue tasks
+  const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
+    const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
+
     const currentGrid = getCurrentGrid(gameState);
-    const tile = currentGrid[y]?.[x];
+    const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
 
+    const { selectedTool, selectedCrop } = gameState.player;
+
+    // Add task based on selected tool
     switch (selectedTool) {
       case 'hoe':
         // Clear rocks and trees
         if (!tile.cleared) {
-          setGameState(prev => clearTile(prev, x, y));
+          setGameState(prev => addTask(prev, 'clear', tileX, tileY));
         }
         break;
 
       case 'seed_bag':
         // Plant seeds
         if (tile.cleared && !tile.crop && selectedCrop) {
-          setGameState(prev => plantSeed(prev, x, y, selectedCrop));
+          setGameState(prev => addTask(prev, 'plant', tileX, tileY, selectedCrop));
         }
         break;
 
       case 'scythe':
         // Harvest crops
         if (tile.type === 'grown') {
-          setGameState(prev => harvestCrop(prev, x, y));
+          setGameState(prev => addTask(prev, 'harvest', tileX, tileY));
         }
         break;
 
       case 'watering_can':
         // Water single tile for the day
-        setGameState(prev => waterTile(prev, x, y));
+        setGameState(prev => addTask(prev, 'water', tileX, tileY));
         break;
 
       case 'water_sprinkler':
         // Place permanent sprinkler
-        setGameState(prev => placeSprinkler(prev, x, y));
+        setGameState(prev => addTask(prev, 'place_sprinkler', tileX, tileY));
         break;
     }
   }, [gameState]);
 
-  // Keyboard controls
+  // Keyboard shortcuts (no movement)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { x, y } = gameState.player;
-      let newX = x;
-      let newY = y;
-
       switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-          newY = Math.max(0, y - 1);
-          break;
-        case 'ArrowDown':
-        case 's':
-          newY = Math.min(GAME_CONFIG.gridHeight - 1, y + 1);
-          break;
-        case 'ArrowLeft':
-        case 'a':
-          newX = Math.max(0, x - 1);
-          break;
-        case 'ArrowRight':
-        case 'd':
-          newX = Math.min(GAME_CONFIG.gridWidth - 1, x + 1);
-          break;
-        case ' ':
-        case 'e':
-          handleInteraction();
-          return;
         case 'b':
           setShowShop(!showShop);
           return;
@@ -474,18 +464,11 @@ export default function Game() {
           }));
           return;
       }
-
-      if (newX !== x || newY !== y) {
-        setGameState(prev => ({
-          ...prev,
-          player: { ...prev.player, x: newX, y: newY },
-        }));
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, handleInteraction, showShop, showSellShop, showInstructions]);
+  }, [gameState, showShop, showSellShop, showInstructions]);
 
   const handleNewGame = () => {
     setGameState(createInitialState());
@@ -535,8 +518,38 @@ export default function Game() {
         ref={canvasRef}
         width={GAME_CONFIG.gridWidth * GAME_CONFIG.tileSize}
         height={GAME_CONFIG.gridHeight * GAME_CONFIG.tileSize}
-        className="border-4 border-white rounded-lg shadow-2xl"
+        className="border-4 border-white rounded-lg shadow-2xl cursor-pointer"
+        onClick={handleCanvasClick}
       />
+
+      {/* Current Task Progress */}
+      {gameState.currentTask && (
+        <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-bold">
+              {gameState.currentTask.type === 'clear' && '⛏️ Clearing...'}
+              {gameState.currentTask.type === 'plant' && '🌱 Planting...'}
+              {gameState.currentTask.type === 'water' && '💧 Watering...'}
+              {gameState.currentTask.type === 'harvest' && '🌾 Harvesting...'}
+              {gameState.currentTask.type === 'place_sprinkler' && '💦 Placing Sprinkler...'}
+            </span>
+            <span className="text-sm">{Math.floor(gameState.currentTask.progress)}%</span>
+          </div>
+          <div className="w-full h-2 bg-gray-700 rounded-full">
+            <div
+              className="h-2 bg-green-500 rounded-full transition-all"
+              style={{ width: `${gameState.currentTask.progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Task Queue Count */}
+      {gameState.taskQueue.length > 0 && (
+        <div className="text-sm text-white bg-black/70 px-3 py-1 rounded-lg">
+          📋 {gameState.taskQueue.length} task{gameState.taskQueue.length !== 1 ? 's' : ''} queued
+        </div>
+      )}
 
       {/* Tool & Crop Selection (Compact) */}
       <div className="flex gap-2 w-full">

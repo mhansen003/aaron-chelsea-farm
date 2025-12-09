@@ -14,6 +14,20 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler';
+
+export interface Task {
+  id: string;
+  type: TaskType;
+  tileX: number;
+  tileY: number;
+  zoneX: number;
+  zoneY: number;
+  cropType?: CropType; // For planting tasks
+  progress: number; // 0-100
+  duration: number; // milliseconds
+}
+
 export interface Tile {
   type: TileType;
   x: number;
@@ -81,6 +95,8 @@ export interface GameState {
   currentZone: { x: number; y: number }; // Which zone player is viewing
   player: Player;
   tools: Tool[];
+  taskQueue: Task[]; // Queue of tasks for worker to complete
+  currentTask: Task | null; // Task currently being executed
   currentDay: number; // Day counter
   dayProgress: number; // 0-100, progress through current day
   gameTime: number;

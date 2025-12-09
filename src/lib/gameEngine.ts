@@ -25,6 +25,15 @@ export const BAG_UPGRADE_COST = 100; // Cost to upgrade basket capacity by 4
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 
+// Task durations in milliseconds
+export const TASK_DURATIONS = {
+  clear: 10000, // 10 seconds to clear rocks/trees
+  plant: 2000, // 2 seconds to plant
+  water: 1000, // 1 second to water
+  harvest: 2000, // 2 seconds to harvest
+  place_sprinkler: 3000, // 3 seconds to place sprinkler
+};
+
 export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
   const grid: Tile[][] = [];
   const isStartingZone = zoneX === 0 && zoneY === 0;
@@ -169,6 +178,8 @@ export function createInitialState(): GameState {
         unlocked: false,
       },
     ],
+    taskQueue: [],
+    currentTask: null,
     currentDay: 1,
     dayProgress: 0,
     gameTime: 0,
@@ -187,8 +198,57 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   // Check if a new day has started
   const isNewDay = newDay > previousDay;
 
+  let newState = { ...state };
+
+  // Process current task
+  if (newState.currentTask) {
+    const newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
+
+    if (newProgress >= 100) {
+      // Task complete - execute it
+      const task = newState.currentTask;
+
+      switch (task.type) {
+        case 'clear':
+          newState = clearTile(newState, task.tileX, task.tileY);
+          break;
+        case 'plant':
+          if (task.cropType) {
+            newState = plantSeed(newState, task.tileX, task.tileY, task.cropType);
+          }
+          break;
+        case 'water':
+          newState = waterTile(newState, task.tileX, task.tileY);
+          break;
+        case 'harvest':
+          newState = harvestCrop(newState, task.tileX, task.tileY);
+          break;
+        case 'place_sprinkler':
+          newState = placeSprinkler(newState, task.tileX, task.tileY);
+          break;
+      }
+
+      // Move player to task location
+      newState.player.x = task.tileX;
+      newState.player.y = task.tileY;
+
+      // Clear current task
+      newState.currentTask = null;
+    } else {
+      // Update progress
+      newState.currentTask = { ...newState.currentTask, progress: newProgress };
+    }
+  }
+
+  // If no current task, take next from queue
+  if (!newState.currentTask && newState.taskQueue.length > 0) {
+    const [nextTask, ...remainingQueue] = newState.taskQueue;
+    newState.currentTask = nextTask;
+    newState.taskQueue = remainingQueue;
+  }
+
   // Update all zones
-  const newZones = { ...state.zones };
+  const newZones = { ...newState.zones };
 
   // Process each owned zone
   Object.entries(newZones).forEach(([zoneKey, zone]) => {
@@ -233,7 +293,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
           // Only grow if watered today
           if (tile.wateredToday) {
-            const quality = state.player.inventory.seedQuality[tile.crop];
+            const quality = newState.player.inventory.seedQuality[tile.crop];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
             const adjustedDaysToGrow = cropInfo.daysToGrow / growthMultiplier;
 
@@ -255,7 +315,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   });
 
   return {
-    ...state,
+    ...newState,
     zones: newZones,
     currentDay: newDay,
     dayProgress: newDayProgress,
@@ -542,6 +602,40 @@ export function upgradeBag(state: GameState): GameState {
       money: state.player.money - BAG_UPGRADE_COST,
       basketCapacity: state.player.basketCapacity + 4,
     },
+  };
+}
+
+// Add task to queue
+export function addTask(
+  state: GameState,
+  type: import('@/types/game').TaskType,
+  tileX: number,
+  tileY: number,
+  cropType?: import('@/types/game').CropType
+): GameState {
+  const task: import('@/types/game').Task = {
+    id: `${Date.now()}-${Math.random()}`,
+    type,
+    tileX,
+    tileY,
+    zoneX: state.currentZone.x,
+    zoneY: state.currentZone.y,
+    cropType,
+    progress: 0,
+    duration: TASK_DURATIONS[type],
+  };
+
+  return {
+    ...state,
+    taskQueue: [...state.taskQueue, task],
+  };
+}
+
+// Remove task from queue
+export function removeTask(state: GameState, taskId: string): GameState {
+  return {
+    ...state,
+    taskQueue: state.taskQueue.filter(t => t.id !== taskId),
   };
 }
 

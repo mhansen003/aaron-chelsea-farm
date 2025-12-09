@@ -8,6 +8,8 @@ import {
   plantSeed,
   harvestCrop,
   feedCommunity,
+  buySeeds,
+  buyTool,
   GAME_CONFIG,
 } from '@/lib/gameEngine';
 import { GameState, CropType } from '@/types/game';
@@ -323,40 +325,10 @@ export default function Game() {
           gameState={gameState}
           onClose={() => setShowShop(false)}
           onBuySeeds={(crop, amount) =>
-            setGameState(prev => {
-              const cost = (crop === 'carrot' ? 2 : crop === 'wheat' ? 1 : 4) * amount;
-              if (prev.player.money < cost) return prev;
-              return {
-                ...prev,
-                player: {
-                  ...prev.player,
-                  money: prev.player.money - cost,
-                  inventory: {
-                    ...prev.player.inventory,
-                    seeds: {
-                      ...prev.player.inventory.seeds,
-                      [crop]: prev.player.inventory.seeds[crop] + amount,
-                    },
-                  },
-                },
-              };
-            })
+            setGameState(prev => buySeeds(prev, crop, amount))
           }
           onBuyTool={toolName =>
-            setGameState(prev => {
-              const tool = prev.tools.find(t => t.name === toolName);
-              if (!tool || tool.unlocked || prev.player.money < tool.cost) return prev;
-              return {
-                ...prev,
-                player: {
-                  ...prev.player,
-                  money: prev.player.money - tool.cost,
-                },
-                tools: prev.tools.map(t =>
-                  t.name === toolName ? { ...t, unlocked: true } : t
-                ),
-              };
-            })
+            setGameState(prev => buyTool(prev, toolName))
           }
         />
       )}

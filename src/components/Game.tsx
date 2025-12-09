@@ -515,13 +515,9 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Mechanic building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Determine position within the 2x2 building (0 or 1 for both x and y)
-          const offsetX = (x % 2) * 512;
-          const offsetY = (y % 2) * 512;
+          // Mechanic building is 1x1 - draw the full image scaled to fit
           ctx.drawImage(
             mechanicImageRef.current,
-            offsetX, offsetY, 512, 512,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {

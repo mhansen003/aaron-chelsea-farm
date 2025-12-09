@@ -56,7 +56,23 @@ export default function Game() {
       const saved = localStorage.getItem('aaron-chelsea-farm-save');
       if (saved) {
         try {
-          return JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+
+          // Migrate old saves to new format (add missing fields)
+          if (!parsed.taskQueue) {
+            parsed.taskQueue = [];
+          }
+          if (!parsed.currentTask) {
+            parsed.currentTask = null;
+          }
+          if (!parsed.player.farmName) {
+            parsed.player.farmName = "Aaron & Chelsea's Farm";
+          }
+          if (!parsed.player.basketCapacity) {
+            parsed.player.basketCapacity = 8;
+          }
+
+          return parsed as GameState;
         } catch (e) {
           console.error('Failed to load saved game:', e);
         }

@@ -24,7 +24,7 @@ export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
 export const BAG_UPGRADE_COST = 100; // Cost to upgrade basket capacity by 4
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
-export const MOVE_SPEED = 0.05; // Movement interpolation speed (0-1, higher = faster)
+export const MOVE_SPEED = 0.015; // Movement interpolation speed (0-1, higher = faster)
 
 // Task durations in milliseconds
 export const TASK_DURATIONS = {

@@ -244,6 +244,31 @@ export default function Game() {
     };
   }, []);
 
+  // Update canvas cursor based on selected tool
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Create cursor emoji as data URL
+    const createEmojiCursor = (emoji: string) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return 'default';
+
+      ctx.font = '28px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(emoji, 16, 16);
+
+      return `url(${canvas.toDataURL()}) 16 16, pointer`;
+    };
+
+    const toolIcon = TOOL_ICONS[gameState.player.selectedTool];
+    canvas.style.cursor = createEmojiCursor(toolIcon);
+  }, [gameState.player.selectedTool]);
+
   // Rendering
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -542,7 +567,7 @@ export default function Game() {
         ref={canvasRef}
         width={GAME_CONFIG.gridWidth * GAME_CONFIG.tileSize}
         height={GAME_CONFIG.gridHeight * GAME_CONFIG.tileSize}
-        className="border-4 border-white rounded-lg shadow-2xl cursor-pointer"
+        className="border-4 border-white rounded-lg shadow-2xl"
         onClick={handleCanvasClick}
       />
 
@@ -842,7 +867,7 @@ export default function Game() {
       </div>
 
       {/* Compact Basket Sidebar */}
-      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-1">
+      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2">
         <div className="text-sm font-bold text-center">🧺 {gameState.player.basket.length}/{gameState.player.basketCapacity}</div>
 
         {/* Basket Grid - Dynamic based on capacity */}
@@ -890,6 +915,58 @@ export default function Game() {
         >
           💰 Sell (V)
         </button>
+
+        {/* Farmer Status and Task Queue */}
+        <div className="border-t border-gray-600 pt-2">
+          <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>
+
+          {/* Current Task */}
+          {gameState.currentTask ? (
+            <div className="bg-green-900/50 border border-green-600 rounded px-2 py-1 mb-1">
+              <div className="text-[10px] text-green-300 font-bold mb-0.5">CURRENT:</div>
+              <div className="text-xs flex items-center gap-1">
+                {gameState.currentTask.type === 'clear' ? '⛏️ Clearing' :
+                 gameState.currentTask.type === 'plant' ? '🌱 Planting' :
+                 gameState.currentTask.type === 'water' ? '💧 Watering' :
+                 gameState.currentTask.type === 'harvest' ? '🌾 Harvesting' :
+                 '💦 Sprinkler'}
+              </div>
+              <div className="w-full h-1 bg-gray-700 rounded-full mt-1">
+                <div
+                  className="h-1 bg-green-500 rounded-full transition-all"
+                  style={{ width: `${gameState.currentTask.progress}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-800/50 border border-gray-600 rounded px-2 py-1 mb-1">
+              <div className="text-xs text-gray-400 text-center">Idle</div>
+            </div>
+          )}
+
+          {/* Task Queue */}
+          {gameState.taskQueue.length > 0 && (
+            <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1">
+              <div className="text-[10px] text-blue-300 font-bold mb-1">QUEUE ({gameState.taskQueue.length}):</div>
+              <div className="space-y-0.5 max-h-24 overflow-y-auto">
+                {gameState.taskQueue.slice(0, 5).map((task, idx) => (
+                  <div key={task.id} className="text-xs flex items-center gap-1">
+                    <span className="text-gray-400">{idx + 1}.</span>
+                    {task.type === 'clear' ? '⛏️' :
+                     task.type === 'plant' ? '🌱' :
+                     task.type === 'water' ? '💧' :
+                     task.type === 'harvest' ? '🌾' :
+                     '💦'}
+                    <span className="text-gray-300 text-[10px]">({task.tileX},{task.tileY})</span>
+                  </div>
+                ))}
+                {gameState.taskQueue.length > 5 && (
+                  <div className="text-[10px] text-gray-500">+{gameState.taskQueue.length - 5} more...</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

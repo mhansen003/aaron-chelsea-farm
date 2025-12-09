@@ -180,6 +180,11 @@ export function createInitialState(): GameState {
         waterbots: 0,
         harvestbots: 0,
       },
+      autoBuy: {
+        carrot: false,
+        wheat: false,
+        tomato: false,
+      },
     },
     tools: [
       {

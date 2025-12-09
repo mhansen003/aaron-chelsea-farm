@@ -72,6 +72,11 @@ export interface Player {
     waterbots: number; // How many water bots the player owns
     harvestbots: number; // How many harvest bots the player owns
   };
+  autoBuy: {
+    carrot: boolean;
+    wheat: boolean;
+    tomato: boolean;
+  };
 }
 
 export interface CropGrowthInfo {

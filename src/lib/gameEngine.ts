@@ -329,7 +329,8 @@ export function plantSeed(
 }
 
 export function harvestCrop(state: GameState, tileX: number, tileY: number): GameState {
-  const tile = state.grid[tileY]?.[tileX];
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
   if (!tile || tile.type !== 'grown' || !tile.crop) return state;
 
   // Check if basket is full
@@ -338,7 +339,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   const cropType = tile.crop;
   const quality = state.player.inventory.seedQuality[cropType];
 
-  const newGrid = state.grid.map((row, y) =>
+  const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
@@ -365,21 +366,22 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   // Add harvested crop to basket
   const newBasket = [...state.player.basket, { crop: cropType, quality: improvedQuality }];
 
+  const updatedState = updateCurrentGrid(state, newGrid);
+
   return {
-    ...state,
-    grid: newGrid,
+    ...updatedState,
     player: {
-      ...state.player,
+      ...updatedState.player,
       basket: newBasket,
       inventory: {
-        ...state.player.inventory,
+        ...updatedState.player.inventory,
         // Give back 1 seed
         seeds: {
-          ...state.player.inventory.seeds,
-          [cropType]: state.player.inventory.seeds[cropType] + 1,
+          ...updatedState.player.inventory.seeds,
+          [cropType]: updatedState.player.inventory.seeds[cropType] + 1,
         },
         seedQuality: {
-          ...state.player.inventory.seedQuality,
+          ...updatedState.player.inventory.seedQuality,
           [cropType]: improvedQuality,
         },
       },
@@ -388,10 +390,11 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
 }
 
 export function waterTile(state: GameState, tileX: number, tileY: number): GameState {
-  const tile = state.grid[tileY]?.[tileX];
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
   if (!tile || (tile.type !== 'planted' && tile.type !== 'grown' && tile.type !== 'dirt')) return state;
 
-  const newGrid = state.grid.map((row, y) =>
+  const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
@@ -403,18 +406,16 @@ export function waterTile(state: GameState, tileX: number, tileY: number): GameS
     })
   );
 
-  return {
-    ...state,
-    grid: newGrid,
-  };
+  return updateCurrentGrid(state, newGrid);
 }
 
 // This is for placing a permanent sprinkler on a tile
 export function placeSprinkler(state: GameState, tileX: number, tileY: number): GameState {
-  const tile = state.grid[tileY]?.[tileX];
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
   if (!tile || tile.hasSprinkler || state.player.inventory.sprinklers <= 0) return state;
 
-  const newGrid = state.grid.map((row, y) =>
+  const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
         return {
@@ -426,14 +427,15 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
     })
   );
 
+  const updatedState = updateCurrentGrid(state, newGrid);
+
   return {
-    ...state,
-    grid: newGrid,
+    ...updatedState,
     player: {
-      ...state.player,
+      ...updatedState.player,
       inventory: {
-        ...state.player.inventory,
-        sprinklers: state.player.inventory.sprinklers - 1,
+        ...updatedState.player.inventory,
+        sprinklers: updatedState.player.inventory.sprinklers - 1,
       },
     },
   };

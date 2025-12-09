@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, Tool } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -134,13 +134,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const quality = state.player.inventory.seedQuality[tile.crop];
         const growthMultiplier = quality ? quality.growthSpeed : 1.0;
 
+        const newGrowthStage = Math.min(
+          100,
+          tile.growthStage + (deltaTime / GROWTH_TIME) * 100 * growthMultiplier
+        );
+
         return {
           ...tile,
-          growthStage: Math.min(
-            100,
-            tile.growthStage + (deltaTime / GROWTH_TIME) * 100 * growthMultiplier
-          ),
-          type: tile.growthStage >= 99 ? 'grown' : 'planted',
+          growthStage: newGrowthStage,
+          type: (newGrowthStage >= 99 ? 'grown' : 'planted') as TileType,
         };
       }
       return tile;

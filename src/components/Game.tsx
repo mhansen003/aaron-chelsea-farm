@@ -17,6 +17,7 @@ import {
   buyHarvestbots,
   upgradeBag,
   buyMechanicShop,
+  relocateMechanicShop,
   addTask,
   removeTask,
   depositToWarehouse,
@@ -1444,6 +1445,7 @@ export default function Game() {
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
           onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
+          onRelocateMechanicShop={() => setGameState(prev => relocateMechanicShop(prev))}
         />
       )}
 

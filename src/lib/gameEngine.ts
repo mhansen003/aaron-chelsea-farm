@@ -828,6 +828,42 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
   };
 }
 
+export function relocateMechanicShop(state: GameState): GameState {
+  // Only allow relocating if the shop is currently placed
+  if (!state.player.inventory.mechanicShopPlaced) {
+    return state;
+  }
+
+  // Find and remove the mechanic shop tile from all zones
+  const newZones = { ...state.zones };
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    const newGrid = zone.grid.map(row =>
+      row.map(tile => {
+        if (tile.type === 'mechanic') {
+          return {
+            ...tile,
+            type: 'grass' as const,
+          };
+        }
+        return tile;
+      })
+    );
+    newZones[zoneKey] = { ...zone, grid: newGrid };
+  });
+
+  return {
+    ...state,
+    zones: newZones,
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        mechanicShopPlaced: false,
+      },
+    },
+  };
+}
+
 // Add task to queue
 export function addTask(
   state: GameState,

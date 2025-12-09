@@ -564,12 +564,6 @@ export default function Game() {
       ctx.fill();
     }
 
-    // Draw tool icon above player
-    const toolIcon = TOOL_ICONS[gameState.player.selectedTool];
-    ctx.font = '24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(toolIcon, playerPx + GAME_CONFIG.tileSize / 2, playerPy - 8);
-
   }, [gameState]);
 
   // Play water splash sound effect
@@ -586,7 +580,7 @@ export default function Game() {
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
     // Rocks and trees can be cleared
     if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
-      return { action: 'clear' as const, cursor: 'url("/working.png") 12 12, pointer' };
+      return { action: 'clear' as const, cursor: 'url("/clear%20tool.png") 12 12, pointer' };
     }
 
     // Planted crops that need water
@@ -596,17 +590,11 @@ export default function Game() {
 
     // Grown crops can be harvested
     if (tile.type === 'grown') {
-      return { action: 'harvest' as const, cursor: 'url("/harvest%20bot.png") 12 12, pointer' };
+      return { action: 'harvest' as const, cursor: 'pointer' };
     }
 
     // Grass/cleared dirt can be planted if we have a seed selected
     if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && selectedCrop) {
-      // Show seed icon cursor based on selected crop
-      const seedCursors = {
-        carrot: '🥕',
-        wheat: '🌾',
-        tomato: '🍅',
-      };
       return { action: 'plant' as const, cursor: 'url("/planted%20crop.png") 12 12, pointer' };
     }
 

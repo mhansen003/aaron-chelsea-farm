@@ -532,15 +532,23 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const grid = getCurrentGrid(newState);
       const walkableTiles: { x: number; y: number }[] = [];
 
-      // Find all walkable tiles (grass, dirt, planted crops)
+      // Find all walkable tiles (grass, dirt, planted crops, themed ground tiles)
       grid.forEach((row, y) => {
         row.forEach((tile, x) => {
           const isWalkable =
             tile.type === 'grass' ||
             (tile.type === 'dirt' && tile.cleared) ||
             tile.type === 'planted' ||
-            tile.type === 'grown';
-          if (isWalkable) {
+            tile.type === 'grown' ||
+            tile.type === 'sand' ||
+            tile.type === 'seaweed' ||
+            tile.type === 'shells' ||
+            tile.type === 'cactus' ||
+            tile.type === 'rocks' ||
+            tile.type === 'cave' ||
+            tile.type === 'mountain';
+          // Explicitly exclude ocean - not walkable
+          if (isWalkable && tile.type !== 'ocean') {
             walkableTiles.push({ x, y });
           }
         });
@@ -827,8 +835,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   tile.type === 'grass' ||
                   (tile.type === 'dirt' && tile.cleared) ||
                   tile.type === 'planted' ||
-                  tile.type === 'grown';
-                if (isWalkable) {
+                  tile.type === 'grown' ||
+                  tile.type === 'sand' ||
+                  tile.type === 'seaweed' ||
+                  tile.type === 'shells' ||
+                  tile.type === 'cactus' ||
+                  tile.type === 'rocks' ||
+                  tile.type === 'cave' ||
+                  tile.type === 'mountain';
+                if (isWalkable && tile.type !== 'ocean') {
                   walkableTiles.push({ x, y });
                 }
               });
@@ -862,8 +877,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   tile.type === 'grass' ||
                   (tile.type === 'dirt' && tile.cleared) ||
                   tile.type === 'planted' ||
-                  tile.type === 'grown';
-                if (isWalkable) {
+                  tile.type === 'grown' ||
+                  tile.type === 'sand' ||
+                  tile.type === 'seaweed' ||
+                  tile.type === 'shells' ||
+                  tile.type === 'cactus' ||
+                  tile.type === 'rocks' ||
+                  tile.type === 'cave' ||
+                  tile.type === 'mountain';
+                if (isWalkable && tile.type !== 'ocean') {
                   walkableTiles.push({ x, y });
                 }
               });
@@ -1089,8 +1111,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const walkableTiles: Array<{ x: number; y: number }> = [];
             grid.forEach((row, y) => {
               row.forEach((tile, x) => {
-                const isWalkable = tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'planted' || tile.type === 'grown';
-                if (isWalkable) {
+                const isWalkable = tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'planted' || tile.type === 'grown' || tile.type === 'sand' || tile.type === 'seaweed' || tile.type === 'shells' || tile.type === 'cactus' || tile.type === 'rocks' || tile.type === 'cave' || tile.type === 'mountain';
+                if (isWalkable && tile.type !== 'ocean') {
                   walkableTiles.push({ x, y });
                 }
               });

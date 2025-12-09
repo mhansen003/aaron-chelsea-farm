@@ -167,6 +167,7 @@ export default function Game() {
   const waterSplashRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
+  const surferImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef = useRef<HTMLImageElement | null>(null);
   const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
   const carrotsImageRef = useRef<HTMLImageElement | null>(null);
@@ -177,6 +178,7 @@ export default function Game() {
   const shopImageRef = useRef<HTMLImageElement | null>(null);
   const exportImageRef = useRef<HTMLImageElement | null>(null);
   const warehouseImageRef = useRef<HTMLImageElement | null>(null);
+  const warehouseFullImageRef = useRef<HTMLImageElement | null>(null);
   const sprinklerImageRef = useRef<HTMLImageElement | null>(null);
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
@@ -412,6 +414,13 @@ export default function Game() {
       shellsImg.src = '/shells.png';
       shellsImg.onload = () => {
         shellsImageRef.current = shellsImg;
+      };
+
+      // Load surfer farmer for beach theme
+      const surferImg = new Image();
+      surferImg.src = '/surfer.png';
+      surferImg.onload = () => {
+        surferImageRef.current = surferImg;
       };
     } else if (theme === 'desert') {
       const sandImg = new Image();
@@ -1109,9 +1118,15 @@ export default function Game() {
     const playerPx = visualX * GAME_CONFIG.tileSize;
     const playerPy = visualY * GAME_CONFIG.tileSize;
 
-    if (farmerImageRef.current) {
-      // Draw farmer sprite
-      ctx.drawImage(farmerImageRef.current, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+    // Use themed farmer sprite based on current zone
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+    const isBeachZone = currentZone?.theme === 'beach';
+    const farmerSprite = (isBeachZone && surferImageRef.current) ? surferImageRef.current : farmerImageRef.current;
+
+    if (farmerSprite) {
+      // Draw farmer sprite (surfer in beach, regular farmer elsewhere)
+      ctx.drawImage(farmerSprite, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
     } else {
       // Fallback to blue circle
       const centerX = playerPx + GAME_CONFIG.tileSize / 2;

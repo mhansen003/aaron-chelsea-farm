@@ -589,6 +589,19 @@ export default function Game() {
             mechanicImageRef.current,
             px + mechanicOffset, py + mechanicOffset, mechanicSize, mechanicSize
           );
+        } else if (tile.type === 'well' && wellImageRef.current) {
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          // Draw well image at standard size
+          ctx.drawImage(
+            wellImageRef.current,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

@@ -61,8 +61,33 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       let archTargetZone: { x: number; y: number } | undefined = undefined;
       const hasTheme = theme && theme !== 'farm';
 
+      // Return arches for themed zones (to get back to main farm)
+      // North zone (beach) - place south arch to return
+      if (zoneX === 0 && zoneY === 1 && y === GAME_CONFIG.gridHeight - 1 && x === centerX) {
+        type = 'arch';
+        archDirection = 'south';
+        archTargetZone = { x: 0, y: 0 };
+      }
+      // South zone (desert) - place north arch to return
+      else if (zoneX === 0 && zoneY === -1 && y === 0 && x === centerX) {
+        type = 'arch';
+        archDirection = 'north';
+        archTargetZone = { x: 0, y: 0 };
+      }
+      // East zone (mountain) - place west arch to return
+      else if (zoneX === 1 && zoneY === 0 && x === 0 && y === centerY) {
+        type = 'arch';
+        archDirection = 'west';
+        archTargetZone = { x: 0, y: 0 };
+      }
+      // West zone (barn) - place east arch to return
+      else if (zoneX === -1 && zoneY === 0 && x === GAME_CONFIG.gridWidth - 1 && y === centerY) {
+        type = 'arch';
+        archDirection = 'east';
+        archTargetZone = { x: 0, y: 0 };
+      }
       // Theme-specific zone generation
-      if (isBeach) {
+      else if (isBeach) {
         // Beach: top half water, bottom half sand with seaweed/shells
         if (y < GAME_CONFIG.gridHeight / 2) {
           type = 'ocean';

@@ -528,56 +528,125 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     }
   });
 
-  // Water Bot AI: Autonomously water unwatered crops
-  if (newState.player.inventory.waterbots > 0) {
-    // Get current zone
+  // Water Bot AI: Visible bot behavior with wandering and watering
+  if (newState.waterBots.length > 0) {
     const currentZoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
     const currentZone = newZones[currentZoneKey];
 
     if (currentZone && currentZone.owned) {
-      // Find all unwatered planted crops in current zone
-      const unwateredCrops: Array<{ x: number; y: number }> = [];
-      currentZone.grid.forEach((row, y) => {
-        row.forEach((tile, x) => {
-          if (tile.type === 'planted' && tile.crop && !tile.wateredToday) {
-            unwateredCrops.push({ x, y });
-          }
+      const grid = currentZone.grid;
+      let updatedGrid = grid;
+      const updatedBots = newState.waterBots.map(bot => {
+        // Skip if bot doesn't have position
+        if (bot.x === undefined || bot.y === undefined) return bot;
+
+        // Find unwatered crops
+        const unwateredCrops: Array<{ x: number; y: number }> = [];
+        grid.forEach((row, y) => {
+          row.forEach((tile, x) => {
+            if (tile.type === 'planted' && tile.crop && !tile.wateredToday) {
+              unwateredCrops.push({ x, y });
+            }
+          });
         });
+
+        // Bot behavior based on water level and status
+        if (bot.waterLevel > 0 && unwateredCrops.length > 0) {
+          // Find nearest unwatered crop
+          let nearest = unwateredCrops[0];
+          let minDist = Math.abs(bot.x - nearest.x) + Math.abs(bot.y - nearest.y);
+
+          unwateredCrops.forEach(crop => {
+            const dist = Math.abs(bot.x - crop.x) + Math.abs(bot.y - crop.y);
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = crop;
+            }
+          });
+
+          // If at crop location, water it
+          if (bot.x === nearest.x && bot.y === nearest.y) {
+            // Water the crop
+            updatedGrid = updatedGrid.map((row, rowY) =>
+              row.map((tile, tileX) => {
+                if (tileX === nearest.x && rowY === nearest.y) {
+                  return {
+                    ...tile,
+                    wateredToday: true,
+                    wateredTimestamp: tile.wateredTimestamp ?? newState.gameTime,
+                  };
+                }
+                return tile;
+              })
+            );
+
+            return {
+              ...bot,
+              waterLevel: bot.waterLevel - 1,
+              status: 'watering' as const,
+            };
+          } else {
+            // Move toward crop (one tile at a time)
+            let newX = bot.x;
+            let newY = bot.y;
+
+            if (Math.random() < (deltaTime / 500)) { // Move roughly every 0.5 seconds
+              if (bot.x < nearest.x) newX++;
+              else if (bot.x > nearest.x) newX--;
+              else if (bot.y < nearest.y) newY++;
+              else if (bot.y > nearest.y) newY--;
+            }
+
+            return {
+              ...bot,
+              x: newX,
+              y: newY,
+              status: 'traveling' as const,
+              targetX: nearest.x,
+              targetY: nearest.y,
+            };
+          }
+        } else {
+          // Idle wandering when no crops to water or out of water
+          if (Math.random() < (deltaTime / 2000)) { // Wander every 2 seconds on average
+            const walkableTiles: Array<{ x: number; y: number }> = [];
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                const isWalkable =
+                  tile.type === 'grass' ||
+                  (tile.type === 'dirt' && tile.cleared) ||
+                  tile.type === 'planted' ||
+                  tile.type === 'grown';
+                if (isWalkable) {
+                  walkableTiles.push({ x, y });
+                }
+              });
+            });
+
+            // Pick nearby random tile
+            const nearbyTiles = walkableTiles.filter(t => {
+              const dx = Math.abs(t.x - bot.x);
+              const dy = Math.abs(t.y - bot.y);
+              return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
+            });
+
+            if (nearbyTiles.length > 0) {
+              const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+              return {
+                ...bot,
+                x: randomTile.x,
+                y: randomTile.y,
+                status: 'idle' as const,
+              };
+            }
+          }
+        }
+
+        return bot;
       });
 
-      // Each water bot waters 1 crop per update cycle (throttled by deltaTime)
-      // This creates a gradual, visible effect rather than instant watering
-      const cropsToWaterPerBot = Math.random() < (deltaTime / 1000) ? 1 : 0; // Average 1 per second
-      const totalCropsToWater = Math.min(
-        unwateredCrops.length,
-        newState.player.inventory.waterbots * cropsToWaterPerBot
-      );
-
-      if (totalCropsToWater > 0 && unwateredCrops.length > 0) {
-        // Shuffle and select crops to water
-        const shuffled = [...unwateredCrops].sort(() => Math.random() - 0.5);
-        const cropsToWater = shuffled.slice(0, totalCropsToWater);
-
-        // Water the selected crops
-        let updatedGrid = currentZone.grid;
-        cropsToWater.forEach(({ x, y }) => {
-          updatedGrid = updatedGrid.map((row, rowY) =>
-            row.map((tile, tileX) => {
-              if (tileX === x && rowY === y) {
-                // Water this crop
-                return {
-                  ...tile,
-                  wateredToday: true,
-                  wateredTimestamp: tile.wateredTimestamp ?? newState.gameTime,
-                };
-              }
-              return tile;
-            })
-          );
-        });
-
-        newZones[currentZoneKey] = { ...currentZone, grid: updatedGrid };
-      }
+      newState = { ...newState, waterBots: updatedBots };
+      newZones[currentZoneKey] = { ...currentZone, grid: updatedGrid };
     }
   }
 

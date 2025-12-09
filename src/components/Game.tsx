@@ -101,6 +101,8 @@ export default function Game() {
   const [purchaseZoneKey, setPurchaseZoneKey] = useState<string>('');
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
+  const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
+  const [cursorType, setCursorType] = useState<string>('default');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -542,6 +544,67 @@ export default function Game() {
     }
   }, []);
 
+  // Determine what action should be taken for a tile based on context
+  const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
+    // Rocks and trees can be cleared
+    if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
+      return { action: 'clear' as const, cursor: 'url("/working.png") 16 16, pointer' };
+    }
+
+    // Planted crops that need water
+    if (tile.type === 'planted' && !tile.wateredToday) {
+      return { action: 'water' as const, cursor: 'url("/waterdroplet.png") 16 16, pointer' };
+    }
+
+    // Grown crops can be harvested
+    if (tile.type === 'grown') {
+      return { action: 'harvest' as const, cursor: 'url("/harvest bot.png") 16 16, pointer' };
+    }
+
+    // Grass/cleared dirt can be planted if we have a seed selected
+    if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && selectedCrop) {
+      return { action: 'plant' as const, cursor: 'pointer' };
+    }
+
+    // Shop tile
+    if (tile.type === 'shop') {
+      return { action: 'shop' as const, cursor: 'pointer' };
+    }
+
+    // Arch tile
+    if (tile.type === 'arch') {
+      return { action: 'arch' as const, cursor: 'pointer' };
+    }
+
+    // Default - no action
+    return { action: null, cursor: 'default' };
+  }, []);
+
+  // Handle canvas mouse move for hover effects and cursor changes
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const tileX = Math.floor(mouseX / GAME_CONFIG.tileSize);
+    const tileY = Math.floor(mouseY / GAME_CONFIG.tileSize);
+
+    const currentGrid = getCurrentGrid(gameState);
+    const tile = currentGrid[tileY]?.[tileX];
+
+    if (tile) {
+      setHoveredTile({ x: tileX, y: tileY });
+      const { cursor } = getActionForTile(tile, gameState.player.selectedCrop);
+      setCursorType(cursor);
+    } else {
+      setHoveredTile(null);
+      setCursorType('default');
+    }
+  }, [gameState, getActionForTile]);
+
   // Handle canvas click to queue tasks
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -589,52 +652,37 @@ export default function Game() {
       return;
     }
 
-    // Handle shop tile clicks - always open shop regardless of tool
+    // Handle shop tile clicks
     if (tile.type === 'shop') {
       setShowShop(true);
       return;
     }
 
-    const { selectedTool, selectedCrop } = gameState.player;
+    // Get context-aware action for this tile
+    const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
-    // Add task based on selected tool
-    switch (selectedTool) {
-      case 'hoe':
-        // Clear rocks and trees
-        if (!tile.cleared) {
-          setGameState(prev => addTask(prev, 'clear', tileX, tileY));
-        }
+    // Perform the appropriate action
+    switch (action) {
+      case 'clear':
+        setGameState(prev => addTask(prev, 'clear', tileX, tileY));
         break;
 
-      case 'seed_bag':
-        // Plant seeds
-        if (tile.cleared && !tile.crop && selectedCrop) {
-          setGameState(prev => addTask(prev, 'plant', tileX, tileY, selectedCrop));
-        }
+      case 'water':
+        setGameState(prev => addTask(prev, 'water', tileX, tileY));
+        playWaterSplash();
         break;
 
-      case 'scythe':
-        // Harvest crops
-        if (tile.type === 'grown') {
-          setGameState(prev => addTask(prev, 'harvest', tileX, tileY));
-        }
+      case 'harvest':
+        setGameState(prev => addTask(prev, 'harvest', tileX, tileY));
         break;
 
-      case 'watering_can':
-        // Water single tile - only if it's a planted crop that needs watering
-        if (tile.type === 'planted' && !tile.wateredToday) {
-          setGameState(prev => addTask(prev, 'water', tileX, tileY));
-          playWaterSplash();
+      case 'plant':
+        if (gameState.player.selectedCrop) {
+          setGameState(prev => addTask(prev, 'plant', tileX, tileY, gameState.player.selectedCrop!));
         }
-        break;
-
-      case 'water_sprinkler':
-        // Place permanent sprinkler
-        setGameState(prev => addTask(prev, 'place_sprinkler', tileX, tileY));
-        playWaterSplash(); // Also play sound for sprinkler placement
         break;
     }
-  }, [gameState, playWaterSplash]);
+  }, [gameState, playWaterSplash, getActionForTile]);
 
   // Keyboard shortcuts (no movement)
   useEffect(() => {
@@ -764,98 +812,68 @@ export default function Game() {
         width={GAME_CONFIG.gridWidth * GAME_CONFIG.tileSize}
         height={GAME_CONFIG.gridHeight * GAME_CONFIG.tileSize}
         className="border-4 border-white rounded-lg shadow-2xl flex-1 min-h-0"
-        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', cursor: cursorType }}
         onClick={handleCanvasClick}
+        onMouseMove={handleCanvasMouseMove}
       />
 
-      {/* Tool & Crop Selection (Compact) */}
-      <div className="flex gap-2 w-full">
-        {/* Tools */}
-        <div className="flex gap-2">
-          {gameState.tools
-            .filter(t => t.unlocked)
-            .map((tool, idx) => (
-              <button
-                key={tool.name}
-                onClick={() =>
-                  setGameState(prev => ({
-                    ...prev,
-                    player: { ...prev.player, selectedTool: tool.name },
-                  }))
-                }
-                className={`px-4 py-3 rounded font-bold transition-all text-3xl relative ${
-                  gameState.player.selectedTool === tool.name
-                    ? 'bg-blue-600 ring-2 ring-blue-300'
-                    : 'bg-gray-700 hover:bg-gray-600'
-                }`}
-                title={`${idx + 1}. ${tool.description}`}
-              >
-                {TOOL_ICONS[tool.name]}
-                {/* Seed dropdown for seed_bag tool */}
-                {tool.name === 'seed_bag' && gameState.player.selectedTool === 'seed_bag' && (
-                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 border-2 border-gray-600 rounded-lg p-2 flex flex-col gap-1 z-10">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGameState(prev => ({
-                          ...prev,
-                          player: {
-                            ...prev.player,
-                            selectedCrop: 'carrot'
-                          },
-                        }));
-                      }}
-                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
-                        gameState.player.selectedCrop === 'carrot'
-                          ? 'bg-orange-600'
-                          : 'bg-gray-700 hover:bg-gray-600'
-                      }`}
-                    >
-                      🥕 <span className="text-xs">{gameState.player.inventory.seeds.carrot}</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGameState(prev => ({
-                          ...prev,
-                          player: {
-                            ...prev.player,
-                            selectedCrop: 'wheat'
-                          },
-                        }));
-                      }}
-                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
-                        gameState.player.selectedCrop === 'wheat'
-                          ? 'bg-yellow-600'
-                          : 'bg-gray-700 hover:bg-gray-600'
-                      }`}
-                    >
-                      🌾 <span className="text-xs">{gameState.player.inventory.seeds.wheat}</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setGameState(prev => ({
-                          ...prev,
-                          player: {
-                            ...prev.player,
-                            selectedCrop: 'tomato'
-                          },
-                        }));
-                      }}
-                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
-                        gameState.player.selectedCrop === 'tomato'
-                          ? 'bg-red-600'
-                          : 'bg-gray-700 hover:bg-gray-600'
-                      }`}
-                    >
-                      🍅 <span className="text-xs">{gameState.player.inventory.seeds.tomato}</span>
-                    </button>
-                  </div>
-                )}
-              </button>
-            ))}
-        </div>
+      {/* Seed Selection Bar */}
+      <div className="flex gap-3 w-full bg-black/70 p-3 rounded-lg">
+        <div className="text-white font-bold text-lg flex items-center">🌱 Active Seed:</div>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'carrot'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'carrot'
+              ? 'bg-orange-600 ring-2 ring-orange-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🥕 <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'wheat'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'wheat'
+              ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🌾 <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'tomato'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'tomato'
+              ? 'bg-red-600 ring-2 ring-red-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🍅 <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
+        </button>
       </div>
 
       {/* Sell Message */}

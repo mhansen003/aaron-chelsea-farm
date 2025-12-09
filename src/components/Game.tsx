@@ -149,24 +149,12 @@ export default function Game() {
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
   const mechanicImageRef = useRef<HTMLImageElement | null>(null);
 
-  // Load all textures
+  // Load all non-themed textures (themed tiles loaded separately based on zone)
   useEffect(() => {
-    const grassImg = new Image();
-    grassImg.src = '/grass.jpg';
-    grassImg.onload = () => {
-      grassImageRef.current = grassImg;
-    };
-
     const farmerImg = new Image();
     farmerImg.src = '/farmer.png';
     farmerImg.onload = () => {
       farmerImageRef.current = farmerImg;
-    };
-
-    const treeImg = new Image();
-    treeImg.src = '/forest.png';
-    treeImg.onload = () => {
-      treeImageRef.current = treeImg;
     };
 
     const plantedImg = new Image();
@@ -191,18 +179,6 @@ export default function Game() {
     tomatoImg.src = '/tomato.png';
     tomatoImg.onload = () => {
       tomatoImageRef.current = tomatoImg;
-    };
-
-    const rockImg = new Image();
-    rockImg.src = '/rocks.png';
-    rockImg.onload = () => {
-      rockImageRef.current = rockImg;
-    };
-
-    const dirtImg = new Image();
-    dirtImg.src = '/dirt.png';
-    dirtImg.onload = () => {
-      dirtImageRef.current = dirtImg;
     };
 
     const shopImg = new Image();
@@ -277,6 +253,53 @@ export default function Game() {
       mechanicImageRef.current = mechanicImg;
     };
   }, []);
+
+  // Load themed tile images based on current zone
+  useEffect(() => {
+    const currentZone = gameState.zones[getZoneKey(gameState.currentZone.x, gameState.currentZone.y)];
+    const theme = currentZone?.theme || 'farm';
+
+    // Load grass
+    const grassImg = new Image();
+    grassImg.src = `/${theme}-grass.jpg`;
+    grassImg.onerror = () => {
+      // Fallback to farm theme if themed image doesn't exist
+      grassImg.src = '/farm-grass.jpg';
+    };
+    grassImg.onload = () => {
+      grassImageRef.current = grassImg;
+    };
+
+    // Load dirt
+    const dirtImg = new Image();
+    dirtImg.src = `/${theme}-dirt.png`;
+    dirtImg.onerror = () => {
+      dirtImg.src = '/farm-dirt.png';
+    };
+    dirtImg.onload = () => {
+      dirtImageRef.current = dirtImg;
+    };
+
+    // Load rocks
+    const rockImg = new Image();
+    rockImg.src = `/${theme}-rocks.png`;
+    rockImg.onerror = () => {
+      rockImg.src = '/farm-rocks.png';
+    };
+    rockImg.onload = () => {
+      rockImageRef.current = rockImg;
+    };
+
+    // Load forest/trees
+    const treeImg = new Image();
+    treeImg.src = `/${theme}-forest.png`;
+    treeImg.onerror = () => {
+      treeImg.src = '/farm-forest.png';
+    };
+    treeImg.onload = () => {
+      treeImageRef.current = treeImg;
+    };
+  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
 
   // Save game state to localStorage whenever it changes
   useEffect(() => {

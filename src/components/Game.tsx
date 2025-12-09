@@ -425,6 +425,24 @@ export default function Game() {
           }
         }
 
+        // Draw blinking overlay for queued tasks
+        const queuedTask = gameState.taskQueue.find(task =>
+          task.tileX === x && task.tileY === y
+        );
+        if (queuedTask) {
+          const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
+          if (blink === 0) {
+            // Light yellow blinking overlay
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.3)';
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+            // Draw border to make it more visible
+            ctx.strokeStyle = 'rgba(255, 235, 59, 0.6)';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+          }
+        }
+
         // Draw task progress bar if farmer is working on this tile
         if (gameState.currentTask &&
             gameState.currentTask.tileX === x &&

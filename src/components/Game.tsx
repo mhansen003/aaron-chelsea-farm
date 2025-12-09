@@ -543,11 +543,11 @@ export default function Game() {
         <div className="w-full bg-black/70 px-4 py-2 rounded-lg text-white">
           <div className="flex items-center justify-between mb-1">
             <span className="text-sm font-bold">
-              {gameState.currentTask.type === 'clear' && '⛏️ Clearing...'}
-              {gameState.currentTask.type === 'plant' && '🌱 Planting...'}
-              {gameState.currentTask.type === 'water' && '💧 Watering...'}
-              {gameState.currentTask.type === 'harvest' && '🌾 Harvesting...'}
-              {gameState.currentTask.type === 'place_sprinkler' && '💦 Placing Sprinkler...'}
+              {gameState.currentTask.type === 'clear' ? '⛏️ Clearing...' :
+               gameState.currentTask.type === 'plant' ? '🌱 Planting...' :
+               gameState.currentTask.type === 'water' ? '💧 Watering...' :
+               gameState.currentTask.type === 'harvest' ? '🌾 Harvesting...' :
+               '💦 Placing Sprinkler...'}
             </span>
             <span className="text-sm">{Math.floor(gameState.currentTask.progress)}%</span>
           </div>
@@ -563,7 +563,7 @@ export default function Game() {
       {/* Task Queue Count */}
       {gameState.taskQueue.length > 0 && (
         <div className="text-sm text-white bg-black/70 px-3 py-1 rounded-lg">
-          📋 {gameState.taskQueue.length} task{gameState.taskQueue.length !== 1 ? 's' : ''} queued
+          📋 {gameState.taskQueue.length} {gameState.taskQueue.length === 1 ? 'task' : 'tasks'} queued
         </div>
       )}
 

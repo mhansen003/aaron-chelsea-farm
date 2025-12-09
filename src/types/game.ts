@@ -69,6 +69,7 @@ export interface Player {
   selectedCrop: CropType;
   basket: BasketItem[]; // Max 8 items
   basketCapacity: number; // Max basket size (upgradeable)
+  bagUpgrades: number; // Number of bag upgrades purchased (0-3)
   inventory: {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };

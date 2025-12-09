@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COST, MECHANIC_SHOP_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -64,7 +64,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 : 'bg-black/40 hover:bg-black/60'
             }`}
           >
-            🛠️ Tools
+            🛠️ Tools & Buildings
           </button>
         </div>
 
@@ -133,33 +133,70 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {activeTab === 'tools' && (
         <div>
           <div className="grid gap-4">
-            {/* Basket Upgrade */}
+            {/* Basket Upgrade - 3 Tier System */}
             <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <div>
                   <span className="text-2xl mr-2">🎒</span>
                   <span className="font-bold">Basket Upgrade</span>
                 </div>
-                <div className="text-amber-300 font-bold">${BAG_UPGRADE_COST}</div>
-              </div>
-              <div className="text-sm mb-2 text-gray-300">
-                Additional inventory for harvesting
-                {' • '}
-                <span className="text-green-400">+4 basket capacity</span>
-                {' • '}
                 <span className="text-blue-400">Current: {gameState.player.basketCapacity}</span>
               </div>
-              <button
-                onClick={() => onUpgradeBag()}
-                disabled={gameState.player.money < BAG_UPGRADE_COST}
-                className={`px-4 py-2 rounded font-bold w-full ${
-                  gameState.player.money >= BAG_UPGRADE_COST
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-gray-600 cursor-not-allowed'
-                }`}
-              >
-                Upgrade Basket
-              </button>
+
+              {/* Tier Grid */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {[0, 1, 2].map((tier) => {
+                  const currentUpgrades = gameState.player.bagUpgrades || 0;
+                  const isOwned = currentUpgrades > tier;
+                  const isCurrent = currentUpgrades === tier;
+                  const isLocked = currentUpgrades < tier;
+
+                  return (
+                    <div
+                      key={tier}
+                      className={`p-3 rounded-lg border-2 text-center ${
+                        isOwned
+                          ? 'bg-green-900/40 border-green-600'
+                          : isCurrent
+                          ? 'bg-blue-900/40 border-blue-500 ring-2 ring-blue-300'
+                          : 'bg-gray-800/40 border-gray-600 opacity-50'
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">
+                        {isOwned ? '✓' : isLocked ? '🔒' : '🎒'}
+                      </div>
+                      <div className="text-xs font-bold mb-1">
+                        Tier {tier + 1}
+                      </div>
+                      <div className="text-xs text-gray-300">
+                        ${BAG_UPGRADE_COSTS[tier]}
+                      </div>
+                      <div className="text-xs text-green-400">
+                        +4 slots
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Upgrade Button */}
+              {(gameState.player.bagUpgrades || 0) < MAX_BAG_UPGRADES ? (
+                <button
+                  onClick={() => onUpgradeBag()}
+                  disabled={gameState.player.money < BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]}
+                  className={`px-4 py-2 rounded font-bold w-full ${
+                    gameState.player.money >= BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  Upgrade to Tier {(gameState.player.bagUpgrades || 0) + 1} (${BAG_UPGRADE_COSTS[gameState.player.bagUpgrades || 0]})
+                </button>
+              ) : (
+                <div className="text-center text-green-400 font-bold py-2">
+                  ✓ All Upgrades Unlocked!
+                </div>
+              )}
             </div>
 
             {/* Mechanic Shop */}

@@ -207,6 +207,7 @@ export function createInitialState(): GameState {
       selectedCrop: 'carrot',
       basket: [], // Empty basket to start
       basketCapacity: 8, // Default basket size
+      bagUpgrades: 0, // No upgrades purchased yet
       inventory: {
         seeds: {
           carrot: 5,
@@ -754,14 +755,21 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
 }
 
 export function upgradeBag(state: GameState): GameState {
-  if (state.player.money < BAG_UPGRADE_COST) return state;
+  const currentUpgrades = state.player.bagUpgrades || 0;
+
+  // Check if max upgrades reached
+  if (currentUpgrades >= MAX_BAG_UPGRADES) return state;
+
+  const upgradeCost = BAG_UPGRADE_COSTS[currentUpgrades];
+  if (state.player.money < upgradeCost) return state;
 
   return {
     ...state,
     player: {
       ...state.player,
-      money: state.player.money - BAG_UPGRADE_COST,
-      basketCapacity: state.player.basketCapacity + 4,
+      money: state.player.money - upgradeCost,
+      basketCapacity: state.player.basketCapacity + BAG_UPGRADE_CAPACITY,
+      bagUpgrades: currentUpgrades + 1,
     },
   };
 }

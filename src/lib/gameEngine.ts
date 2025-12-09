@@ -490,6 +490,59 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, grid: newGrid };
   });
 
+  // Water Bot AI: Autonomously water unwatered crops
+  if (newState.player.inventory.waterbots > 0) {
+    // Get current zone
+    const currentZoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
+    const currentZone = newZones[currentZoneKey];
+
+    if (currentZone && currentZone.owned) {
+      // Find all unwatered planted crops in current zone
+      const unwateredCrops: Array<{ x: number; y: number }> = [];
+      currentZone.grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          if (tile.type === 'planted' && tile.crop && !tile.wateredToday) {
+            unwateredCrops.push({ x, y });
+          }
+        });
+      });
+
+      // Each water bot waters 1 crop per update cycle (throttled by deltaTime)
+      // This creates a gradual, visible effect rather than instant watering
+      const cropsToWaterPerBot = Math.random() < (deltaTime / 1000) ? 1 : 0; // Average 1 per second
+      const totalCropsToWater = Math.min(
+        unwateredCrops.length,
+        newState.player.inventory.waterbots * cropsToWaterPerBot
+      );
+
+      if (totalCropsToWater > 0 && unwateredCrops.length > 0) {
+        // Shuffle and select crops to water
+        const shuffled = [...unwateredCrops].sort(() => Math.random() - 0.5);
+        const cropsToWater = shuffled.slice(0, totalCropsToWater);
+
+        // Water the selected crops
+        let updatedGrid = currentZone.grid;
+        cropsToWater.forEach(({ x, y }) => {
+          updatedGrid = updatedGrid.map((row, rowY) =>
+            row.map((tile, tileX) => {
+              if (tileX === x && rowY === y) {
+                // Water this crop
+                return {
+                  ...tile,
+                  wateredToday: true,
+                  wateredTimestamp: tile.wateredTimestamp ?? newState.gameTime,
+                };
+              }
+              return tile;
+            })
+          );
+        });
+
+        newZones[currentZoneKey] = { ...currentZone, grid: updatedGrid };
+      }
+    }
+  }
+
   return {
     ...newState,
     zones: newZones,

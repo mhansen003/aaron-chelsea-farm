@@ -31,6 +31,7 @@ import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
+import WarehouseModal from './WarehouseModal';
 import ZonePreviewModal from './ZonePreviewModal';
 
 const COLORS = {
@@ -117,6 +118,7 @@ export default function Game() {
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const [showMechanicShop, setShowMechanicShop] = useState(false);
+  const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [showZonePreview, setShowZonePreview] = useState(false);
   const [previewZone, setPreviewZone] = useState<Zone | null>(null);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
@@ -906,8 +908,8 @@ export default function Game() {
 
     // Handle warehouse tile clicks
     if (tile.type === 'warehouse') {
-      // Deposit all items from basket to warehouse
-      setGameState(prev => depositToWarehouse(prev));
+      // Open warehouse modal
+      setShowWarehouseModal(true);
       return;
     }
 
@@ -1477,6 +1479,18 @@ export default function Game() {
           onClose={() => setShowMechanicShop(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+        />
+      )}
+
+      {/* Warehouse Modal */}
+      {showWarehouseModal && (
+        <WarehouseModal
+          gameState={gameState}
+          onClose={() => setShowWarehouseModal(false)}
+          onDeposit={() => {
+            setGameState(prev => depositToWarehouse(prev));
+            setShowWarehouseModal(false);
+          }}
         />
       )}
 

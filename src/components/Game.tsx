@@ -97,6 +97,7 @@ export default function Game() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [showFarmNameEditor, setShowFarmNameEditor] = useState(false);
   const [sellMessage, setSellMessage] = useState<string>('');
+  const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -730,7 +731,7 @@ export default function Game() {
                     player: { ...prev.player, selectedTool: tool.name },
                   }))
                 }
-                className={`px-3 py-2 rounded font-bold transition-all text-2xl ${
+                className={`px-4 py-3 rounded font-bold transition-all text-3xl relative ${
                   gameState.player.selectedTool === tool.name
                     ? 'bg-blue-600 ring-2 ring-blue-300'
                     : 'bg-gray-700 hover:bg-gray-600'
@@ -738,63 +739,61 @@ export default function Game() {
                 title={`${idx + 1}. ${tool.description}`}
               >
                 {TOOL_ICONS[tool.name]}
+                {/* Seed dropdown for seed_bag tool */}
+                {tool.name === 'seed_bag' && gameState.player.selectedTool === 'seed_bag' && (
+                  <div className="absolute bottom-full left-0 mb-2 bg-gray-800 border-2 border-gray-600 rounded-lg p-2 flex flex-col gap-1 z-10">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGameState(prev => ({
+                          ...prev,
+                          player: { ...prev.player, selectedCrop: 'carrot' },
+                        }));
+                      }}
+                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
+                        gameState.player.selectedCrop === 'carrot'
+                          ? 'bg-orange-600'
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
+                    >
+                      🥕 <span className="text-xs">{gameState.player.inventory.seeds.carrot}</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGameState(prev => ({
+                          ...prev,
+                          player: { ...prev.player, selectedCrop: 'wheat' },
+                        }));
+                      }}
+                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
+                        gameState.player.selectedCrop === 'wheat'
+                          ? 'bg-yellow-600'
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
+                    >
+                      🌾 <span className="text-xs">{gameState.player.inventory.seeds.wheat}</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGameState(prev => ({
+                          ...prev,
+                          player: { ...prev.player, selectedCrop: 'tomato' },
+                        }));
+                      }}
+                      className={`px-3 py-2 rounded font-bold text-2xl flex items-center gap-2 ${
+                        gameState.player.selectedCrop === 'tomato'
+                          ? 'bg-red-600'
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
+                    >
+                      🍅 <span className="text-xs">{gameState.player.inventory.seeds.tomato}</span>
+                    </button>
+                  </div>
+                )}
               </button>
             ))}
-        </div>
-
-        {/* Crops */}
-        <div className="flex gap-2">
-          <button
-            onClick={() =>
-              setGameState(prev => ({
-                ...prev,
-                player: { ...prev.player, selectedCrop: 'carrot', selectedTool: 'seed_bag' },
-              }))
-            }
-            className={`px-3 py-2 rounded font-bold text-2xl relative ${
-              gameState.player.selectedCrop === 'carrot' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-orange-600 ring-2 ring-orange-300'
-                : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-            title="6/Q: Plant Carrots"
-          >
-            🥕
-            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.carrot}</div>
-          </button>
-          <button
-            onClick={() =>
-              setGameState(prev => ({
-                ...prev,
-                player: { ...prev.player, selectedCrop: 'wheat', selectedTool: 'seed_bag' },
-              }))
-            }
-            className={`px-3 py-2 rounded font-bold text-2xl relative ${
-              gameState.player.selectedCrop === 'wheat' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-yellow-600 ring-2 ring-yellow-300'
-                : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-            title="7: Plant Wheat"
-          >
-            🌾
-            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.wheat}</div>
-          </button>
-          <button
-            onClick={() =>
-              setGameState(prev => ({
-                ...prev,
-                player: { ...prev.player, selectedCrop: 'tomato', selectedTool: 'seed_bag' },
-              }))
-            }
-            className={`px-3 py-2 rounded font-bold text-2xl relative ${
-              gameState.player.selectedCrop === 'tomato' && gameState.player.selectedTool === 'seed_bag'
-                ? 'bg-red-600 ring-2 ring-red-300'
-                : 'bg-gray-700 hover:bg-gray-600'
-            }`}
-            title="8: Plant Tomatoes"
-          >
-            🍅
-            <div className="absolute -bottom-1 -right-1 text-xs bg-blue-600 rounded px-1">{gameState.player.inventory.seeds.tomato}</div>
-          </button>
         </div>
       </div>
 

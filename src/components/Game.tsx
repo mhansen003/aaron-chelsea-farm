@@ -449,15 +449,18 @@ export default function Game() {
           }
         }
 
-        // Draw blinking working icon for queued tasks
+        // Draw blinking working icon for queued tasks (small, bottom-right corner)
         const queuedTask = gameState.taskQueue.find(task =>
           task.tileX === x && task.tileY === y
         );
         if (queuedTask && workingImageRef.current) {
           const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
           if (blink === 0) {
-            // Draw working icon overlay
-            ctx.drawImage(workingImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            // Draw small working icon in bottom-right corner
+            const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
+            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+            ctx.drawImage(workingImageRef.current, iconX, iconY, iconSize, iconSize);
           }
         }
 

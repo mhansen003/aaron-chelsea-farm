@@ -2101,62 +2101,78 @@ export default function Game() {
 
           {/* Water Robot Section */}
           {gameState.waterBots.length > 0 && (
-            <div className="bg-cyan-900/30 border border-cyan-600 rounded px-2 py-1 mt-2">
-              <div className="text-xs text-cyan-300 font-bold mb-1">💧 WATER BOTS ({gameState.waterBots.length}):</div>
-              <div className="space-y-1">
-                {gameState.waterBots.map((bot, idx) => (
-                  <div key={bot.id} className="bg-cyan-900/50 border border-cyan-500 rounded px-2 py-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">💧</span>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-cyan-200">Water Bot #{idx + 1}</div>
-                        <div className="text-xs text-cyan-400">
-                          {bot.status === 'traveling' && 'Moving to crop'}
-                          {bot.status === 'watering' && 'Watering crop'}
-                          {bot.status === 'idle' && 'Idle'}
-                          {bot.status === 'refilling' && 'Refilling at well'}
-                        </div>
-                        <div className="text-xs text-blue-300 mt-1">
-                          💦 Water: {bot.waterLevel}/10
-                        </div>
+            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border-2 border-cyan-500/60 rounded-lg p-2 mt-2 shadow-lg">
+              <div className="text-xs text-cyan-300 font-bold mb-2 flex items-center gap-1">
+                <span className="text-base">💧</span>
+                WATER BOTS
+                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{gameState.waterBots.length}</span>
+              </div>
+              <div className="space-y-1.5">
+                {gameState.waterBots.map((bot, idx) => {
+                  const waterPercent = (bot.waterLevel / 10) * 100;
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-cyan-600/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-cyan-100">Bot #{idx + 1}</span>
+                        <span className="text-[10px] text-cyan-300">
+                          {bot.status === 'traveling' && '🚶 Moving'}
+                          {bot.status === 'watering' && '💦 Watering'}
+                          {bot.status === 'idle' && '😴 Idle'}
+                          {bot.status === 'refilling' && '⚡ Refilling'}
+                        </span>
                       </div>
-                      <div className={`text-xs ${bot.waterLevel > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        ● {bot.waterLevel > 0 ? 'Active' : 'Empty'}
+                      {/* Water Level Progress Bar */}
+                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-cyan-700/50">
+                        <div
+                          className={`h-full transition-all duration-300 ${waterPercent > 30 ? 'bg-gradient-to-r from-cyan-400 to-blue-500' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}
+                          style={{ width: `${waterPercent}%` }}
+                        />
+                      </div>
+                      <div className="text-[10px] text-cyan-300/80 mt-0.5 text-center">
+                        {bot.waterLevel}/10 water
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
           {/* Harvest Robot Section */}
           {gameState.harvestBots.length > 0 && (
-            <div className="bg-orange-900/30 border border-orange-600 rounded px-2 py-1 mt-2">
-              <div className="text-xs text-orange-300 font-bold mb-1">🌾 HARVEST BOTS ({gameState.harvestBots.length}):</div>
-              <div className="space-y-1">
-                {gameState.harvestBots.map((bot, idx) => (
-                  <div key={bot.id} className="bg-orange-900/50 border border-orange-500 rounded px-2 py-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🌾</span>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold text-orange-200">Harvest Bot #{idx + 1}</div>
-                        <div className="text-xs text-orange-400">
-                          {bot.status === 'traveling' && 'Moving'}
-                          {bot.status === 'harvesting' && 'Harvesting'}
-                          {bot.status === 'depositing' && 'Depositing'}
-                          {bot.status === 'idle' && 'Idle'}
-                        </div>
-                        <div className="text-xs text-yellow-300 mt-1">
-                          🎒 Inventory: {bot.inventory.length}/{bot.inventoryCapacity}
-                        </div>
+            <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
+              <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
+                <span className="text-base">🌾</span>
+                HARVEST BOTS
+                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{gameState.harvestBots.length}</span>
+              </div>
+              <div className="space-y-1.5">
+                {gameState.harvestBots.map((bot, idx) => {
+                  const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        <span className="text-[10px] text-orange-300">
+                          {bot.status === 'traveling' && '🚶 Moving'}
+                          {bot.status === 'harvesting' && '✂️ Harvesting'}
+                          {bot.status === 'depositing' && '📦 Depositing'}
+                          {bot.status === 'idle' && '😴 Idle'}
+                        </span>
                       </div>
-                      <div className={`text-xs ${bot.inventory.length < bot.inventoryCapacity ? 'text-green-400' : 'text-yellow-400'}`}>
-                        ● {bot.inventory.length < bot.inventoryCapacity ? 'Active' : 'Full'}
+                      {/* Inventory Progress Bar */}
+                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-orange-700/50">
+                        <div
+                          className={`h-full transition-all duration-300 ${inventoryPercent < 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-yellow-400 to-amber-500'}`}
+                          style={{ width: `${inventoryPercent}%` }}
+                        />
+                      </div>
+                      <div className="text-[10px] text-orange-300/80 mt-0.5 text-center">
+                        {bot.inventory.length}/{bot.inventoryCapacity} crops
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

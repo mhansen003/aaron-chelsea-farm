@@ -143,6 +143,7 @@ export interface HarvestBot {
   y?: number; // Current tile position Y
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
+  idleStartTime?: number; // Game time when bot became idle with inventory
 }
 
 export interface GameState {

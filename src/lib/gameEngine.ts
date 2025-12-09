@@ -822,6 +822,63 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         // Check if inventory is full
         const isInventoryFull = bot.inventory.length >= bot.inventoryCapacity;
 
+        // Find grown crops to harvest (check early to support idle timeout logic)
+        const grownCrops: Array<{ x: number; y: number }> = [];
+        grid.forEach((row, y) => {
+          row.forEach((tile, x) => {
+            if (tile.type === 'grown' && tile.crop) {
+              grownCrops.push({ x, y });
+            }
+          });
+        });
+
+        // If bot has inventory items but no crops to harvest for >15 seconds, force deposit
+        const hasInventory = bot.inventory.length > 0;
+        const noCropsAvailable = grownCrops.length === 0;
+        const idleTimeout = 15000; // 15 seconds
+
+        if (hasInventory && noCropsAvailable && !isInventoryFull) {
+          // Start tracking idle time if not already tracking
+          if (!bot.idleStartTime) {
+            return { ...bot, idleStartTime: newState.gameTime, visualX, visualY };
+          }
+          // Check if idle timeout exceeded
+          if (newState.gameTime - bot.idleStartTime >= idleTimeout) {
+            // Force deposit at warehouse
+            let warehousePos: { x: number; y: number } | null = null;
+            grid.forEach((row, y) => {
+              row.forEach((tile, x) => {
+                if (tile.type === 'warehouse') {
+                  warehousePos = { x, y };
+                }
+              });
+            });
+
+            if (warehousePos) {
+              const warehouse: { x: number; y: number } = warehousePos;
+              if (botX === warehouse.x && botY === warehouse.y) {
+                newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
+                return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY };
+              } else {
+                let newX = botX;
+                let newY = botY;
+                if (Math.random() < (deltaTime / 500)) {
+                  if (botX < warehouse.x) newX++;
+                  else if (botX > warehouse.x) newX--;
+                  else if (botY < warehouse.y) newY++;
+                  else if (botY > warehouse.y) newY--;
+                }
+                return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
+              }
+            }
+          }
+        } else {
+          // Clear idle timer if bot has work or no inventory
+          if (bot.idleStartTime) {
+            return { ...bot, idleStartTime: undefined, visualX, visualY };
+          }
+        }
+
         // If inventory is full, go to warehouse to deposit
         if (isInventoryFull) {
           // Find warehouse tile
@@ -840,7 +897,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             // If at warehouse, deposit crops
             if (botX === warehouse.x && botY === warehouse.y) {
               newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
-              return { ...bot, inventory: [], status: 'depositing' as const, visualX, visualY };
+              return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY };
             } else {
               // Move toward warehouse
               let newX = botX;
@@ -855,16 +912,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           }
         }
-
-        // Find grown crops to harvest
-        const grownCrops: Array<{ x: number; y: number }> = [];
-        grid.forEach((row, y) => {
-          row.forEach((tile, x) => {
-            if (tile.type === 'grown' && tile.crop) {
-              grownCrops.push({ x, y });
-            }
-          });
-        });
 
         // Harvest grown crops if inventory not full
         if (!isInventoryFull && grownCrops.length > 0) {

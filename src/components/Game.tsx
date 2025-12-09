@@ -1137,8 +1137,8 @@ export default function Game() {
     }
 
     if (placementMode === 'well') {
-      // Only allow placing well on grass tiles
-      if (tile.type === 'grass') {
+      // Allow placing well on grass or cleared dirt tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
         setGameState(prev => addTask(prev, 'place_well', tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }

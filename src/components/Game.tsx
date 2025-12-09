@@ -2099,10 +2099,10 @@ export default function Game() {
             </div>
           )}
 
-          {/* Robot Section */}
+          {/* Water Robot Section */}
           {gameState.waterBots.length > 0 && (
             <div className="bg-cyan-900/30 border border-cyan-600 rounded px-2 py-1 mt-2">
-              <div className="text-xs text-cyan-300 font-bold mb-1">🤖 ROBOTS ({gameState.waterBots.length}):</div>
+              <div className="text-xs text-cyan-300 font-bold mb-1">💧 WATER BOTS ({gameState.waterBots.length}):</div>
               <div className="space-y-1">
                 {gameState.waterBots.map((bot, idx) => (
                   <div key={bot.id} className="bg-cyan-900/50 border border-cyan-500 rounded px-2 py-1">
@@ -2122,6 +2122,37 @@ export default function Game() {
                       </div>
                       <div className={`text-xs ${bot.waterLevel > 0 ? 'text-green-400' : 'text-red-400'}`}>
                         ● {bot.waterLevel > 0 ? 'Active' : 'Empty'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Harvest Robot Section */}
+          {gameState.harvestBots.length > 0 && (
+            <div className="bg-orange-900/30 border border-orange-600 rounded px-2 py-1 mt-2">
+              <div className="text-xs text-orange-300 font-bold mb-1">🌾 HARVEST BOTS ({gameState.harvestBots.length}):</div>
+              <div className="space-y-1">
+                {gameState.harvestBots.map((bot, idx) => (
+                  <div key={bot.id} className="bg-orange-900/50 border border-orange-500 rounded px-2 py-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🌾</span>
+                      <div className="flex-1">
+                        <div className="text-xs font-bold text-orange-200">Harvest Bot #{idx + 1}</div>
+                        <div className="text-xs text-orange-400">
+                          {bot.status === 'traveling' && 'Moving'}
+                          {bot.status === 'harvesting' && 'Harvesting'}
+                          {bot.status === 'depositing' && 'Depositing'}
+                          {bot.status === 'idle' && 'Idle'}
+                        </div>
+                        <div className="text-xs text-yellow-300 mt-1">
+                          🎒 Inventory: {bot.inventory.length}/{bot.inventoryCapacity}
+                        </div>
+                      </div>
+                      <div className={`text-xs ${bot.inventory.length < bot.inventoryCapacity ? 'text-green-400' : 'text-yellow-400'}`}>
+                        ● {bot.inventory.length < bot.inventoryCapacity ? 'Active' : 'Full'}
                       </div>
                     </div>
                   </div>

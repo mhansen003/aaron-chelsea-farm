@@ -36,7 +36,7 @@ export const TASK_DURATIONS = {
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   place_sprinkler: 3000, // 3 seconds to place sprinkler
-  place_mechanic: 120000, // 2 minutes to install mechanic shop
+  place_mechanic: 60000, // 1 minute to install mechanic shop
 };
 
 export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {

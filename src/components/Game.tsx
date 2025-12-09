@@ -84,6 +84,10 @@ export default function Game() {
           if (!parsed.player.basketCapacity) {
             parsed.player.basketCapacity = 8;
           }
+          if (parsed.player.bagUpgrades === undefined) {
+            // Calculate bag upgrades based on current capacity (8 base + 4 per upgrade)
+            parsed.player.bagUpgrades = Math.max(0, Math.floor((parsed.player.basketCapacity - 8) / 4));
+          }
           if (parsed.player.visualX === undefined) {
             parsed.player.visualX = parsed.player.x;
           }

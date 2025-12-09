@@ -205,7 +205,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 ? 'bg-green-900/40 border-green-600'
                 : 'bg-black/40 border-amber-700'
             }`}>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <div>
                   <span className="text-2xl mr-2">⚙️</span>
                   <span className="font-bold">Mechanic Shop</span>
@@ -216,17 +216,32 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   <span className="text-amber-300 font-bold">${MECHANIC_SHOP_COST}</span>
                 )}
               </div>
-              <div className="text-sm mb-2 text-gray-300">
-                Unlock bot purchases (watering, planting, harvesting)
-                {' • '}
-                <span className="text-purple-400">Limit 1</span>
-                {' • '}
-                {gameState.player.inventory.mechanicShopPlaced ? (
-                  <span className="text-green-400">Installed</span>
-                ) : gameState.player.inventory.mechanicShop >= 1 ? (
-                  <span className="text-yellow-400">Ready to place!</span>
-                ) : null}
+
+              {/* Single Tier Indicator */}
+              <div className="mb-3">
+                <div className={`p-3 rounded-lg border-2 text-center ${
+                  gameState.player.inventory.mechanicShop >= 1
+                    ? 'bg-green-900/40 border-green-600'
+                    : 'bg-purple-900/40 border-purple-500'
+                }`}>
+                  <div className="text-3xl mb-1">
+                    {gameState.player.inventory.mechanicShop >= 1 ? '✓' : '⚙️'}
+                  </div>
+                  <div className="text-sm font-bold mb-1">
+                    {gameState.player.inventory.mechanicShop >= 1 ? 'Owned' : 'Premium Building'}
+                  </div>
+                  <div className="text-xs text-gray-300">
+                    {gameState.player.inventory.mechanicShopPlaced ? (
+                      <span className="text-green-400">Installed on Farm</span>
+                    ) : gameState.player.inventory.mechanicShop >= 1 ? (
+                      <span className="text-yellow-400">Ready to Place!</span>
+                    ) : (
+                      <>Unlocks Bot Purchases</>
+                    )}
+                  </div>
+                </div>
               </div>
+
               {gameState.player.inventory.mechanicShop < 1 && (
                 <button
                   onClick={() => onBuyMechanicShop()}
@@ -237,7 +252,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                       : 'bg-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  Buy Mechanic Shop
+                  Purchase Mechanic Shop (${MECHANIC_SHOP_COST})
                 </button>
               )}
             </div>
@@ -252,17 +267,39 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                     : 'bg-black/40 border-amber-700'
                 }`}
               >
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold capitalize">
-                    {tool.name.replace('_', ' ')}
-                  </span>
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <span className="text-2xl mr-2">💦</span>
+                    <span className="font-bold capitalize">
+                      {tool.name.replace('_', ' ')}
+                    </span>
+                  </div>
                   {tool.unlocked ? (
-                    <span className="text-green-400 font-bold">✓ OWNED</span>
+                    <span className="text-green-400 font-bold">✓ UNLOCKED</span>
                   ) : (
                     <span className="text-amber-300 font-bold">${tool.cost}</span>
                   )}
                 </div>
-                <div className="text-sm mb-2 text-gray-300">{tool.description}</div>
+
+                {/* Single Tier Indicator */}
+                <div className="mb-3">
+                  <div className={`p-3 rounded-lg border-2 text-center ${
+                    tool.unlocked
+                      ? 'bg-green-900/40 border-green-600'
+                      : 'bg-blue-900/40 border-blue-500'
+                  }`}>
+                    <div className="text-3xl mb-1">
+                      {tool.unlocked ? '✓' : '💦'}
+                    </div>
+                    <div className="text-sm font-bold mb-1">
+                      {tool.unlocked ? 'Unlocked' : 'Special Tool'}
+                    </div>
+                    <div className="text-xs text-gray-300">
+                      {tool.description}
+                    </div>
+                  </div>
+                </div>
+
                 {!tool.unlocked && (
                   <button
                     onClick={() => onBuyTool(tool.name)}
@@ -273,7 +310,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                         : 'bg-gray-600 cursor-not-allowed'
                     }`}
                   >
-                    Buy Tool
+                    Unlock Tool (${tool.cost})
                   </button>
                 )}
               </div>

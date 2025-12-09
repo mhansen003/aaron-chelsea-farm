@@ -126,8 +126,10 @@ export interface WaterBot {
   status: 'idle' | 'watering' | 'refilling' | 'traveling';
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
-  x?: number; // Current visual position X
-  y?: number; // Current visual position Y
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
 }
 
 export interface GameState {

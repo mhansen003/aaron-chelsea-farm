@@ -218,7 +218,7 @@ export default function Game() {
     };
 
     const waterBotImg = new Image();
-    waterBotImg.src = '/water bot.png';
+    waterBotImg.src = '/water-bot.png';
     waterBotImg.onload = () => {
       waterBotImageRef.current = waterBotImg;
     };
@@ -805,14 +805,16 @@ export default function Game() {
       ctx.fill();
     }
 
-    // Draw water bots
+    // Draw water bots using visual position for smooth movement
     gameState.waterBots.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
-        const botPx = bot.x * GAME_CONFIG.tileSize;
-        const botPy = bot.y * GAME_CONFIG.tileSize;
+        const visualX = bot.visualX ?? bot.x;
+        const visualY = bot.visualY ?? bot.y;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
 
-        if (waterdropletImageRef.current) {
-          ctx.drawImage(waterdropletImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        if (waterBotImageRef.current) {
+          ctx.drawImage(waterBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else {
           // Fallback to cyan circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -1812,7 +1814,10 @@ export default function Game() {
                  gameState.currentTask.type === 'plant' ? '🌱 Planting' :
                  gameState.currentTask.type === 'water' ? '💧 Watering' :
                  gameState.currentTask.type === 'harvest' ? '🌾 Harvesting' :
-                 '💦 Sprinkler'}
+                 gameState.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
+                 gameState.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
+                 gameState.currentTask.type === 'place_well' ? '🪣 Digging Well' :
+                 '🔨 Working'}
               </div>
               <div className="w-full h-1 bg-gray-700 rounded-full mt-1">
                 <div
@@ -1839,7 +1844,10 @@ export default function Game() {
                      task.type === 'plant' ? '🌱' :
                      task.type === 'water' ? '💧' :
                      task.type === 'harvest' ? '🌾' :
-                     '💦'}
+                     task.type === 'place_sprinkler' ? '💦' :
+                     task.type === 'place_mechanic' ? '⚙️' :
+                     task.type === 'place_well' ? '🪣' :
+                     '🔨'}
                     <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
                   </div>
                 ))}
@@ -1848,19 +1856,29 @@ export default function Game() {
           )}
 
           {/* Robot Section */}
-          {gameState.player.inventory.waterbots > 0 && (
+          {gameState.waterBots.length > 0 && (
             <div className="bg-cyan-900/30 border border-cyan-600 rounded px-2 py-1 mt-2">
-              <div className="text-xs text-cyan-300 font-bold mb-1">🤖 ROBOTS ({gameState.player.inventory.waterbots}):</div>
+              <div className="text-xs text-cyan-300 font-bold mb-1">🤖 ROBOTS ({gameState.waterBots.length}):</div>
               <div className="space-y-1">
-                {Array.from({ length: gameState.player.inventory.waterbots }).map((_, idx) => (
-                  <div key={idx} className="bg-cyan-900/50 border border-cyan-500 rounded px-2 py-1">
+                {gameState.waterBots.map((bot, idx) => (
+                  <div key={bot.id} className="bg-cyan-900/50 border border-cyan-500 rounded px-2 py-1">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">💧</span>
                       <div className="flex-1">
                         <div className="text-xs font-bold text-cyan-200">Water Bot #{idx + 1}</div>
-                        <div className="text-xs text-cyan-400">Auto-watering crops</div>
+                        <div className="text-xs text-cyan-400">
+                          {bot.status === 'traveling' && 'Moving to crop'}
+                          {bot.status === 'watering' && 'Watering crop'}
+                          {bot.status === 'idle' && 'Idle'}
+                          {bot.status === 'refilling' && 'Refilling at well'}
+                        </div>
+                        <div className="text-xs text-blue-300 mt-1">
+                          💦 Water: {bot.waterLevel}/10
+                        </div>
                       </div>
-                      <div className="text-xs text-green-400">●  Active</div>
+                      <div className={`text-xs ${bot.waterLevel > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        ● {bot.waterLevel > 0 ? 'Active' : 'Empty'}
+                      </div>
                     </div>
                   </div>
                 ))}

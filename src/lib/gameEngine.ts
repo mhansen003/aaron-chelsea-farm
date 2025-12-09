@@ -467,13 +467,13 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (tile.wateredToday && !tile.wateredTimestamp) {
             return {
               ...tile,
-              wateredTimestamp: newState.gameTime,
+              wateredTimestamp: newGameTime,
             };
           }
 
           // Calculate growth based on elapsed time since watering
           if (tile.wateredTimestamp !== undefined) {
-            const timeSinceWatered = newState.gameTime - tile.wateredTimestamp;
+            const timeSinceWatered = newGameTime - tile.wateredTimestamp;
             const quality = newState.player.inventory.seedQuality[tile.crop];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
             const adjustedGrowTime = cropInfo.growTime / growthMultiplier;
@@ -505,7 +505,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       row.map(tile => {
         // Check if tile is under construction and ready to complete
         if (tile.isConstructing && tile.constructionStartTime !== undefined && tile.constructionDuration !== undefined && tile.constructionTarget) {
-          const elapsedTime = newState.gameTime - tile.constructionStartTime;
+          const elapsedTime = newGameTime - tile.constructionStartTime;
           if (elapsedTime >= tile.constructionDuration) {
             // Construction complete! Convert to final building type
             hasConstructionUpdates = true;
@@ -540,6 +540,29 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         // Skip if bot doesn't have position
         if (bot.x === undefined || bot.y === undefined) return bot;
 
+        // Store coordinates for type safety
+        const botX = bot.x;
+        const botY = bot.y;
+
+        // Initialize visual position if not set
+        let visualX = bot.visualX ?? botX;
+        let visualY = bot.visualY ?? botY;
+
+        // Smoothly interpolate visual position toward actual position
+        const dx = botX - visualX;
+        const dy = botY - visualY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0.01) {
+          // Move toward target position
+          visualX += dx * MOVE_SPEED;
+          visualY += dy * MOVE_SPEED;
+        } else {
+          // Snap to target when close enough
+          visualX = botX;
+          visualY = botY;
+        }
+
         // Find unwatered crops
         const unwateredCrops: Array<{ x: number; y: number }> = [];
         grid.forEach((row, y) => {
@@ -554,10 +577,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (bot.waterLevel > 0 && unwateredCrops.length > 0) {
           // Find nearest unwatered crop
           let nearest = unwateredCrops[0];
-          let minDist = Math.abs(bot.x - nearest.x) + Math.abs(bot.y - nearest.y);
+          let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
 
           unwateredCrops.forEach(crop => {
-            const dist = Math.abs(bot.x - crop.x) + Math.abs(bot.y - crop.y);
+            const dist = Math.abs(botX - crop.x) + Math.abs(botY - crop.y);
             if (dist < minDist) {
               minDist = dist;
               nearest = crop;
@@ -565,7 +588,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           });
 
           // If at crop location, water it
-          if (bot.x === nearest.x && bot.y === nearest.y) {
+          if (botX === nearest.x && botY === nearest.y) {
             // Water the crop
             updatedGrid = updatedGrid.map((row, rowY) =>
               row.map((tile, tileX) => {
@@ -573,7 +596,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   return {
                     ...tile,
                     wateredToday: true,
-                    wateredTimestamp: tile.wateredTimestamp ?? newState.gameTime,
+                    wateredTimestamp: tile.wateredTimestamp ?? newGameTime,
                   };
                 }
                 return tile;
@@ -584,17 +607,19 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               ...bot,
               waterLevel: bot.waterLevel - 1,
               status: 'watering' as const,
+              visualX,
+              visualY,
             };
           } else {
             // Move toward crop (one tile at a time)
-            let newX = bot.x;
-            let newY = bot.y;
+            let newX = botX;
+            let newY = botY;
 
             if (Math.random() < (deltaTime / 500)) { // Move roughly every 0.5 seconds
-              if (bot.x < nearest.x) newX++;
-              else if (bot.x > nearest.x) newX--;
-              else if (bot.y < nearest.y) newY++;
-              else if (bot.y > nearest.y) newY--;
+              if (botX < nearest.x) newX++;
+              else if (botX > nearest.x) newX--;
+              else if (botY < nearest.y) newY++;
+              else if (botY > nearest.y) newY--;
             }
 
             return {
@@ -604,6 +629,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               status: 'traveling' as const,
               targetX: nearest.x,
               targetY: nearest.y,
+              visualX,
+              visualY,
             };
           }
         } else {
@@ -625,8 +652,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
             // Pick nearby random tile
             const nearbyTiles = walkableTiles.filter(t => {
-              const dx = Math.abs(t.x - bot.x);
-              const dy = Math.abs(t.y - bot.y);
+              const dx = Math.abs(t.x - botX);
+              const dy = Math.abs(t.y - botY);
               return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
             });
 
@@ -637,12 +664,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 x: randomTile.x,
                 y: randomTile.y,
                 status: 'idle' as const,
+                visualX,
+                visualY,
               };
             }
           }
         }
 
-        return bot;
+        return { ...bot, visualX, visualY };
       });
 
       newState = { ...newState, waterBots: updatedBots };
@@ -936,12 +965,16 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   const newBots: WaterBot[] = [];
   for (let i = 0; i < actualAmount; i++) {
     const botId = `waterbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const spawnX = state.player.x + (i + 1);
+    const spawnY = state.player.y;
     newBots.push({
       id: botId,
       waterLevel: WATERBOT_MAX_WATER, // Start with full water
       status: 'idle',
-      x: state.player.x + (i + 1), // Spawn near player
-      y: state.player.y,
+      x: spawnX, // Spawn near player
+      y: spawnY,
+      visualX: spawnX, // Initialize visual position to match
+      visualY: spawnY,
     });
   }
 
@@ -1019,8 +1052,8 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
 
-  // Can only place on grass or cleared tiles, and must have one in inventory
-  if (!tile || tile.type !== 'grass' || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
+  // Can only place on grass or dirt tiles, and must have one in inventory
+  if (!tile || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
     return state;
   }
 
@@ -1061,15 +1094,27 @@ export function relocateMechanicShop(state: GameState): GameState {
     return state;
   }
 
-  // Find and remove the mechanic shop tile from all zones
+  // Find and remove the mechanic shop tile from all zones (including construction sites)
   const newZones = { ...state.zones };
   Object.entries(newZones).forEach(([zoneKey, zone]) => {
     const newGrid = zone.grid.map(row =>
       row.map(tile => {
+        // Remove completed mechanic shops
         if (tile.type === 'mechanic') {
           return {
             ...tile,
             type: 'grass' as const,
+          };
+        }
+        // Also remove mechanic shops still under construction
+        if (tile.isConstructing && tile.constructionTarget === 'mechanic') {
+          return {
+            ...tile,
+            type: 'grass' as const,
+            isConstructing: false,
+            constructionTarget: undefined,
+            constructionStartTime: undefined,
+            constructionDuration: undefined,
           };
         }
         return tile;

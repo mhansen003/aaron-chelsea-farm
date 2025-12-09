@@ -453,99 +453,71 @@ export default function Game() {
           }
           ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'shop' && shopImageRef.current) {
-          // Only draw grass background for non-top-left tiles
-          if (!(x === 0 && y === 0)) {
-            if (grassImageRef.current) {
-              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            } else {
-              ctx.fillStyle = COLORS.grass;
-              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            }
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw 2x2 building only from top-left tile (0,0)
-          // Each building image covers 2x2 tiles
-          if (x === 0 && y === 0) {
-            // Draw grass background first for full 2x2 area
-            if (grassImageRef.current) {
-              for (let by = 0; by < 2; by++) {
-                for (let bx = 0; bx < 2; bx++) {
-                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-                }
-              }
-            }
-            ctx.drawImage(shopImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          }
+          // Shop building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Determine which quadrant to draw based on position
+          const offsetX = (x - 0) * 512; // x can be 0 or 1
+          const offsetY = (y - 0) * 512; // y can be 0 or 1
+          ctx.drawImage(
+            shopImageRef.current,
+            offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
+          );
         } else if (tile.type === 'export' && exportImageRef.current) {
-          // Only draw grass background for non-top-left tiles
-          if (!(x === 14 && y === 0)) {
-            if (grassImageRef.current) {
-              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            } else {
-              ctx.fillStyle = COLORS.grass;
-              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            }
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw 2x2 building only from top-left tile (x=14 for 16-wide grid)
-          if (x === 14 && y === 0) {
-            // Draw grass background first for full 2x2 area
-            if (grassImageRef.current) {
-              for (let by = 0; by < 2; by++) {
-                for (let bx = 0; bx < 2; bx++) {
-                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-                }
-              }
-            }
-            ctx.drawImage(exportImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          }
+          // Export building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          const offsetX = (x - 14) * 512; // x can be 14 or 15
+          const offsetY = (y - 0) * 512; // y can be 0 or 1
+          ctx.drawImage(
+            exportImageRef.current,
+            offsetX, offsetY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'warehouse' && warehouseImageRef.current) {
-          // Only draw grass background for non-top-left tiles
-          if (!(x === 12 && y === 0)) {
-            if (grassImageRef.current) {
-              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            } else {
-              ctx.fillStyle = COLORS.grass;
-              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            }
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw 2x2 building only from top-left tile (x=12 for 16-wide grid)
-          if (x === 12 && y === 0) {
-            // Draw grass background first for full 2x2 area
-            if (grassImageRef.current) {
-              for (let by = 0; by < 2; by++) {
-                for (let bx = 0; bx < 2; bx++) {
-                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-                }
-              }
-            }
-            ctx.drawImage(warehouseImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          }
+          // Warehouse building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          const offsetX = (x - 12) * 512; // x can be 12 or 13
+          const offsetY = (y - 0) * 512; // y can be 0 or 1
+          ctx.drawImage(
+            warehouseImageRef.current,
+            offsetX, offsetY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
-          // Check if this is the top-left corner (even coordinates)
-          const isTopLeft = x % 2 === 0 && y % 2 === 0;
-
-          // Only draw grass background for non-top-left tiles
-          if (!isTopLeft) {
-            if (grassImageRef.current) {
-              ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            } else {
-              ctx.fillStyle = COLORS.grass;
-              ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            }
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-
-          // Draw 2x2 mechanic building (position varies based on where player placed it)
-          // Only draw if this is the top-left corner of the mechanic building
-          if (isTopLeft) {
-            // Draw grass background first for full 2x2 area
-            if (grassImageRef.current) {
-              for (let by = 0; by < 2; by++) {
-                for (let bx = 0; bx < 2; bx++) {
-                  ctx.drawImage(grassImageRef.current, px + bx * GAME_CONFIG.tileSize, py + by * GAME_CONFIG.tileSize, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-                }
-              }
-            }
-            ctx.drawImage(mechanicImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          }
+          // Mechanic building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Determine position within the 2x2 building (0 or 1 for both x and y)
+          const offsetX = (x % 2) * 512;
+          const offsetY = (y % 2) * 512;
+          ctx.drawImage(
+            mechanicImageRef.current,
+            offsetX, offsetY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

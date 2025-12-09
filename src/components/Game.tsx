@@ -571,6 +571,12 @@ export default function Game() {
       return;
     }
 
+    // Handle shop tile clicks - always open shop regardless of tool
+    if (tile.type === 'shop') {
+      setShowShop(true);
+      return;
+    }
+
     const { selectedTool, selectedCrop } = gameState.player;
 
     // Add task based on selected tool

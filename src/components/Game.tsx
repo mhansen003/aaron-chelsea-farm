@@ -131,6 +131,10 @@ export default function Game() {
             parsed.player.bagUpgrades = 0;
           }
           // Add harvest bots array if missing (for old saves)
+          // Add water bots array if missing (for old saves)
+          if (parsed.waterBots === undefined) {
+            parsed.waterBots = [];
+          }
           if (parsed.harvestBots === undefined) {
             parsed.harvestBots = [];
           }
@@ -140,6 +144,10 @@ export default function Game() {
           }
           if (parsed.player.inventory.seedbots === undefined) {
             parsed.player.inventory.seedbots = 0;
+          }
+          // Add zones object if missing (for old saves)
+          if (parsed.zones === undefined) {
+            parsed.zones = {};
           }
 
           return parsed as GameState;

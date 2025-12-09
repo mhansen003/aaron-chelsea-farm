@@ -45,6 +45,16 @@ export default function Game() {
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const grassImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Load grass texture
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/grass.png';
+    img.onload = () => {
+      grassImageRef.current = img;
+    };
+  }, []);
 
   // Background music
   useEffect(() => {
@@ -110,8 +120,14 @@ export default function Game() {
         const py = y * GAME_CONFIG.tileSize;
 
         // Tile background
-        ctx.fillStyle = COLORS[tile.type] || COLORS.grass;
-        ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        if (tile.type === 'grass' && grassImageRef.current) {
+          // Draw grass texture
+          ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Draw solid color for other tiles
+          ctx.fillStyle = COLORS[tile.type] || COLORS.grass;
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        }
 
         // Growth indicator
         if (tile.type === 'planted' || tile.type === 'grown') {

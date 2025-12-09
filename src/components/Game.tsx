@@ -118,6 +118,10 @@ export default function Game() {
           if (parsed.player.bagUpgrades === undefined) {
             parsed.player.bagUpgrades = 0;
           }
+          // Add harvest bots array if missing (for old saves)
+          if (parsed.harvestBots === undefined) {
+            parsed.harvestBots = [];
+          }
 
           return parsed as GameState;
         } catch (e) {

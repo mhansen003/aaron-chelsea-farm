@@ -127,6 +127,9 @@ export interface Zone {
   theme: ZoneTheme; // Visual theme of the zone
   name: string; // Display name
   description: string; // Description shown when previewing
+  waterBots: WaterBot[];
+  harvestBots: HarvestBot[];
+  seedBots: SeedBot[];
 }
 
 export interface WaterBot {

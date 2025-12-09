@@ -609,7 +609,7 @@ export default function Game() {
 
     // Grown crops can be harvested
     if (tile.type === 'grown') {
-      return { action: 'harvest' as const, cursor: 'pointer' };
+      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 12 12, pointer' };
     }
 
     // Grass/cleared dirt can be planted if we have a seed selected
@@ -678,21 +678,6 @@ export default function Game() {
 
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
-
-    // Debug logging
-    console.log('Click debug:', {
-      clientX: e.clientX,
-      clientY: e.clientY,
-      rectLeft: rect.left,
-      rectTop: rect.top,
-      scaleX,
-      scaleY,
-      clickX,
-      clickY,
-      tileX,
-      tileY,
-      tileSize: GAME_CONFIG.tileSize
-    });
 
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];

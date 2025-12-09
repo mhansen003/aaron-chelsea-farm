@@ -928,7 +928,7 @@ export default function Game() {
         }
         break;
     }
-  }, [gameState, playWaterSplash, getActionForTile]);
+  }, [gameState, playWaterSplash, getActionForTile, placementMode]);
 
   // Handle right-click to cancel queued tasks
   const handleCanvasRightClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {

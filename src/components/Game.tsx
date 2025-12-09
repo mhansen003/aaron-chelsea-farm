@@ -484,9 +484,12 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Export building is 1x1 - draw the full image scaled to fit
+          // Export building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          const offsetX = (x - 14) * 512; // x can be 14 or 15
+          const offsetY = (y - 0) * 512; // y can be 0 or 1
           ctx.drawImage(
             exportImageRef.current,
+            offsetX, offsetY, 512, 512,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
         } else if (tile.type === 'warehouse' && warehouseImageRef.current) {

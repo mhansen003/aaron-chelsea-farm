@@ -58,8 +58,8 @@ export function createInitialGrid(zoneX: number, zoneY: number): Tile[][] {
       if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
-      // Export building at top-right corner (1x1) of starting zone only
-      else if (isStartingZone && x === GAME_CONFIG.gridWidth - 1 && y === 0) {
+      // Export building at top-right corner (2x2) of starting zone only
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= 0 && y <= 1) {
         type = 'export';
       }
       // Warehouse building (2x2) to the left of export building

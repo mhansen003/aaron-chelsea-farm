@@ -112,6 +112,8 @@ export default function Game() {
   const treeImageRef = useRef<HTMLImageElement | null>(null);
   const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
   const carrotsImageRef = useRef<HTMLImageElement | null>(null);
+  const wheatImageRef = useRef<HTMLImageElement | null>(null);
+  const tomatoImageRef = useRef<HTMLImageElement | null>(null);
   const rockImageRef = useRef<HTMLImageElement | null>(null);
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
@@ -151,6 +153,18 @@ export default function Game() {
     carrotsImg.src = '/carrots.png';
     carrotsImg.onload = () => {
       carrotsImageRef.current = carrotsImg;
+    };
+
+    const wheatImg = new Image();
+    wheatImg.src = '/wheat.png';
+    wheatImg.onload = () => {
+      wheatImageRef.current = wheatImg;
+    };
+
+    const tomatoImg = new Image();
+    tomatoImg.src = '/tomato.png';
+    tomatoImg.onload = () => {
+      tomatoImageRef.current = tomatoImg;
     };
 
     const rockImg = new Image();
@@ -408,6 +422,30 @@ export default function Game() {
             ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(carrotsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'wheat' && wheatImageRef.current) {
+          // Draw grass background first, then dirt, then grown wheat sprite on top
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(wheatImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'tomato' && tomatoImageRef.current) {
+          // Draw grass background first, then dirt, then grown tomato sprite on top
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          if (dirtImageRef.current) {
+            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(tomatoImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown') {
           // Draw grass background first, then dirt + generic grown crop (golden)
           if (grassImageRef.current) {

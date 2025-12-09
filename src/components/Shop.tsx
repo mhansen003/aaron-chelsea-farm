@@ -1,7 +1,7 @@
 'use client';
 
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -9,6 +9,9 @@ interface ShopProps {
   onBuySeeds: (crop: CropType, amount: number) => void;
   onBuyTool: (toolName: string) => void;
   onBuySprinklers: (amount: number) => void;
+  onBuyWaterbots: (amount: number) => void;
+  onBuyHarvestbots: (amount: number) => void;
+  onUpgradeBag: () => void;
 }
 
 const SEED_INFO = {
@@ -17,7 +20,7 @@ const SEED_INFO = {
   tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2 },
 };
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag }: ShopProps) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
@@ -95,10 +98,39 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           </div>
         </div>
 
-        {/* Sprinklers Section */}
+        {/* Automation & Upgrades Section */}
         <div className="mb-6">
-          <h3 className="text-2xl font-bold mb-4 text-amber-300">💦 Sprinklers</h3>
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
+          <h3 className="text-2xl font-bold mb-4 text-amber-300">🤖 Automation & Upgrades</h3>
+
+          {/* Bag Upgrade */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🎒</span>
+                <span className="font-bold">Basket Upgrade</span>
+              </div>
+              <div className="text-amber-300 font-bold">${BAG_UPGRADE_COST}</div>
+            </div>
+            <div className="text-sm mb-2">
+              <span className="text-green-400">+4 basket capacity</span>
+              {' • '}
+              <span className="text-blue-400">Current: {gameState.player.basketCapacity}</span>
+            </div>
+            <button
+              onClick={() => onUpgradeBag()}
+              disabled={gameState.player.money < BAG_UPGRADE_COST}
+              className={`px-4 py-2 rounded font-bold w-full ${
+                gameState.player.money >= BAG_UPGRADE_COST
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gray-600 cursor-not-allowed'
+              }`}
+            >
+              Upgrade Basket
+            </button>
+          </div>
+
+          {/* Sprinklers */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
             <div className="flex justify-between items-center mb-2">
               <div>
                 <span className="text-2xl mr-2">💦</span>
@@ -133,6 +165,64 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 }`}
               >
                 Buy 3 (${SPRINKLER_COST * 3})
+              </button>
+            </div>
+          </div>
+
+          {/* Water Bots */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700 mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🤖</span>
+                <span className="font-bold">Water Bot</span>
+              </div>
+              <div className="text-amber-300 font-bold">${WATERBOT_COST} each</div>
+            </div>
+            <div className="text-sm mb-2">
+              <span className="text-green-400">Auto-waters 7x7 area daily</span>
+              {' • '}
+              <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onBuyWaterbots(1)}
+                disabled={gameState.player.money < WATERBOT_COST}
+                className={`px-4 py-2 rounded font-bold flex-1 ${
+                  gameState.player.money >= WATERBOT_COST
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Buy 1
+              </button>
+            </div>
+          </div>
+
+          {/* Harvest Bots */}
+          <div className="bg-black/40 p-4 rounded-lg border-2 border-amber-700">
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <span className="text-2xl mr-2">🤖</span>
+                <span className="font-bold">Harvest Bot</span>
+              </div>
+              <div className="text-amber-300 font-bold">${HARVESTBOT_COST} each</div>
+            </div>
+            <div className="text-sm mb-2">
+              <span className="text-green-400">Auto-harvests grown crops</span>
+              {' • '}
+              <span className="text-blue-400">Owned: {gameState.player.inventory.harvestbots}</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onBuyHarvestbots(1)}
+                disabled={gameState.player.money < HARVESTBOT_COST}
+                className={`px-4 py-2 rounded font-bold flex-1 ${
+                  gameState.player.money >= HARVESTBOT_COST
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gray-600 cursor-not-allowed'
+                }`}
+              >
+                Buy 1
               </button>
             </div>
           </div>

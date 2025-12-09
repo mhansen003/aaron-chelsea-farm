@@ -44,11 +44,13 @@ export interface Player {
   selectedTool: ToolType;
   selectedCrop: CropType;
   basket: BasketItem[]; // Max 8 items
+  basketCapacity: number; // Max basket size (upgradeable)
   inventory: {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
     sprinklers: number; // How many sprinklers the player owns
     waterbots: number; // How many water bots the player owns
+    harvestbots: number; // How many harvest bots the player owns
   };
 }
 
@@ -65,8 +67,17 @@ export interface Tool {
   unlocked: boolean;
 }
 
-export interface GameState {
+export interface Zone {
+  x: number; // Zone coordinate (0,0 is starting zone)
+  y: number;
   grid: Tile[][];
+  owned: boolean; // Whether player owns this zone
+  purchasePrice: number; // Cost to buy this zone
+}
+
+export interface GameState {
+  zones: Record<string, Zone>; // Key is "x,y"
+  currentZone: { x: number; y: number }; // Which zone player is viewing
   player: Player;
   tools: Tool[];
   currentDay: number; // Day counter

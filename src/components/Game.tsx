@@ -13,6 +13,9 @@ import {
   buySeeds,
   buyTool,
   buySprinklers,
+  buyWaterbots,
+  buyHarvestbots,
+  upgradeBag,
   GAME_CONFIG,
   CROP_INFO,
 } from '@/lib/gameEngine';
@@ -43,7 +46,23 @@ const TOOL_ICONS: Record<ToolType, string> = {
 
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [gameState, setGameState] = useState<GameState>(createInitialState());
+
+  // Load saved game state from localStorage or create new game
+  const loadSavedGame = (): GameState => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aaron-chelsea-farm-save');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to load saved game:', e);
+        }
+      }
+    }
+    return createInitialState();
+  };
+
+  const [gameState, setGameState] = useState<GameState>(loadSavedGame());
   const [showShop, setShowShop] = useState(false);
   const [showSellShop, setShowSellShop] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -125,20 +144,47 @@ export default function Game() {
     };
   }, []);
 
+  // Save game state to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aaron-chelsea-farm-save', JSON.stringify(gameState));
+    }
+  }, [gameState]);
+
+  // Auto-open shop when player is on shop tile
+  useEffect(() => {
+    const { x, y } = gameState.player;
+    const tile = gameState.grid[y]?.[x];
+    if (tile?.type === 'shop') {
+      setShowShop(true);
+    } else {
+      setShowShop(false);
+    }
+  }, [gameState.player.x, gameState.player.y, gameState.grid]);
+
   // Background music
   useEffect(() => {
     audioRef.current = new Audio('/harvest-dreams.mp3');
     audioRef.current.loop = true;
     audioRef.current.volume = 0.5;
 
-    // Auto-play attempt (may require user interaction)
-    const playPromise = audioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Auto-play was prevented, will need user click
-        console.log('Audio autoplay prevented');
-      });
-    }
+    // Try to play immediately
+    const playMusic = () => {
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {
+          // If autoplay fails, try again on first user interaction
+          const startAudio = () => {
+            audioRef.current?.play();
+            document.removeEventListener('click', startAudio);
+            document.removeEventListener('keydown', startAudio);
+          };
+          document.addEventListener('click', startAudio, { once: true });
+          document.addEventListener('keydown', startAudio, { once: true });
+        });
+      }
+    };
+
+    playMusic();
 
     return () => {
       if (audioRef.current) {
@@ -452,7 +498,7 @@ export default function Game() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
           <div className="flex items-center gap-1"><span>📅</span><span>Day {gameState.currentDay}</span></div>
-          <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/8</span></div>
+          <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/{gameState.player.basketCapacity}</span></div>
           <div className="flex items-center gap-1"><span>💦</span><span>{gameState.player.inventory.sprinklers}</span></div>
         </div>
       </div>
@@ -671,6 +717,9 @@ export default function Game() {
           onBuySeeds={(crop, amount) => setGameState(prev => buySeeds(prev, crop, amount))}
           onBuyTool={toolName => setGameState(prev => buyTool(prev, toolName))}
           onBuySprinklers={amount => setGameState(prev => buySprinklers(prev, amount))}
+          onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
+          onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+          onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
         />
       )}
 
@@ -691,19 +740,18 @@ export default function Game() {
       )}
       </div>
 
-      {/* Basket Sidebar */}
-      <div className="w-64 bg-black/70 p-4 rounded-lg text-white flex flex-col gap-2">
-        <h2 className="text-xl font-bold text-center">🧺 Basket</h2>
-        <div className="text-sm text-center text-gray-300">{gameState.player.basket.length} / 8 items</div>
+      {/* Compact Basket Sidebar */}
+      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-1">
+        <div className="text-sm font-bold text-center">🧺 {gameState.player.basket.length}/{gameState.player.basketCapacity}</div>
 
-        {/* Basket Grid - 2x4 */}
-        <div className="grid grid-cols-2 gap-2 flex-1">
-          {Array.from({ length: 8 }).map((_, idx) => {
+        {/* Basket Grid - Dynamic based on capacity */}
+        <div className="grid grid-cols-2 gap-1">
+          {Array.from({ length: gameState.player.basketCapacity }).map((_, idx) => {
             const item = gameState.player.basket[idx];
             return (
               <div
                 key={idx}
-                className={`aspect-square rounded border-2 flex items-center justify-center text-4xl ${
+                className={`aspect-square rounded border flex items-center justify-center text-2xl ${
                   item ? 'bg-amber-900/50 border-amber-600' : 'bg-gray-800/50 border-gray-600'
                 }`}
               >
@@ -711,7 +759,7 @@ export default function Game() {
                   <div className="relative">
                     <div>{item.crop === 'carrot' ? '🥕' : item.crop === 'wheat' ? '🌾' : '🍅'}</div>
                     {item.quality.generation > 1 && (
-                      <div className="absolute -top-1 -right-1 text-xs bg-purple-600 rounded-full w-4 h-4 flex items-center justify-center">
+                      <div className="absolute -top-0.5 -right-0.5 text-[10px] bg-purple-600 rounded-full w-3 h-3 flex items-center justify-center">
                         {item.quality.generation}
                       </div>
                     )}
@@ -722,7 +770,7 @@ export default function Game() {
           })}
         </div>
 
-        {/* Sell Basket Button */}
+        {/* Compact Sell Button */}
         <button
           onClick={() => {
             const result = sellBasket(gameState);
@@ -733,13 +781,13 @@ export default function Game() {
             setTimeout(() => setSellMessage(''), 3000);
           }}
           disabled={gameState.player.basket.length === 0}
-          className={`px-4 py-2 rounded font-bold ${
+          className={`px-2 py-1 rounded font-bold text-xs ${
             gameState.player.basket.length > 0
               ? 'bg-green-600 hover:bg-green-700'
               : 'bg-gray-600 cursor-not-allowed'
           }`}
         >
-          💰 Sell All (V)
+          💰 Sell (V)
         </button>
       </div>
     </div>

@@ -761,22 +761,22 @@ export default function Game() {
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
     // Rocks and trees can be cleared
     if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
-      return { action: 'clear' as const, cursor: 'url("/clear%20tool.png") 12 12, pointer' };
+      return { action: 'clear' as const, cursor: 'url("/cursor-clear.png") 16 16, pointer' };
     }
 
     // Planted crops that need water
     if (tile.type === 'planted' && !tile.wateredToday) {
-      return { action: 'water' as const, cursor: 'url("/waterdroplet.png") 12 12, pointer' };
+      return { action: 'water' as const, cursor: 'url("/cursor-water.png") 16 16, pointer' };
     }
 
     // Grown crops can be harvested
     if (tile.type === 'grown') {
-      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 12 12, pointer' };
+      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 16 16, pointer' };
     }
 
     // Grass/cleared dirt can be planted if we have a seed selected
     if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && selectedCrop) {
-      return { action: 'plant' as const, cursor: 'url("/plant%20seeds.png") 12 12, pointer' };
+      return { action: 'plant' as const, cursor: 'url("/cursor-plant.png") 16 16, pointer' };
     }
 
     // Shop tile

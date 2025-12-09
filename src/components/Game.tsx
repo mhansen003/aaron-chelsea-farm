@@ -561,12 +561,27 @@ export default function Game() {
           // Draw arch sprite
           ctx.drawImage(archImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
 
-          // Draw coin icon in bottom-right if not owned (purchasable)
+          // Draw spinning coin in center if not owned (purchasable)
           if (!isActive && coinImageRef.current) {
-            const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
-            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
-            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
-            ctx.drawImage(coinImageRef.current, iconX, iconY, iconSize, iconSize);
+            const iconSize = GAME_CONFIG.tileSize * 0.4; // 40% of tile size
+            const centerX = px + GAME_CONFIG.tileSize / 2;
+            const centerY = py + GAME_CONFIG.tileSize / 2;
+
+            // Calculate spin animation (0 to 1, repeats every 2 seconds)
+            const spinTime = (Date.now() % 2000) / 2000;
+            // Create a sine wave for smooth spinning: 0 -> 1 -> 0 -> -1 -> 0
+            const spinScale = Math.sin(spinTime * Math.PI * 2);
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            // Scale horizontally to create spinning effect (keeps vertical size)
+            ctx.scale(Math.abs(spinScale), 1);
+            ctx.drawImage(
+              coinImageRef.current,
+              -iconSize / 2, -iconSize / 2,
+              iconSize, iconSize
+            );
+            ctx.restore();
           }
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw grass background first, then dirt, then planted crop sprite on top

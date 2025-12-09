@@ -33,85 +33,94 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
             Purchase farming bots to automate your farm! These bots work tirelessly to help you manage your crops.
           </p>
 
-          {/* Water Bots */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-orange-700 mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">💧</span>
-                <span className="font-bold">Water Bot</span>
+          <div className="grid grid-cols-3 gap-4">
+            {/* Water Bot */}
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+              gameState.player.inventory.waterbots >= 2
+                ? 'border-green-600'
+                : 'border-orange-600'
+            }`}>
+              {/* Icon */}
+              <div className="text-5xl mb-2">
+                {gameState.player.inventory.waterbots >= 2 ? '✓' : '💧'}
               </div>
-              <div className="text-orange-300 font-bold">${WATERBOT_COST} each</div>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-green-400">Automatically patrols and waters crops</span>
-              {' • '}
-              <span className="text-blue-400">Owned: {gameState.player.inventory.waterbots}/2</span>
-            </div>
-            {gameState.player.inventory.waterbots >= 2 ? (
-              <div className="px-4 py-2 rounded font-bold bg-gray-600 text-center text-gray-400">
-                Max Capacity (2/2)
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Water Bot</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-green-400">Auto-waters crops</div>
+                <div className="text-blue-400">Owned: {gameState.player.inventory.waterbots}/2</div>
               </div>
-            ) : (
-              <div className="flex gap-2">
+
+              {/* Buy Button */}
+              {gameState.player.inventory.waterbots >= 2 ? (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Max (2/2)
+                </div>
+              ) : (
                 <button
                   onClick={() => onBuyWaterbots(1)}
                   disabled={gameState.player.money < WATERBOT_COST}
-                  className={`px-4 py-2 rounded font-bold flex-1 ${
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
                     gameState.player.money >= WATERBOT_COST
-                      ? 'bg-green-600 hover:bg-green-700'
+                      ? 'bg-blue-600 hover:bg-blue-700'
                       : 'bg-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  Buy 1
+                  ${WATERBOT_COST}
                 </button>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Harvest Bots */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-orange-700">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">🌾</span>
-                <span className="font-bold">Harvest Bot</span>
+            {/* Harvest Bot */}
+            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-orange-600 flex flex-col items-center">
+              {/* Icon */}
+              <div className="text-5xl mb-2">🌾</div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Harvest Bot</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-green-400">Auto-harvests</div>
+                <div className="text-blue-400">Owned: {gameState.player.inventory.harvestbots}</div>
               </div>
-              <div className="text-orange-300 font-bold">${HARVESTBOT_COST} each</div>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-green-400">Auto-harvests grown crops</span>
-              {' • '}
-              <span className="text-blue-400">Owned: {gameState.player.inventory.harvestbots}</span>
-            </div>
-            <div className="flex gap-2">
+
+              {/* Buy Button */}
               <button
                 onClick={() => onBuyHarvestbots(1)}
                 disabled={gameState.player.money < HARVESTBOT_COST}
-                className={`px-4 py-2 rounded font-bold flex-1 ${
+                className={`w-full px-3 py-2 rounded font-bold text-sm ${
                   gameState.player.money >= HARVESTBOT_COST
-                    ? 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-blue-600 hover:bg-blue-700'
                     : 'bg-gray-600 cursor-not-allowed'
                 }`}
               >
-                Buy 1
+                ${HARVESTBOT_COST}
               </button>
             </div>
-          </div>
 
-          {/* Coming Soon: Seed Planting Bot */}
-          <div className="bg-black/40 p-4 rounded-lg border-2 border-gray-600 mt-4 opacity-60">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <span className="text-2xl mr-2">🌱</span>
-                <span className="font-bold">Seed Planting Bot</span>
+            {/* Seed Planting Bot - Coming Soon */}
+            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-gray-600 opacity-50 flex flex-col items-center">
+              {/* Icon */}
+              <div className="text-5xl mb-2">🌱</div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Seed Bot</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-gray-400">Auto-plants seeds</div>
+                <div className="text-gray-400">Coming Soon</div>
               </div>
-              <span className="text-gray-400 font-bold">Coming Soon</span>
+
+              {/* Buy Button */}
+              <div className="w-full px-3 py-2 rounded font-bold text-sm bg-gray-800/40 text-gray-500 text-center">
+                Locked
+              </div>
             </div>
-            <div className="text-sm mb-2 text-gray-400">
-              Auto-plants seeds on cleared dirt
-            </div>
-            <button disabled className="px-4 py-2 rounded font-bold w-full bg-gray-600 cursor-not-allowed">
-              Not Available Yet
-            </button>
           </div>
         </div>
 

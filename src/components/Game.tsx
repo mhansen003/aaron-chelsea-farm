@@ -1120,9 +1120,9 @@ export default function Game() {
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
 
-    // Handle placement mode (sprinklers, mechanic shop, etc.)
+    // Handle placement mode (sprinklers, mechanic shop, etc.) - instant placement
     if (placementMode === 'sprinkler') {
-      setGameState(prev => addTask(prev, 'place_sprinkler', tileX, tileY));
+      setGameState(prev => placeSprinkler(prev, tileX, tileY));
       setPlacementMode(null); // Clear placement mode after placing
       return;
     }
@@ -1130,7 +1130,7 @@ export default function Game() {
     if (placementMode === 'mechanic') {
       // Only allow placing mechanic shop on grass tiles
       if (tile.type === 'grass') {
-        setGameState(prev => addTask(prev, 'place_mechanic', tileX, tileY));
+        setGameState(prev => placeMechanicShop(prev, tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }
       return;
@@ -1139,7 +1139,7 @@ export default function Game() {
     if (placementMode === 'well') {
       // Allow placing well on grass or cleared dirt tiles
       if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
-        setGameState(prev => addTask(prev, 'place_well', tileX, tileY));
+        setGameState(prev => placeWell(prev, tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }
       return;

@@ -568,9 +568,9 @@ export default function Game() {
                 break;
             }
 
-            // Draw small task icon in bottom-right corner if available
+            // Draw task icon in bottom-right corner if available
             if (taskIcon) {
-              const iconSize = GAME_CONFIG.tileSize * 0.35; // 35% of tile size
+              const iconSize = GAME_CONFIG.tileSize * 0.70; // 70% of tile size (doubled from 35%)
               const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
               const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
               ctx.drawImage(taskIcon, iconX, iconY, iconSize, iconSize);

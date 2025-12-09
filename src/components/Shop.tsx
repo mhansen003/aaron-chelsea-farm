@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -14,6 +14,7 @@ interface ShopProps {
   onBuyHarvestbots: (amount: number) => void;
   onUpgradeBag: () => void;
   onBuyMechanicShop: () => void;
+  onBuyWell: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
@@ -25,7 +26,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -274,6 +275,58 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               >
                 ${SPRINKLER_COST}
               </button>
+            </div>
+
+            {/* Well - Water source for bots */}
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+              gameState.player.inventory.well >= 1
+                ? 'border-green-600'
+                : 'border-amber-600'
+            }`}>
+              {/* Icon */}
+              <div className="text-5xl mb-2">
+                {gameState.player.inventory.well >= 1 ? '✓' : '🪣'}
+              </div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Water Well</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-blue-400">Refills water bots</div>
+                <div className="text-blue-400">
+                  {gameState.player.inventory.wellPlaced ? (
+                    <span className="text-green-400">Installed</span>
+                  ) : gameState.player.inventory.well >= 1 ? (
+                    <span className="text-yellow-400">Ready!</span>
+                  ) : (
+                    '1 per zone max'
+                  )}
+                </div>
+              </div>
+
+              {/* Buy/Action Button */}
+              {gameState.player.inventory.well < 1 ? (
+                <button
+                  onClick={() => onBuyWell()}
+                  disabled={gameState.player.money < WELL_COST}
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                    gameState.player.money >= WELL_COST
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  ${WELL_COST}
+                </button>
+              ) : gameState.player.inventory.wellPlaced ? (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Owned
+                </div>
+              ) : (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
+                  Place It!
+                </div>
+              )}
             </div>
           </div>
         </div>

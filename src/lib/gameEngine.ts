@@ -355,33 +355,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           newState = waterTile(newState, task.tileX, task.tileY);
           break;
         case 'harvest':
-          // Check if basket is full before harvesting
-          if (newState.player.basket.length >= newState.player.basketCapacity) {
-            // Basket is full! Insert deposit task before this harvest task
-            const warehousePos = findWarehouseTile(newState);
-            if (warehousePos) {
-              // Create deposit task at warehouse location
-              const depositTask: Task = {
-                id: `${Date.now()}-${Math.random()}`,
-                type: 'deposit',
-                tileX: warehousePos.x,
-                tileY: warehousePos.y,
-                zoneX: newState.currentZone.x,
-                zoneY: newState.currentZone.y,
-                progress: 0,
-                duration: TASK_DURATIONS.deposit,
-              };
-
-              // Put harvest task back at front of queue, and add deposit task as current
-              newState.taskQueue = [task, ...newState.taskQueue];
-              newState.currentTask = depositTask;
-              // Reset player position to move to warehouse
-              newState.player.x = warehousePos.x;
-              newState.player.y = warehousePos.y;
-              break; // Exit switch without harvesting
-            }
-          }
-          // Basket has space, proceed with harvest
           newState = harvestCrop(newState, task.tileX, task.tileY);
           break;
         case 'place_sprinkler':
@@ -395,10 +368,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
       }
 
-      // Clear current task (player is already at location) - unless we just inserted a deposit task
-      if (newState.currentTask?.id === task.id) {
-        newState.currentTask = null;
-      }
+      // Clear current task (player is already at location)
+      newState.currentTask = null;
     } else {
       // Update progress
       newState.currentTask = { ...newState.currentTask, progress: newProgress };
@@ -410,6 +381,31 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     const [nextTask, ...remainingQueue] = newState.taskQueue;
     newState.currentTask = nextTask;
     newState.taskQueue = remainingQueue;
+
+    // AUTO-DEPOSIT: If basket is full, insert deposit task before continuing
+    if (newState.player.basket.length >= newState.player.basketCapacity) {
+      const warehousePos = findWarehouseTile(newState);
+      if (warehousePos) {
+        // Create deposit task at warehouse location
+        const depositTask: Task = {
+          id: `${Date.now()}-${Math.random()}`,
+          type: 'deposit',
+          tileX: warehousePos.x,
+          tileY: warehousePos.y,
+          zoneX: newState.currentZone.x,
+          zoneY: newState.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit,
+        };
+
+        // Put the current task back in queue and prioritize deposit
+        newState.taskQueue = [nextTask, ...remainingQueue];
+        newState.currentTask = depositTask;
+        // Set player position to warehouse so they walk there
+        newState.player.x = warehousePos.x;
+        newState.player.y = warehousePos.y;
+      }
+    }
   }
 
   // Idle wandering: If no tasks, randomly move the farmer around
@@ -1284,5 +1280,70 @@ export function sellBasket(state: GameState): {
     success: true,
     state: newState,
     message: `Sold ${summary} for $${totalEarned}!`,
+  };
+}
+
+export function buyWell(state: GameState): GameState {
+  // Check if player can afford it
+  if (state.player.money < WELL_COST) return state;
+
+  // Check if player already has a well
+  if (state.player.inventory.well >= 1) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - WELL_COST,
+      inventory: {
+        ...state.player.inventory,
+        well: 1,
+      },
+    },
+  };
+}
+
+export function placeWell(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
+
+  // Can only place on grass or dirt tiles, and must have one in inventory
+  if (!tile || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
+    return state;
+  }
+
+  // Start construction immediately (no farmer movement required)
+  const CONSTRUCTION_TIME = 60000; // 1 minute
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY) {
+        return {
+          ...t,
+          isConstructing: true,
+          constructionTarget: 'well' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_TIME,
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        wellPlaced: true,
+      },
+    },
   };
 }

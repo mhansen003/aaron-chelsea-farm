@@ -1888,16 +1888,19 @@ export function addTask(
   tileY: number,
   cropType?: import('@/types/game').CropType
 ): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   // Check if there's already a task queued or in progress for this tile
-  const hasExistingTask = state.taskQueue.some(
+  const hasExistingTask = currentZone.taskQueue.some(
     t => t.tileX === tileX && t.tileY === tileY &&
          t.zoneX === state.currentZone.x && t.zoneY === state.currentZone.y
   );
   const isCurrentTask = currentZone.currentTask &&
     currentZone.currentTask.tileX === tileX &&
-    state.currentTask.tileY === tileY &&
-    state.currentTask.zoneX === state.currentZone.x &&
-    state.currentTask.zoneY === state.currentZone.y;
+    currentZone.currentTask.tileY === tileY &&
+    currentZone.currentTask.zoneX === state.currentZone.x &&
+    currentZone.currentTask.zoneY === state.currentZone.y;
 
   // If a task already exists for this tile, don't add a new one
   if (hasExistingTask || isCurrentTask) {

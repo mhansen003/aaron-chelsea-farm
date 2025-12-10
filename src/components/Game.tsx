@@ -1730,10 +1730,18 @@ export default function Game() {
         }));
       }
 
-      // Show zone preview modal
-      setPreviewZone(targetZone);
-      setPurchaseZoneKey(zoneKey);
-      setShowZonePreview(true);
+      // If zone is already owned, travel directly without showing preview
+      if (targetZone.owned) {
+        setGameState(prev => ({
+          ...prev,
+          currentZone: { x: tile.archTargetZone!.x, y: tile.archTargetZone!.y },
+        }));
+      } else {
+        // Show zone preview modal for unpurchased zones
+        setPreviewZone(targetZone);
+        setPurchaseZoneKey(zoneKey);
+        setShowZonePreview(true);
+      }
       return;
     }
 

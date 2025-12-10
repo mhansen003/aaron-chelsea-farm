@@ -1026,7 +1026,8 @@ export default function Game() {
           // Mechanic building is 2x2 - only draw from top-left tile
           const isTopLeft = (
             (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'mechanic') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'mechanic')
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'mechanic') &&
+            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'mechanic')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1046,7 +1047,8 @@ export default function Game() {
           // Well building is 2x2 - only draw from top-left tile
           const isTopLeft = (
             (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'well') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'well')
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'well') &&
+            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'well')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1066,7 +1068,8 @@ export default function Game() {
           // Garage building is 2x2 - only draw from top-left tile
           const isTopLeft = (
             (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'garage') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'garage')
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'garage') &&
+            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'garage')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1086,7 +1089,8 @@ export default function Game() {
           // Supercharger building is 2x2 - only draw from top-left tile
           const isTopLeft = (
             (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'supercharger') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'supercharger')
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'supercharger') &&
+            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'supercharger')
           );
           if (isTopLeft) {
             // Draw supercharger graphics at 2x size to span the 2x2 area
@@ -1569,6 +1573,65 @@ export default function Game() {
             }
           }
         }
+      }
+    }
+
+    // Draw 2x2 building placement preview (mechanic, well, garage, supercharger)
+    if ((placementMode === 'mechanic' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger') && hoveredTile) {
+      const currentGrid = getCurrentGrid(gameState);
+      const tileX = hoveredTile.x;
+      const tileY = hoveredTile.y;
+
+      // Check if all 4 tiles are available for 2x2 placement
+      const canPlace =
+        tileX + 1 < GAME_CONFIG.gridWidth &&
+        tileY + 1 < GAME_CONFIG.gridHeight &&
+        currentGrid[tileY]?.[tileX]?.cleared && (currentGrid[tileY][tileX].type === 'grass' || currentGrid[tileY][tileX].type === 'dirt') &&
+        currentGrid[tileY]?.[tileX + 1]?.cleared && (currentGrid[tileY][tileX + 1].type === 'grass' || currentGrid[tileY][tileX + 1].type === 'dirt') &&
+        currentGrid[tileY + 1]?.[tileX]?.cleared && (currentGrid[tileY + 1][tileX].type === 'grass' || currentGrid[tileY + 1][tileX].type === 'dirt') &&
+        currentGrid[tileY + 1]?.[tileX + 1]?.cleared && (currentGrid[tileY + 1][tileX + 1].type === 'grass' || currentGrid[tileY + 1][tileX + 1].type === 'dirt');
+
+      // Draw preview for all 4 tiles
+      for (let dy = 0; dy < 2 && tileY + dy < GAME_CONFIG.gridHeight; dy++) {
+        for (let dx = 0; dx < 2 && tileX + dx < GAME_CONFIG.gridWidth; dx++) {
+          const px = (tileX + dx) * GAME_CONFIG.tileSize;
+          const py = (tileY + dy) * GAME_CONFIG.tileSize;
+
+          // Green if all tiles valid, red if any tile invalid
+          if (canPlace) {
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.4)'; // Green overlay
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.9)';
+          } else {
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.4)'; // Red overlay
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
+          }
+
+          ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          ctx.lineWidth = 3;
+          ctx.strokeRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        }
+      }
+
+      // Draw text in the center of the 2x2 area
+      const centerX = (tileX + 0.5) * GAME_CONFIG.tileSize + GAME_CONFIG.tileSize / 2;
+      const centerY = (tileY + 0.5) * GAME_CONFIG.tileSize + GAME_CONFIG.tileSize / 2;
+
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      if (canPlace) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = 'rgba(0, 128, 0, 1)';
+        ctx.lineWidth = 3;
+        ctx.strokeText('✓ Click to Place', centerX, centerY);
+        ctx.fillText('✓ Click to Place', centerX, centerY);
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = 'rgba(128, 0, 0, 1)';
+        ctx.lineWidth = 3;
+        ctx.strokeText('✗ Invalid Location', centerX, centerY);
+        ctx.fillText('✗ Invalid Location', centerX, centerY);
       }
     }
 
@@ -2798,8 +2861,8 @@ export default function Game() {
       />
 
       {/* Seed Selection Bar */}
-      <div className="flex gap-3 w-full bg-black/70 p-3 rounded-lg">
-        <div className="text-white font-bold text-lg flex items-center">🌱 Active Seed:</div>
+      <div className="flex gap-2 w-full bg-black/70 p-2 rounded-lg overflow-x-auto">
+        <div className="text-white font-bold text-lg flex items-center hidden md:flex">🌱</div>
         <button
           onClick={() =>
             setGameState(prev => ({
@@ -2810,13 +2873,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'carrot'
-              ? 'bg-orange-600 ring-2 ring-orange-300 scale-110'
+              ? 'bg-orange-600 ring-2 ring-orange-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/carrot.png" alt="Carrot" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
+          <NextImage src="/carrot.png" alt="Carrot" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.carrot}</span>
         </button>
         <button
           onClick={() =>

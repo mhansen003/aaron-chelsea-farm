@@ -1316,6 +1316,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             } else {
               return { ...bot, status: 'harvesting' as const, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
             }
+          } else {
+            // Target tile is no longer harvestable - reset target and go idle
+            return { ...bot, status: 'idle' as const, targetX: undefined, targetY: undefined, actionStartTime: undefined, actionDuration: undefined, visualX, visualY };
           }
         } else {
           let newX = botX, newY = botY;

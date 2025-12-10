@@ -1112,7 +1112,7 @@ export default function Game() {
 
           // Only show icon if farmer hasn't reached yet
           if (!hasReachedTile) {
-            taskForThisTile = currentZone.currentTask;
+            taskForThisTile = currentZone.currentTask ?? undefined;
           }
         }
 
@@ -1606,7 +1606,7 @@ export default function Game() {
               ? { ...job, targetTiles: allNewTiles }
               : job
           );
-          setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, updatedJobs, seedBot.autoBuySeeds));
+          setGameState(prev => updateSeedBotJobs(prev, seedBot.id, updatedJobs, seedBot.autoBuySeeds));
 
           // Update tile selection mode state
           setTileSelectionMode({

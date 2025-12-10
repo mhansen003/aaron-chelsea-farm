@@ -219,6 +219,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     waterBots: [],
     harvestBots: [],
     seedBots: [],
+    taskQueue: [],
+    currentTask: null,
   };
 }
 

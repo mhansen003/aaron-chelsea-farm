@@ -255,7 +255,7 @@ export default function Game() {
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartRow, setDragStartRow] = useState<number | null>(null);
-  const [showWelcome, setShowWelcome] = useState<boolean>(!hasAutosave());
+  const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
@@ -300,6 +300,13 @@ export default function Game() {
   const rocksImageRef = useRef<HTMLImageElement | null>(null);
   const caveImageRef = useRef<HTMLImageElement | null>(null);
   const mountainImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Auto-load game if autosave exists (client-side only)
+  useEffect(() => {
+    if (hasAutosave()) {
+      setShowWelcome(false);
+    }
+  }, []);
 
   // Load all non-themed textures (themed tiles loaded separately based on zone)
   useEffect(() => {

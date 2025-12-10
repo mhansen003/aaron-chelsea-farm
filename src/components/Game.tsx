@@ -1103,8 +1103,8 @@ export default function Game() {
           ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
           ctx.fillRect(px + 2, barY, progressWidth, barHeight);
 
-          // Blinking water droplet if not watered today
-          if (!tile.wateredToday) {
+          // Blinking water droplet if not watered (to start growth)
+          if (!tile.wateredTimestamp) {
             const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
             if (blink === 0) {
               ctx.font = '20px Arial';

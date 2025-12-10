@@ -74,6 +74,7 @@ const COLORS = {
   archActive: '#4caf50',
   mechanic: '#ff5722',
   well: '#03a9f4',
+  garage: '#424242',
   ocean: '#1976d2',
   sand: '#f4a460',
   seaweed: '#2e7d32',

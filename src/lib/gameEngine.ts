@@ -30,6 +30,7 @@ export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
 export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
 export const WELL_COST = 100; // Cost to buy a well
+export const GARAGE_COST = 150; // Cost to buy a garage
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
@@ -43,6 +44,7 @@ export const TASK_DURATIONS = {
   place_sprinkler: 3000, // 3 seconds to place sprinkler
   place_mechanic: 60000, // 1 minute to install mechanic shop
   place_well: 30000, // 30 seconds to dig/place well
+  place_garage: 15000, // 15 seconds to build garage
   deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 
@@ -400,6 +402,8 @@ export function createInitialState(): GameState {
         mechanicShopPlaced: false,
         well: 0,
         wellPlaced: false,
+        garage: 0,
+        garagePlaced: false,
       },
       autoBuy: {
         carrot: true,

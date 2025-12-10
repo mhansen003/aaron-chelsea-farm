@@ -28,7 +28,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well' | 'deposit';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well' | 'place_garage' | 'deposit';
 
 export interface Task {
   id: string;

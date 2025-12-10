@@ -90,6 +90,7 @@ export interface Player {
     waterbots: number; // How many water bots the player owns
     harvestbots: number; // How many harvest bots the player owns
     seedbots: number; // How many seed bots the player owns
+    transportbots: number; // How many transport bots the player owns
     mechanicShop: number; // How many mechanic shops the player owns (max 1)
     mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
     well: number; // How many wells the player owns (max 1 per zone)
@@ -130,6 +131,7 @@ export interface Zone {
   waterBots: WaterBot[];
   harvestBots: HarvestBot[];
   seedBots: SeedBot[];
+  transportBots: TransportBot[];
   taskQueue: Task[]; // Queue of tasks for worker in this zone
   currentTask: Task | null; // Task currently being executed in this zone
 }
@@ -187,6 +189,21 @@ export interface SeedBot {
   actionDuration?: number; // How long the action takes (ms)
 }
 
+export interface TransportBot {
+  id: string; // Unique bot ID
+  inventory: BasketItem[]; // Crops currently being transported (max 16)
+  inventoryCapacity: number; // Max inventory size (16)
+  status: 'idle' | 'loading' | 'transporting' | 'selling' | 'traveling';
+  targetX?: number; // Target tile X
+  targetY?: number; // Target tile Y
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -200,6 +217,7 @@ export interface GameState {
   waterBots?: WaterBot[]; // Water bots in the game
   harvestBots?: HarvestBot[]; // Harvest bots in the game
   seedBots?: SeedBot[]; // Seed bots in the game
+  transportBots?: TransportBot[]; // Transport bots in the game
   saveCode?: string; // Persistent save code for this game
 }
 

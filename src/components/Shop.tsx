@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST, getCurrentSeedCost } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -80,7 +80,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               const crop = cropKey as Exclude<CropType, null>;
               const owned = gameState.player.inventory.seeds[crop];
               const cropInfo = CROP_INFO[crop];
-              const canBuy1 = gameState.player.money >= cropInfo.seedCost;
+              const currentSeedCost = getCurrentSeedCost(crop, gameState.cropsSold);
+              const canBuy1 = gameState.player.money >= currentSeedCost;
               const autoBuyEnabled = gameState.player.autoBuy[crop];
 
               return (
@@ -123,7 +124,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                         : 'bg-gray-600 cursor-not-allowed'
                     }`}
                   >
-                    ${cropInfo.seedCost}
+                    ${currentSeedCost}
                   </button>
                 </div>
               );
@@ -343,13 +344,13 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
 
             {/* Garage - Parking for idle bots */}
             <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              gameState.player.inventory.garage >= 1
+              (gameState.player.inventory.garage ?? 0) >= 1
                 ? 'border-green-600'
                 : 'border-amber-600'
             }`}>
               {/* Icon */}
               <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {gameState.player.inventory.garage >= 1 ? (
+                {(gameState.player.inventory.garage ?? 0) >= 1 ? (
                   <span className="text-5xl">✓</span>
                 ) : (
                   <Image src="/garage.png" alt="Garage" width={80} height={80} className="object-contain" />
@@ -363,9 +364,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               <div className="text-xs text-center mb-2 space-y-1">
                 <div className="text-orange-400">Parking for idle bots</div>
                 <div className="text-blue-400">
-                  {gameState.player.inventory.garagePlaced ? (
+                  {(gameState.player.inventory.garage ?? 0)Placed ? (
                     <span className="text-green-400">Built</span>
-                  ) : gameState.player.inventory.garage >= 1 ? (
+                  ) : (gameState.player.inventory.garage ?? 0) >= 1 ? (
                     <span className="text-yellow-400">Ready!</span>
                   ) : (
                     'Bots share garage'
@@ -374,7 +375,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               </div>
 
               {/* Buy/Action Button */}
-              {gameState.player.inventory.garage < 1 ? (
+              {(gameState.player.inventory.garage ?? 0) < 1 ? (
                 <button
                   onClick={() => onBuyGarage()}
                   disabled={gameState.player.money < GARAGE_COST}
@@ -386,7 +387,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 >
                   ${GARAGE_COST}
                 </button>
-              ) : gameState.player.inventory.garagePlaced ? (
+              ) : (gameState.player.inventory.garage ?? 0)Placed ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

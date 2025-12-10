@@ -2300,6 +2300,10 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
         basket: remainingBasket,
       },
       warehouse: remainingWarehouse,
+      cropsSold: {
+        ...prev.cropsSold,
+        [cropType]: (prev.cropsSold[cropType] || 0) + allCropsToSell.length,
+      },
     }));
 
     setSellMessage(`Sold ${allCropsToSell.length} ${cropType}(s) (${basketCrops.length} from basket, ${warehouseCrops.length} from warehouse) for $${totalEarned}!`);

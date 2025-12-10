@@ -1434,7 +1434,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const currentSeeds = newState.player.inventory.seeds[cropType];
 
       if (bot.autoBuySeeds && currentSeeds < 5) {
-        const seedCost = CROP_INFO[cropType].seedCost;
+        const seedCost = getCurrentSeedCost(cropType, newState.cropsSold);
         const amountToBuy = 10;
         const totalCost = seedCost * amountToBuy;
 
@@ -2115,7 +2115,7 @@ export function buySeeds(state: GameState, cropType: CropType, amount: number): 
   if (!cropType) return state;
 
   const cropInfo = CROP_INFO[cropType];
-  const cost = cropInfo.seedCost * amount;
+  const cost = getCurrentSeedCost(cropType, state.cropsSold) * amount;
   if (state.player.money < cost) return state;
 
   return {
@@ -2156,8 +2156,7 @@ export function checkAndAutoRefill(state: GameState): GameState {
   for (const cropType of cropTypes) {
     // If auto-buy is enabled and seeds are at 0, buy 1 seed
     if (newState.player.autoBuy[cropType] && newState.player.inventory.seeds[cropType] === 0) {
-      const cropInfo = CROP_INFO[cropType];
-      const cost = cropInfo.seedCost;
+      const cost = getCurrentSeedCost(cropType, newState.cropsSold);
 
       // Only buy if player has enough money
       if (newState.player.money >= cost) {

@@ -436,7 +436,7 @@ export default function Game() {
     };
 
     const archDesertImg = new Image();
-    archDesertImg.src = '/cactus.png';
+    archDesertImg.src = '/arch-desert.png';
     archDesertImg.onload = () => {
       archDesertImageRef.current = archDesertImg;
     };

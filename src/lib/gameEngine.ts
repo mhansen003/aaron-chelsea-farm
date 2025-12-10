@@ -340,6 +340,7 @@ export function createInitialState(): GameState {
         harvestbots: 0,
         seedbots: 0,
         transportbots: 0,
+        demolishbots: 0,
         mechanicShop: 0,
         mechanicShopPlaced: false,
         well: 0,
@@ -2166,6 +2167,58 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
       [startZoneKey]: {
         ...startZone,
         transportBots: [...startZone.transportBots, ...newBots],
+      },
+    },
+  };
+}
+
+export function buyDemolishbots(state: GameState, amount: number): GameState {
+  // Limit to 3 demolish bots total
+  if (state.player.inventory.demolishbots >= 3) return state;
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  const cost = DEMOLISHBOT_COST * amount;
+
+  // Check if player can afford it
+  if (state.player.money < cost) return state;
+
+  // Limit purchase to 1 bot at a time
+  const actualAmount = 1;
+  const actualCost = DEMOLISHBOT_COST * actualAmount;
+
+  // Create actual DemolishBot entities
+  const newBots: DemolishBot[] = [];
+  for (let i = 0; i < actualAmount; i++) {
+    const botId = `demolishbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const spawnX = state.player.x + (i + 1);
+    const spawnY = state.player.y;
+    newBots.push({
+      id: botId,
+      status: 'idle',
+      x: spawnX, // Spawn near player
+      y: spawnY,
+      visualX: spawnX,
+      visualY: spawnY,
+    });
+  }
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - actualCost,
+      inventory: {
+        ...state.player.inventory,
+        demolishbots: state.player.inventory.demolishbots + actualAmount,
+      },
+    },
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        demolishBots: [...(currentZone.demolishBots || []), ...newBots],
       },
     },
   };

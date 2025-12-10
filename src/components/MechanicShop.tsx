@@ -1,7 +1,7 @@
 'use client';
 
 import { GameState } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST } from '@/lib/gameEngine';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST } from '@/lib/gameEngine';
 import Image from 'next/image';
 
 interface MechanicShopProps {
@@ -11,10 +11,11 @@ interface MechanicShopProps {
   onBuyHarvestbots: (amount: number) => void;
   onBuySeedbots: (amount: number) => void;
   onBuyTransportbots: (amount: number) => void;
+  onBuyDemolishbots: (amount: number) => void;
   onRelocate: () => void;
 }
 
-export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onRelocate }: MechanicShopProps) {
+export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: MechanicShopProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -287,6 +288,69 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                   }`}
                 >
                   {gameState.player.money >= TRANSPORTBOT_COST ? `Purchase for $${TRANSPORTBOT_COST}` : `Insufficient Funds ($${TRANSPORTBOT_COST})`}
+                </button>
+              )}
+            </div>
+
+            {/* Demolish Bot */}
+            <div className={`bg-gradient-to-br from-orange-900/40 to-red-950/40 p-5 rounded-xl border-3 shadow-lg shadow-orange-500/20 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.demolishbots >= 3
+                ? 'border-green-500 shadow-green-500/30'
+                : 'border-orange-500/50'
+            }`}>
+              <div className="flex gap-4 mb-4">
+                {/* Bot Image */}
+                <div className="relative w-24 h-24 flex-shrink-0">
+                  <Image
+                    src="/drill-bot.png"
+                    alt="Demolish Bot"
+                    width={96}
+                    height={96}
+                    className="object-contain"
+                  />
+                  {gameState.player.inventory.demolishbots >= 3 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      MAX
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-orange-300 mb-2">Demolish Bot</h3>
+                  <p className="text-sm text-gray-300 leading-tight">
+                    The Demolish Bot is your heavy-duty clearing specialist. Equipped with powerful tools, it autonomously removes rocks and forests, keeping your farm clean and ready for expansion.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="bg-black/40 rounded-lg p-3 mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-400">FLEET STATUS</span>
+                  <span className="text-sm font-bold text-orange-400">Owned: {gameState.player.inventory.demolishbots}/3</span>
+                </div>
+                <div className="text-xs text-green-400">
+                  ✓ Auto-clears rocks • ✓ Auto-clears forests • ✓ Fast clearing
+                </div>
+              </div>
+
+              {/* Buy Button */}
+              {gameState.player.inventory.demolishbots >= 3 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ MAXIMUM FLEET CAPACITY
+                </div>
+              ) : (
+                <button
+                  onClick={() => onBuyDemolishbots(1)}
+                  disabled={gameState.player.money < DEMOLISHBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= DEMOLISHBOT_COST
+                      ? 'bg-orange-600 hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= DEMOLISHBOT_COST ? `Purchase for $${DEMOLISHBOT_COST}` : `Insufficient Funds ($${DEMOLISHBOT_COST})`}
                 </button>
               )}
             </div>

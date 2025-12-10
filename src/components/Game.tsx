@@ -17,6 +17,7 @@ import {
   buyHarvestbots,
   buySeedbots,
   buyTransportbots,
+  buyDemolishbots,
   updateSeedBotJobs,
   upgradeBag,
   buyMechanicShop,
@@ -2325,6 +2326,7 @@ export default function Game() {
   const harvestBots = currentZone?.harvestBots || [];
   const seedBots = currentZone?.seedBots || [];
   const transportBots = currentZone?.transportBots || [];
+  const demolishBots = currentZone?.demolishBots || [];
 
 
   return (
@@ -2651,6 +2653,7 @@ export default function Game() {
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onBuySeedbots={amount => setGameState(prev => buySeedbots(prev, amount))}
           onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
+          onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}
           onRelocate={() => setGameState(prev => relocateMechanicShop(prev))}
         />
       )}
@@ -3153,6 +3156,38 @@ export default function Game() {
                       <div className="text-[10px] text-purple-300/80 mt-0.5 text-center">
                         {bot.inventory.length}/{bot.inventoryCapacity} crops
                       </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Demolish Bot Section */}
+          {(demolishBots?.length ?? 0) > 0 && (
+            <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
+              <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
+                <span className="text-base">🚧</span>
+                DEMOLISH BOTS
+                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{demolishBots?.length ?? 0}</span>
+              </div>
+              <div className="space-y-1.5">
+                {demolishBots?.map((bot, idx) => {
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        <span className="text-[10px] text-orange-300">
+                          {bot.status === 'traveling' && '🚶 Moving'}
+                          {bot.status === 'clearing' && '🔨 Clearing'}
+                          {bot.status === 'idle' && '😴 Idle'}
+                        </span>
+                      </div>
+                      {bot.status === 'clearing' && bot.targetX !== undefined && bot.targetY !== undefined && (
+                        <div className="text-[10px] text-orange-300/80 text-center">
+                          Clearing ({bot.targetX}, {bot.targetY})
+                        </div>
+                      )}
                     </div>
                   );
                 })}

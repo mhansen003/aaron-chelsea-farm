@@ -750,14 +750,42 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
     const updatedGrid = zone.grid.map(row =>
       row.map(tile => {
-        // Only process cleared dirt/grass tiles without crops or buildings
-        const isEmptyFarmTile = (tile.type === 'dirt' || tile.type === 'grass') &&
+        // Dirt turns into grass after 90 seconds if untouched
+        const isUntouchedDirt = tile.type === 'dirt' &&
+                                tile.cleared &&
+                                !tile.crop &&
+                                !tile.hasSprinkler &&
+                                !tile.isConstructing;
+
+        if (isUntouchedDirt) {
+          // Set initial last worked time if not set
+          if (tile.lastWorkedTime === undefined) {
+            return {
+              ...tile,
+              lastWorkedTime: newGameTime,
+            };
+          }
+
+          // Convert dirt to grass after 90 seconds
+          const DIRT_TO_GRASS_TIME = 90000; // 90 seconds
+          if (newGameTime - tile.lastWorkedTime >= DIRT_TO_GRASS_TIME) {
+            return {
+              ...tile,
+              type: 'grass',
+              lastWorkedTime: newGameTime,
+              overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
+            };
+          }
+        }
+
+        // Only process cleared grass tiles without crops or buildings
+        const isEmptyGrassTile = tile.type === 'grass' &&
                                  tile.cleared &&
                                  !tile.crop &&
                                  !tile.hasSprinkler &&
                                  !tile.isConstructing;
 
-        if (isEmptyFarmTile) {
+        if (isEmptyGrassTile) {
           // Set initial last worked time if not set
           if (tile.lastWorkedTime === undefined) {
             return {

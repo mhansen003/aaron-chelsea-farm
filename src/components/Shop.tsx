@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST, getCurrentSeedCost } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -17,6 +17,7 @@ interface ShopProps {
   onBuyMechanicShop: () => void;
   onBuyWell: () => void;
   onBuyGarage: () => void;
+  onBuySupercharger: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
@@ -36,7 +37,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onBuyGarage, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onBuyGarage, onBuySupercharger, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -398,6 +399,62 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   ${GARAGE_COST}
                 </button>
               ) : gameState.player.inventory.garagePlaced ? (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Owned
+                </div>
+              ) : (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
+                  Place It!
+                </div>
+              )}
+            </div>
+
+            {/* Supercharger - Upgrades bots */}
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+              (gameState.player.inventory.supercharger ?? 0) >= 1
+                ? 'border-green-600'
+                : 'border-amber-600'
+            }`}>
+              {/* Icon */}
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                {(gameState.player.inventory.supercharger ?? 0) >= 1 ? (
+                  <span className="text-5xl">✓</span>
+                ) : (
+                  <span className="text-6xl">⚡</span>
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Supercharger</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-purple-400">Upgrades bots 200%</div>
+                <div className="text-blue-400">
+                  {gameState.player.inventory.superchargerPlaced ? (
+                    <span className="text-green-400">Built</span>
+                  ) : (gameState.player.inventory.supercharger ?? 0) >= 1 ? (
+                    <span className="text-yellow-400">Ready!</span>
+                  ) : (
+                    'Max 1 building'
+                  )}
+                </div>
+              </div>
+
+              {/* Buy/Action Button */}
+              {(gameState.player.inventory.supercharger ?? 0) < 1 ? (
+                <button
+                  onClick={() => onBuySupercharger()}
+                  disabled={gameState.player.money < SUPERCHARGER_COST}
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                    gameState.player.money >= SUPERCHARGER_COST
+                      ? 'bg-purple-600 hover:bg-purple-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  ${SUPERCHARGER_COST}
+                </button>
+              ) : gameState.player.inventory.superchargerPlaced ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

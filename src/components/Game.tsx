@@ -24,9 +24,12 @@ import {
   buyMechanicShop,
   buyWell,
   buyGarage,
+  buySupercharger,
   placeMechanicShop,
   placeWell,
   placeGarage,
+  placeSupercharger,
+  superchargeBot,
   relocateGarage,
   relocateMechanicShop,
   toggleAutoBuy,
@@ -49,6 +52,7 @@ import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
 import WarehouseModal from './WarehouseModal';
 import GarageModal from './GarageModal';
+import SuperchargerModal from './SuperchargerModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
 import NoSeedsModal from './NoSeedsModal';
@@ -261,6 +265,7 @@ export default function Game() {
   const [showMechanicShop, setShowMechanicShop] = useState(false);
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [showGarageModal, setShowGarageModal] = useState(false);
+  const [showSuperchargerModal, setShowSuperchargerModal] = useState(false);
   const [showZonePreview, setShowZonePreview] = useState(false);
   const [previewZone, setPreviewZone] = useState<Zone | null>(null);
   const [showNoSeedsModal, setShowNoSeedsModal] = useState(false);
@@ -268,7 +273,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | 'garage' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | 'garage' | 'supercharger' | null>(null);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
   const [tileSelectionMode, setTileSelectionMode] = useState<{
@@ -996,6 +1001,33 @@ export default function Game() {
             garageImageRef.current,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
+        } else if (tile.type === 'supercharger') {
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          // Draw supercharger placeholder (purple gradient with lightning)
+          const gradient = ctx.createRadialGradient(
+            px + GAME_CONFIG.tileSize / 2,
+            py + GAME_CONFIG.tileSize / 2,
+            0,
+            px + GAME_CONFIG.tileSize / 2,
+            py + GAME_CONFIG.tileSize / 2,
+            GAME_CONFIG.tileSize / 2
+          );
+          gradient.addColorStop(0, '#a855f7');
+          gradient.addColorStop(1, '#7c3aed');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+
+          // Draw lightning bolt emoji
+          ctx.font = `${GAME_CONFIG.tileSize * 0.6}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('⚡', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1888,6 +1920,11 @@ export default function Game() {
       return { action: 'garage' as const, cursor: 'pointer' };
     }
 
+    // Supercharger tile
+    if (tile.type === 'supercharger') {
+      return { action: 'supercharger' as const, cursor: 'pointer' };
+    }
+
     // Arch tile
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -2076,6 +2113,15 @@ export default function Game() {
       return;
     }
 
+    if (placementMode === 'supercharger') {
+      // Allow placing supercharger on grass or cleared dirt tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
+        setGameState(prev => placeSupercharger(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
     // Handle arch clicks for zone purchase/travel
     if (tile.type === 'arch' && tile.archTargetZone) {
       const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
@@ -2136,6 +2182,12 @@ export default function Game() {
     // Handle garage tile clicks
     if (tile.type === 'garage') {
       setShowGarageModal(true);
+      return;
+    }
+
+    // Handle supercharger tile clicks
+    if (tile.type === 'supercharger') {
+      setShowSuperchargerModal(true);
       return;
     }
 
@@ -2916,7 +2968,33 @@ export default function Game() {
               🪣 Water Well
             </button>
           )}
-{/* Garage Placement Button */}          {(gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false) && (            <button              onClick={() => setPlacementMode(placementMode === 'garage' ? null : 'garage')}              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${                placementMode === 'garage'                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'              }`}            >              🚗 Garage            </button>          )}
+{/* Garage Placement Button */}
+          {(gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false) && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'garage' ? null : 'garage')}
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+                placementMode === 'garage'
+                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+              }`}
+            >
+              🚗 Garage
+            </button>
+          )}
+
+          {/* Supercharger Placement Button */}
+          {(gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false) && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'supercharger' ? null : 'supercharger')}
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+                placementMode === 'supercharger'
+                  ? 'bg-purple-500 ring-4 ring-purple-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+              }`}
+            >
+              ⚡ Supercharger
+            </button>
+          )}
 
           {/* Cancel/Clear Selection */}
           {placementMode && (
@@ -2931,7 +3009,14 @@ export default function Game() {
           {/* Help Text */}
           {placementMode && (
             <div className="text-yellow-300 text-sm font-bold ml-2 bg-black/40 px-3 py-1 rounded">
-              👉 {placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' : 'Click grass tile to place shop (2 min build)'}
+              👉 {
+                placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' :
+                placementMode === 'mechanic' ? 'Click grass tile to place shop (2 min build)' :
+                placementMode === 'well' ? 'Click grass tile to place well' :
+                placementMode === 'garage' ? 'Click grass tile to place garage' :
+                placementMode === 'supercharger' ? 'Click grass tile to place supercharger' :
+                'Click a tile to place'
+              }
             </div>
           )}
         </div>
@@ -3057,6 +3142,7 @@ export default function Game() {
           onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
           onBuyWell={() => setGameState(prev => buyWell(prev))}
           onBuyGarage={() => setGameState(prev => buyGarage(prev))}
+          onBuySupercharger={() => setGameState(prev => buySupercharger(prev))}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
@@ -3156,6 +3242,17 @@ export default function Game() {
             setGameState(prev => relocateGarage(prev));
             setPlacementMode('garage');
             setShowGarageModal(false);
+          }}
+        />
+      )}
+
+      {/* Supercharger Modal */}
+      {showSuperchargerModal && (
+        <SuperchargerModal
+          gameState={gameState}
+          onClose={() => setShowSuperchargerModal(false)}
+          onSupercharge={(botId, botType) => {
+            setGameState(prev => superchargeBot(prev, botId, botType));
           }}
         />
       )}

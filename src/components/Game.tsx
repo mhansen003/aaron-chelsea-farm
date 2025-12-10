@@ -2523,6 +2523,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               🪣 Water Well
             </button>
           )}
+{/* Garage Placement Button */}          {(gameState.player.inventory.garage ?? 0) > 0 && !gameState.player.inventory.garagePlaced && (            <button              onClick={() => setPlacementMode(placementMode === 'garage' ? null : 'garage')}              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${                placementMode === 'garage'                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'              }`}            >              🚗 Garage            </button>          )}
 
           {/* Cancel/Clear Selection */}
           {placementMode && (

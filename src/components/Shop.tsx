@@ -387,7 +387,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 >
                   ${GARAGE_COST}
                 </button>
-              ) : (gameState.player.inventory.garage ?? 0)Placed ? (
+              ) : gameState.player.inventory.garagePlaced ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

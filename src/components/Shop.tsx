@@ -364,7 +364,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               <div className="text-xs text-center mb-2 space-y-1">
                 <div className="text-orange-400">Parking for idle bots</div>
                 <div className="text-blue-400">
-                  {(gameState.player.inventory.garage ?? 0)Placed ? (
+                  {gameState.player.inventory.garagePlaced ? (
                     <span className="text-green-400">Built</span>
                   ) : (gameState.player.inventory.garage ?? 0) >= 1 ? (
                     <span className="text-yellow-400">Ready!</span>

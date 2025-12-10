@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aaron & Chelsea's Farm",
-  description: "A farming game where you grow crops, feed people, and manage your farm!",
+  title: "My Bot Farm",
+  description: "Build your bot-powered farming empire! Automate everything with bots, grow crops, and expand your agricultural empire!",
 };
 
 export default function RootLayout({

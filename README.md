@@ -1,3 +1,7 @@
+# My Bot Farm 🤖🌾
+
+An automated farming game built with Next.js where you manage bots to build your agricultural empire!
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

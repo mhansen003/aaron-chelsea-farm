@@ -27,6 +27,7 @@ import {
   placeMechanicShop,
   placeWell,
   placeGarage,
+  relocateGarage,
   relocateMechanicShop,
   toggleAutoBuy,
   addTask,
@@ -47,6 +48,7 @@ import SellShop from './SellShop';
 import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
 import WarehouseModal from './WarehouseModal';
+import GarageModal from './GarageModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
 import NoSeedsModal from './NoSeedsModal';
@@ -258,6 +260,7 @@ export default function Game() {
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
   const [showMechanicShop, setShowMechanicShop] = useState(false);
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
+  const [showGarageModal, setShowGarageModal] = useState(false);
   const [showZonePreview, setShowZonePreview] = useState(false);
   const [previewZone, setPreviewZone] = useState<Zone | null>(null);
   const [showNoSeedsModal, setShowNoSeedsModal] = useState(false);
@@ -1880,6 +1883,11 @@ export default function Game() {
       return { action: 'mechanic' as const, cursor: 'pointer' };
     }
 
+    // Garage tile
+    if (tile.type === 'garage') {
+      return { action: 'garage' as const, cursor: 'pointer' };
+    }
+
     // Arch tile
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -2125,6 +2133,12 @@ export default function Game() {
       return;
     }
 
+    // Handle garage tile clicks
+    if (tile.type === 'garage') {
+      setShowGarageModal(true);
+      return;
+    }
+
     // Get context-aware action for this tile
     const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
@@ -2356,6 +2370,7 @@ export default function Game() {
     setShowExportModal(false);
     setShowMechanicShop(false);
     setShowWarehouseModal(false);
+    setShowGarageModal(false);
     setShowInstructions(false);
     setShowNewGameConfirm(false);
   };
@@ -2492,6 +2507,7 @@ export default function Game() {
     setShowExportModal(false);
     setShowMechanicShop(false);
     setShowWarehouseModal(false);
+    setShowGarageModal(false);
   };
 
   const handleContinue = () => {
@@ -2506,6 +2522,7 @@ export default function Game() {
     setShowExportModal(false);
     setShowMechanicShop(false);
     setShowWarehouseModal(false);
+    setShowGarageModal(false);
   };
 
   const handleLoadFromCode = async (code: string) => {
@@ -2518,6 +2535,7 @@ export default function Game() {
     setShowExportModal(false);
     setShowMechanicShop(false);
     setShowWarehouseModal(false);
+    setShowGarageModal(false);
   };
 
   // Save Game Handler
@@ -3068,6 +3086,19 @@ export default function Game() {
           onDeposit={() => {
             setGameState(prev => depositToWarehouse(prev));
             setShowWarehouseModal(false);
+          }}
+        />
+      )}
+
+      {/* Garage Modal */}
+      {showGarageModal && (
+        <GarageModal
+          gameState={gameState}
+          onClose={() => setShowGarageModal(false)}
+          onRelocate={() => {
+            setGameState(prev => relocateGarage(prev));
+            setPlacementMode('garage');
+            setShowGarageModal(false);
           }}
         />
       )}

@@ -1191,7 +1191,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 if (elapsed >= DEPOSIT_DURATION) {
                   // Deposit complete
                   newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
-                  return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                  return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined, targetX: undefined, targetY: undefined };
                 } else {
                   // Still depositing
                   return { ...bot, status: 'depositing' as const, visualX, visualY };
@@ -1258,17 +1258,19 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       if (!isInventoryFull && availableCrops.length > 0) {
-        // Round-robin selection: Sort by distance, then rotate through crops
+        // Simple distance-based selection: Pick the nearest unclaimed crop
         const sortedCrops = availableCrops.sort((a, b) => {
           const distA = Math.abs(botX - a.x) + Math.abs(botY - a.y);
           const distB = Math.abs(botX - b.x) + Math.abs(botY - b.y);
           return distA - distB;
         });
 
-        // Use round-robin index to ensure even distribution
-        const lastIndex = bot.lastHarvestedIndex ?? -1;
-        const nextIndex = (lastIndex + 1) % sortedCrops.length;
-        const nearest = sortedCrops[nextIndex];
+        const nearest = sortedCrops[0]; // Always pick the nearest
+
+        // Debug: Log when selecting new target
+        if (bot.targetX !== nearest.x || bot.targetY !== nearest.y) {
+          console.log(`[${bot.id}] CLAIMED: (${nearest.x}, ${nearest.y}), bot at (${botX}, ${botY}), ${availableCrops.length} crops available`);
+        }
 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
@@ -1281,6 +1283,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               if (elapsed >= ACTION_DURATION) {
                 const cropType = tile.crop;
                 const quality = newState.player.inventory.seedQuality[cropType];
+                console.log(`[${bot.id}] Successfully harvested ${cropType} at (${nearest.x}, ${nearest.y})`);
 
                 updatedGrid = updatedGrid.map((row, rowY) =>
                   row.map((t, tileX) => {
@@ -1305,7 +1308,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   },
                 };
 
-                return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined, idleStartTime: undefined };
+                // RELEASE CLAIM: Clear target after successful harvest
+                console.log(`[${bot.id}] RELEASED: (${nearest.x}, ${nearest.y}) after harvest`);
+                return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined, idleStartTime: undefined, targetX: undefined, targetY: undefined };
               } else {
                 return { ...bot, status: 'harvesting' as const, visualX, visualY };
               }
@@ -1313,16 +1318,18 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               return { ...bot, status: 'harvesting' as const, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
             }
           } else {
-            // Target tile is no longer harvestable - reset target and go idle
+            // Target tile is no longer harvestable - RELEASE CLAIM and go idle
+            console.log(`[${bot.id}] RELEASED: (${nearest.x}, ${nearest.y}) - tile not harvestable`);
             return { ...bot, status: 'idle' as const, targetX: undefined, targetY: undefined, actionStartTime: undefined, actionDuration: undefined, visualX, visualY };
           }
         } else {
+          // Traveling to target - keep claim active
           let newX = botX, newY = botY;
           if (Math.random() < (deltaTime / 500)) {
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
-          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, lastHarvestedIndex: nextIndex, idleStartTime: undefined };
+          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, idleStartTime: undefined };
         }
       } else {
         if (Math.random() < (deltaTime / 2000)) {
@@ -2937,6 +2944,42 @@ export function placeGarage(state: GameState, tileX: number, tileY: number): Gam
       inventory: {
         ...state.player.inventory,
         garagePlaced: true,
+      },
+    },
+  };
+}
+
+export function relocateGarage(state: GameState): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Find and remove the current garage
+  const newGrid = grid.map(row =>
+    row.map(tile => {
+      if (tile.type === 'garage') {
+        return {
+          ...tile,
+          type: 'grass' as const,
+          cleared: true,
+        };
+      }
+      return tile;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        garagePlaced: false,
       },
     },
   };

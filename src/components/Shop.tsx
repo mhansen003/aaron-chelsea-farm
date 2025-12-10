@@ -420,7 +420,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 {(gameState.player.inventory.supercharger ?? 0) >= 1 ? (
                   <span className="text-5xl">✓</span>
                 ) : (
-                  <span className="text-6xl">⚡</span>
+                  <Image src="/supercharger.png" alt="Supercharger" width={80} height={80} className="object-contain" />
                 )}
               </div>
 

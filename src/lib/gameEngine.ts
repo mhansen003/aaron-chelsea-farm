@@ -116,13 +116,13 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
-      // Warehouse building at bottom-right corner (2x2) of starting zone only
+      // Export building at top-right corner (2x2) of starting zone only
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= 0 && y <= 1) {
+        type = 'export';
+      }
+      // Warehouse building (2x2) at bottom-right corner
       else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'warehouse';
-      }
-      // Export building (2x2) to the left of warehouse at bottom
-      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
-        type = 'export';
       }
       // Mechanic building (2x2) - if placed by player
       // Will be handled separately when player places it
@@ -2304,4 +2304,5 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
 function handlePlaceWellTask(state: GameState, task: Task): GameState {
   return placeWell(state, task.tileX, task.tileY);
 }
+
 

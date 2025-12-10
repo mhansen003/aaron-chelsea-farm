@@ -772,8 +772,8 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           // Export building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          const offsetX = (x - 12) * 512; // x can be 12 or 13
-          const offsetY = (y - 10) * 512; // y can be 10 or 11 (bottom of grid)
+          const offsetX = (x - 14) * 512; // x can be 14 or 15
+          const offsetY = (y - 0) * 512; // y can be 0 or 1 (top of grid)
           ctx.drawImage(
             exportImageRef.current,
             offsetX, offsetY, 512, 512,
@@ -3104,5 +3104,6 @@ export default function Game() {
     </div>
   );
 }
+
 
 

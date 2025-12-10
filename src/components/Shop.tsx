@@ -98,7 +98,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-amber-600 flex flex-col items-center"
                 >
                   {/* Icon */}
-                  <div className="text-5xl mb-2">{info.emoji}</div>
+                  <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                    <Image src={`/${crop}.png`} alt={info.name} width={80} height={80} className="object-contain" />
+                  </div>
 
                   {/* Name */}
                   <div className="font-bold text-center mb-1 text-sm">{info.name}</div>

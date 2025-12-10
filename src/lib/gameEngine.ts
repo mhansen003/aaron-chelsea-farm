@@ -280,12 +280,30 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     // South - Desert
     theme = 'desert';
     name = "Desert Oasis";
-    description: "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
+    description = "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
+    npc = {
+      name: "Desert Nomad",
+      description: "Experienced desert explorer and resource specialist. He can help you drill for oil and create beautiful glass!",
+      image: "/nomad.png",
+      shopType: "explorer",
+    };
     features = [
       {
-        name: "Drilling Robots",
-        description: "Extract oil and rare resources from beneath the desert",
+        name: "Oil Drilling",
+        description: "Drill deep into the desert to extract valuable oil",
         icon: "🛢️",
+        unlocked: false,
+      },
+      {
+        name: "Glass Creation",
+        description: "Use desert sand to craft beautiful glass products",
+        icon: "🪟",
+        unlocked: false,
+      },
+      {
+        name: "Drilling Robots",
+        description: "Automated bots that extract oil and rare resources",
+        icon: "⚙️",
         unlocked: false,
       },
     ];

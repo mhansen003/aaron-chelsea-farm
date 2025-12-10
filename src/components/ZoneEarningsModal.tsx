@@ -8,30 +8,117 @@ interface ZoneEarningsModalProps {
   onClose: () => void;
 }
 
+// Zone colors for the line chart (Factorio-inspired palette)
+const ZONE_COLORS = [
+  '#fbbf24', // yellow
+  '#60a5fa', // blue
+  '#34d399', // green
+  '#f87171', // red
+  '#a78bfa', // purple
+  '#fb923c', // orange
+  '#22d3ee', // cyan
+  '#f472b6', // pink
+];
+
+interface ChartDataPoint {
+  timestamp: number;
+  cumulativeEarnings: number;
+}
+
+interface ZoneChartData {
+  zone: ZoneEarnings;
+  color: string;
+  dataPoints: ChartDataPoint[];
+}
+
 export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsModalProps) {
-  // Sort zones by earnings (highest first)
-  const sortedZones = useMemo(() => {
+  // Prepare chart data for each zone
+  const chartData = useMemo((): ZoneChartData[] => {
     if (!gameState.zoneEarnings) return [];
 
-    return Object.values(gameState.zoneEarnings)
+    const zones = Object.values(gameState.zoneEarnings)
       .filter(zone => zone.totalEarnings > 0)
       .sort((a, b) => b.totalEarnings - a.totalEarnings);
+
+    return zones.map((zone, index) => {
+      // Convert earnings history to cumulative data points
+      let cumulative = 0;
+      const dataPoints: ChartDataPoint[] = zone.earningsHistory.map(entry => {
+        cumulative += entry.amount;
+        return {
+          timestamp: entry.timestamp,
+          cumulativeEarnings: cumulative,
+        };
+      });
+
+      return {
+        zone,
+        color: ZONE_COLORS[index % ZONE_COLORS.length],
+        dataPoints,
+      };
+    });
   }, [gameState.zoneEarnings]);
 
-  const maxEarnings = useMemo(() => {
-    if (sortedZones.length === 0) return 0;
-    return sortedZones[0].totalEarnings;
-  }, [sortedZones]);
+  // Calculate chart bounds
+  const chartBounds = useMemo(() => {
+    if (chartData.length === 0) {
+      return { minTime: 0, maxTime: 1, maxEarnings: 100 };
+    }
+
+    let minTime = Infinity;
+    let maxTime = -Infinity;
+    let maxEarnings = 0;
+
+    chartData.forEach(({ dataPoints }) => {
+      dataPoints.forEach(point => {
+        minTime = Math.min(minTime, point.timestamp);
+        maxTime = Math.max(maxTime, point.timestamp);
+        maxEarnings = Math.max(maxEarnings, point.cumulativeEarnings);
+      });
+    });
+
+    // Add some padding to the time range
+    const timeRange = maxTime - minTime;
+    const timePadding = timeRange * 0.05;
+
+    return {
+      minTime: minTime - timePadding,
+      maxTime: maxTime + timePadding,
+      maxEarnings: maxEarnings * 1.1, // 10% padding on top
+    };
+  }, [chartData]);
 
   const totalEarnings = useMemo(() => {
-    return sortedZones.reduce((sum, zone) => sum + zone.totalEarnings, 0);
-  }, [sortedZones]);
+    return chartData.reduce((sum, { zone }) => sum + zone.totalEarnings, 0);
+  }, [chartData]);
+
+  // Convert data points to SVG path
+  const generatePath = (dataPoints: ChartDataPoint[], width: number, height: number): string => {
+    if (dataPoints.length === 0) return '';
+
+    const { minTime, maxTime, maxEarnings } = chartBounds;
+    const timeRange = maxTime - minTime;
+
+    const points = dataPoints.map(point => {
+      const x = ((point.timestamp - minTime) / timeRange) * width;
+      const y = height - (point.cumulativeEarnings / maxEarnings) * height;
+      return `${x},${y}`;
+    });
+
+    // Start from bottom-left
+    const firstPoint = dataPoints[0];
+    const startX = ((firstPoint.timestamp - minTime) / timeRange) * width;
+    return `M ${startX},${height} L ${points.join(' L ')}`;
+  };
+
+  const chartWidth = 800;
+  const chartHeight = 400;
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto border-4 border-green-600">
+      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-4 border-green-600">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">💰 Zone Earnings</h2>
+          <h2 className="text-3xl font-bold">📈 Zone Earnings Over Time</h2>
           <button
             onClick={onClose}
             className="text-2xl hover:text-red-400 transition-colors"
@@ -49,79 +136,88 @@ export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsMo
           </div>
         </div>
 
-        {sortedZones.length === 0 ? (
+        {chartData.length === 0 ? (
           <div className="text-center text-gray-400 my-8 text-lg">
             No earnings tracked yet. Start selling crops to see zone performance!
           </div>
         ) : (
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold mb-4">📊 Earnings by Zone</h3>
-
-            {sortedZones.map((zone, index) => {
-              const percentage = maxEarnings > 0 ? (zone.totalEarnings / maxEarnings) * 100 : 0;
-              const barWidth = `${percentage}%`;
-
-              // Color based on rank
-              const barColor = index === 0
-                ? 'bg-yellow-500'
-                : index === 1
-                ? 'bg-gray-400'
-                : index === 2
-                ? 'bg-orange-600'
-                : 'bg-green-600';
-
-              const borderColor = index === 0
-                ? 'border-yellow-600'
-                : index === 1
-                ? 'border-gray-500'
-                : index === 2
-                ? 'border-orange-700'
-                : 'border-green-700';
-
-              return (
-                <div
-                  key={zone.zoneKey}
-                  className={`bg-black/40 p-4 rounded-lg border-2 ${borderColor}`}
+          <div className="space-y-6">
+            {/* Line Chart */}
+            <div className="bg-black/40 p-6 rounded-lg border-2 border-green-700">
+              <div className="overflow-x-auto">
+                <svg
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  className="w-full"
+                  style={{ maxHeight: '400px' }}
                 >
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-3">
-                      {index === 0 && <span className="text-2xl">🥇</span>}
-                      {index === 1 && <span className="text-2xl">🥈</span>}
-                      {index === 2 && <span className="text-2xl">🥉</span>}
-                      <span className="font-bold text-lg">{zone.zoneName}</span>
-                      <span className="text-sm text-gray-400">({zone.zoneKey})</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-xl text-green-400">
-                        ${zone.totalEarnings.toLocaleString()}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        {zone.earningsHistory.length} sales
-                      </div>
-                    </div>
-                  </div>
+                  {/* Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map(fraction => {
+                    const y = chartHeight - fraction * chartHeight;
+                    return (
+                      <g key={fraction}>
+                        <line
+                          x1="0"
+                          y1={y}
+                          x2={chartWidth}
+                          y2={y}
+                          stroke="#374151"
+                          strokeWidth="1"
+                          strokeDasharray="4,4"
+                        />
+                        <text
+                          x="-5"
+                          y={y + 5}
+                          fill="#9ca3af"
+                          fontSize="12"
+                          textAnchor="end"
+                        >
+                          ${Math.round(chartBounds.maxEarnings * fraction).toLocaleString()}
+                        </text>
+                      </g>
+                    );
+                  })}
 
-                  {/* Bar Chart */}
-                  <div className="relative h-8 bg-black/40 rounded overflow-hidden">
+                  {/* Zone lines */}
+                  {chartData.map(({ zone, color, dataPoints }) => (
+                    <path
+                      key={zone.zoneKey}
+                      d={generatePath(dataPoints, chartWidth, chartHeight)}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  ))}
+                </svg>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="bg-black/40 p-4 rounded-lg border-2 border-green-700">
+              <h3 className="text-lg font-bold mb-3">Zones</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {chartData.map(({ zone, color }, index) => (
+                  <div key={zone.zoneKey} className="flex items-center gap-3">
                     <div
-                      className={`absolute left-0 top-0 h-full ${barColor} transition-all duration-500 flex items-center justify-end px-2`}
-                      style={{ width: barWidth }}
-                    >
-                      {percentage > 15 && (
-                        <span className="text-white font-bold text-sm">
-                          {percentage.toFixed(0)}%
-                        </span>
-                      )}
+                      className="w-8 h-1 rounded"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {index === 0 && <span className="text-lg">🥇</span>}
+                        {index === 1 && <span className="text-lg">🥈</span>}
+                        {index === 2 && <span className="text-lg">🥉</span>}
+                        <span className="font-bold">{zone.zoneName}</span>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        ${zone.totalEarnings.toLocaleString()} • {zone.earningsHistory.length} sales
+                      </div>
                     </div>
-                    {percentage <= 15 && percentage > 0 && (
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-white font-bold text-sm">
-                        {percentage.toFixed(0)}%
-                      </span>
-                    )}
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
           </div>
         )}
 

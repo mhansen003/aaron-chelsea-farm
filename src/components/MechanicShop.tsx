@@ -103,7 +103,11 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
             </div>
 
             {/* Harvest Bot */}
-            <div className="bg-gradient-to-br from-amber-900/40 to-yellow-950/40 p-5 rounded-xl border-3 border-amber-500/50 shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-transform duration-200">
+            <div className={`bg-gradient-to-br from-amber-900/40 to-yellow-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.harvestbots >= 3
+                ? 'border-green-500 shadow-lg shadow-green-500/30'
+                : 'border-amber-500/50 shadow-lg shadow-amber-500/20'
+            }`}>
               <div className="flex gap-4 mb-4">
                 {/* Bot Image */}
                 <div className="relative w-24 h-24 flex-shrink-0">
@@ -114,6 +118,11 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                     height={96}
                     className="object-contain"
                   />
+                  {gameState.player.inventory.harvestbots >= 3 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      MAX
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -129,7 +138,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="bg-black/40 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.harvestbots}</span>
+                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.harvestbots}/3</span>
                 </div>
                 <div className="text-xs text-green-400">
                   ✓ Auto-harvests crops • ✓ 8-slot inventory • ✓ Auto-deposits
@@ -137,21 +146,31 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               </div>
 
               {/* Buy Button */}
-              <button
-                onClick={() => onBuyHarvestbots(1)}
-                disabled={gameState.player.money < HARVESTBOT_COST}
-                className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                  gameState.player.money >= HARVESTBOT_COST
-                    ? 'bg-amber-600 hover:bg-amber-700 hover:shadow-lg hover:shadow-amber-500/50'
-                    : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                }`}
-              >
-                {gameState.player.money >= HARVESTBOT_COST ? `Purchase for $${HARVESTBOT_COST}` : `Insufficient Funds ($${HARVESTBOT_COST})`}
-              </button>
+              {gameState.player.inventory.harvestbots >= 3 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ MAXIMUM FLEET CAPACITY
+                </div>
+              ) : (
+                <button
+                  onClick={() => onBuyHarvestbots(1)}
+                  disabled={gameState.player.money < HARVESTBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= HARVESTBOT_COST
+                      ? 'bg-amber-600 hover:bg-amber-700 hover:shadow-lg hover:shadow-amber-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= HARVESTBOT_COST ? `Purchase for $${HARVESTBOT_COST}` : `Insufficient Funds ($${HARVESTBOT_COST})`}
+                </button>
+              )}
             </div>
 
             {/* Seed Bot */}
-            <div className="bg-gradient-to-br from-green-900/40 to-emerald-950/40 p-5 rounded-xl border-3 border-green-500/50 shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform duration-200">
+            <div className={`bg-gradient-to-br from-green-900/40 to-emerald-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.seedbots >= 3
+                ? 'border-yellow-500 shadow-lg shadow-yellow-500/30'
+                : 'border-green-500/50 shadow-lg shadow-green-500/20'
+            }`}>
               <div className="flex gap-4 mb-4">
                 {/* Bot Image */}
                 <div className="relative w-24 h-24 flex-shrink-0">
@@ -162,6 +181,11 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                     height={96}
                     className="object-contain"
                   />
+                  {gameState.player.inventory.seedbots >= 3 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      MAX
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -177,7 +201,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="bg-black/40 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-green-400">Owned: {gameState.player.inventory.seedbots}</span>
+                  <span className="text-sm font-bold text-green-400">Owned: {gameState.player.inventory.seedbots}/3</span>
                 </div>
                 <div className="text-xs text-green-400">
                   ✓ Auto-plants seeds • ✓ 3 job slots • ✓ Auto-buy seeds option
@@ -185,16 +209,21 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               </div>
 
               {/* Buy Button */}
-              <button
-                onClick={() => onBuySeedbots(1)}
-                disabled={gameState.player.money < SEEDBOT_COST}
-                className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                  gameState.player.money >= SEEDBOT_COST
-                    ? 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/50'
-                    : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                }`}
-              >
-                {gameState.player.money >= SEEDBOT_COST ? `Purchase for $${SEEDBOT_COST}` : `Insufficient Funds ($${SEEDBOT_COST})`}
+              {gameState.player.inventory.seedbots >= 3 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ MAXIMUM FLEET CAPACITY
+                </div>
+              ) : (
+                <button
+                  onClick={() => onBuySeedbots(1)}
+                  disabled={gameState.player.money < SEEDBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= SEEDBOT_COST
+                      ? 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= SEEDBOT_COST ? `Purchase for $${SEEDBOT_COST}` : `Insufficient Funds ($${SEEDBOT_COST})`}
               </button>
             </div>
 

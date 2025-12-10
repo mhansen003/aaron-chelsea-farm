@@ -2348,7 +2348,6 @@ export default function Game() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
           <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/{gameState.player.basketCapacity}</span></div>
-          <div className="flex items-center gap-1"><span>💦</span><span>{gameState.player.inventory.sprinklers}</span></div>
         </div>
       </div>
 

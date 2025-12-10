@@ -102,6 +102,27 @@ function migrateGameState(gameState: any): GameState {
     if (gameState.cropsSold.corn === undefined) gameState.cropsSold.corn = 0;
   }
 
+  // Initialize or migrate player.inventory.seeds for new crops
+  if (gameState.player?.inventory?.seeds) {
+    if (gameState.player.inventory.seeds.peppers === undefined) gameState.player.inventory.seeds.peppers = 0;
+    if (gameState.player.inventory.seeds.grapes === undefined) gameState.player.inventory.seeds.grapes = 0;
+    if (gameState.player.inventory.seeds.oranges === undefined) gameState.player.inventory.seeds.oranges = 0;
+    if (gameState.player.inventory.seeds.avocado === undefined) gameState.player.inventory.seeds.avocado = 0;
+    if (gameState.player.inventory.seeds.rice === undefined) gameState.player.inventory.seeds.rice = 0;
+    if (gameState.player.inventory.seeds.corn === undefined) gameState.player.inventory.seeds.corn = 0;
+  }
+
+  // Initialize or migrate player.inventory.seedQuality for new crops
+  if (gameState.player?.inventory?.seedQuality) {
+    const defaultQuality = { generation: 1, yield: 1.0, growthSpeed: 1.0 };
+    if (gameState.player.inventory.seedQuality.peppers === undefined) gameState.player.inventory.seedQuality.peppers = defaultQuality;
+    if (gameState.player.inventory.seedQuality.grapes === undefined) gameState.player.inventory.seedQuality.grapes = defaultQuality;
+    if (gameState.player.inventory.seedQuality.oranges === undefined) gameState.player.inventory.seedQuality.oranges = defaultQuality;
+    if (gameState.player.inventory.seedQuality.avocado === undefined) gameState.player.inventory.seedQuality.avocado = defaultQuality;
+    if (gameState.player.inventory.seedQuality.rice === undefined) gameState.player.inventory.seedQuality.rice = defaultQuality;
+    if (gameState.player.inventory.seedQuality.corn === undefined) gameState.player.inventory.seedQuality.corn = defaultQuality;
+  }
+
   // Initialize autoBuy if it doesn't exist
   if (!gameState.player.autoBuy) {
     gameState.player.autoBuy = {
@@ -117,6 +138,14 @@ function migrateGameState(gameState: any): GameState {
       rice: true,
       corn: true,
     };
+  } else {
+    // Add missing crops to existing autoBuy
+    if (gameState.player.autoBuy.peppers === undefined) gameState.player.autoBuy.peppers = true;
+    if (gameState.player.autoBuy.grapes === undefined) gameState.player.autoBuy.grapes = true;
+    if (gameState.player.autoBuy.oranges === undefined) gameState.player.autoBuy.oranges = true;
+    if (gameState.player.autoBuy.avocado === undefined) gameState.player.autoBuy.avocado = true;
+    if (gameState.player.autoBuy.rice === undefined) gameState.player.autoBuy.rice = true;
+    if (gameState.player.autoBuy.corn === undefined) gameState.player.autoBuy.corn = true;
   }
 
   // Initialize zoneEarnings if it doesn't exist (backward compatibility)

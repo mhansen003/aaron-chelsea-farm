@@ -261,6 +261,27 @@ export default function Game() {
             if (parsed.cropsSold.corn === undefined) parsed.cropsSold.corn = 0;
           }
 
+          // MIGRATION: Ensure player.inventory.seeds has all crops
+          if (parsed.player?.inventory?.seeds) {
+            if (parsed.player.inventory.seeds.peppers === undefined) parsed.player.inventory.seeds.peppers = 0;
+            if (parsed.player.inventory.seeds.grapes === undefined) parsed.player.inventory.seeds.grapes = 0;
+            if (parsed.player.inventory.seeds.oranges === undefined) parsed.player.inventory.seeds.oranges = 0;
+            if (parsed.player.inventory.seeds.avocado === undefined) parsed.player.inventory.seeds.avocado = 0;
+            if (parsed.player.inventory.seeds.rice === undefined) parsed.player.inventory.seeds.rice = 0;
+            if (parsed.player.inventory.seeds.corn === undefined) parsed.player.inventory.seeds.corn = 0;
+          }
+
+          // MIGRATION: Ensure player.inventory.seedQuality has all crops
+          if (parsed.player?.inventory?.seedQuality) {
+            const defaultQuality = { generation: 1, yield: 1.0, growthSpeed: 1.0 };
+            if (parsed.player.inventory.seedQuality.peppers === undefined) parsed.player.inventory.seedQuality.peppers = defaultQuality;
+            if (parsed.player.inventory.seedQuality.grapes === undefined) parsed.player.inventory.seedQuality.grapes = defaultQuality;
+            if (parsed.player.inventory.seedQuality.oranges === undefined) parsed.player.inventory.seedQuality.oranges = defaultQuality;
+            if (parsed.player.inventory.seedQuality.avocado === undefined) parsed.player.inventory.seedQuality.avocado = defaultQuality;
+            if (parsed.player.inventory.seedQuality.rice === undefined) parsed.player.inventory.seedQuality.rice = defaultQuality;
+            if (parsed.player.inventory.seedQuality.corn === undefined) parsed.player.inventory.seedQuality.corn = defaultQuality;
+          }
+
           const migratedState = parsed as GameState;
 
           // Migrate to new save system

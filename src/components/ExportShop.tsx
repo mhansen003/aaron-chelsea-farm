@@ -132,63 +132,20 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">🚢 Export Center</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-amber-600">
+        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-amber-900 to-amber-950 pb-2 z-10">
+          <h2 className="text-2xl md:text-3xl font-bold">🚢 Export Center</h2>
           <button
             onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
+            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-4 text-xl font-bold bg-black/30 px-4 py-2 rounded">
+        <div className="mb-3 md:mb-4 text-lg md:text-xl font-bold bg-black/30 px-3 md:px-4 py-2 rounded">
           Your Money: 💰 ${gameState.player.money}
-        </div>
-
-        <div className="mb-6 bg-black/30 px-4 py-3 rounded">
-          <h3 className="text-lg font-bold mb-3">Available to Sell:</h3>
-
-          {/* Basket Inventory */}
-          <div className="mb-3">
-            <div className="text-sm text-gray-300 mb-1">🧺 Basket ({gameState.player.basket.length}/{gameState.player.basketCapacity}):</div>
-            <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
-                <div key={crop} className="flex items-center gap-2">
-                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
-                  <span className="text-lg font-bold">{basketCounts[crop] || 0}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Warehouse Inventory */}
-          <div className="mb-3">
-            <div className="text-sm text-gray-300 mb-1">🏛️ Warehouse ({gameState.warehouse.length} items):</div>
-            <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
-                <div key={crop} className="flex items-center gap-2">
-                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
-                  <span className="text-lg font-bold">{warehouseCounts[crop] || 0}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Total Available */}
-          <div className="border-t border-white/20 pt-2 mt-2">
-            <div className="text-sm text-green-300 mb-1">📊 Total Available:</div>
-            <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
-                <div key={crop} className="flex items-center gap-2">
-                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
-                  <span className="text-lg font-bold text-green-300">{totalCounts[crop]}</span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {gameState.player.basket.length === 0 && gameState.warehouse.length === 0 ? (
@@ -196,20 +153,20 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
             Your basket and warehouse are empty! Harvest some crops first.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {vendors.map((vendor, index) => (
               <div
                 key={index}
-                className="bg-black/40 p-5 rounded-lg border-2 border-amber-700"
+                className="bg-black/40 p-3 md:p-5 rounded-lg border-2 border-amber-700"
               >
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{vendor.emoji}</span>
-                    <span className="text-xl font-bold">{vendor.name}</span>
+                <div className="flex justify-between items-center mb-3 md:mb-4">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <span className="text-2xl md:text-3xl">{vendor.emoji}</span>
+                    <span className="text-lg md:text-xl font-bold">{vendor.name}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
                   {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => {
                     const count = totalCounts[crop]; // Use combined basket + warehouse count
                     const price = vendor.prices[crop];
@@ -219,36 +176,36 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
                     return (
                       <div
                         key={crop}
-                        className={`p-3 rounded-lg border-2 ${
+                        className={`p-2 md:p-3 rounded-lg border-2 ${
                           hasItems
                             ? 'bg-green-900/30 border-green-600'
                             : 'bg-gray-800/30 border-gray-600'
                         }`}
                       >
-                        <div className="text-center mb-2">
-                          <Image src={`/${crop}.png`} alt={crop} width={48} height={48} className="object-contain mx-auto mb-1" />
-                          <div className="text-sm font-bold capitalize text-amber-300">
-                            ${price} each
+                        <div className="text-center mb-1 md:mb-2">
+                          <Image src={`/${crop}.png`} alt={crop} width={40} height={40} className="object-contain mx-auto mb-1 md:w-12 md:h-12" />
+                          <div className="text-xs md:text-sm font-bold capitalize text-amber-300">
+                            ${price}
                           </div>
                         </div>
-                        <div className="text-center mb-2">
-                          <div className="text-xs text-gray-300">You have: {count}</div>
+                        <div className="text-center mb-1 md:mb-2">
+                          <div className="text-xs text-gray-300">Have: {count}</div>
                           {hasItems && (
-                            <div className="text-sm font-bold text-green-300">
-                              Total: ${totalValue}
+                            <div className="text-xs md:text-sm font-bold text-green-300">
+                              ${totalValue}
                             </div>
                           )}
                         </div>
                         <button
                           onClick={() => onSellToVendor(index, crop, price)}
                           disabled={!hasItems}
-                          className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                          className={`w-full px-2 py-1.5 md:px-3 md:py-2 rounded font-bold text-xs md:text-sm ${
                             hasItems
                               ? 'bg-green-600 hover:bg-green-700'
                               : 'bg-gray-600 cursor-not-allowed opacity-50'
                           }`}
                         >
-                          Sell All
+                          Sell
                         </button>
                       </div>
                     );
@@ -261,9 +218,9 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
 
         <button
           onClick={onClose}
-          className="mt-6 w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+          className="mt-4 md:mt-6 w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg"
         >
-          Close Export Center
+          Close
         </button>
       </div>
     </div>

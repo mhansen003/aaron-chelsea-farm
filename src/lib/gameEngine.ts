@@ -84,6 +84,7 @@ export const TASK_DURATIONS = {
   place_mechanic: 60000, // 1 minute to install mechanic shop
   place_well: 30000, // 30 seconds to dig/place well
   place_garage: 15000, // 15 seconds to build garage
+  place_supercharger: 20000, // 20 seconds to install supercharger
   deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 

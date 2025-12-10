@@ -1766,7 +1766,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   return {
     ...newState,
-    zones: newZones,
     currentDay: newDay,
     dayProgress: newDayProgress,
     gameTime: newGameTime,

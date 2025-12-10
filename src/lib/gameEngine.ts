@@ -68,7 +68,9 @@ export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
 export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
 export const WELL_COST = 100; // Cost to buy a well
 export const GARAGE_COST = 175; // Cost to buy a garage
-export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
+export const SUPERCHARGER_COST = 5000; // Cost to buy a supercharger
+export const SUPERCHARGE_BOT_COST = 500; // Cost to supercharge a single bot
+export const BASE_ZONE_PRICE = 500; // Base to first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
 

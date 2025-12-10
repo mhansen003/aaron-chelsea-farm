@@ -15,6 +15,7 @@ export type TileType =
   | 'mechanic'
   | 'well'
   | 'garage'
+  | 'supercharger'
   | 'ocean'
   | 'sand'
   | 'seaweed'
@@ -28,7 +29,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well' | 'place_garage' | 'deposit';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit';
 
 export interface Task {
   id: string;
@@ -101,6 +102,8 @@ export interface Player {
     wellPlaced: boolean; // Whether a well has been placed in current zone
     garage: number; // How many garages the player owns
     garagePlaced: boolean; // Whether a garage has been placed in current zone
+    supercharger: number; // How many superchargers the player owns (max 1)
+    superchargerPlaced: boolean; // Whether a supercharger has been placed
   };
   autoBuy: {
     carrot: boolean;
@@ -179,6 +182,7 @@ export interface WaterBot {
   visualY?: number; // Animated visual position Y
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
 export interface HarvestBot {
@@ -196,6 +200,7 @@ export interface HarvestBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   lastHarvestedIndex?: number; // Round-robin index for even crop distribution
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
 export interface SeedBotJob {
@@ -219,6 +224,7 @@ export interface SeedBot {
   autoBuySeeds: boolean; // Whether to auto-buy seeds when low
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
 export interface TransportBot {
@@ -234,6 +240,7 @@ export interface TransportBot {
   visualY?: number; // Animated visual position Y
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
 export interface DemolishBot {
@@ -247,6 +254,7 @@ export interface DemolishBot {
   visualY?: number; // Animated visual position Y
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
 export interface ZoneEarnings {

@@ -9,9 +9,9 @@ export const GAME_CONFIG: GameConfig = {
 
 // Crop information: growth time (ms), sell price, seed cost
 export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
-  carrot: { daysToGrow: 1, growTime: 30000, sellPrice: 5, seedCost: 2 }, // 30 seconds
-  wheat: { daysToGrow: 1, growTime: 45000, sellPrice: 3, seedCost: 1 }, // 45 seconds
-  tomato: { daysToGrow: 2, growTime: 90000, sellPrice: 8, seedCost: 4 }, // 90 seconds
+  carrot: { daysToGrow: 1, growTime: 48000, sellPrice: 5, seedCost: 2 }, // 48 seconds (was 30)
+  wheat: { daysToGrow: 1, growTime: 72000, sellPrice: 3, seedCost: 1 }, // 72 seconds (was 45)
+  tomato: { daysToGrow: 2, growTime: 144000, sellPrice: 8, seedCost: 4 }, // 144 seconds (was 90)
   null: { daysToGrow: 0, growTime: 0, sellPrice: 0, seedCost: 0 },
 };
 
@@ -23,6 +23,7 @@ export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
 export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
 export const SEEDBOT_COST = 250; // Cost to buy one seed bot
+export const TRANSPORTBOT_COST = 2000; // Cost to buy one transport bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -115,12 +116,12 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
-      // Export building at top-right corner (2x2) of starting zone only
-      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= 0 && y <= 1) {
+      // Export building at bottom-right corner (2x2) of starting zone only
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'export';
       }
-      // Warehouse building (2x2) to the left of export building
-      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= 0 && y <= 1) {
+      // Warehouse building (2x2) to the left of export building at bottom
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'warehouse';
       }
       // Mechanic building (2x2) - if placed by player
@@ -219,6 +220,9 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     waterBots: [],
     harvestBots: [],
     seedBots: [],
+    transportBots: [],
+    taskQueue: [],
+    currentTask: null,
   };
 }
 
@@ -286,6 +290,7 @@ export function createInitialState(): GameState {
         waterbots: 0,
         harvestbots: 0,
         seedbots: 0,
+        transportbots: 0,
         mechanicShop: 0,
         mechanicShopPlaced: false,
         well: 0,
@@ -329,8 +334,6 @@ export function createInitialState(): GameState {
         unlocked: false,
       },
     ],
-    taskQueue: [],
-    currentTask: null,
     currentDay: 1,
     dayProgress: 0,
     gameTime: 0,
@@ -341,6 +344,10 @@ export function createInitialState(): GameState {
 
 export function updateGameState(state: GameState, deltaTime: number): GameState {
   if (state.isPaused) return state;
+
+  // Get current zone for task queue management
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  let currentZone = state.zones[currentZoneKey];
 
   const newGameTime = state.gameTime + deltaTime;
   const newDayProgress = ((newGameTime % DAY_LENGTH) / DAY_LENGTH) * 100;
@@ -376,28 +383,28 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // Process current task
-  if (newState.currentTask) {
+  if (currentZone.currentTask) {
     // Check if player has VISUALLY reached the task location (within small threshold)
     const visualX = newState.player.visualX ?? newState.player.x;
     const visualY = newState.player.visualY ?? newState.player.y;
-    const dx = Math.abs(visualX - newState.currentTask.tileX);
-    const dy = Math.abs(visualY - newState.currentTask.tileY);
+    const dx = Math.abs(visualX - currentZone.currentTask.tileX);
+    const dy = Math.abs(visualY - currentZone.currentTask.tileY);
     const playerVisuallyAtLocation = dx < 0.1 && dy < 0.1;
 
-    let newProgress = newState.currentTask.progress;
+    let newProgress = currentZone.currentTask.progress;
 
     // Only progress the task if player has VISUALLY arrived
     if (playerVisuallyAtLocation) {
-      newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
+      newProgress = currentZone.currentTask.progress + (deltaTime / currentZone.currentTask.duration) * 100;
     } else {
       // Move player toward task location (logical position, visual will catch up)
-      newState.player.x = newState.currentTask.tileX;
-      newState.player.y = newState.currentTask.tileY;
+      newState.player.x = currentZone.currentTask.tileX;
+      newState.player.y = currentZone.currentTask.tileY;
     }
 
     if (newProgress >= 100) {
       // Task complete - execute it
-      const task = newState.currentTask;
+      const task = currentZone.currentTask;
 
       switch (task.type) {
         case 'clear':
@@ -429,8 +436,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               };
 
               // Re-queue this harvest task and make deposit current
-              newState.taskQueue = [task, ...newState.taskQueue];
-              newState.currentTask = depositTask;
+              currentZone.taskQueue = [task, ...currentZone.taskQueue];
+              currentZone.currentTask = depositTask;
               // Set player position to warehouse so they walk there
               newState.player.x = warehousePos.x;
               newState.player.y = warehousePos.y;
@@ -458,7 +465,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
               // Make deposit the next task (will be picked up after current task clears)
               // But we need to insert it BEFORE clearing currentTask, so do it now
-              newState.currentTask = depositTask;
+              currentZone.currentTask = depositTask;
               // Set player position to warehouse so they walk there
               newState.player.x = warehousePos.x;
               newState.player.y = warehousePos.y;
@@ -481,18 +488,18 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       // Clear current task (player is already at location)
-      newState.currentTask = null;
+      currentZone.currentTask = null;
     } else {
       // Update progress
-      newState.currentTask = { ...newState.currentTask, progress: newProgress };
+      currentZone.currentTask = { ...currentZone.currentTask, progress: newProgress };
     }
   }
 
   // If no current task, take next from queue
-  if (!newState.currentTask && newState.taskQueue.length > 0) {
-    const [nextTask, ...remainingQueue] = newState.taskQueue;
-    newState.currentTask = nextTask;
-    newState.taskQueue = remainingQueue;
+  if (!currentZone.currentTask && currentZone.taskQueue.length > 0) {
+    const [nextTask, ...remainingQueue] = currentZone.taskQueue;
+    currentZone.currentTask = nextTask;
+    currentZone.taskQueue = remainingQueue;
 
     // AUTO-DEPOSIT: If basket is full, insert deposit task before continuing
     if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
@@ -511,8 +518,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         };
 
         // Put the current task back in queue and prioritize deposit
-        newState.taskQueue = [nextTask, ...remainingQueue];
-        newState.currentTask = depositTask;
+        currentZone.taskQueue = [nextTask, ...remainingQueue];
+        currentZone.currentTask = depositTask;
         // Set player position to warehouse so they walk there
         newState.player.x = warehousePos.x;
         newState.player.y = warehousePos.y;
@@ -521,7 +528,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // AUTO-DEPOSIT: If basket is full and no tasks, go deposit immediately
-  if (!newState.currentTask && newState.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
     const warehousePos = findWarehouseTile(newState);
     if (warehousePos) {
       // Create deposit task at warehouse location
@@ -536,7 +543,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         duration: TASK_DURATIONS.deposit,
       };
 
-      newState.currentTask = depositTask;
+      currentZone.currentTask = depositTask;
       // Set player position to warehouse so they walk there
       newState.player.x = warehousePos.x;
       newState.player.y = warehousePos.y;
@@ -544,7 +551,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // Idle wandering: If no tasks, randomly move the farmer around
-  if (!newState.currentTask && newState.taskQueue.length === 0) {
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0) {
     // Check if player has reached their current target (visual position matches logical position)
     const visualX = newState.player.visualX ?? newState.player.x;
     const visualY = newState.player.visualY ?? newState.player.y;
@@ -1072,7 +1079,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       const plantableTiles = currentJob.targetTiles.filter(targetTile => {
         const tile = grid[targetTile.y]?.[targetTile.x];
-        return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
       });
 
       if (plantableTiles.length === 0) {
@@ -1082,7 +1089,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
         const nextPlantableTiles = nextJob.targetTiles.filter(targetTile => {
           const tile = grid[targetTile.y]?.[targetTile.x];
-          return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+          return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
         });
 
         if (nextPlantableTiles.length > 0) {
@@ -1150,7 +1157,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       const refreshedPlantableTiles = currentJob.targetTiles.filter(targetTile => {
         const tile = updatedGrid[targetTile.y]?.[targetTile.x];
-        return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
       });
 
       if (refreshedPlantableTiles.length > 0) {
@@ -1167,8 +1174,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
-          if (tile && tile.type === 'dirt' && tile.cleared && !tile.crop) {
-            const ACTION_DURATION = 1500;
+          if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
+            const ACTION_DURATION = 800; // Faster planting (was 1500)
 
             if (bot.actionStartTime !== undefined) {
               const elapsed = newState.gameTime - bot.actionStartTime;
@@ -1211,7 +1218,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         } else {
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 500)) {
+          if (Math.random() < (deltaTime / 250)) { // Faster movement (was 500)
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
@@ -1252,10 +1259,170 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, seedBots: updatedSeedBots, grid: updatedGrid };
   });
 
+  // ========== TRANSPORT BOT AI (START ZONE ONLY) ==========
+  const startZoneKey = '0,0';
+  const startZone = newZones[startZoneKey];
+  if (startZone && startZone.owned && startZone.transportBots && startZone.transportBots.length > 0) {
+    const grid = startZone.grid;
+    const updatedTransportBots = startZone.transportBots.map(bot => {
+      if (bot.x === undefined || bot.y === undefined) return bot;
+
+      const botX = bot.x;
+      const botY = bot.y;
+      let visualX = bot.visualX ?? botX;
+      let visualY = bot.visualY ?? botY;
+
+      const dx = botX - visualX;
+      const dy = botY - visualY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0.01) {
+        visualX += dx * MOVE_SPEED;
+        visualY += dy * MOVE_SPEED;
+      } else {
+        visualX = botX;
+        visualY = botY;
+      }
+
+      // Find warehouse and export positions
+      let warehousePos: { x: number; y: number } | null = null;
+      let exportPos: { x: number; y: number } | null = null;
+      grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          if (tile.type === 'warehouse' && !warehousePos) warehousePos = { x, y };
+          if (tile.type === 'export' && !exportPos) exportPos = { x, y };
+        });
+      });
+
+      if (!warehousePos || !exportPos) {
+        return { ...bot, visualX, visualY, status: 'idle' as const };
+      }
+
+      const warehouse: { x: number; y: number } = warehousePos;
+      const exportStation: { x: number; y: number } = exportPos;
+
+      // Bot has inventory, go to export to sell
+      if (bot.inventory.length > 0) {
+        const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+        if (botX === exportStation.x && botY === exportStation.y && hasArrivedVisually) {
+          // Selling at export station
+          const ACTION_DURATION = 2000;
+          if (bot.actionStartTime !== undefined) {
+            const elapsed = newGameTime - bot.actionStartTime;
+            if (elapsed >= ACTION_DURATION) {
+              // Calculate total money from selling
+              const totalMoney = bot.inventory.reduce((sum, item) => {
+                const cropInfo = CROP_INFO[item.crop];
+                return sum + (cropInfo.sellPrice * item.quality.yield);
+              }, 0);
+
+              // Update player money
+              newState = {
+                ...newState,
+                player: {
+                  ...newState.player,
+                  money: newState.player.money + totalMoney,
+                },
+              };
+
+              // Clear bot inventory
+              return { ...bot, inventory: [], status: 'selling' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+            } else {
+              return { ...bot, status: 'selling' as const, visualX, visualY };
+            }
+          } else {
+            return { ...bot, status: 'selling' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
+          }
+        } else {
+          // Travel to export station
+          let newX = botX, newY = botY;
+          if (Math.random() < (deltaTime / 400)) { // Slightly faster than other bots
+            if (botX < exportStation.x) newX++; else if (botX > exportStation.x) newX--;
+            else if (botY < exportStation.y) newY++; else if (botY > exportStation.y) newY--;
+          }
+          return { ...bot, x: newX, y: newY, status: 'transporting' as const, targetX: exportStation.x, targetY: exportStation.y, visualX, visualY };
+        }
+      }
+      // Bot has empty inventory, check warehouse for items
+      else if (newState.warehouse.length > 0 && bot.inventory.length < bot.inventoryCapacity) {
+        const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+        if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
+          // Loading from warehouse
+          const ACTION_DURATION = 1500;
+          if (bot.actionStartTime !== undefined) {
+            const elapsed = newGameTime - bot.actionStartTime;
+            if (elapsed >= ACTION_DURATION) {
+              // Load items from warehouse (up to capacity)
+              const itemsToLoad = newState.warehouse.slice(0, Math.min(bot.inventoryCapacity - bot.inventory.length, newState.warehouse.length));
+              const remainingItems = newState.warehouse.slice(itemsToLoad.length);
+
+              // Update warehouse
+              newState = {
+                ...newState,
+                warehouse: remainingItems,
+              };
+
+              // Load items into bot
+              return { ...bot, inventory: [...bot.inventory, ...itemsToLoad], status: 'loading' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+            } else {
+              return { ...bot, status: 'loading' as const, visualX, visualY };
+            }
+          } else {
+            return { ...bot, status: 'loading' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
+          }
+        } else {
+          // Travel to warehouse
+          let newX = botX, newY = botY;
+          if (Math.random() < (deltaTime / 400)) { // Slightly faster than other bots
+            if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
+            else if (botY < warehouse.y) newY++; else if (botY > warehouse.y) newY--;
+          }
+          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
+        }
+      }
+      // Idle - wander near warehouse
+      else {
+        if (Math.random() < (deltaTime / 3000)) {
+          const walkableTiles: Array<{ x: number; y: number }> = [];
+          grid.forEach((row, y) => {
+            row.forEach((tile, x) => {
+              const isWalkable = tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'planted' || tile.type === 'grown';
+              if (isWalkable) walkableTiles.push({ x, y });
+            });
+          });
+          const nearWarehouse = walkableTiles.filter(t => {
+            const dx = Math.abs(t.x - warehouse.x);
+            const dy = Math.abs(t.y - warehouse.y);
+            return dx <= 5 && dy <= 5;
+          });
+          if (nearWarehouse.length > 0) {
+            const randomTile = nearWarehouse[Math.floor(Math.random() * nearWarehouse.length)];
+            return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY };
+          }
+        }
+      }
+
+      return { ...bot, visualX, visualY };
+    });
+    newZones[startZoneKey] = { ...startZone, transportBots: updatedTransportBots };
+  }
 
 
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);
+
+  // Update current zone with modified task queue and current task
+  newState = {
+    ...newState,
+    zones: {
+      ...newZones,
+      [currentZoneKey]: {
+        ...newZones[currentZoneKey],
+        taskQueue: currentZone.taskQueue,
+        currentTask: currentZone.currentTask,
+      },
+    },
+  };
 
   return {
     ...newState,
@@ -1549,6 +1716,11 @@ export function buySprinklers(state: GameState, amount: number): GameState {
 }
 
 export function buyWaterbots(state: GameState, amount: number): GameState {
+  // Check current zone - limit to 1 water bot per zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  if (currentZone.waterBots.length >= 1) return state; // Already has a water bot in this zone
+
   const cost = WATERBOT_COST * amount;
   const MAX_WATERBOTS = 2;
 
@@ -1558,8 +1730,8 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   // Check if player has reached max capacity
   if (state.player.inventory.waterbots >= MAX_WATERBOTS) return state;
 
-  // Limit purchase to not exceed max capacity
-  const actualAmount = Math.min(amount, MAX_WATERBOTS - state.player.inventory.waterbots);
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = WATERBOT_COST * actualAmount;
 
   // Create actual WaterBot entities
@@ -1579,8 +1751,6 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,
@@ -1603,12 +1773,19 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 }
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
+  // Limit to 2 harvest bots total
+  if (state.player.inventory.harvestbots >= 2) return state; // Already has 2 harvest bots
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   const cost = HARVESTBOT_COST * amount;
 
   // Check if player can afford it
   if (state.player.money < cost) return state;
 
-  const actualAmount = amount;
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = HARVESTBOT_COST * actualAmount;
 
   // Create actual HarvestBot entities
@@ -1629,8 +1806,6 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,
@@ -1653,12 +1828,19 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
 }
 
 export function buySeedbots(state: GameState, amount: number): GameState {
+  // Limit to 2 seed bots total
+  if (state.player.inventory.seedbots >= 2) return state; // Already has 2 seed bots
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   const cost = SEEDBOT_COST * amount;
 
   // Check if player can afford it
   if (state.player.money < cost) return state;
 
-  const actualAmount = amount;
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = SEEDBOT_COST * actualAmount;
 
   // Create actual SeedBot entities
@@ -1679,8 +1861,6 @@ export function buySeedbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,
@@ -1697,6 +1877,71 @@ export function buySeedbots(state: GameState, amount: number): GameState {
       [currentZoneKey]: {
         ...currentZone,
         seedBots: [...currentZone.seedBots, ...newBots],
+      },
+    },
+  };
+}
+
+export function buyTransportbots(state: GameState, amount: number): GameState {
+  // Transport bots only work in the starting zone (0,0)
+  const startZoneKey = '0,0';
+  const startZone = state.zones[startZoneKey];
+  if (!startZone) return state; // Start zone doesn't exist
+  if (startZone.transportBots.length >= 1) return state; // Max 1 transport bot
+
+  const cost = TRANSPORTBOT_COST * amount;
+
+  // Check if player can afford it
+  if (state.player.money < cost) return state;
+
+  // Limit purchase to 1 bot at a time
+  const actualAmount = 1;
+  const actualCost = TRANSPORTBOT_COST * actualAmount;
+
+  // Create actual TransportBot entities
+  const newBots: import('@/types/game').TransportBot[] = [];
+  for (let i = 0; i < actualAmount; i++) {
+    const botId = `transportbot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Find warehouse position to spawn near it
+    let spawnX = 10;
+    let spawnY = 10;
+    startZone.grid.forEach((row, y) => {
+      row.forEach((tile, x) => {
+        if (tile.type === 'warehouse') {
+          spawnX = x + 1;
+          spawnY = y;
+        }
+      });
+    });
+
+    newBots.push({
+      id: botId,
+      inventory: [],
+      inventoryCapacity: 16, // Can carry 16 crops
+      status: 'idle',
+      x: spawnX, // Spawn near warehouse
+      y: spawnY,
+      visualX: spawnX,
+      visualY: spawnY,
+    });
+  }
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - actualCost,
+      inventory: {
+        ...state.player.inventory,
+        transportbots: state.player.inventory.transportbots + actualAmount,
+      },
+    },
+    zones: {
+      ...state.zones,
+      [startZoneKey]: {
+        ...startZone,
+        transportBots: [...startZone.transportBots, ...newBots],
       },
     },
   };
@@ -1862,16 +2107,19 @@ export function addTask(
   tileY: number,
   cropType?: import('@/types/game').CropType
 ): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   // Check if there's already a task queued or in progress for this tile
-  const hasExistingTask = state.taskQueue.some(
+  const hasExistingTask = currentZone.taskQueue.some(
     t => t.tileX === tileX && t.tileY === tileY &&
          t.zoneX === state.currentZone.x && t.zoneY === state.currentZone.y
   );
-  const isCurrentTask = state.currentTask &&
-    state.currentTask.tileX === tileX &&
-    state.currentTask.tileY === tileY &&
-    state.currentTask.zoneX === state.currentZone.x &&
-    state.currentTask.zoneY === state.currentZone.y;
+  const isCurrentTask = currentZone.currentTask &&
+    currentZone.currentTask.tileX === tileX &&
+    currentZone.currentTask.tileY === tileY &&
+    currentZone.currentTask.zoneX === state.currentZone.x &&
+    currentZone.currentTask.zoneY === state.currentZone.y;
 
   // If a task already exists for this tile, don't add a new one
   if (hasExistingTask || isCurrentTask) {
@@ -1892,15 +2140,30 @@ export function addTask(
 
   return {
     ...state,
-    taskQueue: [...state.taskQueue, task],
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        taskQueue: [...currentZone.taskQueue, task],
+      },
+    },
   };
 }
 
 // Remove task from queue
 export function removeTask(state: GameState, taskId: string): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
-    taskQueue: state.taskQueue.filter(t => t.id !== taskId),
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        taskQueue: currentZone.taskQueue.filter(t => t.id !== taskId),
+      },
+    },
   };
 }
 

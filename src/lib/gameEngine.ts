@@ -2192,8 +2192,9 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
 }
 
 export function buyDemolishbots(state: GameState, amount: number): GameState {
-  // Limit to 3 demolish bots total
-  if (state.player.inventory.demolishbots >= 3) return state;
+  // Limit to 3 demolish bots total (with fallback for undefined)
+  const currentDemolishbots = state.player.inventory.demolishbots || 0;
+  if (currentDemolishbots >= 3) return state;
 
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -2230,7 +2231,7 @@ export function buyDemolishbots(state: GameState, amount: number): GameState {
       money: state.player.money - actualCost,
       inventory: {
         ...state.player.inventory,
-        demolishbots: state.player.inventory.demolishbots + actualAmount,
+        demolishbots: (state.player.inventory.demolishbots || 0) + actualAmount,
       },
     },
     zones: {

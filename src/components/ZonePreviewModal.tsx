@@ -30,7 +30,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
     beach: '/arch-beach.png',
     barn: '/arch-barn.png',
     mountain: '/arch-mountain.png',
-    desert: '/arch-farm.png',
+    desert: '/arch-desert.png',
   };
 
   return (

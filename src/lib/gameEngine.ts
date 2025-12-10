@@ -1172,7 +1172,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
           if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
-            const ACTION_DURATION = 1500;
+            const ACTION_DURATION = 800; // Faster planting (was 1500)
 
             if (bot.actionStartTime !== undefined) {
               const elapsed = newState.gameTime - bot.actionStartTime;
@@ -1215,7 +1215,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         } else {
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 500)) {
+          if (Math.random() < (deltaTime / 250)) { // Faster movement (was 500)
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }

@@ -3001,7 +3001,7 @@ export default function Game() {
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}
-      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced)) && (
+      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false))) && (
         <div className="w-full bg-gradient-to-r from-blue-900/90 to-purple-900/90 p-3 rounded-lg border-2 border-blue-500 flex items-center gap-3 shadow-lg">
           <div className="text-white font-bold text-base flex items-center gap-2">
             <span className="text-2xl">🔨</span>

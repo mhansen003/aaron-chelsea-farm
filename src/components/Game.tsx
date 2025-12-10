@@ -170,6 +170,12 @@ export default function Game() {
               }
               if (!parsed.zones[zoneKey].seedBots) {
                 parsed.zones[zoneKey].seedBots = [];
+              if (!parsed.zones[zoneKey].taskQueue) {
+                parsed.zones[zoneKey].taskQueue = [];
+              }
+              if (parsed.zones[zoneKey].currentTask === undefined) {
+                parsed.zones[zoneKey].currentTask = null;
+              }
               }
             });
           }
@@ -197,6 +203,17 @@ export default function Game() {
             delete parsed.harvestBots;
             delete parsed.seedBots;
           }
+          // MIGRATION: Move global task queue to current zone
+          if (parsed.taskQueue !== undefined || parsed.currentTask !== undefined) {
+            const currentZoneKey = getZoneKey(parsed.currentZone?.x || 0, parsed.currentZone?.y || 0);
+            if (parsed.zones && parsed.zones[currentZoneKey]) {
+              parsed.zones[currentZoneKey].taskQueue = parsed.taskQueue || [];
+              parsed.zones[currentZoneKey].currentTask = parsed.currentTask || null;
+            }
+            delete parsed.taskQueue;
+            delete parsed.currentTask;
+          }
+
 
           return parsed as GameState;
         } catch (e) {
@@ -1095,7 +1112,7 @@ export default function Game() {
 
           // Only show icon if farmer hasn't reached yet
           if (!hasReachedTile) {
-            taskForThisTile = gameState.currentTask;
+            taskForThisTile = currentZone.currentTask;
           }
         }
 
@@ -1143,9 +1160,9 @@ export default function Game() {
 
         // Draw task progress bar if farmer is working on this tile
         // Only show when farmer has reached the tile (not while traveling)
-        if (gameState.currentTask &&
-            gameState.currentTask.tileX === x &&
-            gameState.currentTask.tileY === y) {
+        if (currentZone.currentTask &&
+            currentZone.currentTask.tileX === x &&
+            currentZone.currentTask.tileY === y) {
           const visualX = gameState.player.visualX ?? gameState.player.x;
           const visualY = gameState.player.visualY ?? gameState.player.y;
 
@@ -1162,7 +1179,7 @@ export default function Game() {
             ctx.fillRect(px + 4, barY, barWidth, barHeight);
 
             // Progress
-            const progressWidth = (barWidth * gameState.currentTask.progress) / 100;
+            const progressWidth = (barWidth * currentZone.currentTask.progress) / 100;
             ctx.fillStyle = '#4caf50';
             ctx.fillRect(px + 4, barY, progressWidth, barHeight);
 
@@ -1631,7 +1648,7 @@ export default function Game() {
     if (!tile) return;
 
     // Check if this tile has a queued task - if yes, cancel it
-    const queuedTask = gameState.taskQueue.find(task =>
+    const queuedTask = currentZone.taskQueue.find(task =>
       task.tileX === tileX && task.tileY === tileY &&
       task.zoneX === gameState.currentZone.x && task.zoneY === gameState.currentZone.y
     );
@@ -2154,6 +2171,7 @@ export default function Game() {
   const waterBots = currentZone?.waterBots || [];
   const harvestBots = currentZone?.harvestBots || [];
   const seedBots = currentZone?.seedBots || [];
+
 
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
@@ -2796,24 +2814,24 @@ export default function Game() {
           <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>
 
           {/* Current Task */}
-          {gameState.currentTask ? (
+          {currentZone.currentTask ? (
             <div className="bg-green-900/50 border border-green-600 rounded px-2 py-1 mb-1">
               <div className="text-[10px] text-green-300 font-bold mb-0.5">CURRENT:</div>
               <div className="text-xs flex items-center gap-1">
-                {gameState.currentTask.type === 'clear' ? '⛏️ Clearing' :
-                 gameState.currentTask.type === 'plant' ? '🌱 Planting' :
-                 gameState.currentTask.type === 'water' ? '💧 Watering' :
-                 gameState.currentTask.type === 'harvest' ? '🌾 Harvesting' :
-                 gameState.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
-                 gameState.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
-                 gameState.currentTask.type === 'place_well' ? '🪣 Digging Well' :
-                 gameState.currentTask.type === 'deposit' ? '📦 Depositing' :
+                {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
+                 currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
+                 currentZone.currentTask.type === 'water' ? '💧 Watering' :
+                 currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
+                 currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
+                 currentZone.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
+                 currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
+                 currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
                  '🔨 Working'}
               </div>
               <div className="w-full h-1 bg-gray-700 rounded-full mt-1">
                 <div
                   className="h-1 bg-green-500 rounded-full transition-all"
-                  style={{ width: `${gameState.currentTask.progress}%` }}
+                  style={{ width: `${currentZone.currentTask.progress}%` }}
                 />
               </div>
             </div>
@@ -2824,11 +2842,11 @@ export default function Game() {
           )}
 
           {/* Task Queue */}
-          {gameState.taskQueue.length > 0 && (
+          {currentZone.taskQueue.length > 0 && (
             <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1 flex-1 flex flex-col min-h-0">
-              <div className="text-xs text-blue-300 font-bold mb-1">QUEUE ({gameState.taskQueue.length}):</div>
+              <div className="text-xs text-blue-300 font-bold mb-1">QUEUE ({currentZone.taskQueue.length}):</div>
               <div className="space-y-0.5 overflow-y-auto flex-1">
-                {gameState.taskQueue.map((task, idx) => (
+                {currentZone.taskQueue.map((task, idx) => (
                   <div key={task.id} className="text-sm flex items-center gap-1">
                     <span className="text-gray-400">{idx + 1}.</span>
                     {task.type === 'clear' ? '⛏️' :

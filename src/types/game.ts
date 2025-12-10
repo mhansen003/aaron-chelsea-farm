@@ -131,6 +131,7 @@ export interface Zone {
   harvestBots: HarvestBot[];
   seedBots: SeedBot[];
   taskQueue: Task[]; // Queue of tasks for worker in this zone
+  currentTask: Task | null; // Task currently being executed in this zone
 }
 
 export interface WaterBot {

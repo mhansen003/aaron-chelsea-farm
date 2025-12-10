@@ -340,6 +340,10 @@ export function createInitialState(): GameState {
 export function updateGameState(state: GameState, deltaTime: number): GameState {
   if (state.isPaused) return state;
 
+  // Get current zone for task queue management
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  let currentZone = state.zones[currentZoneKey];
+
   const newGameTime = state.gameTime + deltaTime;
   const newDayProgress = ((newGameTime % DAY_LENGTH) / DAY_LENGTH) * 100;
   const previousDay = state.currentDay;
@@ -374,28 +378,28 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // Process current task
-  if (newState.currentTask) {
+  if (currentZone.currentTask) {
     // Check if player has VISUALLY reached the task location (within small threshold)
     const visualX = newState.player.visualX ?? newState.player.x;
     const visualY = newState.player.visualY ?? newState.player.y;
-    const dx = Math.abs(visualX - newState.currentTask.tileX);
-    const dy = Math.abs(visualY - newState.currentTask.tileY);
+    const dx = Math.abs(visualX - currentZone.currentTask.tileX);
+    const dy = Math.abs(visualY - currentZone.currentTask.tileY);
     const playerVisuallyAtLocation = dx < 0.1 && dy < 0.1;
 
-    let newProgress = newState.currentTask.progress;
+    let newProgress = currentZone.currentTask.progress;
 
     // Only progress the task if player has VISUALLY arrived
     if (playerVisuallyAtLocation) {
-      newProgress = newState.currentTask.progress + (deltaTime / newState.currentTask.duration) * 100;
+      newProgress = currentZone.currentTask.progress + (deltaTime / currentZone.currentTask.duration) * 100;
     } else {
       // Move player toward task location (logical position, visual will catch up)
-      newState.player.x = newState.currentTask.tileX;
-      newState.player.y = newState.currentTask.tileY;
+      newState.player.x = currentZone.currentTask.tileX;
+      newState.player.y = currentZone.currentTask.tileY;
     }
 
     if (newProgress >= 100) {
       // Task complete - execute it
-      const task = newState.currentTask;
+      const task = currentZone.currentTask;
 
       switch (task.type) {
         case 'clear':
@@ -427,8 +431,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               };
 
               // Re-queue this harvest task and make deposit current
-              newState.taskQueue = [task, ...newState.taskQueue];
-              newState.currentTask = depositTask;
+              currentZone.taskQueue = [task, ...currentZone.taskQueue];
+              currentZone.currentTask = depositTask;
               // Set player position to warehouse so they walk there
               newState.player.x = warehousePos.x;
               newState.player.y = warehousePos.y;
@@ -456,7 +460,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
               // Make deposit the next task (will be picked up after current task clears)
               // But we need to insert it BEFORE clearing currentTask, so do it now
-              newState.currentTask = depositTask;
+              currentZone.currentTask = depositTask;
               // Set player position to warehouse so they walk there
               newState.player.x = warehousePos.x;
               newState.player.y = warehousePos.y;
@@ -479,18 +483,18 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       // Clear current task (player is already at location)
-      newState.currentTask = null;
+      currentZone.currentTask = null;
     } else {
       // Update progress
-      newState.currentTask = { ...newState.currentTask, progress: newProgress };
+      currentZone.currentTask = { ...currentZone.currentTask, progress: newProgress };
     }
   }
 
   // If no current task, take next from queue
-  if (!newState.currentTask && newState.taskQueue.length > 0) {
-    const [nextTask, ...remainingQueue] = newState.taskQueue;
-    newState.currentTask = nextTask;
-    newState.taskQueue = remainingQueue;
+  if (!currentZone.currentTask && currentZone.taskQueue.length > 0) {
+    const [nextTask, ...remainingQueue] = currentZone.taskQueue;
+    currentZone.currentTask = nextTask;
+    currentZone.taskQueue = remainingQueue;
 
     // AUTO-DEPOSIT: If basket is full, insert deposit task before continuing
     if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
@@ -509,8 +513,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         };
 
         // Put the current task back in queue and prioritize deposit
-        newState.taskQueue = [nextTask, ...remainingQueue];
-        newState.currentTask = depositTask;
+        currentZone.taskQueue = [nextTask, ...remainingQueue];
+        currentZone.currentTask = depositTask;
         // Set player position to warehouse so they walk there
         newState.player.x = warehousePos.x;
         newState.player.y = warehousePos.y;
@@ -519,7 +523,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // AUTO-DEPOSIT: If basket is full and no tasks, go deposit immediately
-  if (!newState.currentTask && newState.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
     const warehousePos = findWarehouseTile(newState);
     if (warehousePos) {
       // Create deposit task at warehouse location
@@ -534,7 +538,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         duration: TASK_DURATIONS.deposit,
       };
 
-      newState.currentTask = depositTask;
+      currentZone.currentTask = depositTask;
       // Set player position to warehouse so they walk there
       newState.player.x = warehousePos.x;
       newState.player.y = warehousePos.y;
@@ -542,7 +546,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   }
 
   // Idle wandering: If no tasks, randomly move the farmer around
-  if (!newState.currentTask && newState.taskQueue.length === 0) {
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0) {
     // Check if player has reached their current target (visual position matches logical position)
     const visualX = newState.player.visualX ?? newState.player.x;
     const visualY = newState.player.visualY ?? newState.player.y;
@@ -1255,6 +1259,19 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);
 
+  // Update current zone with modified task queue and current task
+  newState = {
+    ...newState,
+    zones: {
+      ...newZones,
+      [currentZoneKey]: {
+        ...newZones[currentZoneKey],
+        taskQueue: currentZone.taskQueue,
+        currentTask: currentZone.currentTask,
+      },
+    },
+  };
+
   return {
     ...newState,
     zones: newZones,
@@ -1876,8 +1893,8 @@ export function addTask(
     t => t.tileX === tileX && t.tileY === tileY &&
          t.zoneX === state.currentZone.x && t.zoneY === state.currentZone.y
   );
-  const isCurrentTask = state.currentTask &&
-    state.currentTask.tileX === tileX &&
+  const isCurrentTask = currentZone.currentTask &&
+    currentZone.currentTask.tileX === tileX &&
     state.currentTask.tileY === tileY &&
     state.currentTask.zoneX === state.currentZone.x &&
     state.currentTask.zoneY === state.currentZone.y;
@@ -1901,15 +1918,30 @@ export function addTask(
 
   return {
     ...state,
-    taskQueue: [...state.taskQueue, task],
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        taskQueue: [...currentZone.taskQueue, task],
+      },
+    },
   };
 }
 
 // Remove task from queue
 export function removeTask(state: GameState, taskId: string): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
   return {
     ...state,
-    taskQueue: state.taskQueue.filter(t => t.id !== taskId),
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        taskQueue: currentZone.taskQueue.filter(t => t.id !== taskId),
+      },
+    },
   };
 }
 

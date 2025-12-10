@@ -267,6 +267,7 @@ export default function Game() {
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
   const archBarnImageRef = useRef<HTMLImageElement | null>(null);
   const archMountainImageRef = useRef<HTMLImageElement | null>(null);
+  const archDesertImageRef = useRef<HTMLImageElement | null>(null);
   const workingImageRef = useRef<HTMLImageElement | null>(null);
   const coinImageRef = useRef<HTMLImageElement | null>(null);
   const clearToolImageRef = useRef<HTMLImageElement | null>(null);
@@ -386,6 +387,12 @@ export default function Game() {
     archMountainImg.src = '/arch-mountain.png';
     archMountainImg.onload = () => {
       archMountainImageRef.current = archMountainImg;
+    };
+
+    const archDesertImg = new Image();
+    archDesertImg.src = '/cactus.png';
+    archDesertImg.onload = () => {
+      archDesertImageRef.current = archDesertImg;
     };
 
     const workingImg = new Image();
@@ -851,7 +858,7 @@ export default function Game() {
           if (targetZone) {
             switch (targetZone.theme) {
               case 'desert':
-                selectedArchImage = archFarmImageRef.current || archFarmImageRef.current;
+                selectedArchImage = archDesertImageRef.current || archFarmImageRef.current;
                 break;
               case 'beach':
                 selectedArchImage = archBeachImageRef.current || archFarmImageRef.current;
@@ -1073,16 +1080,15 @@ export default function Game() {
           }
         }
 
-        // Draw blinking task-specific icon for queued OR current tasks (until farmer arrives)
-        // Check both taskQueue and currentTask
-        let taskForThisTile = gameState.taskQueue.find(task =>
-          task.tileX === x && task.tileY === y
+        // Draw blinking task-specific icon for queued tasks in the current zone
+        let taskForThisTile = currentZone.taskQueue.find(task =>
+          task.tileX === x && task.tileY === y &&
+          task.zoneX === gameState.currentZone.x &&
+          task.zoneY === gameState.currentZone.y
         );
 
-        // If no queued task, check if this is the current task and farmer hasn't arrived yet
-        if (!taskForThisTile && gameState.currentTask &&
-            gameState.currentTask.tileX === x &&
-            gameState.currentTask.tileY === y) {
+        // Note: We removed currentTask from GameState as tasks are now zone-specific
+        if (!taskForThisTile) {
           const visualX = gameState.player.visualX ?? gameState.player.x;
           const visualY = gameState.player.visualY ?? gameState.player.y;
           const hasReachedTile = Math.abs(visualX - x) < 0.1 && Math.abs(visualY - y) < 0.1;

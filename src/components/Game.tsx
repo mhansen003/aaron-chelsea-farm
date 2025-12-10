@@ -1023,17 +1023,31 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Mechanic building is 2x2 - only draw from top-left tile
-          const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'mechanic') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'mechanic') &&
-            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'mechanic')
+          // Check if this is a 2x2 building (all 4 tiles are mechanic)
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'mechanic' &&
+            gridRef[y + 1]?.[x]?.type === 'mechanic' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'mechanic'
           );
-          if (isTopLeft) {
+          // Check if this tile is part of a 2x2 that's drawn from another tile
+          const isPartOf2x2 = (
+            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic' && gridRef[y]?.[x - 1]?.type === 'mechanic') ||
+            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic') ||
+            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'mechanic' && gridRef[y - 1]?.[x + 1]?.type === 'mechanic' && gridRef[y]?.[x + 1]?.type === 'mechanic')
+          );
+
+          if (isTopLeftOf2x2) {
             // Draw at 2x size to span the 2x2 area
             ctx.drawImage(
               mechanicImageRef.current,
               px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          } else if (!isPartOf2x2) {
+            // Draw at 1x size (fallback for old single-tile buildings or incomplete 2x2)
+            ctx.drawImage(
+              mechanicImageRef.current,
+              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           }
         } else if (tile.type === 'well' && wellImageRef.current) {
@@ -1044,18 +1058,22 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Well building is 2x2 - only draw from top-left tile
-          const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'well') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'well') &&
-            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'well')
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'well' &&
+            gridRef[y + 1]?.[x]?.type === 'well' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'well'
           );
-          if (isTopLeft) {
-            // Draw at 2x size to span the 2x2 area
-            ctx.drawImage(
-              wellImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
+          const isPartOf2x2 = (
+            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well' && gridRef[y]?.[x - 1]?.type === 'well') ||
+            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well') ||
+            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'well' && gridRef[y - 1]?.[x + 1]?.type === 'well' && gridRef[y]?.[x + 1]?.type === 'well')
+          );
+
+          if (isTopLeftOf2x2) {
+            ctx.drawImage(wellImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          } else if (!isPartOf2x2) {
+            ctx.drawImage(wellImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
         } else if (tile.type === 'garage' && garageImageRef.current) {
           // Draw grass background (on all 4 tiles)
@@ -1065,18 +1083,22 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Garage building is 2x2 - only draw from top-left tile
-          const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'garage') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'garage') &&
-            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'garage')
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'garage' &&
+            gridRef[y + 1]?.[x]?.type === 'garage' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'garage'
           );
-          if (isTopLeft) {
-            // Draw at 2x size to span the 2x2 area
-            ctx.drawImage(
-              garageImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
+          const isPartOf2x2 = (
+            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage' && gridRef[y]?.[x - 1]?.type === 'garage') ||
+            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage') ||
+            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'garage' && gridRef[y - 1]?.[x + 1]?.type === 'garage' && gridRef[y]?.[x + 1]?.type === 'garage')
+          );
+
+          if (isTopLeftOf2x2) {
+            ctx.drawImage(garageImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
+          } else if (!isPartOf2x2) {
+            ctx.drawImage(garageImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
         } else if (tile.type === 'supercharger') {
           // Draw grass background (on all 4 tiles)
@@ -1086,13 +1108,19 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Supercharger building is 2x2 - only draw from top-left tile
-          const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'supercharger') &&
-            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'supercharger') &&
-            (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x + 1]?.type === 'supercharger')
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'supercharger' &&
+            gridRef[y + 1]?.[x]?.type === 'supercharger' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'supercharger'
           );
-          if (isTopLeft) {
+          const isPartOf2x2 = (
+            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'supercharger' && gridRef[y - 1]?.[x]?.type === 'supercharger' && gridRef[y]?.[x - 1]?.type === 'supercharger') ||
+            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'supercharger' && gridRef[y + 1]?.[x - 1]?.type === 'supercharger' && gridRef[y + 1]?.[x]?.type === 'supercharger') ||
+            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'supercharger' && gridRef[y - 1]?.[x + 1]?.type === 'supercharger' && gridRef[y]?.[x + 1]?.type === 'supercharger')
+          );
+
+          if (isTopLeftOf2x2) {
             // Draw supercharger graphics at 2x size to span the 2x2 area
             const gradient = ctx.createRadialGradient(
               px + GAME_CONFIG.tileSize,
@@ -1106,12 +1134,28 @@ export default function Game() {
             gradient.addColorStop(1, '#7c3aed');
             ctx.fillStyle = gradient;
             ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize * 2 - 4, GAME_CONFIG.tileSize * 2 - 4);
-
-            // Draw lightning bolt emoji at center of 2x2
             ctx.font = `${GAME_CONFIG.tileSize * 1.2}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('⚡', px + GAME_CONFIG.tileSize, py + GAME_CONFIG.tileSize);
+          } else if (!isPartOf2x2) {
+            // Draw at 1x size for fallback
+            const gradient = ctx.createRadialGradient(
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              0,
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              GAME_CONFIG.tileSize / 2
+            );
+            gradient.addColorStop(0, '#a855f7');
+            gradient.addColorStop(1, '#7c3aed');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+            ctx.font = `${GAME_CONFIG.tileSize * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
           }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite

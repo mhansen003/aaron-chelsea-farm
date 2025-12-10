@@ -8,7 +8,7 @@ interface SeedBotConfigModalProps {
   gameState: GameState;
   onClose: () => void;
   onUpdateJobs: (jobs: SeedBotJob[], autoBuySeeds: boolean) => void;
-  onEnterTileSelectionMode: (jobId: string, cropType: Exclude<CropType, null>) => void;
+  onEnterTileSelectionMode: (jobId: string, cropType: Exclude<CropType, null>, jobs: SeedBotJob[], autoBuySeeds: boolean) => void;
 }
 
 const CROP_INFO = {
@@ -53,7 +53,8 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
   };
 
   const handleSelectTiles = (jobId: string, cropType: Exclude<CropType, null>) => {
-    onEnterTileSelectionMode(jobId, cropType);
+    // Pass the current jobs to be saved before entering tile selection
+    onEnterTileSelectionMode(jobId, cropType, jobs, autoBuySeeds);
   };
 
   return (

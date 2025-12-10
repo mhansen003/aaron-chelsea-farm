@@ -219,8 +219,6 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     waterBots: [],
     harvestBots: [],
     seedBots: [],
-    taskQueue: [],
-    currentTask: null,
   };
 }
 
@@ -331,8 +329,6 @@ export function createInitialState(): GameState {
         unlocked: false,
       },
     ],
-    taskQueue: [],
-    currentTask: null,
     currentDay: 1,
     dayProgress: 0,
     gameTime: 0,

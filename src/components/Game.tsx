@@ -2485,10 +2485,12 @@ export default function Game() {
             setSelectedSeedBot(null);
             setTileSelectionMode(null);
           }}
-          onEnterTileSelectionMode={(jobId, cropType) => {
-            // Get the current job's selected tiles
-            const seedBot = seedBots?.find(b => b.id === selectedSeedBot);
-            const job = seedBot?.jobs.find(j => j.id === jobId);
+          onEnterTileSelectionMode={(jobId, cropType, jobs, autoBuySeeds) => {
+            // First, save the jobs to gameState so they exist during tile selection
+            setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, jobs, autoBuySeeds));
+
+            // Get the current job's selected tiles from the updated jobs
+            const job = jobs.find(j => j.id === jobId);
             const selectedTiles = job?.targetTiles || [];
 
             setTileSelectionMode({

@@ -224,7 +224,8 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                   }`}
                 >
                   {gameState.player.money >= SEEDBOT_COST ? `Purchase for $${SEEDBOT_COST}` : `Insufficient Funds ($${SEEDBOT_COST})`}
-              </button>
+                </button>
+              )}
             </div>
 
             {/* Transport Bot */}

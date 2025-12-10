@@ -1135,14 +1135,21 @@ export default function Game() {
         );
 
         // Note: We removed currentTask from GameState as tasks are now zone-specific
-        if (!taskForThisTile) {
-          const visualX = gameState.player.visualX ?? gameState.player.x;
-          const visualY = gameState.player.visualY ?? gameState.player.y;
-          const hasReachedTile = Math.abs(visualX - x) < 0.1 && Math.abs(visualY - y) < 0.1;
+        if (!taskForThisTile && currentZone.currentTask) {
+          // Only show the current task icon on the specific tile being worked on
+          if (currentZone.currentTask.tileX === x &&
+              currentZone.currentTask.tileY === y &&
+              currentZone.currentTask.zoneX === gameState.currentZone.x &&
+              currentZone.currentTask.zoneY === gameState.currentZone.y) {
 
-          // Only show icon if farmer hasn't reached yet
-          if (!hasReachedTile) {
-            taskForThisTile = currentZone.currentTask ?? undefined;
+            const visualX = gameState.player.visualX ?? gameState.player.x;
+            const visualY = gameState.player.visualY ?? gameState.player.y;
+            const hasReachedTile = Math.abs(visualX - x) < 0.1 && Math.abs(visualY - y) < 0.1;
+
+            // Only show icon if farmer hasn't reached yet
+            if (!hasReachedTile) {
+              taskForThisTile = currentZone.currentTask;
+            }
           }
         }
 

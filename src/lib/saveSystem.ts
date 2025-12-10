@@ -97,17 +97,17 @@ function migrateGameState(gameState: any): GameState {
   // Initialize autoBuy if it doesn't exist
   if (!gameState.player.autoBuy) {
     gameState.player.autoBuy = {
-      carrot: false,
-      wheat: false,
-      tomato: false,
-      pumpkin: false,
-      watermelon: false,
-      peppers: false,
-      grapes: false,
-      oranges: false,
-      avocado: false,
-      rice: false,
-      corn: false,
+      carrot: true,
+      wheat: true,
+      tomato: true,
+      pumpkin: true,
+      watermelon: true,
+      peppers: true,
+      grapes: true,
+      oranges: true,
+      avocado: true,
+      rice: true,
+      corn: true,
     };
   }
 

@@ -35,6 +35,7 @@ import {
   updateCurrentGrid,
   createZone,
   getZoneKey,
+  recordZoneEarnings,
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
@@ -2293,20 +2294,31 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
     const remainingBasket = gameState.player.basket.filter(item => item.crop !== cropType);
     const remainingWarehouse = gameState.warehouse.filter(item => item.crop !== cropType);
 
-    // Update game state
-    setGameState(prev => ({
-      ...prev,
+    // Get the current zone for earnings tracking
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+    const zoneName = currentZone?.name || 'Unknown Zone';
+
+    // Create updated state with earnings and sales
+    let updatedState: GameState = {
+      ...gameState,
       player: {
-        ...prev.player,
-        money: prev.player.money + totalEarned,
+        ...gameState.player,
+        money: gameState.player.money + totalEarned,
         basket: remainingBasket,
       },
       warehouse: remainingWarehouse,
       cropsSold: {
-        ...prev.cropsSold,
-        [cropType]: (prev.cropsSold[cropType] || 0) + allCropsToSell.length,
+        ...gameState.cropsSold,
+        [cropType]: (gameState.cropsSold[cropType] || 0) + allCropsToSell.length,
       },
-    }));
+    };
+
+    // Record earnings for this zone
+    updatedState = recordZoneEarnings(updatedState, totalEarned, zoneName);
+
+    // Update game state
+    setGameState(updatedState);
 
     setSellMessage(`Sold ${allCropsToSell.length} ${cropType}(s) (${basketCrops.length} from basket, ${warehouseCrops.length} from warehouse) for $${totalEarned}!`);
     setTimeout(() => setSellMessage(''), 3000);
@@ -2442,7 +2454,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🥕 <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
+          <Image src="/carrot.png" alt="Carrot" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
         </button>
         <button
           onClick={() =>
@@ -2460,7 +2472,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🌾 <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
+          <Image src="/wheat.png" alt="Wheat" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
         </button>
         <button
           onClick={() =>
@@ -2478,7 +2490,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🍅 <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
+          <Image src="/tomato.png" alt="Tomato" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
         </button>
         <button
           onClick={() =>
@@ -2496,7 +2508,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🎃 <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+          <Image src="/pumpkin.png" alt="Pumpkin" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
         </button>
         <button
           onClick={() =>
@@ -2514,7 +2526,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🍉 <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+          <Image src="/watermelon.png" alt="Watermelon" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
         </button>
         <button
           onClick={() =>
@@ -2532,7 +2544,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🌶️ <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
+          <Image src="/peppers.png" alt="Peppers" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
         </button>
         <button
           onClick={() =>
@@ -2550,7 +2562,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🍇 <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
+          <Image src="/grapes.png" alt="Grapes" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
         </button>
         <button
           onClick={() =>
@@ -2568,7 +2580,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🍊 <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
+          <Image src="/oranges.png" alt="Oranges" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
         </button>
         <button
           onClick={() =>
@@ -2586,7 +2598,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🥑 <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
+          <Image src="/avocado.png" alt="Avocado" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
         </button>
         <button
           onClick={() =>
@@ -2604,7 +2616,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🍚 <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
+          <Image src="/rice.png" alt="Rice" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
         </button>
         <button
           onClick={() =>
@@ -2622,7 +2634,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          🌽 <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
+          <Image src="/corn.png" alt="Corn" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
         </button>
       </div>
 

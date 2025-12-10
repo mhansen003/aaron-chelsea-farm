@@ -877,9 +877,25 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         grid.forEach((row, y) => { row.forEach((tile, x) => { if (tile.type === 'well') wellPos = { x, y }; }); });
         if (wellPos) {
           const well: { x: number; y: number } = wellPos;
-          if (botX === well.x && botY === well.y) {
-            return { ...bot, waterLevel: WATERBOT_MAX_WATER, status: 'refilling' as const, visualX, visualY };
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+          if (botX === well.x && botY === well.y && hasArrivedVisually) {
+            // Bot has arrived at well, start/continue refilling
+            const REFILL_DURATION = 3000; // 3 seconds to refill
+            if (bot.actionStartTime !== undefined) {
+              const elapsed = newGameTime - bot.actionStartTime;
+              if (elapsed >= REFILL_DURATION) {
+                // Refill complete
+                return { ...bot, waterLevel: WATERBOT_MAX_WATER, status: 'refilling' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              } else {
+                // Still refilling
+                return { ...bot, status: 'refilling' as const, visualX, visualY };
+              }
+            } else {
+              // Start refilling
+              return { ...bot, status: 'refilling' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: REFILL_DURATION };
+            }
           } else {
+            // Travel to well
             let newX = botX, newY = botY;
             if (Math.random() < (deltaTime / 500)) {
               if (botX < well.x) newX++; else if (botX > well.x) newX--;

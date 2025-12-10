@@ -314,7 +314,7 @@ export function createInitialState(): GameState {
     player: {
       x: 1,
       y: 1,
-      money: 30,
+      money: 1000,
       farmName: "Aaron & Chelsea's Farm",
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
@@ -857,7 +857,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   return tile;
                 })
               );
-              return { ...bot, waterLevel: bot.waterLevel - 1, status: 'watering' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              return { ...bot, waterLevel: bot.waterLevel - 1, status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
             } else {
               return { ...bot, status: 'watering' as const, visualX, visualY };
             }

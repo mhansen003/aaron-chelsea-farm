@@ -232,7 +232,25 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     theme = 'mountain';
     name = "Mountain Range";
     description = "Rugged mountainous terrain rich with minerals and rare resources. Challenging but rewarding!";
+    npc = {
+      name: "Mountain Man",
+      description: "Expert mountaineer and mining specialist. He can guide you through caves and help extract precious gems!",
+      image: "/mountainman.png",
+      shopType: "mining",
+    };
     features = [
+      {
+        name: "Cave Exploration",
+        description: "Venture into mysterious caves to harvest rare mushrooms and fungi",
+        icon: "🍄",
+        unlocked: false,
+      },
+      {
+        name: "Gem Mining",
+        description: "Extract valuable gems and minerals from mountain rocks",
+        icon: "💎",
+        unlocked: false,
+      },
       {
         name: "Mining Robots",
         description: "Automated bots that extract valuable minerals and gems",

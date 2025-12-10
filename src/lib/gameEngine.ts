@@ -459,6 +459,8 @@ export function createInitialState(): GameState {
         wellPlaced: false,
         garage: 0,
         garagePlaced: false,
+        supercharger: 0,
+        superchargerPlaced: false,
       },
       autoBuy: {
         carrot: true,
@@ -2985,6 +2987,136 @@ export function relocateGarage(state: GameState): GameState {
       },
     },
   };
+}
+
+export function buySupercharger(state: GameState): GameState {
+  // Check if player can afford it
+  if (state.player.money < SUPERCHARGER_COST) return state;
+
+  // Check if player already has a supercharger
+  if (state.player.inventory.supercharger >= 1) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - SUPERCHARGER_COST,
+      inventory: {
+        ...state.player.inventory,
+        supercharger: 1,
+      },
+    },
+  };
+}
+
+export function placeSupercharger(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
+
+  // Can only place on cleared grass/dirt tiles, and must have one in inventory
+  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.supercharger <= 0 || state.player.inventory.superchargerPlaced) {
+    return state;
+  }
+
+  // Place supercharger instantly
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY) {
+        return {
+          ...t,
+          type: 'supercharger' as const,
+          isConstructing: false,
+          constructionTarget: undefined,
+          constructionStartTime: undefined,
+          constructionDuration: undefined,
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        superchargerPlaced: true,
+      },
+    },
+  };
+}
+
+export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'): GameState {
+  // Check if player can afford it
+  if (state.player.money < SUPERCHARGE_BOT_COST) return state;
+
+  let updated = false;
+
+  // Find and supercharge the specific bot
+  const newState = { ...state };
+
+  if (botType === 'water' && newState.waterBots) {
+    newState.waterBots = newState.waterBots.map(bot => {
+      if (bot.id === botId && !bot.supercharged) {
+        updated = true;
+        return { ...bot, supercharged: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'harvest' && newState.harvestBots) {
+    newState.harvestBots = newState.harvestBots.map(bot => {
+      if (bot.id === botId && !bot.supercharged) {
+        updated = true;
+        return { ...bot, supercharged: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'seed' && newState.seedBots) {
+    newState.seedBots = newState.seedBots.map(bot => {
+      if (bot.id === botId && !bot.supercharged) {
+        updated = true;
+        return { ...bot, supercharged: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'transport' && newState.transportBots) {
+    newState.transportBots = newState.transportBots.map(bot => {
+      if (bot.id === botId && !bot.supercharged) {
+        updated = true;
+        return { ...bot, supercharged: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'demolish' && newState.demolishBots) {
+    newState.demolishBots = newState.demolishBots.map(bot => {
+      if (bot.id === botId && !bot.supercharged) {
+        updated = true;
+        return { ...bot, supercharged: true };
+      }
+      return bot;
+    });
+  }
+
+  // Only deduct money if a bot was actually supercharged
+  if (updated) {
+    return {
+      ...newState,
+      player: {
+        ...newState.player,
+        money: newState.player.money - SUPERCHARGE_BOT_COST,
+      },
+    };
+  }
+
+  return state;
 }
 
 // Handle place_well task in task execution

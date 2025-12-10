@@ -854,6 +854,7 @@ export default function Game() {
 
     // Draw grid
     const currentGrid = getCurrentGrid(gameState);
+    const gridRef = currentGrid; // Reference for closure capture
     currentGrid.forEach((row, y) => {
       row.forEach((tile, x) => {
         const px = x * GAME_CONFIG.tileSize;
@@ -995,8 +996,8 @@ export default function Game() {
           }
           // Mechanic building is 2x2 - only draw from top-left tile
           const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'mechanic') &&
-            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'mechanic')
+            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'mechanic') &&
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'mechanic')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1015,8 +1016,8 @@ export default function Game() {
           }
           // Well building is 2x2 - only draw from top-left tile
           const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'well') &&
-            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'well')
+            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'well') &&
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'well')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1035,8 +1036,8 @@ export default function Game() {
           }
           // Garage building is 2x2 - only draw from top-left tile
           const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'garage') &&
-            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'garage')
+            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'garage') &&
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'garage')
           );
           if (isTopLeft) {
             // Draw at 2x size to span the 2x2 area
@@ -1055,8 +1056,8 @@ export default function Game() {
           }
           // Supercharger building is 2x2 - only draw from top-left tile
           const isTopLeft = (
-            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'supercharger') &&
-            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'supercharger')
+            (x + 1 < GAME_CONFIG.gridWidth && gridRef[y]?.[x + 1]?.type === 'supercharger') &&
+            (y + 1 < GAME_CONFIG.gridHeight && gridRef[y + 1]?.[x]?.type === 'supercharger')
           );
           if (isTopLeft) {
             // Draw supercharger graphics at 2x size to span the 2x2 area

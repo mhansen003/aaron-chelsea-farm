@@ -88,6 +88,15 @@ export const TASK_DURATIONS = {
   deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 
+// Helper functions for supercharged bot speed calculations
+function getAdjustedDuration(baseDuration: number, supercharged?: boolean): number {
+  return supercharged ? baseDuration * 0.5 : baseDuration;
+}
+
+function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
+  return supercharged ? deltaTime / 250 : deltaTime / 500;
+}
+
 export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('@/types/game').ZoneTheme): Tile[][] {
   const grid: Tile[][] = [];
   const isStartingZone = zoneX === 0 && zoneY === 0;
@@ -1026,7 +1035,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
-          const ACTION_DURATION = 1500;
+          const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
@@ -1047,7 +1056,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         } else {
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 500)) {
+          if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
@@ -1061,7 +1070,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
           if (botX === well.x && botY === well.y && hasArrivedVisually) {
             // Bot has arrived at well, start/continue refilling
-            const REFILL_DURATION = 3000; // 3 seconds to refill
+            const REFILL_DURATION = getAdjustedDuration(3000, bot.supercharged); // 3 seconds to refill (or 1.5s if supercharged)
             if (bot.actionStartTime !== undefined) {
               const elapsed = newGameTime - bot.actionStartTime;
               if (elapsed >= REFILL_DURATION) {
@@ -1078,7 +1087,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           } else {
             // Travel to well
             let newX = botX, newY = botY;
-            if (Math.random() < (deltaTime / 500)) {
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
               if (botX < well.x) newX++; else if (botX > well.x) newX--;
               else if (botY < well.y) newY++; else if (botY > well.y) newY--;
             }
@@ -1188,7 +1197,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
 
             if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
-              const DEPOSIT_DURATION = 3000; // 3 seconds to deposit
+              const DEPOSIT_DURATION = getAdjustedDuration(3000, bot.supercharged); // 3 seconds to deposit (or 1.5s if supercharged)
 
               // If already depositing, check if time has elapsed
               if (bot.actionStartTime !== undefined) {
@@ -1208,7 +1217,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             } else {
               // Travel to warehouse
               let newX = botX, newY = botY;
-              if (Math.random() < (deltaTime / 500)) {
+              if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
                 if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
                 else if (botY < warehouse.y) newY++; else if (botY > warehouse.y) newY--;
               }
@@ -1233,7 +1242,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
 
           if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
-            const DEPOSIT_DURATION = 3000; // 3 seconds to deposit
+            const DEPOSIT_DURATION = getAdjustedDuration(3000, bot.supercharged); // 3 seconds to deposit (or 1.5s if supercharged)
 
             // If already depositing, check if time has elapsed
             if (bot.actionStartTime !== undefined) {
@@ -1253,7 +1262,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           } else {
             // Travel to warehouse
             let newX = botX, newY = botY;
-            if (Math.random() < (deltaTime / 500)) {
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
               if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
               else if (botY < warehouse.y) newY++; else if (botY > warehouse.y) newY--;
             }
@@ -1281,7 +1290,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
           if (tile && tile.type === 'grown' && tile.crop) {
-            const ACTION_DURATION = 1500;
+            const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
 
             if (bot.actionStartTime !== undefined) {
               const elapsed = newState.gameTime - bot.actionStartTime;
@@ -1330,7 +1339,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         } else {
           // Traveling to target - keep claim active
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 500)) {
+          if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
@@ -1535,7 +1544,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
           if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
-            const ACTION_DURATION = 800; // Faster planting (was 1500)
+            const ACTION_DURATION = getAdjustedDuration(800, bot.supercharged); // Faster planting (400ms if supercharged)
 
             if (bot.actionStartTime !== undefined) {
               const elapsed = newState.gameTime - bot.actionStartTime;
@@ -1668,7 +1677,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === exportStation.x && botY === exportStation.y && hasArrivedVisually) {
           // Selling at export station
-          const ACTION_DURATION = 2000;
+          const ACTION_DURATION = getAdjustedDuration(2000, bot.supercharged);
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
@@ -1710,7 +1719,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
           // Loading from warehouse
-          const ACTION_DURATION = 1500;
+          const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
@@ -1838,7 +1847,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           // Bot has arrived at obstacle, start/continue clearing
-          const CLEARING_DURATION = TASK_DURATIONS.clear; // 10 seconds
+          const CLEARING_DURATION = getAdjustedDuration(TASK_DURATIONS.clear, bot.supercharged); // 10 seconds (or 5s if supercharged)
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= CLEARING_DURATION) {
@@ -1863,7 +1872,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         } else {
           // Travel to obstacle
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 500)) {
+          if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }

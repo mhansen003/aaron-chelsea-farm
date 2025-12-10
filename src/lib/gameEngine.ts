@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -24,6 +24,7 @@ export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
 export const HARVESTBOT_COST = 400; // Cost to buy one harvest bot
 export const SEEDBOT_COST = 500; // Cost to buy one seed bot
 export const TRANSPORTBOT_COST = 1000; // Cost to buy one transport bot
+export const DEMOLISHBOT_COST = 100; // Cost to buy one demolish bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -345,9 +346,9 @@ export function createInitialState(): GameState {
         wellPlaced: false,
       },
       autoBuy: {
-        carrot: false,
-        wheat: false,
-        tomato: false,
+        carrot: true,
+        wheat: true,
+        tomato: true,
       },
     },
     tools: [
@@ -1526,6 +1527,106 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[startZoneKey] = { ...startZone, transportBots: updatedTransportBots };
   }
 
+  // ========== DEMOLISH BOT AI (ALL ZONES) ==========
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    if (!zone.owned || !zone.demolishBots || zone.demolishBots.length === 0) return;
+
+    const grid = zone.grid;
+    let updatedGrid = grid;
+    const updatedDemolishBots = zone.demolishBots.map(bot => {
+      if (bot.x === undefined || bot.y === undefined) return bot;
+
+      const botX = bot.x;
+      const botY = bot.y;
+      let visualX = bot.visualX ?? botX;
+      let visualY = bot.visualY ?? botY;
+
+      const dx = botX - visualX;
+      const dy = botY - visualY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0.01) {
+        visualX += dx * MOVE_SPEED;
+        visualY += dy * MOVE_SPEED;
+      } else {
+        visualX = botX;
+        visualY = botY;
+      }
+
+      // Find rocks and forest tiles that need clearing
+      const obstacleTiles: Array<{ x: number; y: number }> = [];
+      grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          if (tile.type === 'rocks' || tile.type === 'forest') {
+            obstacleTiles.push({ x, y });
+          }
+        });
+      });
+
+      if (obstacleTiles.length > 0) {
+        // Find nearest obstacle
+        let nearest = obstacleTiles[0];
+        let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
+        obstacleTiles.forEach(obstacle => {
+          const dist = Math.abs(botX - obstacle.x) + Math.abs(botY - obstacle.y);
+          if (dist < minDist) { minDist = dist; nearest = obstacle; }
+        });
+
+        const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+        if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
+          // Bot has arrived at obstacle, start/continue clearing
+          const CLEARING_DURATION = TASK_DURATIONS.clear; // 10 seconds
+          if (bot.actionStartTime !== undefined) {
+            const elapsed = newGameTime - bot.actionStartTime;
+            if (elapsed >= CLEARING_DURATION) {
+              // Clearing complete - clear the tile
+              updatedGrid = updatedGrid.map((row, rowY) =>
+                row.map((tile, tileX) => {
+                  if (tileX === nearest.x && rowY === nearest.y) {
+                    return { ...tile, type: 'dirt' as const, cleared: true, lastWorkedTime: newGameTime };
+                  }
+                  return tile;
+                })
+              );
+              return { ...bot, status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+            } else {
+              // Still clearing
+              return { ...bot, status: 'clearing' as const, visualX, visualY };
+            }
+          } else {
+            // Start clearing
+            return { ...bot, status: 'clearing' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: CLEARING_DURATION };
+          }
+        } else {
+          // Travel to obstacle
+          let newX = botX, newY = botY;
+          if (Math.random() < (deltaTime / 500)) {
+            if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
+            else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
+          }
+          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
+        }
+      } else {
+        // No obstacles found, wander around
+        if (Math.random() < (deltaTime / 2000)) {
+          const walkableTiles: Array<{ x: number; y: number }> = [];
+          grid.forEach((row, y) => {
+            row.forEach((tile, x) => {
+              const isWalkable = tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'planted' || tile.type === 'grown' || tile.type === 'sand' || tile.type === 'seaweed' || tile.type === 'shells' || tile.type === 'cactus';
+              if (isWalkable) walkableTiles.push({ x, y });
+            });
+          });
+          const nearbyTiles = walkableTiles.filter(t => { const dx = Math.abs(t.x - botX); const dy = Math.abs(t.y - botY); return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0); });
+          if (nearbyTiles.length > 0) {
+            const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+            return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY };
+          }
+        }
+      }
+      return { ...bot, visualX, visualY };
+    });
+    newZones[zoneKey] = { ...zone, demolishBots: updatedDemolishBots, grid: updatedGrid };
+  });
 
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);

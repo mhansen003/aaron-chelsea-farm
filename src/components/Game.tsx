@@ -313,6 +313,7 @@ export default function Game() {
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
   const mechanicImageRef = useRef<HTMLImageElement | null>(null);
   const wellImageRef = useRef<HTMLImageElement | null>(null);
+  const garageImageRef = useRef<HTMLImageElement | null>(null);
   const oceanImageRef = useRef<HTMLImageElement | null>(null);
   const sandImageRef = useRef<HTMLImageElement | null>(null);
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
@@ -492,6 +493,7 @@ export default function Game() {
     wellImg.onload = () => {
       wellImageRef.current = wellImg;
     };
+const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.onload = () => {      garageImageRef.current = garageImg;    };
   }, []);
 
   // Load themed tile images based on current zone
@@ -913,6 +915,7 @@ export default function Game() {
             wellImageRef.current,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
+        } else if (tile.type === 'garage' && garageImageRef.current) {          // Draw grass background          if (grassImageRef.current) {            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);          } else {            ctx.fillStyle = COLORS.grass;            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);          }          // Draw garage image at standard size          ctx.drawImage(            garageImageRef.current,            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize          );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

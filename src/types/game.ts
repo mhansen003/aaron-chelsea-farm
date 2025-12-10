@@ -264,6 +264,7 @@ export interface GameState {
   transportBots?: TransportBot[]; // Transport bots in the game
   demolishBots?: DemolishBot[]; // Demolish bots in the game
   saveCode?: string; // Persistent save code for this game
+  cropsSold: Record<Exclude<CropType, null>, number>; // Track how many of each crop has been sold for price progression
 }
 
 export interface GameConfig {

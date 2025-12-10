@@ -23,6 +23,35 @@ export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null
   null: { daysToGrow: 0, growTime: 0, sellPrice: 0, seedCost: 0 },
 };
 
+/**
+ * Calculate price multiplier based on progression (crops sold)
+ * Every 10 crops sold = +10% to prices (both seed cost and sell price)
+ * Caps at +200% (30+ sold = 3x base prices)
+ */
+export function getPriceMultiplier(cropType: Exclude<CropType, null>, cropsSold: Record<Exclude<CropType, null>, number>): number {
+  const sold = cropsSold[cropType] || 0;
+  const multiplier = 1 + (Math.floor(sold / 10) * 0.1);
+  return Math.min(multiplier, 3); // Cap at 3x
+}
+
+/**
+ * Get current seed cost for a crop based on progression
+ */
+export function getCurrentSeedCost(cropType: Exclude<CropType, null>, cropsSold: Record<Exclude<CropType, null>, number>): number {
+  const baseCost = CROP_INFO[cropType].seedCost;
+  const multiplier = getPriceMultiplier(cropType, cropsSold);
+  return Math.round(baseCost * multiplier);
+}
+
+/**
+ * Get current sell price for a crop based on progression
+ */
+export function getCurrentSellPrice(cropType: Exclude<CropType, null>, cropsSold: Record<Exclude<CropType, null>, number>): number {
+  const basePrice = CROP_INFO[cropType].sellPrice;
+  const multiplier = getPriceMultiplier(cropType, cropsSold);
+  return Math.round(basePrice * multiplier);
+}
+
 export const DAY_LENGTH = 60000; // 60 seconds = 1 day
 export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
 export const SPRINKLER_RANGE = 3; // 7x7 area (3 tiles in each direction)
@@ -38,7 +67,7 @@ export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
 export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
 export const WELL_COST = 100; // Cost to buy a well
-export const GARAGE_COST = 150; // Cost to buy a garage
+export const GARAGE_COST = 175; // Cost to buy a garage
 export const BASE_ZONE_PRICE = 500; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
@@ -480,6 +509,19 @@ export function createInitialState(): GameState {
     gameTime: 0,
     isPaused: false,
     warehouse: [], // Empty warehouse storage
+    cropsSold: { // Track crops sold for price progression
+      carrot: 0,
+      wheat: 0,
+      tomato: 0,
+      pumpkin: 0,
+      watermelon: 0,
+      peppers: 0,
+      grapes: 0,
+      oranges: 0,
+      avocado: 0,
+      rice: 0,
+      corn: 0,
+    },
   };
 }
 

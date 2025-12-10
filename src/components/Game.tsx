@@ -293,6 +293,14 @@ export default function Game() {
   const carrotsImageRef = useRef<HTMLImageElement | null>(null);
   const wheatImageRef = useRef<HTMLImageElement | null>(null);
   const tomatoImageRef = useRef<HTMLImageElement | null>(null);
+  const pumpkinImageRef = useRef<HTMLImageElement | null>(null);
+  const watermelonImageRef = useRef<HTMLImageElement | null>(null);
+  const peppersImageRef = useRef<HTMLImageElement | null>(null);
+  const grapesImageRef = useRef<HTMLImageElement | null>(null);
+  const orangesImageRef = useRef<HTMLImageElement | null>(null);
+  const avocadoImageRef = useRef<HTMLImageElement | null>(null);
+  const riceImageRef = useRef<HTMLImageElement | null>(null);
+  const cornImageRef = useRef<HTMLImageElement | null>(null);
   const rockImageRef = useRef<HTMLImageElement | null>(null);
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
@@ -364,6 +372,54 @@ export default function Game() {
     tomatoImg.src = '/tomato.png';
     tomatoImg.onload = () => {
       tomatoImageRef.current = tomatoImg;
+    };
+
+    const pumpkinImg = new Image();
+    pumpkinImg.src = '/pumpkin.png';
+    pumpkinImg.onload = () => {
+      pumpkinImageRef.current = pumpkinImg;
+    };
+
+    const watermelonImg = new Image();
+    watermelonImg.src = '/watermelon.png';
+    watermelonImg.onload = () => {
+      watermelonImageRef.current = watermelonImg;
+    };
+
+    const peppersImg = new Image();
+    peppersImg.src = '/peppers.png';
+    peppersImg.onload = () => {
+      peppersImageRef.current = peppersImg;
+    };
+
+    const grapesImg = new Image();
+    grapesImg.src = '/grapes.png';
+    grapesImg.onload = () => {
+      grapesImageRef.current = grapesImg;
+    };
+
+    const orangesImg = new Image();
+    orangesImg.src = '/oranges.png';
+    orangesImg.onload = () => {
+      orangesImageRef.current = orangesImg;
+    };
+
+    const avocadoImg = new Image();
+    avocadoImg.src = '/avocado.png';
+    avocadoImg.onload = () => {
+      avocadoImageRef.current = avocadoImg;
+    };
+
+    const riceImg = new Image();
+    riceImg.src = '/rice.png';
+    riceImg.onload = () => {
+      riceImageRef.current = riceImg;
+    };
+
+    const cornImg = new Image();
+    cornImg.src = '/corn.png';
+    cornImg.onload = () => {
+      cornImageRef.current = cornImg;
     };
 
     const shopImg = new Image();
@@ -497,7 +553,12 @@ export default function Game() {
     wellImg.onload = () => {
       wellImageRef.current = wellImg;
     };
-const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.onload = () => {      garageImageRef.current = garageImg;    };
+
+    const garageImg = new Image();
+    garageImg.src = '/garage.png';
+    garageImg.onload = () => {
+      garageImageRef.current = garageImg;
+    };
   }, []);
 
   // Load themed tile images based on current zone
@@ -919,7 +980,19 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
             wellImageRef.current,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
-        } else if (tile.type === 'garage' && garageImageRef.current) {          // Draw grass background          if (grassImageRef.current) {            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);          } else {            ctx.fillStyle = COLORS.grass;            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);          }          // Draw garage image at standard size          ctx.drawImage(            garageImageRef.current,            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize          );
+        } else if (tile.type === 'garage' && garageImageRef.current) {
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          // Draw garage image at standard size
+          ctx.drawImage(
+            garageImageRef.current,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1086,6 +1159,70 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(tomatoImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'pumpkin' && pumpkinImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(pumpkinImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'watermelon' && watermelonImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(watermelonImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'peppers' && peppersImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(peppersImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'grapes' && grapesImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(grapesImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'oranges' && orangesImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(orangesImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'avocado' && avocadoImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(avocadoImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'rice' && riceImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(riceImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'grown' && tile.crop === 'corn' && cornImageRef.current) {
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+          ctx.drawImage(cornImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown') {
           // Draw grass background first, then dirt + generic grown crop (golden)
           if (grassImageRef.current) {
@@ -1213,6 +1350,22 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
                   taskIcon = wheatImageRef.current;
                 } else if (taskForThisTile.cropType === 'tomato') {
                   taskIcon = tomatoImageRef.current;
+                } else if (taskForThisTile.cropType === 'pumpkin') {
+                  taskIcon = pumpkinImageRef.current;
+                } else if (taskForThisTile.cropType === 'watermelon') {
+                  taskIcon = watermelonImageRef.current;
+                } else if (taskForThisTile.cropType === 'peppers') {
+                  taskIcon = peppersImageRef.current;
+                } else if (taskForThisTile.cropType === 'grapes') {
+                  taskIcon = grapesImageRef.current;
+                } else if (taskForThisTile.cropType === 'oranges') {
+                  taskIcon = orangesImageRef.current;
+                } else if (taskForThisTile.cropType === 'avocado') {
+                  taskIcon = avocadoImageRef.current;
+                } else if (taskForThisTile.cropType === 'rice') {
+                  taskIcon = riceImageRef.current;
+                } else if (taskForThisTile.cropType === 'corn') {
+                  taskIcon = cornImageRef.current;
                 } else {
                   taskIcon = plantedCropImageRef.current; // Fallback
                 }

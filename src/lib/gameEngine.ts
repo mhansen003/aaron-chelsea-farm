@@ -1261,12 +1261,17 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       if (!isInventoryFull && availableCrops.length > 0) {
-        let nearest = availableCrops[0];
-        let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        availableCrops.forEach(crop => {
-          const dist = Math.abs(botX - crop.x) + Math.abs(botY - crop.y);
-          if (dist < minDist) { minDist = dist; nearest = crop; }
+        // Round-robin selection: Sort by distance, then rotate through crops
+        const sortedCrops = availableCrops.sort((a, b) => {
+          const distA = Math.abs(botX - a.x) + Math.abs(botY - a.y);
+          const distB = Math.abs(botX - b.x) + Math.abs(botY - b.y);
+          return distA - distB;
         });
+
+        // Use round-robin index to ensure even distribution
+        const lastIndex = bot.lastHarvestedIndex ?? -1;
+        const nextIndex = (lastIndex + 1) % sortedCrops.length;
+        const nearest = sortedCrops[nextIndex];
 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
@@ -1317,7 +1322,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
-          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
+          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, lastHarvestedIndex: nextIndex };
         }
       } else {
         if (Math.random() < (deltaTime / 2000)) {

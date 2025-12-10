@@ -195,6 +195,7 @@ export interface HarvestBot {
   idleStartTime?: number; // Game time when bot became idle with inventory
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  lastHarvestedIndex?: number; // Round-robin index for even crop distribution
 }
 
 export interface SeedBotJob {

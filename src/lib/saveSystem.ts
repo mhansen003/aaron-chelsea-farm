@@ -53,7 +53,7 @@ export async function loadFromSaveCode(code: string): Promise<GameState> {
     }
 
     const { gameState } = await response.json();
-    return gameState;
+    return migrateGameState(gameState);
   } catch (error) {
     console.error('Failed to load save code:', error);
     throw new Error('Invalid or expired save code');
@@ -74,6 +74,47 @@ export function saveToLocalStorage(gameState: GameState): void {
 }
 
 /**
+ * Migrates old save data to ensure it has all required properties
+ */
+function migrateGameState(gameState: any): GameState {
+  // Initialize cropsSold if it doesn't exist (backward compatibility)
+  if (!gameState.cropsSold) {
+    gameState.cropsSold = {
+      carrot: 0,
+      wheat: 0,
+      tomato: 0,
+      pumpkin: 0,
+      watermelon: 0,
+      peppers: 0,
+      grapes: 0,
+      oranges: 0,
+      avocado: 0,
+      rice: 0,
+      corn: 0,
+    };
+  }
+
+  // Initialize autoBuy if it doesn't exist
+  if (!gameState.player.autoBuy) {
+    gameState.player.autoBuy = {
+      carrot: false,
+      wheat: false,
+      tomato: false,
+      pumpkin: false,
+      watermelon: false,
+      peppers: false,
+      grapes: false,
+      oranges: false,
+      avocado: false,
+      rice: false,
+      corn: false,
+    };
+  }
+
+  return gameState as GameState;
+}
+
+/**
  * Loads game state from localStorage autosave
  */
 export function loadFromLocalStorage(): GameState | null {
@@ -81,7 +122,8 @@ export function loadFromLocalStorage(): GameState | null {
     const saveData = localStorage.getItem('farm_autosave');
     if (!saveData) return null;
 
-    return JSON.parse(saveData) as GameState;
+    const gameState = JSON.parse(saveData);
+    return migrateGameState(gameState);
   } catch (error) {
     console.error('Failed to load autosave:', error);
     return null;

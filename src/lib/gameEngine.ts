@@ -270,6 +270,7 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     harvestBots: [],
     seedBots: [],
     transportBots: [],
+    demolishBots: [],
     taskQueue: [],
     currentTask: null,
   };
@@ -1558,7 +1559,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const obstacleTiles: Array<{ x: number; y: number }> = [];
       grid.forEach((row, y) => {
         row.forEach((tile, x) => {
-          if (tile.type === 'rocks' || tile.type === 'forest') {
+          if (tile.type === 'rock' || tile.type === 'tree') {
             obstacleTiles.push({ x, y });
           }
         });

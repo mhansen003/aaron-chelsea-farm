@@ -1420,11 +1420,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
-              // Calculate total money from selling
-              const totalMoney = bot.inventory.reduce((sum, item) => {
+              // Calculate total money from selling (rounded to nearest dollar)
+              const totalMoney = Math.round(bot.inventory.reduce((sum, item) => {
                 const cropInfo = CROP_INFO[item.crop];
                 return sum + (cropInfo.sellPrice * item.quality.yield);
-              }, 0);
+              }, 0));
 
               // Update player money
               newState = {

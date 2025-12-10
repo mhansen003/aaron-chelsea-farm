@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
 import { CROP_INFO, getCurrentSellPrice } from '@/lib/gameEngine';
 
@@ -154,9 +155,9 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           <div className="mb-3">
             <div className="text-sm text-gray-300 mb-1">🧺 Basket ({gameState.player.basket.length}/{gameState.player.basketCapacity}):</div>
             <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
                 <div key={crop} className="flex items-center gap-2">
-                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
                   <span className="text-lg font-bold">{basketCounts[crop] || 0}</span>
                 </div>
               ))}
@@ -167,9 +168,9 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           <div className="mb-3">
             <div className="text-sm text-gray-300 mb-1">🏛️ Warehouse ({gameState.warehouse.length} items):</div>
             <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
                 <div key={crop} className="flex items-center gap-2">
-                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
                   <span className="text-lg font-bold">{warehouseCounts[crop] || 0}</span>
                 </div>
               ))}
@@ -180,9 +181,9 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           <div className="border-t border-white/20 pt-2 mt-2">
             <div className="text-sm text-green-300 mb-1">📊 Total Available:</div>
             <div className="flex gap-4">
-              {(['carrot', 'wheat', 'tomato'] as const).map((crop) => (
+              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => (
                 <div key={crop} className="flex items-center gap-2">
-                  <span className="text-2xl">{cropEmojis[crop]}</span>
+                  <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
                   <span className="text-lg font-bold text-green-300">{totalCounts[crop]}</span>
                 </div>
               ))}
@@ -209,7 +210,7 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {(['carrot', 'wheat', 'tomato'] as const).map((crop) => {
+                  {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => {
                     const count = totalCounts[crop]; // Use combined basket + warehouse count
                     const price = vendor.prices[crop];
                     const totalValue = count * price;
@@ -225,7 +226,7 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
                         }`}
                       >
                         <div className="text-center mb-2">
-                          <div className="text-3xl mb-1">{cropEmojis[crop]}</div>
+                          <Image src={`/${crop}.png`} alt={crop} width={48} height={48} className="object-contain mx-auto mb-1" />
                           <div className="text-sm font-bold capitalize text-amber-300">
                             ${price} each
                           </div>

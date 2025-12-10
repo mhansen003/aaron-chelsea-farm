@@ -15,6 +15,14 @@ const CROP_INFO = {
   carrot: { name: 'Carrot', emoji: '🥕' },
   wheat: { name: 'Wheat', emoji: '🌾' },
   tomato: { name: 'Tomato', emoji: '🍅' },
+  pumpkin: { name: 'Pumpkin', emoji: '🎃' },
+  watermelon: { name: 'Watermelon', emoji: '🍉' },
+  peppers: { name: 'Peppers', emoji: '🌶️' },
+  grapes: { name: 'Grapes', emoji: '🍇' },
+  oranges: { name: 'Oranges', emoji: '🍊' },
+  avocado: { name: 'Avocado', emoji: '🥑' },
+  rice: { name: 'Rice', emoji: '🍚' },
+  corn: { name: 'Corn', emoji: '🌽' },
 };
 
 export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpdateJobs, onEnterTileSelectionMode }: SeedBotConfigModalProps) {

@@ -1772,10 +1772,11 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 }
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
-  // Check current zone - limit to 1 harvest bot per zone
+  // Limit to 2 harvest bots total
+  if (state.player.inventory.harvestbots >= 2) return state; // Already has 2 harvest bots
+
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
-  if (currentZone.harvestBots.length >= 1) return state; // Already has a harvest bot in this zone
 
   const cost = HARVESTBOT_COST * amount;
 
@@ -1826,10 +1827,11 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
 }
 
 export function buySeedbots(state: GameState, amount: number): GameState {
-  // Check current zone - limit to 1 seed bot per zone
+  // Limit to 2 seed bots total
+  if (state.player.inventory.seedbots >= 2) return state; // Already has 2 seed bots
+
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
-  if (currentZone.seedBots.length >= 1) return state; // Already has a seed bot in this zone
 
   const cost = SEEDBOT_COST * amount;
 
@@ -1884,7 +1886,7 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
   const startZoneKey = '0,0';
   const startZone = state.zones[startZoneKey];
   if (!startZone) return state; // Start zone doesn't exist
-  if (startZone.transportBots.length >= 3) return state; // Max 3 transport bots
+  if (startZone.transportBots.length >= 1) return state; // Max 1 transport bot
 
   const cost = TRANSPORTBOT_COST * amount;
 

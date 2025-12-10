@@ -1,7 +1,7 @@
 'use client';
 
 import { GameState } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST } from '@/lib/gameEngine';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST } from '@/lib/gameEngine';
 import Image from 'next/image';
 
 interface MechanicShopProps {
@@ -10,11 +10,11 @@ interface MechanicShopProps {
   onBuyWaterbots: (amount: number) => void;
   onBuyHarvestbots: (amount: number) => void;
   onBuySeedbots: (amount: number) => void;
+  onBuyTransportbots: (amount: number) => void;
   onRelocate: () => void;
 }
 
-export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onRelocate }: MechanicShopProps) {
-  const TRANSPORTBOT_COST = 2000; // Placeholder cost for transport bot
+export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onRelocate }: MechanicShopProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -199,7 +199,11 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
             </div>
 
             {/* Transport Bot */}
-            <div className="bg-gradient-to-br from-purple-900/40 to-indigo-950/40 p-5 rounded-xl border-3 border-purple-500/50 shadow-lg shadow-purple-500/20 hover:scale-[1.02] transition-transform duration-200 opacity-60">
+            <div className={`bg-gradient-to-br from-purple-900/40 to-indigo-950/40 p-5 rounded-xl border-3 shadow-lg shadow-purple-500/20 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.transportbots >= 1
+                ? 'border-green-500 shadow-green-500/30'
+                : 'border-purple-500/50'
+            }`}>
               <div className="flex gap-4 mb-4">
                 {/* Bot Image */}
                 <div className="relative w-24 h-24 flex-shrink-0">
@@ -210,11 +214,11 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                     height={96}
                     className="object-contain"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full rotate-[-15deg]">
-                      COMING SOON
-                    </span>
-                  </div>
+                  {gameState.player.inventory.transportbots >= 1 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      MAX
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -230,17 +234,31 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="bg-black/40 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-purple-400">Owned: 0</span>
+                  <span className="text-sm font-bold text-purple-400">Owned: {gameState.player.inventory.transportbots}/1</span>
                 </div>
-                <div className="text-xs text-gray-400">
-                  ⧗ Auto-transports • ⧗ Auto-sells • ⧗ Large cargo capacity
+                <div className="text-xs text-green-400">
+                  ✓ Auto-transports • ✓ Auto-sells • ✓ Large cargo capacity
                 </div>
               </div>
 
-              {/* Disabled Button */}
-              <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-gray-700 text-gray-400 text-center border-2 border-gray-600">
-                Under Development ($${TRANSPORTBOT_COST})
-              </div>
+              {/* Buy Button */}
+              {gameState.player.inventory.transportbots >= 1 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ MAXIMUM FLEET CAPACITY
+                </div>
+              ) : (
+                <button
+                  onClick={() => onBuyTransportbots(1)}
+                  disabled={gameState.player.money < TRANSPORTBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= TRANSPORTBOT_COST
+                      ? 'bg-purple-600 hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= TRANSPORTBOT_COST ? `Purchase for $${TRANSPORTBOT_COST}` : `Insufficient Funds ($${TRANSPORTBOT_COST})`}
+                </button>
+              )}
             </div>
           </div>
         </div>

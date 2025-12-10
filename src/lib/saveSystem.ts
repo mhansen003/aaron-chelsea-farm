@@ -111,6 +111,11 @@ function migrateGameState(gameState: any): GameState {
     };
   }
 
+  // Initialize zoneEarnings if it doesn't exist (backward compatibility)
+  if (!gameState.zoneEarnings) {
+    gameState.zoneEarnings = {};
+  }
+
   return gameState as GameState;
 }
 

@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot, ZoneEarnings } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,
@@ -522,6 +522,7 @@ export function createInitialState(): GameState {
       rice: 0,
       corn: 0,
     },
+    zoneEarnings: {}, // Track earnings by zone
   };
 }
 
@@ -2718,6 +2719,49 @@ export function depositToWarehouse(state: GameState): GameState {
   };
 }
 
+/**
+ * Records earnings for a specific zone
+ */
+export function recordZoneEarnings(state: GameState, amount: number, zoneName: string): GameState {
+  // Initialize zoneEarnings if it doesn't exist
+  const zoneEarnings = state.zoneEarnings || {};
+
+  // Get the zone key from current zone
+  const zoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+
+  // Get or create the ZoneEarnings for the current zone
+  const currentZoneEarnings = zoneEarnings[zoneKey] || {
+    zoneKey,
+    zoneName,
+    totalEarnings: 0,
+    earningsHistory: [],
+  };
+
+  // Add the amount to total earnings
+  const newTotalEarnings = currentZoneEarnings.totalEarnings + amount;
+
+  // Add an entry to earningsHistory (keep only last 20)
+  const newEarningsHistory = [
+    { timestamp: Date.now(), amount },
+    ...currentZoneEarnings.earningsHistory,
+  ].slice(0, 20);
+
+  // Update the zone earnings
+  const updatedZoneEarnings: ZoneEarnings = {
+    ...currentZoneEarnings,
+    totalEarnings: newTotalEarnings,
+    earningsHistory: newEarningsHistory,
+  };
+
+  return {
+    ...state,
+    zoneEarnings: {
+      ...zoneEarnings,
+      [zoneKey]: updatedZoneEarnings,
+    },
+  };
+}
+
 export function sellBasket(state: GameState): {
   success: boolean;
   state: GameState;
@@ -2745,7 +2789,12 @@ export function sellBasket(state: GameState): {
     .map(([crop, count]) => `${count} ${crop}`)
     .join(', ');
 
-  const newState: GameState = {
+  // Get the current zone for earnings tracking
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  const zoneName = currentZone?.name || 'Unknown Zone';
+
+  let newState: GameState = {
     ...state,
     player: {
       ...state.player,
@@ -2753,6 +2802,9 @@ export function sellBasket(state: GameState): {
       basket: [], // Empty the basket
     },
   };
+
+  // Record earnings for this zone
+  newState = recordZoneEarnings(newState, totalEarned, zoneName);
 
   return {
     success: true,

@@ -46,6 +46,7 @@ import ExportShop from './ExportShop';
 import MechanicShop from './MechanicShop';
 import WarehouseModal from './WarehouseModal';
 import ZonePreviewModal from './ZonePreviewModal';
+import ZoneEarningsModal from './ZoneEarningsModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
 import WelcomeSplash from './WelcomeSplash';
@@ -276,6 +277,7 @@ export default function Game() {
   const [mouseDownPos, setMouseDownPos] = useState<{ x: number; y: number } | null>(null);
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -2395,7 +2397,13 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
 
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1"><span>💰</span><span className="font-bold">${gameState.player.money}</span></div>
+          <div
+            className="flex items-center gap-1 cursor-pointer hover:bg-green-700 px-2 py-1 rounded transition-colors"
+            onClick={() => setShowEarningsModal(true)}
+            title="Click to view zone earnings"
+          >
+            <span>💰</span><span className="font-bold">${gameState.player.money}</span>
+          </div>
           <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/{gameState.player.basketCapacity}</span></div>
         </div>
       </div>
@@ -3232,6 +3240,14 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
         <SaveGameModal
           saveCode={currentSaveCode}
           onClose={() => setShowSaveModal(false)}
+        />
+      )}
+
+      {/* Zone Earnings Modal */}
+      {showEarningsModal && (
+        <ZoneEarningsModal
+          gameState={gameState}
+          onClose={() => setShowEarningsModal(false)}
         />
       )}
     </div>

@@ -1,5 +1,11 @@
 import { GameState } from '@/types/game';
 
+interface SaveCodeHistory {
+  code: string;
+  timestamp: number;
+  farmName: string;
+}
+
 /**
  * Saves game state to the server and returns a 6-digit code
  * This code works across all devices!
@@ -18,6 +24,10 @@ export async function generateSaveCode(gameState: GameState): Promise<string> {
     }
 
     const { code } = await response.json();
+
+    // Save code to history for easy recovery
+    saveCodeToHistory(code, gameState.player.farmName);
+
     return code;
   } catch (error) {
     console.error('Failed to save game:', error);
@@ -110,5 +120,55 @@ export function clearAutosave(): void {
     localStorage.removeItem('farm_autosave_timestamp');
   } catch (error) {
     console.error('Failed to clear autosave:', error);
+  }
+}
+
+/**
+ * Saves a save code to history for easy recovery
+ */
+function saveCodeToHistory(code: string, farmName: string): void {
+  try {
+    const historyJson = localStorage.getItem('farm_save_codes');
+    let history: SaveCodeHistory[] = historyJson ? JSON.parse(historyJson) : [];
+
+    // Add new code to the beginning
+    history.unshift({
+      code,
+      timestamp: Date.now(),
+      farmName,
+    });
+
+    // Keep only the last 10 codes
+    history = history.slice(0, 10);
+
+    localStorage.setItem('farm_save_codes', JSON.stringify(history));
+  } catch (error) {
+    console.error('Failed to save code to history:', error);
+  }
+}
+
+/**
+ * Gets the list of recent save codes
+ */
+export function getRecentSaveCodes(): SaveCodeHistory[] {
+  try {
+    const historyJson = localStorage.getItem('farm_save_codes');
+    if (!historyJson) return [];
+
+    return JSON.parse(historyJson) as SaveCodeHistory[];
+  } catch (error) {
+    console.error('Failed to get recent save codes:', error);
+    return [];
+  }
+}
+
+/**
+ * Clears all save code history
+ */
+export function clearSaveCodeHistory(): void {
+  try {
+    localStorage.removeItem('farm_save_codes');
+  } catch (error) {
+    console.error('Failed to clear save code history:', error);
   }
 }

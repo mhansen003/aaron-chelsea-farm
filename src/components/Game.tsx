@@ -282,6 +282,14 @@ export default function Game() {
             if (parsed.player.inventory.seedQuality.corn === undefined) parsed.player.inventory.seedQuality.corn = defaultQuality;
           }
 
+          // MIGRATION: Initialize building placement flags if missing
+          if (parsed.player?.inventory) {
+            if (parsed.player.inventory.superchargerPlaced === undefined) parsed.player.inventory.superchargerPlaced = false;
+            if (parsed.player.inventory.garagePlaced === undefined) parsed.player.inventory.garagePlaced = false;
+            if (parsed.player.inventory.wellPlaced === undefined) parsed.player.inventory.wellPlaced = false;
+            if (parsed.player.inventory.mechanicShopPlaced === undefined) parsed.player.inventory.mechanicShopPlaced = false;
+          }
+
           const migratedState = parsed as GameState;
 
           // Migrate to new save system

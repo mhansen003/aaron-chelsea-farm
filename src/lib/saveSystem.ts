@@ -148,6 +148,14 @@ function migrateGameState(gameState: any): GameState {
     if (gameState.player.autoBuy.corn === undefined) gameState.player.autoBuy.corn = true;
   }
 
+  // Initialize building placement flags if missing
+  if (gameState.player?.inventory) {
+    if (gameState.player.inventory.superchargerPlaced === undefined) gameState.player.inventory.superchargerPlaced = false;
+    if (gameState.player.inventory.garagePlaced === undefined) gameState.player.inventory.garagePlaced = false;
+    if (gameState.player.inventory.wellPlaced === undefined) gameState.player.inventory.wellPlaced = false;
+    if (gameState.player.inventory.mechanicShopPlaced === undefined) gameState.player.inventory.mechanicShopPlaced = false;
+  }
+
   // Initialize zoneEarnings if it doesn't exist (backward compatibility)
   if (!gameState.zoneEarnings) {
     gameState.zoneEarnings = {};

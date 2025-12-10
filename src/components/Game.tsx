@@ -1719,15 +1719,8 @@ export default function Game() {
           const tilesFromOtherRows = tileSelectionMode.selectedTiles.filter(t => t.y !== tileY);
           const allNewTiles = [...tilesFromOtherRows, ...newTiles].slice(0, 10); // Max 10 tiles per job
 
-          // Update the seed bot's job with new tiles
-          const updatedJobs = seedBot.jobs.map(job =>
-            job.id === tileSelectionMode.jobId
-              ? { ...job, targetTiles: allNewTiles }
-              : job
-          );
-          setGameState(prev => updateSeedBotJobs(prev, seedBot.id, updatedJobs, seedBot.autoBuySeeds));
-
-          // Update tile selection mode state
+          // Update tile selection mode state only (don't update bot jobs until saved)
+          // This prevents bots from starting to plant during the selection process
           setTileSelectionMode({
             ...tileSelectionMode,
             selectedTiles: allNewTiles,
@@ -1799,23 +1792,8 @@ export default function Game() {
           return;
         }
 
-        // Update the seed bot's job with new tiles
-        if (selectedSeedBot) {
-          const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
-          const currentZone = gameState.zones[currentZoneKey];
-          const seedBots = currentZone?.seedBots || [];
-          const seedBot = seedBots.find(b => b.id === selectedSeedBot);
-          if (seedBot) {
-            const updatedJobs = seedBot.jobs.map(job =>
-              job.id === tileSelectionMode.jobId
-                ? { ...job, targetTiles: newSelectedTiles }
-                : job
-            );
-            setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, updatedJobs, seedBot.autoBuySeeds));
-          }
-        }
-
-        // Update tile selection mode state
+        // Update tile selection mode state only (don't update bot jobs until saved)
+        // This prevents bots from starting to plant during the selection process
         setTileSelectionMode({
           ...tileSelectionMode,
           selectedTiles: newSelectedTiles,

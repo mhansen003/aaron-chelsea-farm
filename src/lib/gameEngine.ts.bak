@@ -1671,7 +1671,7 @@ export function buySeedbots(state: GameState, amount: number): GameState {
       id: botId,
       jobs: [], // Start with no jobs configured
       status: 'idle',
-      autoBuySeeds: true, // Auto-buy seeds enabled by default
+      autoBuySeeds: false, // Auto-buy seeds disabled by default
       x: spawnX, // Spawn near player
       y: spawnY,
       visualX: spawnX, // Initialize visual position to match

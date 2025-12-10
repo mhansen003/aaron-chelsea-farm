@@ -1606,7 +1606,10 @@ export default function Game() {
         }
 
         // Update the seed bot's job with new tiles
-        if (selectedSeedBot && seedBots) {
+        if (selectedSeedBot) {
+          const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+          const currentZone = gameState.zones[currentZoneKey];
+          const seedBots = currentZone?.seedBots || [];
           const seedBot = seedBots.find(b => b.id === selectedSeedBot);
           if (seedBot) {
             const updatedJobs = seedBot.jobs.map(job =>
@@ -2451,7 +2454,7 @@ export default function Game() {
 
       {/* Tile Selection Mode Overlay */}
       {tileSelectionMode && tileSelectionMode.active && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-green-600 to-lime-600 text-white px-8 py-4 rounded-xl shadow-2xl border-4 border-green-300">
+        <div className="fixed top-4 left-4 z-50 bg-gradient-to-r from-green-600 to-lime-600 text-white px-8 py-4 rounded-xl shadow-2xl border-4 border-green-300 pointer-events-none">
           <div className="text-center">
             <div className="text-2xl font-bold mb-2">🌱 Tile Selection Mode</div>
             <div className="text-sm mb-3">
@@ -2487,7 +2490,7 @@ export default function Game() {
                 setTileSelectionMode(null);
                 setShowSeedBotConfig(true);
               }}
-              className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-100 transition-colors"
+              className="px-6 py-2 bg-white text-green-700 font-bold rounded-lg hover:bg-green-100 transition-colors pointer-events-auto"
             >
               ✓ Done Selecting
             </button>

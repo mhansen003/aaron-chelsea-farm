@@ -219,10 +219,28 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     theme = 'barn';
     name = "Animal Barn";
     description = "A cozy barn area where you can raise livestock and collect resources like milk, eggs, and wool.";
+    npc = {
+      name: "Cowgirl",
+      description: "Expert rancher and livestock specialist. She can help you harvest bacon, eggs, and milk from your animals!",
+      image: "/cowgirl.png",
+      shopType: "dairy",
+    };
     features = [
       {
+        name: "Bacon Production",
+        description: "Raise pigs and harvest delicious bacon",
+        icon: "🥓",
+        unlocked: false,
+      },
+      {
+        name: "Egg Collection",
+        description: "Collect fresh eggs from your chickens",
+        icon: "🥚",
+        unlocked: false,
+      },
+      {
         name: "Dairy Production",
-        description: "Collect milk and cheese from your animals",
+        description: "Collect milk and cheese from your cows",
         icon: "🥛",
         unlocked: false,
       },

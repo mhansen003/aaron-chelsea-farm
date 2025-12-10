@@ -297,6 +297,7 @@ export default function Game() {
   const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
   const seedBotImageRef = useRef<HTMLImageElement | null>(null);
   const transportBotImageRef = useRef<HTMLImageElement | null>(null);
+  const demolishBotImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
   const archBarnImageRef = useRef<HTMLImageElement | null>(null);
@@ -411,6 +412,11 @@ export default function Game() {
       transportBotImageRef.current = transportBotImg;
     };
 
+    const demolishBotImg = new Image();
+    demolishBotImg.src = '/drill-bot.png';
+    demolishBotImg.onload = () => {
+      demolishBotImageRef.current = demolishBotImg;
+    };
 
     const archFarmImg = new Image();
     archFarmImg.src = '/arch-farm.png';
@@ -1631,6 +1637,28 @@ export default function Game() {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(bot.inventory.length.toString(), botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize - 8);
+        }
+      }
+    });
+
+    // Draw demolish bots using visual position for smooth movement
+    demolishBots?.forEach(bot => {
+      if (bot.x !== undefined && bot.y !== undefined) {
+        const visualX = bot.visualX ?? bot.x;
+        const visualY = bot.visualY ?? bot.y;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
+
+        if (demolishBotImageRef.current) {
+          ctx.drawImage(demolishBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to orange circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#ff6600';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
     });

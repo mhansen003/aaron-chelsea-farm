@@ -92,6 +92,14 @@ function migrateGameState(gameState: any): GameState {
       rice: 0,
       corn: 0,
     };
+  } else {
+    // Add missing crops to existing cropsSold (for saves before new crops were added)
+    if (gameState.cropsSold.peppers === undefined) gameState.cropsSold.peppers = 0;
+    if (gameState.cropsSold.grapes === undefined) gameState.cropsSold.grapes = 0;
+    if (gameState.cropsSold.oranges === undefined) gameState.cropsSold.oranges = 0;
+    if (gameState.cropsSold.avocado === undefined) gameState.cropsSold.avocado = 0;
+    if (gameState.cropsSold.rice === undefined) gameState.cropsSold.rice = 0;
+    if (gameState.cropsSold.corn === undefined) gameState.cropsSold.corn = 0;
   }
 
   // Initialize autoBuy if it doesn't exist

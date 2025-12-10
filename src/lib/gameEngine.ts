@@ -2267,8 +2267,8 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 }
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
-  // Limit to 3 harvest bots total
-  if (state.player.inventory.harvestbots >= 3) return state; // Already has 3 harvest bots
+  // Limit to 7 harvest bots total
+  if (state.player.inventory.harvestbots >= 7) return state; // Already has 7 harvest bots
 
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];

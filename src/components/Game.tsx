@@ -236,6 +236,31 @@ export default function Game() {
             delete parsed.currentTask;
           }
 
+          // MIGRATION: Ensure cropsSold has all crops initialized
+          if (!parsed.cropsSold) {
+            parsed.cropsSold = {
+              carrot: 0,
+              wheat: 0,
+              tomato: 0,
+              pumpkin: 0,
+              watermelon: 0,
+              peppers: 0,
+              grapes: 0,
+              oranges: 0,
+              avocado: 0,
+              rice: 0,
+              corn: 0,
+            };
+          } else {
+            // Add missing crops to existing cropsSold
+            if (parsed.cropsSold.peppers === undefined) parsed.cropsSold.peppers = 0;
+            if (parsed.cropsSold.grapes === undefined) parsed.cropsSold.grapes = 0;
+            if (parsed.cropsSold.oranges === undefined) parsed.cropsSold.oranges = 0;
+            if (parsed.cropsSold.avocado === undefined) parsed.cropsSold.avocado = 0;
+            if (parsed.cropsSold.rice === undefined) parsed.cropsSold.rice = 0;
+            if (parsed.cropsSold.corn === undefined) parsed.cropsSold.corn = 0;
+          }
+
           const migratedState = parsed as GameState;
 
           // Migrate to new save system

@@ -139,7 +139,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="bg-black/40 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.harvestbots}/3</span>
+                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.harvestbots}/7</span>
                 </div>
                 <div className="text-xs text-green-400">
                   ✓ Auto-harvests crops • ✓ 8-slot inventory • ✓ Auto-deposits

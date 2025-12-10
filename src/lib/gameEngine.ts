@@ -675,6 +675,50 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, grid: newGrid };
   });
 
+  // Natural overgrowth: Empty tiles in farm zones slowly get reclaimed by nature
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    if (!zone.owned || zone.theme !== 'farm') return; // Only farm zones overgrow
+
+    const updatedGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Only process cleared dirt/grass tiles without crops or buildings
+        const isEmptyFarmTile = (tile.type === 'dirt' || tile.type === 'grass') &&
+                                 tile.cleared &&
+                                 !tile.crop &&
+                                 !tile.hasSprinkler &&
+                                 !tile.isConstructing;
+
+        if (isEmptyFarmTile) {
+          // Set initial last worked time if not set
+          if (tile.lastWorkedTime === undefined) {
+            return {
+              ...tile,
+              lastWorkedTime: newGameTime,
+              overgrowthTime: newGameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
+            };
+          }
+
+          // Check if overgrowth time has passed
+          if (tile.overgrowthTime !== undefined && newGameTime >= tile.overgrowthTime) {
+            // Randomly choose between rock and tree
+            const overgrowthType: TileType = Math.random() < 0.5 ? 'rock' : 'tree';
+            return {
+              ...tile,
+              type: overgrowthType,
+              cleared: false,
+              lastWorkedTime: undefined,
+              overgrowthTime: undefined,
+            };
+          }
+        }
+
+        return tile;
+      })
+    );
+
+    newZones[zoneKey] = { ...zone, grid: updatedGrid };
+  });
+
   // Complete building construction when timer expires
   Object.entries(newZones).forEach(([zoneKey, zone]) => {
     if (!zone.owned) return;
@@ -952,7 +996,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 updatedGrid = updatedGrid.map((row, rowY) =>
                   row.map((t, tileX) => {
                     if (tileX === nearest.x && rowY === nearest.y) {
-                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined };
+                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (420000 + Math.random() * 480000) };
                     }
                     return t;
                   })
@@ -1188,6 +1232,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                         type: 'planted' as import('@/types/game').TileType,
                         crop: cropType,
                         growthStage: 0,
+                        lastWorkedTime: undefined,
+                        overgrowthTime: undefined,
                       };
                     }
                     return t;
@@ -1445,6 +1491,8 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
           ...t,
           type: 'grass' as TileType,
           cleared: true,
+          lastWorkedTime: state.gameTime,
+          overgrowthTime: state.gameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
         };
       }
       return t;
@@ -1480,6 +1528,8 @@ export function plantSeed(
           plantedDay: state.currentDay, // Track when planted
           wateredTimestamp: undefined, // Crop needs to be watered first before growing
           wateredToday: false, // Crop needs water after planting
+          lastWorkedTime: undefined, // Clear overgrowth tracking - tile is in use
+          overgrowthTime: undefined,
         };
       }
       return t;
@@ -1509,6 +1559,8 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           crop: null,
           growthStage: 0,
           plantedDay: undefined,
+          lastWorkedTime: state.gameTime,
+          overgrowthTime: state.gameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
         };
       }
       return t;

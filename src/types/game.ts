@@ -58,6 +58,8 @@ export interface Tile {
   constructionTarget?: TileType; // What building type it will become
   constructionStartTime?: number; // Game time when construction started
   constructionDuration?: number; // How long construction takes (ms)
+  lastWorkedTime?: number; // Game time when tile was last cleared/planted/harvested
+  overgrowthTime?: number; // Game time when tile will overgrow (randomized 3-5 min)
 }
 
 export interface SeedQuality {

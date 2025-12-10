@@ -1329,8 +1329,6 @@ export default function Game() {
     const playerPy = visualY * GAME_CONFIG.tileSize;
 
     // Use themed farmer sprite based on current zone
-    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
-    const currentZone = gameState.zones[currentZoneKey];
     const isBeachZone = currentZone?.theme === 'beach';
     const farmerSprite = (isBeachZone && surferImageRef.current) ? surferImageRef.current : farmerImageRef.current;
 
@@ -2470,7 +2468,9 @@ export default function Game() {
                 // Save the selected tiles to the job before closing
                 if (tileSelectionMode && selectedSeedBot) {
                   setGameState(prev => {
-                    const seedBot = prev.seedBots?.find(b => b.id === selectedSeedBot);
+                    const prevZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+                    const prevZone = prev.zones[prevZoneKey];
+                    const seedBot = prevZone?.seedBots?.find(b => b.id === selectedSeedBot);
                     if (!seedBot) return prev;
 
                     const updatedJobs = seedBot.jobs.map(job => {

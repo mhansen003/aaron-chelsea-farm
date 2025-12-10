@@ -1773,8 +1773,8 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 }
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
-  // Limit to 2 harvest bots total
-  if (state.player.inventory.harvestbots >= 2) return state; // Already has 2 harvest bots
+  // Limit to 3 harvest bots total
+  if (state.player.inventory.harvestbots >= 3) return state; // Already has 3 harvest bots
 
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -1828,8 +1828,8 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
 }
 
 export function buySeedbots(state: GameState, amount: number): GameState {
-  // Limit to 2 seed bots total
-  if (state.player.inventory.seedbots >= 2) return state; // Already has 2 seed bots
+  // Limit to 3 seed bots total
+  if (state.player.inventory.seedbots >= 3) return state; // Already has 3 seed bots
 
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -1853,7 +1853,7 @@ export function buySeedbots(state: GameState, amount: number): GameState {
       id: botId,
       jobs: [], // Start with no jobs configured
       status: 'idle',
-      autoBuySeeds: false, // Auto-buy seeds disabled by default
+      autoBuySeeds: true, // Auto-buy seeds enabled by default
       x: spawnX, // Spawn near player
       y: spawnY,
       visualX: spawnX, // Initialize visual position to match

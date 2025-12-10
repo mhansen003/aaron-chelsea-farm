@@ -263,23 +263,25 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
           </div>
         </div>
 
-        {/* Relocate Button */}
-        <button
-          onClick={() => {
-            onRelocate();
-            onClose();
-          }}
-          className="mt-6 w-full px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg"
-        >
-          🔄 Relocate Mechanic Shop
-        </button>
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-6">
+          <button
+            onClick={() => {
+              onRelocate();
+              onClose();
+            }}
+            className="flex-1 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg"
+          >
+            🔄 Relocate Shop
+          </button>
 
-        <button
-          onClick={onClose}
-          className="mt-4 w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
-        >
-          Close Mechanic Shop
-        </button>
+          <button
+            onClick={onClose}
+            className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+          >
+            Close Shop
+          </button>
+        </div>
       </div>
     </div>
   );

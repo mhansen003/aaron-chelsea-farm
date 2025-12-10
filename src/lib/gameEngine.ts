@@ -18,11 +18,11 @@ export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null
 export const DAY_LENGTH = 60000; // 60 seconds = 1 day
 export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
 export const SPRINKLER_RANGE = 3; // 7x7 area (3 tiles in each direction)
-export const WATERBOT_COST = 150; // Cost to buy one water bot
+export const WATERBOT_COST = 300; // Cost to buy one water bot
 export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
-export const HARVESTBOT_COST = 200; // Cost to buy one harvest bot
-export const SEEDBOT_COST = 250; // Cost to buy one seed bot
+export const HARVESTBOT_COST = 400; // Cost to buy one harvest bot
+export const SEEDBOT_COST = 500; // Cost to buy one seed bot
 export const TRANSPORTBOT_COST = 2000; // Cost to buy one transport bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade

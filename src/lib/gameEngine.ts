@@ -1211,10 +1211,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           }
         }
-      } else {
-        if (bot.idleStartTime) {
-          return { ...bot, idleStartTime: undefined, visualX, visualY };
-        }
       }
 
       if (isInventoryFull) {
@@ -1309,7 +1305,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   },
                 };
 
-                return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                return { ...bot, inventory: [...bot.inventory, { crop: cropType, quality: improvedQuality }], status: 'harvesting' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined, idleStartTime: undefined };
               } else {
                 return { ...bot, status: 'harvesting' as const, visualX, visualY };
               }
@@ -1326,7 +1322,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
-          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, lastHarvestedIndex: nextIndex };
+          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, lastHarvestedIndex: nextIndex, idleStartTime: undefined };
         }
       } else {
         if (Math.random() < (deltaTime / 2000)) {

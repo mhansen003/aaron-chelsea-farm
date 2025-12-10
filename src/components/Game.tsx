@@ -2564,6 +2564,63 @@ export default function Game() {
 
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
+      {/* Left Sidebar - Farmer Status */}
+      <div className="w-44 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
+        <div className="text-sm font-bold text-center mb-2 text-green-400">👨‍🌾 Farmer</div>
+
+        {/* Current Task */}
+        {currentZone.currentTask ? (
+          <div className="bg-green-900/50 border border-green-600 rounded px-2 py-1.5 mb-1">
+            <div className="text-[11px] text-green-300 font-bold mb-1">CURRENT:</div>
+            <div className="text-sm flex items-center gap-1">
+              {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
+               currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
+               currentZone.currentTask.type === 'water' ? '💧 Watering' :
+               currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
+               currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
+               currentZone.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
+               currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
+               currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
+               '🔨 Working'}
+            </div>
+            <div className="w-full h-1.5 bg-gray-700 rounded-full mt-1.5">
+              <div
+                className="h-1.5 bg-green-500 rounded-full transition-all"
+                style={{ width: `${currentZone.currentTask.progress}%` }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gray-800/50 border border-gray-600 rounded px-2 py-1.5 mb-1">
+            <div className="text-sm text-gray-400 text-center">Idle</div>
+          </div>
+        )}
+
+        {/* Task Queue */}
+        {currentZone.taskQueue.length > 0 && (
+          <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 flex-1 flex flex-col min-h-0">
+            <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
+            <div className="space-y-1 overflow-y-auto flex-1">
+              {currentZone.taskQueue.map((task, idx) => (
+                <div key={task.id} className="text-sm flex items-center gap-1">
+                  <span className="text-gray-400">{idx + 1}.</span>
+                  {task.type === 'clear' ? '⛏️' :
+                   task.type === 'plant' ? '🌱' :
+                   task.type === 'water' ? '💧' :
+                   task.type === 'harvest' ? '🌾' :
+                   task.type === 'place_sprinkler' ? '💦' :
+                   task.type === 'place_mechanic' ? '⚙️' :
+                   task.type === 'place_well' ? '🪣' :
+                   task.type === 'deposit' ? '📦' :
+                   '🔨'}
+                  <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Main Game Area */}
       <div className="flex flex-col items-center gap-2 flex-1 min-h-0 pb-2">
       {/* Compact Top Bar */}
@@ -3314,96 +3371,39 @@ export default function Game() {
       )}
       </div>
 
-      {/* Compact Sidebar - Farmer and Bots */}
-      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
-        {/* Farmer Status and Task Queue */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>
-
-          {/* Current Task */}
-          {currentZone.currentTask ? (
-            <div className="bg-green-900/50 border border-green-600 rounded px-2 py-1 mb-1">
-              <div className="text-[10px] text-green-300 font-bold mb-0.5">CURRENT:</div>
-              <div className="text-xs flex items-center gap-1">
-                {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
-                 currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
-                 currentZone.currentTask.type === 'water' ? '💧 Watering' :
-                 currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
-                 currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
-                 currentZone.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
-                 currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
-                 currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
-                 '🔨 Working'}
-              </div>
-              <div className="w-full h-1 bg-gray-700 rounded-full mt-1">
-                <div
-                  className="h-1 bg-green-500 rounded-full transition-all"
-                  style={{ width: `${currentZone.currentTask.progress}%` }}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-800/50 border border-gray-600 rounded px-2 py-1 mb-1">
-              <div className="text-xs text-gray-400 text-center">Idle</div>
-            </div>
-          )}
-
-          {/* Task Queue */}
-          {currentZone.taskQueue.length > 0 && (
-            <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1 flex-1 flex flex-col min-h-0">
-              <div className="text-xs text-blue-300 font-bold mb-1">QUEUE ({currentZone.taskQueue.length}):</div>
-              <div className="space-y-0.5 overflow-y-auto flex-1">
-                {currentZone.taskQueue.map((task, idx) => (
-                  <div key={task.id} className="text-sm flex items-center gap-1">
-                    <span className="text-gray-400">{idx + 1}.</span>
-                    {task.type === 'clear' ? '⛏️' :
-                     task.type === 'plant' ? '🌱' :
-                     task.type === 'water' ? '💧' :
-                     task.type === 'harvest' ? '🌾' :
-                     task.type === 'place_sprinkler' ? '💦' :
-                     task.type === 'place_mechanic' ? '⚙️' :
-                     task.type === 'place_well' ? '🪣' :
-                     task.type === 'deposit' ? '📦' :
-                     '🔨'}
-                    <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Right Sidebar - Bot Status */}
+      <div className="w-56 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-1.5 max-h-full overflow-y-auto">
+        <div className="text-sm font-bold text-center mb-1 text-blue-400">🤖 Bot Fleet</div>
 
           {/* Water Robot Section */}
           {(waterBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border-2 border-cyan-500/60 rounded-lg p-2 mt-2 shadow-lg">
-              <div className="text-xs text-cyan-300 font-bold mb-2 flex items-center gap-1">
-                <span className="text-base">💧</span>
-                WATER BOTS
-                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{waterBots?.length ?? 0}</span>
+            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-1.5 shadow-lg">
+              <div className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1">
+                <span>💧</span>
+                WATER
+                <span className="ml-auto bg-cyan-600/30 px-1 rounded text-[10px]">{waterBots?.length ?? 0}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-cyan-600/30">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold text-cyan-100">Bot #{idx + 1}</span>
-                        <span className="text-[10px] text-cyan-300">
-                          {bot.status === 'traveling' && '🚶 Moving'}
-                          {bot.status === 'watering' && '💦 Watering'}
-                          {bot.status === 'idle' && '😴 Idle'}
-                          {bot.status === 'refilling' && '⚡ Refilling'}
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-cyan-600/20 cursor-pointer hover:bg-cyan-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-semibold text-cyan-100">#{idx + 1}</span>
+                        <span className="text-[9px] text-cyan-300">
+                          {bot.status === 'traveling' && '🚶'}
+                          {bot.status === 'watering' && '💦'}
+                          {bot.status === 'idle' && '😴'}
+                          {bot.status === 'refilling' && '⚡'}
                         </span>
                       </div>
-                      {/* Water Level Progress Bar */}
-                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-cyan-700/50">
+                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-300 ${waterPercent > 30 ? 'bg-gradient-to-r from-cyan-400 to-blue-500' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}
+                          className={`h-full transition-all ${waterPercent > 30 ? 'bg-cyan-400' : 'bg-red-500'}`}
                           style={{ width: `${waterPercent}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-cyan-300/80 mt-0.5 text-center">
-                        {bot.waterLevel}/10 water
-                      </div>
+                      <div className="text-[9px] text-cyan-300/70 text-center">{bot.waterLevel}/10</div>
                     </div>
                   );
                 })}
@@ -3413,36 +3413,33 @@ export default function Game() {
 
           {/* Harvest Robot Section */}
           {(harvestBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
-              <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
-                <span className="text-base">🌾</span>
-                HARVEST BOTS
-                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{harvestBots?.length ?? 0}</span>
+            <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
+              <div className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1">
+                <span>🌾</span>
+                HARVEST
+                <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{harvestBots?.length ?? 0}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
-                        <span className="text-[10px] text-orange-300">
-                          {bot.status === 'traveling' && '🚶 Moving'}
-                          {bot.status === 'harvesting' && '✂️ Harvesting'}
-                          {bot.status === 'depositing' && '📦 Depositing'}
-                          {bot.status === 'idle' && '😴 Idle'}
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-semibold text-orange-100">#{idx + 1}</span>
+                        <span className="text-[9px] text-orange-300">
+                          {bot.status === 'traveling' && '🚶'}
+                          {bot.status === 'harvesting' && '✂️'}
+                          {bot.status === 'depositing' && '📦'}
+                          {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      {/* Inventory Progress Bar */}
-                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-orange-700/50">
+                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-300 ${inventoryPercent < 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-yellow-400 to-amber-500'}`}
+                          className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-green-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-orange-300/80 mt-0.5 text-center">
-                        {bot.inventory.length}/{bot.inventoryCapacity} crops
-                      </div>
+                      <div className="text-[9px] text-orange-300/70 text-center">{bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -3452,39 +3449,37 @@ export default function Game() {
 
           {/* Seed Bot Section */}
           {seedBots && seedBots.length > 0 && (
-            <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border-2 border-green-500/60 rounded-lg p-2 mt-2 shadow-lg">
-              <div className="text-xs text-green-300 font-bold mb-2 flex items-center gap-1">
-                <span className="text-base">🌱</span>
-                SEED BOTS
-                <span className="ml-auto bg-green-600/30 px-1.5 rounded text-green-200">{seedBots.length}</span>
+            <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border border-green-500/60 rounded-lg p-1.5 shadow-lg">
+              <div className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1">
+                <span>🌱</span>
+                SEED
+                <span className="ml-auto bg-green-600/30 px-1 rounded text-[10px]">{seedBots.length}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {seedBots.map((bot, idx) => {
                   const jobCount = bot.jobs.length;
                   const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-green-600/30">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold text-green-100">Bot #{idx + 1}</span>
-                        <span className="text-[10px] text-green-300">
-                          {bot.status === 'traveling' && '🚶 Moving'}
-                          {bot.status === 'planting' && '🌱 Planting'}
-                          {bot.status === 'idle' && '😴 Idle'}
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-semibold text-green-100">#{idx + 1}</span>
+                        <span className="text-[9px] text-green-300">
+                          {bot.status === 'traveling' && '🚶'}
+                          {bot.status === 'planting' && '🌱'}
+                          {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      {/* Job Stats */}
-                      <div className="text-[10px] text-green-300/80 mb-1 text-center">
-                        {jobCount} job{jobCount !== 1 ? 's' : ''} • {totalTiles} tile{totalTiles !== 1 ? 's' : ''}
+                      <div className="text-[9px] text-green-300/70 mb-0.5 text-center">
+                        {jobCount}j • {totalTiles}t
                       </div>
-                      {/* Config Button */}
                       <button
                         onClick={() => {
                           setSelectedSeedBot(bot.id);
                           setShowSeedBotConfig(true);
                         }}
-                        className="w-full px-2 py-1 bg-green-600/40 hover:bg-green-600/60 rounded text-[10px] font-semibold text-green-100 transition-colors"
+                        className="w-full px-1 py-0.5 bg-green-600/30 hover:bg-green-600/50 rounded text-[9px] font-semibold transition-colors"
                       >
-                        ⚙️ Configure
+                        ⚙️
                       </button>
                     </div>
                   );
@@ -3495,37 +3490,34 @@ export default function Game() {
 
           {/* Transport Bot Section */}
           {(transportBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border-2 border-purple-500/60 rounded-lg p-2 mt-2 shadow-lg">
-              <div className="text-xs text-purple-300 font-bold mb-2 flex items-center gap-1">
-                <span className="text-base">🚚</span>
-                TRANSPORT BOTS
-                <span className="ml-auto bg-purple-600/30 px-1.5 rounded text-purple-200">{transportBots?.length ?? 0}</span>
+            <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border border-purple-500/60 rounded-lg p-1.5 shadow-lg">
+              <div className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1">
+                <span>🚚</span>
+                TRANSPORT
+                <span className="ml-auto bg-purple-600/30 px-1 rounded text-[10px]">{transportBots?.length ?? 0}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {transportBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-purple-600/30">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-xs font-semibold text-purple-100">Bot #{idx + 1}</span>
-                        <span className="text-[10px] text-purple-300">
-                          {bot.status === 'traveling' && '🚶 Moving'}
-                          {bot.status === 'loading' && '📥 Loading'}
-                          {bot.status === 'transporting' && '🚚 Transporting'}
-                          {bot.status === 'selling' && '💰 Selling'}
-                          {bot.status === 'idle' && '😴 Idle'}
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-semibold text-purple-100">#{idx + 1}</span>
+                        <span className="text-[9px] text-purple-300">
+                          {bot.status === 'traveling' && '🚶'}
+                          {bot.status === 'loading' && '📥'}
+                          {bot.status === 'transporting' && '🚚'}
+                          {bot.status === 'selling' && '💰'}
+                          {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      {/* Inventory Progress Bar */}
-                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-purple-700/50">
+                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-300 ${inventoryPercent < 100 ? 'bg-gradient-to-r from-purple-400 to-violet-500' : 'bg-gradient-to-r from-yellow-400 to-amber-500'}`}
+                          className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-purple-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-purple-300/80 mt-0.5 text-center">
-                        {bot.inventory.length}/{bot.inventoryCapacity} crops
-                      </div>
+                      <div className="text-[9px] text-purple-300/70 text-center">{bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -3535,27 +3527,27 @@ export default function Game() {
 
           {/* Demolish Bot Section */}
           {(demolishBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
-              <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
-                <span className="text-base">🚧</span>
-                DEMOLISH BOTS
-                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{demolishBots?.length ?? 0}</span>
+            <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
+              <div className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1">
+                <span>🚧</span>
+                DEMOLISH
+                <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{demolishBots?.length ?? 0}</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {demolishBots?.map((bot, idx) => {
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
-                        <span className="text-[10px] text-orange-300">
-                          {bot.status === 'traveling' && '🚶 Moving'}
-                          {bot.status === 'clearing' && '🔨 Clearing'}
-                          {bot.status === 'idle' && '😴 Idle'}
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[10px] font-semibold text-orange-100">#{idx + 1}</span>
+                        <span className="text-[9px] text-orange-300">
+                          {bot.status === 'traveling' && '🚶'}
+                          {bot.status === 'clearing' && '🔨'}
+                          {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
                       {bot.status === 'clearing' && bot.targetX !== undefined && bot.targetY !== undefined && (
-                        <div className="text-[10px] text-orange-300/80 text-center">
-                          Clearing ({bot.targetX}, {bot.targetY})
+                        <div className="text-[9px] text-orange-300/70 text-center">
+                          ({bot.targetX}, {bot.targetY})
                         </div>
                       )}
                     </div>
@@ -3564,8 +3556,9 @@ export default function Game() {
               </div>
             </div>
           )}
-        </div>
       </div>
+
+
 
       {/* Welcome Splash */}
       {showWelcome && (

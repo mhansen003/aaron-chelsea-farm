@@ -53,6 +53,7 @@ import {
   saveToLocalStorage,
   loadFromLocalStorage,
   hasAutosave,
+  clearAutosave,
 } from '@/lib/saveSystem';
 
 const COLORS = {
@@ -96,6 +97,13 @@ export default function Game() {
   // Load saved game state from localStorage or create new game
   const loadSavedGame = (): GameState => {
     if (typeof window !== 'undefined') {
+      // Try new autosave system first
+      const autosave = loadFromLocalStorage();
+      if (autosave) {
+        return autosave;
+      }
+
+      // Fall back to old save format for migration
       const saved = localStorage.getItem('aaron-chelsea-farm-save');
       if (saved) {
         try {
@@ -215,8 +223,13 @@ export default function Game() {
             delete parsed.currentTask;
           }
 
+          const migratedState = parsed as GameState;
 
-          return parsed as GameState;
+          // Migrate to new save system
+          saveToLocalStorage(migratedState);
+          localStorage.removeItem('aaron-chelsea-farm-save');
+
+          return migratedState;
         } catch (e) {
           console.error('Failed to load saved game:', e);
         }
@@ -590,10 +603,10 @@ export default function Game() {
 
   // Save game state to localStorage whenever it changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aaron-chelsea-farm-save', JSON.stringify(gameState));
+    if (typeof window !== 'undefined' && isMounted) {
+      saveToLocalStorage(gameState);
     }
-  }, [gameState]);
+  }, [gameState, isMounted]);
 
   // Set mounted state to prevent hydration errors
   useEffect(() => {
@@ -2224,6 +2237,10 @@ export default function Game() {
 
   // Welcome Splash Handlers
   const handleStartNew = () => {
+    // Clear all saves
+    clearAutosave();
+    localStorage.removeItem('aaron-chelsea-farm-save');
+
     setGameState(createInitialState());
     setShowWelcome(false);
     // Close all modals

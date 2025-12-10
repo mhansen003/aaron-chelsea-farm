@@ -26,7 +26,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
   };
 
   const themeArchImages = {
-    farm: '/arch.png',
+    farm: '/arch-farm.png',
     beach: '/arch-beach.png',
     barn: '/arch-barn.png',
     mountain: '/arch-mountain.png',

@@ -533,7 +533,7 @@ export default function Game() {
       };
 
       const caveImg = new Image();
-      caveImg.src = '/cave entrance.png';
+      caveImg.src = '/cave-entrance.png';
       caveImg.onload = () => {
         caveImageRef.current = caveImg;
       };

@@ -61,6 +61,41 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
         <div className="mb-6">
           <p className="text-lg mb-4">{zone.description}</p>
 
+          {/* NPC Section */}
+          {zone.npc && (
+            <div className="bg-black/30 p-4 rounded-lg border-2 border-cyan-400 mb-4">
+              <div className="flex items-center gap-4">
+                <img
+                  src={zone.npc.image}
+                  alt={zone.npc.name}
+                  className="w-20 h-20 rounded-full border-2 border-cyan-300 object-cover"
+                />
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-cyan-200 mb-1">{zone.npc.name}</h3>
+                  <p className="text-sm text-cyan-100">{zone.npc.description}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Features Section */}
+          {zone.features && zone.features.length > 0 && (
+            <div className="bg-black/30 p-4 rounded-lg border-2 border-purple-400 mb-4">
+              <h3 className="text-lg font-bold text-purple-200 mb-3">🎯 Zone Activities:</h3>
+              <div className="space-y-2">
+                {zone.features.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <span className="text-2xl">{feature.icon}</span>
+                    <div>
+                      <h4 className="font-bold text-purple-100">{feature.name}</h4>
+                      <p className="text-sm text-purple-200 opacity-90">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {!zone.owned && (
             <div className="bg-black/40 p-4 rounded-lg border-2 border-yellow-600 mb-4">
               <p className="text-yellow-300 font-bold text-center">

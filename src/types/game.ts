@@ -121,6 +121,20 @@ export interface Tool {
 
 export type ZoneTheme = 'farm' | 'beach' | 'barn' | 'mountain' | 'desert';
 
+export interface ZoneNPC {
+  name: string; // NPC name (e.g., "Sally Surfer")
+  description: string; // What they do
+  image: string; // Path to NPC image
+  shopType?: 'fishing' | 'mining' | 'dairy' | 'explorer'; // What kind of shop/service they offer
+}
+
+export interface ZoneFeature {
+  name: string; // Feature name (e.g., "Fishing Robots")
+  description: string; // What this feature does
+  icon: string; // Emoji or icon
+  unlocked: boolean; // Whether player has unlocked this feature
+}
+
 export interface Zone {
   x: number; // Zone coordinate (0,0 is starting zone)
   y: number;
@@ -130,6 +144,8 @@ export interface Zone {
   theme: ZoneTheme; // Visual theme of the zone
   name: string; // Display name
   description: string; // Description shown when previewing
+  npc?: ZoneNPC; // Zone-specific NPC (if any)
+  features: ZoneFeature[]; // Zone-specific features/activities
   waterBots: WaterBot[];
   harvestBots: HarvestBot[];
   seedBots: SeedBot[];

@@ -23,7 +23,7 @@ export const WATERBOT_RANGE = 3; // 7x7 area (3 tiles in each direction)
 export const WATERBOT_MAX_WATER = 10; // Maximum water a bot can hold
 export const HARVESTBOT_COST = 400; // Cost to buy one harvest bot
 export const SEEDBOT_COST = 500; // Cost to buy one seed bot
-export const TRANSPORTBOT_COST = 2000; // Cost to buy one transport bot
+export const TRANSPORTBOT_COST = 1000; // Cost to buy one transport bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -185,27 +185,73 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
   let theme: import('@/types/game').ZoneTheme = 'farm';
   let name = "Aaron & Chelsea's Farm";
   let description = "Your home farm with rich soil perfect for growing crops.";
+  let npc: import('@/types/game').ZoneNPC | undefined;
+  let features: import('@/types/game').ZoneFeature[] = [];
 
   if (x === 0 && y === 1) {
     // North - Beach
     theme = 'beach';
     name = "Sunny Beach";
     description = "A tropical paradise with sandy shores and palm trees. Perfect for fishing and relaxation!";
+    npc = {
+      name: "Sally Surfer",
+      description: "Beach expert and fishing robot specialist. She can help you automate ocean harvesting!",
+      image: "/surfer.png",
+      shopType: "fishing",
+    };
+    features = [
+      {
+        name: "Fishing Robots",
+        description: "Automated bots that fish for seaweed, shells, and other ocean treasures",
+        icon: "🎣",
+        unlocked: false,
+      },
+      {
+        name: "Ocean Harvesting",
+        description: "Collect valuable seaweed and rare shells from the ocean",
+        icon: "🌊",
+        unlocked: false,
+      },
+    ];
   } else if (x === -1 && y === 0) {
     // West - Barn
     theme = 'barn';
     name = "Animal Barn";
     description = "A cozy barn area where you can raise livestock and collect resources like milk, eggs, and wool.";
+    features = [
+      {
+        name: "Dairy Production",
+        description: "Collect milk and cheese from your animals",
+        icon: "🥛",
+        unlocked: false,
+      },
+    ];
   } else if (x === 1 && y === 0) {
     // East - Mountain
     theme = 'mountain';
     name = "Mountain Range";
     description = "Rugged mountainous terrain rich with minerals and rare resources. Challenging but rewarding!";
+    features = [
+      {
+        name: "Mining Robots",
+        description: "Automated bots that extract valuable minerals and gems",
+        icon: "⛏️",
+        unlocked: false,
+      },
+    ];
   } else if (x === 0 && y === -1) {
     // South - Desert
     theme = 'desert';
     name = "Desert Oasis";
-    description = "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
+    description: "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
+    features = [
+      {
+        name: "Drilling Robots",
+        description: "Extract oil and rare resources from beneath the desert",
+        icon: "🛢️",
+        unlocked: false,
+      },
+    ];
   }
 
   return {
@@ -217,6 +263,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     theme,
     name,
     description,
+    npc,
+    features,
     waterBots: [],
     harvestBots: [],
     seedBots: [],

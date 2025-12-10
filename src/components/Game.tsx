@@ -1891,7 +1891,10 @@ export default function Game() {
 
     // Find and remove tasks for this tile, refunding seeds if cancelled
     setGameState(prev => {
-      const cancelledTasks = prev.taskQueue.filter(
+      const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+      const currentZone = prev.zones[currentZoneKey];
+
+      const cancelledTasks = currentZone.taskQueue.filter(
         task => task.tileX === tileX && task.tileY === tileY &&
                 task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y
       );
@@ -1906,10 +1909,16 @@ export default function Game() {
 
       return {
         ...prev,
-        taskQueue: prev.taskQueue.filter(task =>
-          !(task.tileX === tileX && task.tileY === tileY &&
-            task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y)
-        ),
+        zones: {
+          ...prev.zones,
+          [currentZoneKey]: {
+            ...currentZone,
+            taskQueue: currentZone.taskQueue.filter(task =>
+              !(task.tileX === tileX && task.tileY === tileY &&
+                task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y)
+            ),
+          },
+        },
         player: {
           ...prev.player,
           inventory: {

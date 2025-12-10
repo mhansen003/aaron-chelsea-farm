@@ -130,7 +130,6 @@ export interface Zone {
   waterBots: WaterBot[];
   harvestBots: HarvestBot[];
   seedBots: SeedBot[];
-  taskQueue: Task[]; // Queue of tasks for worker in this zone
 }
 
 export interface WaterBot {
@@ -191,6 +190,8 @@ export interface GameState {
   currentZone: { x: number; y: number }; // Which zone player is viewing
   player: Player;
   tools: Tool[];
+  taskQueue: Task[]; // Queue of tasks for worker to complete
+  currentTask: Task | null; // Task currently being executed
   currentDay: number; // Day counter
   dayProgress: number; // 0-100, progress through current day
   gameTime: number;

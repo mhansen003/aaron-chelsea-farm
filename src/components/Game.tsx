@@ -236,6 +236,8 @@ export default function Game() {
     cropType: Exclude<CropType, null>;
     selectedTiles: Array<{ x: number; y: number }>;
   } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartRow, setDragStartRow] = useState<number | null>(null);
   const [showWelcome, setShowWelcome] = useState<boolean>(!hasAutosave());
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
@@ -1543,6 +1545,56 @@ export default function Game() {
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
 
+    // Handle drag-to-draw in tile selection mode
+    if (isDragging && tileSelectionMode && tileSelectionMode.active && dragStartRow !== null) {
+      // Only allow dragging on the same row
+      if (tileY === dragStartRow) {
+        // Get all tiles in the row between start and current position
+        const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+        const currentZone = gameState.zones[currentZoneKey];
+        const seedBots = currentZone?.seedBots || [];
+        const seedBot = seedBots.find(b => b.id === selectedSeedBot);
+
+        if (seedBot) {
+          // Find the job being edited
+          const currentJob = seedBot.jobs.find(j => j.id === tileSelectionMode.jobId);
+          if (!currentJob) return;
+
+          // Calculate the range of X coordinates
+          const startX = Math.min(tileX, ...tileSelectionMode.selectedTiles.filter(t => t.y === tileY).map(t => t.x), tileX);
+          const endX = Math.max(tileX, ...tileSelectionMode.selectedTiles.filter(t => t.y === tileY).map(t => t.x), tileX);
+
+          // Collect all valid tiles in the row
+          const newTiles: Array<{ x: number; y: number }> = [];
+          for (let x = startX; x <= endX; x++) {
+            const rowTile = currentGrid[tileY]?.[x];
+            if (rowTile && (rowTile.type === 'grass' || (rowTile.type === 'dirt' && rowTile.cleared)) && !rowTile.crop && !rowTile.hasSprinkler) {
+              newTiles.push({ x, y: tileY });
+            }
+          }
+
+          // Merge with existing tiles from other rows
+          const tilesFromOtherRows = tileSelectionMode.selectedTiles.filter(t => t.y !== tileY);
+          const allNewTiles = [...tilesFromOtherRows, ...newTiles].slice(0, 10); // Max 10 tiles per job
+
+          // Update the seed bot's job with new tiles
+          const updatedJobs = seedBot.jobs.map(job =>
+            job.id === tileSelectionMode.jobId
+              ? { ...job, targetTiles: allNewTiles }
+              : job
+          );
+          setGameState(prev => updateSeedBotJobs(prev, selectedSeedBot, updatedJobs, seedBot.autoBuySeeds));
+
+          // Update tile selection mode state
+          setTileSelectionMode({
+            ...tileSelectionMode,
+            selectedTiles: allNewTiles,
+          });
+        }
+      }
+      return;
+    }
+
     if (tile) {
       setHoveredTile({ x: tileX, y: tileY });
       const { cursor } = getActionForTile(tile, gameState.player.selectedCrop);
@@ -1551,7 +1603,7 @@ export default function Game() {
       setHoveredTile(null);
       setCursorType('default');
     }
-  }, [gameState, getActionForTile]);
+  }, [gameState, getActionForTile, isDragging, tileSelectionMode, dragStartRow, selectedSeedBot]);
 
   // Handle canvas click to queue tasks
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1838,6 +1890,26 @@ export default function Game() {
     });
   }, []);
 
+  // Handle mouse down for drag-to-draw in tile selection mode
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!tileSelectionMode || !tileSelectionMode.active) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const tileX = Math.floor((x / rect.width) * GAME_CONFIG.gridWidth);
+    const tileY = Math.floor((y / rect.height) * GAME_CONFIG.gridHeight);
+
+    setIsDragging(true);
+    setDragStartRow(tileY);
+  }, [tileSelectionMode]);
+
+  // Handle mouse up to stop dragging
+  const handleCanvasMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setDragStartRow(null);
+  }, []);
+
   // Keyboard shortcuts (no movement)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -2105,6 +2177,8 @@ export default function Game() {
         onClick={handleCanvasClick}
         onContextMenu={handleCanvasRightClick}
         onMouseMove={handleCanvasMouseMove}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseUp={handleCanvasMouseUp}
       />
 
       {/* Seed Selection Bar */}

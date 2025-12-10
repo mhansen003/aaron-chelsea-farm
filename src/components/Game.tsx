@@ -2480,6 +2480,150 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
         >
           🍅 <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
         </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'pumpkin'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'pumpkin'
+              ? 'bg-orange-500 ring-2 ring-orange-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🎃 <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'watermelon'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'watermelon'
+              ? 'bg-green-500 ring-2 ring-green-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🍉 <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'peppers'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'peppers'
+              ? 'bg-red-500 ring-2 ring-red-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🌶️ <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'grapes'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'grapes'
+              ? 'bg-purple-600 ring-2 ring-purple-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🍇 <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'oranges'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'oranges'
+              ? 'bg-orange-400 ring-2 ring-orange-200 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🍊 <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'avocado'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'avocado'
+              ? 'bg-green-600 ring-2 ring-green-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🥑 <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'rice'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'rice'
+              ? 'bg-gray-400 ring-2 ring-gray-200 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🍚 <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
+        </button>
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: 'corn'
+              },
+            }))
+          }
+          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+            gameState.player.selectedCrop === 'corn'
+              ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+        >
+          🌽 <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
+        </button>
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}

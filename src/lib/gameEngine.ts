@@ -1041,10 +1041,28 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
           if (warehousePos) {
             const warehouse: { x: number; y: number } = warehousePos;
-            if (botX === warehouse.x && botY === warehouse.y) {
-              newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
-              return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY };
+            const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+
+            if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
+              const DEPOSIT_DURATION = 3000; // 3 seconds to deposit
+
+              // If already depositing, check if time has elapsed
+              if (bot.actionStartTime !== undefined) {
+                const elapsed = newState.gameTime - bot.actionStartTime;
+                if (elapsed >= DEPOSIT_DURATION) {
+                  // Deposit complete
+                  newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
+                  return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                } else {
+                  // Still depositing
+                  return { ...bot, status: 'depositing' as const, visualX, visualY };
+                }
+              } else {
+                // Start depositing
+                return { ...bot, status: 'depositing' as const, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: DEPOSIT_DURATION };
+              }
             } else {
+              // Travel to warehouse
               let newX = botX, newY = botY;
               if (Math.random() < (deltaTime / 500)) {
                 if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
@@ -1072,10 +1090,28 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
         if (warehousePos) {
           const warehouse: { x: number; y: number } = warehousePos;
-          if (botX === warehouse.x && botY === warehouse.y) {
-            newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
-            return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY };
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+
+          if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
+            const DEPOSIT_DURATION = 3000; // 3 seconds to deposit
+
+            // If already depositing, check if time has elapsed
+            if (bot.actionStartTime !== undefined) {
+              const elapsed = newState.gameTime - bot.actionStartTime;
+              if (elapsed >= DEPOSIT_DURATION) {
+                // Deposit complete
+                newState = { ...newState, warehouse: [...newState.warehouse, ...bot.inventory] };
+                return { ...bot, inventory: [], idleStartTime: undefined, status: 'depositing' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              } else {
+                // Still depositing
+                return { ...bot, status: 'depositing' as const, visualX, visualY };
+              }
+            } else {
+              // Start depositing
+              return { ...bot, status: 'depositing' as const, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: DEPOSIT_DURATION };
+            }
           } else {
+            // Travel to warehouse
             let newX = botX, newY = botY;
             if (Math.random() < (deltaTime / 500)) {
               if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;

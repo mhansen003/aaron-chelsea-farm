@@ -2560,17 +2560,32 @@ export function buyMechanicShop(state: GameState): GameState {
 
 export function placeMechanicShop(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
-  const tile = grid[tileY]?.[tileX];
 
-  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
-  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
     return state;
   }
 
-  // Place mechanic shop instantly
+  // Place mechanic shop instantly on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
-      if (x === tileX && y === tileY) {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
           type: 'mechanic' as const,
@@ -2855,17 +2870,32 @@ export function buyWell(state: GameState): GameState {
 
 export function placeWell(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
-  const tile = grid[tileY]?.[tileX];
 
-  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
-  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
     return state;
   }
 
-  // Place well instantly
+  // Place well instantly on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
-      if (x === tileX && y === tileY) {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
           type: 'well' as const,
@@ -2920,17 +2950,32 @@ export function buyGarage(state: GameState): GameState {
 
 export function placeGarage(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
-  const tile = grid[tileY]?.[tileX];
 
-  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
-  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.garage <= 0 || state.player.inventory.garagePlaced) {
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.garage <= 0 || state.player.inventory.garagePlaced) {
     return state;
   }
 
-  // Place garage instantly
+  // Place garage instantly on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
-      if (x === tileX && y === tileY) {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
           type: 'garage' as const,
@@ -3021,17 +3066,32 @@ export function buySupercharger(state: GameState): GameState {
 
 export function placeSupercharger(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
-  const tile = grid[tileY]?.[tileX];
 
-  // Can only place on cleared grass/dirt tiles, and must have one in inventory
-  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.supercharger <= 0 || state.player.inventory.superchargerPlaced) {
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.supercharger <= 0 || state.player.inventory.superchargerPlaced) {
     return state;
   }
 
-  // Place supercharger instantly
+  // Place supercharger instantly on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
-      if (x === tileX && y === tileY) {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
           type: 'supercharger' as const,

@@ -961,73 +961,99 @@ export default function Game() {
             ctx.strokeRect(px + 4, barY, barWidth, barHeight);
           }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
-          // Draw grass background
+          // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Mechanic building is 1x1 - draw larger to fill more space (120% size, centered)
-          const mechanicSize = GAME_CONFIG.tileSize * 1.2;
-          const mechanicOffset = (GAME_CONFIG.tileSize - mechanicSize) / 2;
-          ctx.drawImage(
-            mechanicImageRef.current,
-            px + mechanicOffset, py + mechanicOffset, mechanicSize, mechanicSize
+          // Mechanic building is 2x2 - only draw from top-left tile
+          const isTopLeft = (
+            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'mechanic') &&
+            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'mechanic')
           );
+          if (isTopLeft) {
+            // Draw at 2x size to span the 2x2 area
+            ctx.drawImage(
+              mechanicImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'well' && wellImageRef.current) {
-          // Draw grass background
+          // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw well image at standard size
-          ctx.drawImage(
-            wellImageRef.current,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          // Well building is 2x2 - only draw from top-left tile
+          const isTopLeft = (
+            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'well') &&
+            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'well')
           );
+          if (isTopLeft) {
+            // Draw at 2x size to span the 2x2 area
+            ctx.drawImage(
+              wellImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'garage' && garageImageRef.current) {
-          // Draw grass background
+          // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw garage image at standard size
-          ctx.drawImage(
-            garageImageRef.current,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          // Garage building is 2x2 - only draw from top-left tile
+          const isTopLeft = (
+            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'garage') &&
+            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'garage')
           );
+          if (isTopLeft) {
+            // Draw at 2x size to span the 2x2 area
+            ctx.drawImage(
+              garageImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'supercharger') {
-          // Draw grass background
+          // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw supercharger placeholder (purple gradient with lightning)
-          const gradient = ctx.createRadialGradient(
-            px + GAME_CONFIG.tileSize / 2,
-            py + GAME_CONFIG.tileSize / 2,
-            0,
-            px + GAME_CONFIG.tileSize / 2,
-            py + GAME_CONFIG.tileSize / 2,
-            GAME_CONFIG.tileSize / 2
+          // Supercharger building is 2x2 - only draw from top-left tile
+          const isTopLeft = (
+            (x + 1 < GAME_CONFIG.gridWidth && grid[y]?.[x + 1]?.type === 'supercharger') &&
+            (y + 1 < GAME_CONFIG.gridHeight && grid[y + 1]?.[x]?.type === 'supercharger')
           );
-          gradient.addColorStop(0, '#a855f7');
-          gradient.addColorStop(1, '#7c3aed');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+          if (isTopLeft) {
+            // Draw supercharger graphics at 2x size to span the 2x2 area
+            const gradient = ctx.createRadialGradient(
+              px + GAME_CONFIG.tileSize,
+              py + GAME_CONFIG.tileSize,
+              0,
+              px + GAME_CONFIG.tileSize,
+              py + GAME_CONFIG.tileSize,
+              GAME_CONFIG.tileSize
+            );
+            gradient.addColorStop(0, '#a855f7');
+            gradient.addColorStop(1, '#7c3aed');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize * 2 - 4, GAME_CONFIG.tileSize * 2 - 4);
 
-          // Draw lightning bolt emoji
-          ctx.font = `${GAME_CONFIG.tileSize * 0.6}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('⚡', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
+            // Draw lightning bolt emoji at center of 2x2
+            ctx.font = `${GAME_CONFIG.tileSize * 1.2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', px + GAME_CONFIG.tileSize, py + GAME_CONFIG.tileSize);
+          }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

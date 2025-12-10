@@ -1421,37 +1421,31 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
     })
   );
 
-  const updatedState = updateCurrentGrid(state, newGrid);
-
-  // After placing sprinkler, look for plants that need watering in 7x7 coverage area
-  const wateringTasks: Task[] = [];
-  for (let y = 0; y < newGrid.length; y++) {
-    for (let x = 0; x < newGrid[y].length; x++) {
-      const t = newGrid[y][x];
+  // After placing sprinkler, instantly water all plants in 7x7 coverage area
+  const wateredGrid = newGrid.map((row, y) =>
+    row.map((t, x) => {
       const dx = Math.abs(x - tileX);
       const dy = Math.abs(y - tileY);
 
       // Check if tile is in sprinkler range (7x7 area)
       if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
-        // If there's a planted crop that hasn't been watered today, add watering task
-        if (t.type === 'planted' && !t.wateredToday) {
-          wateringTasks.push({
-            id: `${Date.now()}-${Math.random()}`,
-            type: 'water',
-            tileX: x,
-            tileY: y,
-            zoneX: updatedState.currentZone.x,
-            zoneY: updatedState.currentZone.y,
-            progress: 0,
-            duration: TASK_DURATIONS.water,
-          });
+        // If there's a planted crop that hasn't been watered, water it instantly
+        if (t.type === 'planted' && !t.wateredTimestamp) {
+          return {
+            ...t,
+            wateredTimestamp: state.gameTime,
+            wateredToday: true,
+          };
         }
       }
-    }
-  }
+      return t;
+    })
+  );
 
-  // Add watering tasks to the queue
-  let finalState = {
+  const updatedState = updateCurrentGrid(state, wateredGrid);
+
+  // Return state with sprinkler count decreased
+  return {
     ...updatedState,
     player: {
       ...updatedState.player,
@@ -1461,13 +1455,6 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
       },
     },
   };
-
-  // Add all watering tasks to queue
-  for (const task of wateringTasks) {
-    finalState = addTask(finalState, task.type, task.tileX, task.tileY);
-  }
-
-  return finalState;
 }
 
 export function buyTool(state: GameState, toolName: string): GameState {

@@ -924,10 +924,22 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         });
       });
 
-      if (bot.waterLevel > 0 && unwateredCrops.length > 0) {
-        let nearest = unwateredCrops[0];
+      // Filter out crops already claimed by other water bots
+      const claimedWaterTiles = new Set<string>();
+      zone.waterBots.forEach(otherBot => {
+        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
+          claimedWaterTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
+        }
+      });
+
+      const availableWaterCrops = unwateredCrops.filter(crop =>
+        !claimedWaterTiles.has(`${crop.x},${crop.y}`)
+      );
+
+      if (bot.waterLevel > 0 && availableWaterCrops.length > 0) {
+        let nearest = availableWaterCrops[0];
         let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        unwateredCrops.forEach(crop => {
+        availableWaterCrops.forEach(crop => {
           const dist = Math.abs(botX - crop.x) + Math.abs(botY - crop.y);
           if (dist < minDist) { minDist = dist; nearest = crop; }
         });
@@ -1061,8 +1073,20 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         });
       });
 
+      // Filter out crops already claimed by other harvest bots
+      const claimedCrops = new Set<string>();
+      zone.harvestBots.forEach(otherBot => {
+        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
+          claimedCrops.add(`${otherBot.targetX},${otherBot.targetY}`);
+        }
+      });
+
+      const availableCrops = grownCrops.filter(crop =>
+        !claimedCrops.has(`${crop.x},${crop.y}`)
+      );
+
       const hasInventory = bot.inventory.length > 0;
-      const noCropsAvailable = grownCrops.length === 0;
+      const noCropsAvailable = availableCrops.length === 0;
       const idleTimeout = 15000;
 
       if (hasInventory && noCropsAvailable && !isInventoryFull) {
@@ -1162,10 +1186,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         }
       }
 
-      if (!isInventoryFull && grownCrops.length > 0) {
-        let nearest = grownCrops[0];
+      if (!isInventoryFull && availableCrops.length > 0) {
+        let nearest = availableCrops[0];
         let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        grownCrops.forEach(crop => {
+        availableCrops.forEach(crop => {
           const dist = Math.abs(botX - crop.x) + Math.abs(botY - crop.y);
           if (dist < minDist) { minDist = dist; nearest = crop; }
         });
@@ -1393,10 +1417,22 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
       });
 
-      if (refreshedPlantableTiles.length > 0) {
-        let nearest = refreshedPlantableTiles[0];
+      // Filter out tiles already claimed by other seed bots
+      const claimedSeedTiles = new Set<string>();
+      zone.seedBots.forEach(otherBot => {
+        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
+          claimedSeedTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
+        }
+      });
+
+      const availablePlantableTiles = refreshedPlantableTiles.filter(tile =>
+        !claimedSeedTiles.has(`${tile.x},${tile.y}`)
+      );
+
+      if (availablePlantableTiles.length > 0) {
+        let nearest = availablePlantableTiles[0];
         let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        refreshedPlantableTiles.forEach(tile => {
+        availablePlantableTiles.forEach(tile => {
           const dist = Math.abs(botX - tile.x) + Math.abs(botY - tile.y);
           if (dist < minDist) {
             minDist = dist;

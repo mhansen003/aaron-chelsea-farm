@@ -280,6 +280,7 @@ export default function Game() {
   const waterBotImageRef = useRef<HTMLImageElement | null>(null);
   const harvestBotImageRef = useRef<HTMLImageElement | null>(null);
   const seedBotImageRef = useRef<HTMLImageElement | null>(null);
+  const transportBotImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
   const archBarnImageRef = useRef<HTMLImageElement | null>(null);
@@ -386,6 +387,12 @@ export default function Game() {
     seedBotImg.src = '/seed-bot.png';
     seedBotImg.onload = () => {
       seedBotImageRef.current = seedBotImg;
+    };
+
+    const transportBotImg = new Image();
+    transportBotImg.src = '/transport bot.png';
+    transportBotImg.onload = () => {
+      transportBotImageRef.current = transportBotImg;
     };
 
 
@@ -694,6 +701,7 @@ export default function Game() {
     const waterBots = currentZone?.waterBots || [];
     const harvestBots = currentZone?.harvestBots || [];
     const seedBots = currentZone?.seedBots || [];
+    const transportBots = currentZone?.transportBots || [];
 
     // Clear canvas with green farm background
     ctx.fillStyle = '#7cb342'; // Green grass color
@@ -1553,6 +1561,37 @@ export default function Game() {
       }
     });
 
+    // Draw transport bots using visual position for smooth movement
+    transportBots?.forEach(bot => {
+      if (bot.x !== undefined && bot.y !== undefined) {
+        const visualX = bot.visualX ?? bot.x;
+        const visualY = bot.visualY ?? bot.y;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
+
+        if (transportBotImageRef.current) {
+          ctx.drawImage(transportBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to purple circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#9c27b0';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw inventory indicator if bot has items
+        if (bot.inventory.length > 0) {
+          ctx.fillStyle = '#ab47bc';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(bot.inventory.length.toString(), botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize - 8);
+        }
+      }
+    });
+
   }, [gameState]);
 
   // Play water splash sound effect
@@ -2246,6 +2285,7 @@ export default function Game() {
   const waterBots = currentZone?.waterBots || [];
   const harvestBots = currentZone?.harvestBots || [];
   const seedBots = currentZone?.seedBots || [];
+  const transportBots = currentZone?.transportBots || [];
 
 
   return (

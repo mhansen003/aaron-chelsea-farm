@@ -200,7 +200,6 @@ export interface GameState {
   waterBots?: WaterBot[]; // Water bots in the game
   harvestBots?: HarvestBot[]; // Harvest bots in the game
   seedBots?: SeedBot[]; // Seed bots in the game
-  saveCode?: string; // Persistent save code for this game
 }
 
 export interface GameConfig {

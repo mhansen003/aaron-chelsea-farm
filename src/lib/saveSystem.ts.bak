@@ -10,12 +10,12 @@ interface SaveCodeHistory {
  * Saves game state to the server and returns a 6-digit code
  * This code works across all devices!
  */
-export async function generateSaveCode(gameState: GameState, existingCode?: string): Promise<string> {
+export async function generateSaveCode(gameState: GameState): Promise<string> {
   try {
     const response = await fetch('/api/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gameState, code: existingCode }),
+      body: JSON.stringify({ gameState }),
     });
 
     if (!response.ok) {

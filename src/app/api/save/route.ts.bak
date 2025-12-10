@@ -5,8 +5,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(request: NextRequest) {
   try {
-    // Extract code from request if it exists
-    const { gameState, code: existingCode } = await request.json();
+    const { gameState } = await request.json();
 
     if (!gameState) {
       return NextResponse.json(
@@ -16,11 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate a unique 6-digit code
-    // Generate or reuse code
-    let code = existingCode || generateCode();
+    let code = generateCode();
     let attempts = 0;
-    // Only check for uniqueness if generating a new code
-    if (!existingCode) {
 
     // Keep trying until we find a unique code
     while (attempts < 100) {
@@ -34,7 +30,6 @@ export async function POST(request: NextRequest) {
 
       code = generateCode();
       attempts++;
-    }
     }
 
     if (attempts >= 100) {

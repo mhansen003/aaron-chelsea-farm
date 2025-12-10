@@ -1238,6 +1238,40 @@ export default function Game() {
 
     // Draw tile selection highlights when in tile selection mode
     if (tileSelectionMode && tileSelectionMode.active) {
+      // First, draw tiles from OTHER jobs (not the current one being edited)
+      const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+      const currentZone = gameState.zones[currentZoneKey];
+      const seedBots = currentZone?.seedBots || [];
+
+      seedBots.forEach(bot => {
+        bot.jobs.forEach(job => {
+          // Skip the job currently being edited
+          if (job.id === tileSelectionMode.jobId) return;
+
+          job.targetTiles.forEach(targetTile => {
+            const px = targetTile.x * GAME_CONFIG.tileSize;
+            const py = targetTile.y * GAME_CONFIG.tileSize;
+
+            // Draw blue/gray highlight for tiles from other jobs
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.3)'; // Slate gray
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+            // Draw subtle border
+            ctx.strokeStyle = 'rgba(100, 116, 139, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+            // Draw small lock icon to indicate it's assigned to another job
+            ctx.fillStyle = 'rgba(100, 116, 139, 0.8)';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🔒', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
+          });
+        });
+      });
+
+      // Now draw the current job's selected tiles (in green with checkmarks)
       tileSelectionMode.selectedTiles.forEach(selectedTile => {
         const px = selectedTile.x * GAME_CONFIG.tileSize;
         const py = selectedTile.y * GAME_CONFIG.tileSize;

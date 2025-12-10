@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameState, SeedBot, SeedBotJob, CropType } from '@/types/game';
 
 interface SeedBotConfigModalProps {
@@ -20,6 +20,11 @@ const CROP_INFO = {
 export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpdateJobs, onEnterTileSelectionMode }: SeedBotConfigModalProps) {
   const [jobs, setJobs] = useState<SeedBotJob[]>(seedBot.jobs);
   const [autoBuySeeds, setAutoBuySeeds] = useState(seedBot.autoBuySeeds ?? true); // Default to true
+
+  // Sync jobs state with seedBot prop when it changes (e.g., after tile selection)
+  useEffect(() => {
+    setJobs(seedBot.jobs);
+  }, [seedBot.jobs]);
 
   const addJob = () => {
     if (jobs.length >= 3) return; // Max 3 jobs

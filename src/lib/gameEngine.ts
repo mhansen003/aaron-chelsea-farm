@@ -1492,7 +1492,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
       // Idle - wander near warehouse
       else {
-        if (Math.random() < (deltaTime / 3000)) {
+        // Check if bot has reached current target (visual position matches logical position)
+        const hasReachedTarget = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+
+        // Every 2-3 seconds (on average), pick a new random tile to wander to
+        if (hasReachedTarget && Math.random() < (deltaTime / 2500)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
@@ -1500,16 +1504,21 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               if (isWalkable) walkableTiles.push({ x, y });
             });
           });
+
+          // Wander near warehouse (within 5 tiles)
           const nearWarehouse = walkableTiles.filter(t => {
             const dx = Math.abs(t.x - warehouse.x);
             const dy = Math.abs(t.y - warehouse.y);
-            return dx <= 5 && dy <= 5;
+            return dx <= 5 && dy <= 5 && (t.x !== botX || t.y !== botY); // Not current position
           });
+
           if (nearWarehouse.length > 0) {
             const randomTile = nearWarehouse[Math.floor(Math.random() * nearWarehouse.length)];
             return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY };
           }
         }
+
+        return { ...bot, status: 'idle' as const, visualX, visualY };
       }
 
       return { ...bot, visualX, visualY };

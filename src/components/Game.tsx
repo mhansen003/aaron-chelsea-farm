@@ -170,12 +170,12 @@ export default function Game() {
               }
               if (!parsed.zones[zoneKey].seedBots) {
                 parsed.zones[zoneKey].seedBots = [];
+              }
               if (!parsed.zones[zoneKey].taskQueue) {
                 parsed.zones[zoneKey].taskQueue = [];
               }
               if (parsed.zones[zoneKey].currentTask === undefined) {
                 parsed.zones[zoneKey].currentTask = null;
-              }
               }
             });
           }

@@ -617,32 +617,9 @@ export default function Game() {
 
   // Background music and sound effects
   useEffect(() => {
-    // Background music
-    audioRef.current = new Audio('/harvest-dreams.mp3');
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.5;
-
-    // Water splash sound effect
-    waterSplashRef.current = new Audio('/water-splash.mp3');
+    // Water splash sound effect (one-time setup)
+    waterSplashRef.current = new Audio('/water splash.mp3');
     waterSplashRef.current.volume = 0.4;
-
-    // Try to play music immediately
-    const playMusic = () => {
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {
-          // If autoplay fails, try again on first user interaction
-          const startAudio = () => {
-            audioRef.current?.play();
-            document.removeEventListener('click', startAudio);
-            document.removeEventListener('keydown', startAudio);
-          };
-          document.addEventListener('click', startAudio, { once: true });
-          document.addEventListener('keydown', startAudio, { once: true });
-        });
-      }
-    };
-
-    playMusic();
 
     return () => {
       if (audioRef.current) {
@@ -654,6 +631,49 @@ export default function Game() {
       }
     };
   }, []);
+
+  // Zone-specific music switching
+  useEffect(() => {
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+
+    // Map zone themes to music files
+    const zoneMusic: Record<string, string> = {
+      farm: '/farm.mp3',
+      beach: '/beach.mp3',
+      barn: '/barn.mp3',
+      mountain: '/mountains.mp3',
+      desert: '/desert.mp3',
+    };
+
+    const musicFile = zoneMusic[currentZone?.theme || 'farm'];
+
+    // Only change music if it's different from current
+    if (!audioRef.current || audioRef.current.src !== window.location.origin + musicFile) {
+      // Pause and cleanup old audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Create new audio for this zone
+      audioRef.current = new Audio(musicFile);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.5;
+
+      // Try to play music
+      audioRef.current.play().catch(() => {
+        // If autoplay fails, try again on first user interaction
+        const startAudio = () => {
+          audioRef.current?.play();
+          document.removeEventListener('click', startAudio);
+          document.removeEventListener('keydown', startAudio);
+        };
+        document.addEventListener('click', startAudio, { once: true });
+        document.addEventListener('keydown', startAudio, { once: true });
+      });
+    }
+  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
 
   // Game loop
   useEffect(() => {

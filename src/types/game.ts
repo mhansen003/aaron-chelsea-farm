@@ -249,6 +249,13 @@ export interface DemolishBot {
   actionDuration?: number; // How long the action takes (ms)
 }
 
+export interface ZoneEarnings {
+  zoneKey: string; // "x,y" identifier
+  zoneName: string; // Display name
+  totalEarnings: number; // All-time earnings from this zone
+  earningsHistory: Array<{ timestamp: number; amount: number }>; // Last 20 sales
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -266,6 +273,7 @@ export interface GameState {
   demolishBots?: DemolishBot[]; // Demolish bots in the game
   saveCode?: string; // Persistent save code for this game
   cropsSold: Record<Exclude<CropType, null>, number>; // Track how many of each crop has been sold for price progression
+  zoneEarnings?: Record<string, ZoneEarnings>; // Track earnings by zone (key is "x,y")
 }
 
 export interface GameConfig {

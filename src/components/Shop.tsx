@@ -24,6 +24,14 @@ const SEED_INFO = {
   carrot: { name: 'Carrot Seeds', emoji: '🥕', daysToGrow: 1 },
   wheat: { name: 'Wheat Seeds', emoji: '🌾', daysToGrow: 1 },
   tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2 },
+  pumpkin: { name: 'Pumpkin Seeds', emoji: '🎃', daysToGrow: 2 },
+  watermelon: { name: 'Watermelon Seeds', emoji: '🍉', daysToGrow: 2 },
+  peppers: { name: 'Pepper Seeds', emoji: '🌶️', daysToGrow: 1 },
+  grapes: { name: 'Grape Seeds', emoji: '🍇', daysToGrow: 2 },
+  oranges: { name: 'Orange Seeds', emoji: '🍊', daysToGrow: 3 },
+  avocado: { name: 'Avocado Seeds', emoji: '🥑', daysToGrow: 3 },
+  rice: { name: 'Rice Seeds', emoji: '🌾', daysToGrow: 2 },
+  corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2 },
 };
 
 type ShopTab = 'seeds' | 'tools';

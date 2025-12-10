@@ -413,7 +413,7 @@ export default function Game() {
     };
 
     const demolishBotImg = new Image();
-    demolishBotImg.src = '/images/bots/demolish bot.png';
+    demolishBotImg.src = '/demolish-bot.png';
     demolishBotImg.onload = () => {
       demolishBotImageRef.current = demolishBotImg;
     };

@@ -14,6 +14,7 @@ export type TileType =
   | 'arch'
   | 'mechanic'
   | 'well'
+  | 'garage'
   | 'ocean'
   | 'sand'
   | 'seaweed'
@@ -98,6 +99,8 @@ export interface Player {
     mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
     well: number; // How many wells the player owns (max 1 per zone)
     wellPlaced: boolean; // Whether a well has been placed in current zone
+    garage: number; // How many garages the player owns
+    garagePlaced: boolean; // Whether a garage has been placed in current zone
   };
   autoBuy: {
     carrot: boolean;
@@ -189,8 +192,8 @@ export interface HarvestBot {
 export interface SeedBotJob {
   id: string; // Unique job ID
   cropType: Exclude<CropType, null>; // What crop to plant
-  targetTiles: Array<{ x: number; y: number }>; // Tiles to plant (max 10)
-  maxTiles: number; // Maximum tiles for this job (10)
+  targetTiles: Array<{ x: number; y: number }>; // Tiles to plant (max 20)
+  maxTiles: number; // Maximum tiles for this job (20)
 }
 
 export interface SeedBot {

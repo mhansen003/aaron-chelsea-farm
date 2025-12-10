@@ -655,6 +655,13 @@ export default function Game() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Get current zone and its bots
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+    const waterBots = currentZone?.waterBots || [];
+    const harvestBots = currentZone?.harvestBots || [];
+    const seedBots = currentZone?.seedBots || [];
+
     // Clear canvas with green farm background
     ctx.fillStyle = '#7cb342'; // Green grass color
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -960,39 +967,30 @@ export default function Game() {
           }
           ctx.drawImage(plantedCropImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown' && tile.crop === 'carrot' && carrotsImageRef.current) {
-          // Draw grass background first, then dirt, then grown carrots sprite on top
+          // Draw grass background first, then grown carrots sprite on top
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          }
-          if (dirtImageRef.current) {
-            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(carrotsImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown' && tile.crop === 'wheat' && wheatImageRef.current) {
-          // Draw grass background first, then dirt, then grown wheat sprite on top
+          // Draw grass background first, then grown wheat sprite on top
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          }
-          if (dirtImageRef.current) {
-            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(wheatImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown' && tile.crop === 'tomato' && tomatoImageRef.current) {
-          // Draw grass background first, then dirt, then grown tomato sprite on top
+          // Draw grass background first, then grown tomato sprite on top
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          }
-          if (dirtImageRef.current) {
-            ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(tomatoImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'grown') {
@@ -1256,7 +1254,7 @@ export default function Game() {
 
     // Draw progress bars for bot actions
     // Water bots
-    gameState.waterBots?.forEach(bot => {
+    waterBots?.forEach(bot => {
       if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
         const elapsed = gameState.gameTime - bot.actionStartTime;
         const progress = Math.min(1, elapsed / bot.actionDuration);
@@ -1279,7 +1277,7 @@ export default function Game() {
     });
 
     // Harvest bots
-    gameState.harvestBots?.forEach(bot => {
+    harvestBots?.forEach(bot => {
       if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
         const elapsed = gameState.gameTime - bot.actionStartTime;
         const progress = Math.min(1, elapsed / bot.actionDuration);
@@ -1302,7 +1300,7 @@ export default function Game() {
     });
 
     // Seed bots
-    gameState.seedBots?.forEach(bot => {
+    seedBots?.forEach(bot => {
       if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
         const elapsed = gameState.gameTime - bot.actionStartTime;
         const progress = Math.min(1, elapsed / bot.actionDuration);
@@ -1350,7 +1348,7 @@ export default function Game() {
     }
 
     // Draw water bots using visual position for smooth movement
-    gameState.waterBots?.forEach(bot => {
+    waterBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -1405,7 +1403,7 @@ export default function Game() {
     });
 
     // Draw harvest bots using visual position for smooth movement
-    gameState.harvestBots?.forEach(bot => {
+    harvestBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -1436,7 +1434,7 @@ export default function Game() {
     });
 
     // Draw seed bots using visual position for smooth movement
-    gameState.seedBots?.forEach(bot => {
+    seedBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
@@ -1576,6 +1574,18 @@ export default function Game() {
     const tile = currentGrid[tileY]?.[tileX];
     if (!tile) return;
 
+    // Check if this tile has a queued task - if yes, cancel it
+    const queuedTask = gameState.taskQueue.find(task =>
+      task.tileX === tileX && task.tileY === tileY &&
+      task.zoneX === gameState.currentZone.x && task.zoneY === gameState.currentZone.y
+    );
+
+    if (queuedTask) {
+      // Cancel the queued task
+      setGameState(prev => removeTask(prev, queuedTask.id));
+      return; // Don't continue with other click actions
+    }
+
     // Handle tile selection mode for seed bot job configuration
     if (tileSelectionMode && tileSelectionMode.active) {
       // Only allow selecting dirt tiles that are cleared and plantable
@@ -1598,8 +1608,8 @@ export default function Game() {
         }
 
         // Update the seed bot's job with new tiles
-        if (selectedSeedBot && gameState.seedBots) {
-          const seedBot = gameState.seedBots.find(b => b.id === selectedSeedBot);
+        if (selectedSeedBot && seedBots) {
+          const seedBot = seedBots.find(b => b.id === selectedSeedBot);
           if (seedBot) {
             const updatedJobs = seedBot.jobs.map(job =>
               job.id === tileSelectionMode.jobId
@@ -1884,10 +1894,14 @@ export default function Game() {
   }, [gameState, showShop, showSellShop, showInstructions]);
 
   const confirmNewGame = () => {
-    setGameState(createInitialState());
+    // Show welcome page so user can choose to start new or load existing game
+    setShowWelcome(true);
     setSellMessage('');
     setShowShop(false);
     setShowSellShop(false);
+    setShowExportModal(false);
+    setShowMechanicShop(false);
+    setShowWarehouseModal(false);
     setShowInstructions(false);
     setShowNewGameConfirm(false);
   };
@@ -1999,6 +2013,12 @@ export default function Game() {
   const handleStartNew = () => {
     setGameState(createInitialState());
     setShowWelcome(false);
+    // Close all modals
+    setShowShop(false);
+    setShowSellShop(false);
+    setShowExportModal(false);
+    setShowMechanicShop(false);
+    setShowWarehouseModal(false);
   };
 
   const handleContinue = () => {
@@ -2007,12 +2027,24 @@ export default function Game() {
       setGameState(saved);
     }
     setShowWelcome(false);
+    // Close all modals
+    setShowShop(false);
+    setShowSellShop(false);
+    setShowExportModal(false);
+    setShowMechanicShop(false);
+    setShowWarehouseModal(false);
   };
 
   const handleLoadFromCode = async (code: string) => {
     const loaded = await loadFromSaveCode(code);
     setGameState(loaded);
     setShowWelcome(false);
+    // Close all modals
+    setShowShop(false);
+    setShowSellShop(false);
+    setShowExportModal(false);
+    setShowMechanicShop(false);
+    setShowWarehouseModal(false);
   };
 
   // Save Game Handler
@@ -2020,12 +2052,21 @@ export default function Game() {
     try {
       const code = await generateSaveCode(gameState);
       setCurrentSaveCode(code);
+      // Store the code in gameState so it's reused on next save
+      setGameState(prev => ({ ...prev, saveCode: code }));
       setShowSaveModal(true);
     } catch (error) {
       console.error('Failed to save game:', error);
       alert('Failed to save game. Please try again.');
     }
   };
+
+  // Get current zone and its bots
+  const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+  const currentZone = gameState.zones[currentZoneKey];
+  const waterBots = currentZone?.waterBots || [];
+  const harvestBots = currentZone?.harvestBots || [];
+  const seedBots = currentZone?.seedBots || [];
 
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
@@ -2354,9 +2395,9 @@ export default function Game() {
       )}
 
       {/* Seed Bot Config Modal */}
-      {showSeedBotConfig && selectedSeedBot && gameState.seedBots && (
+      {showSeedBotConfig && selectedSeedBot && seedBots && (
         <SeedBotConfigModal
-          seedBot={gameState.seedBots.find(b => b.id === selectedSeedBot)!}
+          seedBot={seedBots.find(b => b.id === selectedSeedBot)!}
           gameState={gameState}
           onClose={() => {
             setShowSeedBotConfig(false);
@@ -2371,7 +2412,7 @@ export default function Game() {
           }}
           onEnterTileSelectionMode={(jobId, cropType) => {
             // Get the current job's selected tiles
-            const seedBot = gameState.seedBots?.find(b => b.id === selectedSeedBot);
+            const seedBot = seedBots?.find(b => b.id === selectedSeedBot);
             const job = seedBot?.jobs.find(j => j.id === jobId);
             const selectedTiles = job?.targetTiles || [];
 
@@ -2714,15 +2755,15 @@ export default function Game() {
           )}
 
           {/* Water Robot Section */}
-          {(gameState.waterBots?.length ?? 0) > 0 && (
+          {(waterBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border-2 border-cyan-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-cyan-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">💧</span>
                 WATER BOTS
-                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{gameState.waterBots?.length ?? 0}</span>
+                <span className="ml-auto bg-cyan-600/30 px-1.5 rounded text-cyan-200">{waterBots?.length ?? 0}</span>
               </div>
               <div className="space-y-1.5">
-                {gameState.waterBots?.map((bot, idx) => {
+                {waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
                   return (
                     <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-cyan-600/30">
@@ -2753,15 +2794,15 @@ export default function Game() {
           )}
 
           {/* Harvest Robot Section */}
-          {(gameState.harvestBots?.length ?? 0) > 0 && (
+          {(harvestBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border-2 border-orange-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-orange-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">🌾</span>
                 HARVEST BOTS
-                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{gameState.harvestBots?.length ?? 0}</span>
+                <span className="ml-auto bg-orange-600/30 px-1.5 rounded text-orange-200">{harvestBots?.length ?? 0}</span>
               </div>
               <div className="space-y-1.5">
-                {gameState.harvestBots?.map((bot, idx) => {
+                {harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   return (
                     <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-orange-600/30">
@@ -2792,15 +2833,15 @@ export default function Game() {
           )}
 
           {/* Seed Bot Section */}
-          {gameState.seedBots && gameState.seedBots.length > 0 && (
+          {seedBots && seedBots.length > 0 && (
             <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border-2 border-green-500/60 rounded-lg p-2 mt-2 shadow-lg">
               <div className="text-xs text-green-300 font-bold mb-2 flex items-center gap-1">
                 <span className="text-base">🌱</span>
                 SEED BOTS
-                <span className="ml-auto bg-green-600/30 px-1.5 rounded text-green-200">{gameState.seedBots.length}</span>
+                <span className="ml-auto bg-green-600/30 px-1.5 rounded text-green-200">{seedBots.length}</span>
               </div>
               <div className="space-y-1.5">
-                {gameState.seedBots.map((bot, idx) => {
+                {seedBots.map((bot, idx) => {
                   const jobCount = bot.jobs.length;
                   const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
                   return (

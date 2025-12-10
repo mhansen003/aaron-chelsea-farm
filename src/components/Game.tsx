@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import NextImage from 'next/image';
 import {
   createInitialState,
   updateGameState,
@@ -2454,7 +2455,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/carrot.png" alt="Carrot" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
+          <NextImage src="/carrot.png" alt="Carrot" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.carrot}</span>
         </button>
         <button
           onClick={() =>
@@ -2472,7 +2473,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/wheat.png" alt="Wheat" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
+          <NextImage src="/wheat.png" alt="Wheat" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
         </button>
         <button
           onClick={() =>
@@ -2490,7 +2491,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/tomato.png" alt="Tomato" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
+          <NextImage src="/tomato.png" alt="Tomato" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
         </button>
         <button
           onClick={() =>
@@ -2508,7 +2509,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/pumpkin.png" alt="Pumpkin" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+          <NextImage src="/pumpkin.png" alt="Pumpkin" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
         </button>
         <button
           onClick={() =>
@@ -2526,7 +2527,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/watermelon.png" alt="Watermelon" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+          <NextImage src="/watermelon.png" alt="Watermelon" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
         </button>
         <button
           onClick={() =>
@@ -2544,7 +2545,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/peppers.png" alt="Peppers" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
+          <NextImage src="/peppers.png" alt="Peppers" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
         </button>
         <button
           onClick={() =>
@@ -2562,7 +2563,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/grapes.png" alt="Grapes" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
+          <NextImage src="/grapes.png" alt="Grapes" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
         </button>
         <button
           onClick={() =>
@@ -2580,7 +2581,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/oranges.png" alt="Oranges" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
+          <NextImage src="/oranges.png" alt="Oranges" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
         </button>
         <button
           onClick={() =>
@@ -2598,7 +2599,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/avocado.png" alt="Avocado" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
+          <NextImage src="/avocado.png" alt="Avocado" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
         </button>
         <button
           onClick={() =>
@@ -2616,7 +2617,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/rice.png" alt="Rice" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
+          <NextImage src="/rice.png" alt="Rice" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
         </button>
         <button
           onClick={() =>
@@ -2634,7 +2635,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <Image src="/corn.png" alt="Corn" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
+          <NextImage src="/corn.png" alt="Corn" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
         </button>
       </div>
 

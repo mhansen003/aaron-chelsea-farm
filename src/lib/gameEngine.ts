@@ -74,6 +74,14 @@ export const BASE_ZONE_PRICE = 500; // Base to first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
 
+/**
+ * Calculate progressive bot cost based on how many you already own
+ * Each bot costs 50% more than the previous one
+ */
+export function getBotCost(baseCost: number, owned: number): number {
+  return Math.round(baseCost * Math.pow(1.5, owned));
+}
+
 // Task durations in milliseconds
 export const TASK_DURATIONS = {
   clear: 10000, // 10 seconds to clear rocks/trees
@@ -2215,18 +2223,20 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
-  const cost = WATERBOT_COST * amount;
   const MAX_WATERBOTS = 2;
-
-  // Check if player can afford it
-  if (state.player.money < cost) return state;
 
   // Check if player has reached max capacity (2 total)
   if (state.player.inventory.waterbots >= MAX_WATERBOTS) return state;
 
+  // Progressive pricing - cost increases with each bot owned
+  const currentCost = getBotCost(WATERBOT_COST, state.player.inventory.waterbots);
+
+  // Check if player can afford it
+  if (state.player.money < currentCost) return state;
+
   // Limit purchase to 1 bot per zone
   const actualAmount = 1;
-  const actualCost = WATERBOT_COST * actualAmount;
+  const actualCost = currentCost;
 
   // Create actual WaterBot entities
   const newBots: WaterBot[] = [];
@@ -2273,14 +2283,15 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
-  const cost = HARVESTBOT_COST * amount;
+  // Progressive pricing - cost increases with each bot owned
+  const currentCost = getBotCost(HARVESTBOT_COST, state.player.inventory.harvestbots);
 
   // Check if player can afford it
-  if (state.player.money < cost) return state;
+  if (state.player.money < currentCost) return state;
 
   // Limit purchase to 1 bot per zone
   const actualAmount = 1;
-  const actualCost = HARVESTBOT_COST * actualAmount;
+  const actualCost = currentCost;
 
   // Create actual HarvestBot entities
   const newBots: import('@/types/game').HarvestBot[] = [];
@@ -2328,14 +2339,15 @@ export function buySeedbots(state: GameState, amount: number): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
-  const cost = SEEDBOT_COST * amount;
+  // Progressive pricing - cost increases with each bot owned
+  const currentCost = getBotCost(SEEDBOT_COST, state.player.inventory.seedbots);
 
   // Check if player can afford it
-  if (state.player.money < cost) return state;
+  if (state.player.money < currentCost) return state;
 
   // Limit purchase to 1 bot per zone
   const actualAmount = 1;
-  const actualCost = SEEDBOT_COST * actualAmount;
+  const actualCost = currentCost;
 
   // Create actual SeedBot entities
   const newBots: import('@/types/game').SeedBot[] = [];
@@ -2383,14 +2395,15 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
   if (!startZone) return state; // Start zone doesn't exist
   if (startZone.transportBots.length >= 1) return state; // Max 1 transport bot
 
-  const cost = TRANSPORTBOT_COST * amount;
+  // Progressive pricing - cost increases with each bot owned
+  const currentCost = getBotCost(TRANSPORTBOT_COST, state.player.inventory.transportbots || 0);
 
   // Check if player can afford it
-  if (state.player.money < cost) return state;
+  if (state.player.money < currentCost) return state;
 
   // Limit purchase to 1 bot at a time
   const actualAmount = 1;
-  const actualCost = TRANSPORTBOT_COST * actualAmount;
+  const actualCost = currentCost;
 
   // Create actual TransportBot entities
   const newBots: import('@/types/game').TransportBot[] = [];
@@ -2449,14 +2462,15 @@ export function buyDemolishbots(state: GameState, amount: number): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
-  const cost = DEMOLISHBOT_COST * amount;
+  // Progressive pricing - cost increases with each bot owned
+  const currentCost = getBotCost(DEMOLISHBOT_COST, currentDemolishbots);
 
   // Check if player can afford it
-  if (state.player.money < cost) return state;
+  if (state.player.money < currentCost) return state;
 
   // Limit purchase to 1 bot at a time
   const actualAmount = 1;
-  const actualCost = DEMOLISHBOT_COST * actualAmount;
+  const actualCost = currentCost;
 
   // Create actual DemolishBot entities
   const newBots: DemolishBot[] = [];

@@ -1,7 +1,7 @@
 'use client';
 
 import { GameState } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST } from '@/lib/gameEngine';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
 
 interface MechanicShopProps {
@@ -16,6 +16,12 @@ interface MechanicShopProps {
 }
 
 export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: MechanicShopProps) {
+  // Calculate progressive costs based on how many bots are owned
+  const waterbotCost = getBotCost(WATERBOT_COST, gameState.player.inventory.waterbots);
+  const harvestbotCost = getBotCost(HARVESTBOT_COST, gameState.player.inventory.harvestbots);
+  const seedbotCost = getBotCost(SEEDBOT_COST, gameState.player.inventory.seedbots);
+  const transportbotCost = getBotCost(TRANSPORTBOT_COST, gameState.player.inventory.transportbots || 0);
+  const demolishbotCost = getBotCost(DEMOLISHBOT_COST, gameState.player.inventory.demolishbots || 0);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -98,7 +104,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                       : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  {gameState.player.money >= WATERBOT_COST ? `Purchase for $${WATERBOT_COST}` : `Insufficient Funds ($${WATERBOT_COST})`}
+                  {gameState.player.money >= waterbotCost ? `Purchase for $${waterbotCost}` : `Insufficient Funds ($${waterbotCost})`}
                 </button>
               )}
             </div>
@@ -161,7 +167,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                       : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  {gameState.player.money >= HARVESTBOT_COST ? `Purchase for $${HARVESTBOT_COST}` : `Insufficient Funds ($${HARVESTBOT_COST})`}
+                  {gameState.player.money >= harvestbotCost ? `Purchase for $${harvestbotCost}` : `Insufficient Funds ($${harvestbotCost})`}
                 </button>
               )}
             </div>
@@ -224,7 +230,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                       : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  {gameState.player.money >= SEEDBOT_COST ? `Purchase for $${SEEDBOT_COST}` : `Insufficient Funds ($${SEEDBOT_COST})`}
+                  {gameState.player.money >= seedbotCost ? `Purchase for $${seedbotCost}` : `Insufficient Funds ($${seedbotCost})`}
                 </button>
               )}
             </div>
@@ -287,7 +293,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                       : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  {gameState.player.money >= TRANSPORTBOT_COST ? `Purchase for $${TRANSPORTBOT_COST}` : `Insufficient Funds ($${TRANSPORTBOT_COST})`}
+                  {gameState.player.money >= transportbotCost ? `Purchase for $${transportbotCost}` : `Insufficient Funds ($${transportbotCost})`}
                 </button>
               )}
             </div>
@@ -350,7 +356,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                       : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
-                  {gameState.player.money >= DEMOLISHBOT_COST ? `Purchase for $${DEMOLISHBOT_COST}` : `Insufficient Funds ($${DEMOLISHBOT_COST})`}
+                  {gameState.player.money >= demolishbotCost ? `Purchase for $${demolishbotCost}` : `Insufficient Funds ($${demolishbotCost})`}
                 </button>
               )}
             </div>

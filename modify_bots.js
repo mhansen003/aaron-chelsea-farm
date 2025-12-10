@@ -163,7 +163,7 @@ const buySeedbotsOld = `export function buySeedbots(state: GameState, amount: nu
       id: botId,
       jobs: [], // Start with no jobs configured
       status: 'idle',
-      autoBuySeeds: false, // Auto-buy seeds disabled by default
+      autoBuySeeds: true, // Auto-buy seeds enabled by default
       x: spawnX, // Spawn near player
       y: spawnY,
       visualX: spawnX, // Initialize visual position to match
@@ -199,7 +199,7 @@ const buySeedbotsNew = `export function buySeedbots(state: GameState, amount: nu
       id: botId,
       jobs: [], // Start with no jobs configured
       status: 'idle',
-      autoBuySeeds: false, // Auto-buy seeds disabled by default
+      autoBuySeeds: true, // Auto-buy seeds enabled by default
       x: spawnX, // Spawn near player
       y: spawnY,
       visualX: spawnX, // Initialize visual position to match

@@ -1586,8 +1586,8 @@ export default function Game() {
 
     // Handle tile selection mode for seed bot job configuration
     if (tileSelectionMode && tileSelectionMode.active) {
-      // Only allow selecting dirt tiles that are cleared and plantable
-      if (tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler) {
+      // Allow selecting grass or cleared dirt tiles that are plantable
+      if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && !tile.hasSprinkler) {
         const tileCoord = { x: tileX, y: tileY };
         const existingIndex = tileSelectionMode.selectedTiles.findIndex(
           t => t.x === tileX && t.y === tileY
@@ -2458,7 +2458,7 @@ export default function Game() {
           <div className="text-center">
             <div className="text-2xl font-bold mb-2">🌱 Tile Selection Mode</div>
             <div className="text-sm mb-3">
-              Click on cleared dirt tiles to select planting zones for {tileSelectionMode.cropType}
+              Click on grass or dirt tiles to select planting zones for {tileSelectionMode.cropType}
             </div>
             <div className="flex items-center justify-center gap-4 mb-3">
               <div className="bg-white/20 px-4 py-2 rounded-lg">

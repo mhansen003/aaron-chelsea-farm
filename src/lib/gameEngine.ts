@@ -1549,6 +1549,11 @@ export function buySprinklers(state: GameState, amount: number): GameState {
 }
 
 export function buyWaterbots(state: GameState, amount: number): GameState {
+  // Check current zone - limit to 1 water bot per zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  if (currentZone.waterBots.length >= 1) return state; // Already has a water bot in this zone
+
   const cost = WATERBOT_COST * amount;
   const MAX_WATERBOTS = 2;
 
@@ -1558,8 +1563,8 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   // Check if player has reached max capacity
   if (state.player.inventory.waterbots >= MAX_WATERBOTS) return state;
 
-  // Limit purchase to not exceed max capacity
-  const actualAmount = Math.min(amount, MAX_WATERBOTS - state.player.inventory.waterbots);
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = WATERBOT_COST * actualAmount;
 
   // Create actual WaterBot entities
@@ -1579,8 +1584,6 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,
@@ -1603,12 +1606,18 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
 }
 
 export function buyHarvestbots(state: GameState, amount: number): GameState {
+  // Check current zone - limit to 1 harvest bot per zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  if (currentZone.harvestBots.length >= 1) return state; // Already has a harvest bot in this zone
+
   const cost = HARVESTBOT_COST * amount;
 
   // Check if player can afford it
   if (state.player.money < cost) return state;
 
-  const actualAmount = amount;
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = HARVESTBOT_COST * actualAmount;
 
   // Create actual HarvestBot entities
@@ -1629,8 +1638,6 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,
@@ -1653,12 +1660,18 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
 }
 
 export function buySeedbots(state: GameState, amount: number): GameState {
+  // Check current zone - limit to 1 seed bot per zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  if (currentZone.seedBots.length >= 1) return state; // Already has a seed bot in this zone
+
   const cost = SEEDBOT_COST * amount;
 
   // Check if player can afford it
   if (state.player.money < cost) return state;
 
-  const actualAmount = amount;
+  // Limit purchase to 1 bot per zone
+  const actualAmount = 1;
   const actualCost = SEEDBOT_COST * actualAmount;
 
   // Create actual SeedBot entities
@@ -1671,7 +1684,7 @@ export function buySeedbots(state: GameState, amount: number): GameState {
       id: botId,
       jobs: [], // Start with no jobs configured
       status: 'idle',
-      autoBuySeeds: true, // Auto-buy seeds enabled by default
+      autoBuySeeds: false, // Auto-buy seeds disabled by default
       x: spawnX, // Spawn near player
       y: spawnY,
       visualX: spawnX, // Initialize visual position to match
@@ -1679,8 +1692,6 @@ export function buySeedbots(state: GameState, amount: number): GameState {
     });
   }
 
-  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
-  const currentZone = state.zones[currentZoneKey];
 
   return {
     ...state,

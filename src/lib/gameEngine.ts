@@ -807,10 +807,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (newGameTime - tile.lastWorkedTime >= DIRT_TO_GRASS_TIME) {
             return {
               ...tile,
-              type: 'grass',
+              type: 'grass' as TileType,
               lastWorkedTime: newGameTime,
               overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
-            };
+            } as Tile;
           }
         }
 

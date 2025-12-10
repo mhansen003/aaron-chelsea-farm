@@ -10,11 +10,11 @@ interface GarageModalProps {
 
 export default function GarageModal({ gameState, onClose, onRelocate }: GarageModalProps) {
   // Count idle bots
-  const harvestBots = gameState.bots.harvestBots || [];
-  const waterBots = gameState.bots.waterBots || [];
-  const seedBots = gameState.bots.seedBots || [];
-  const transportBots = gameState.bots.transportBots || [];
-  const demolishBots = gameState.bots.demolishBots || [];
+  const harvestBots = gameState.harvestBots || [];
+  const waterBots = gameState.waterBots || [];
+  const seedBots = gameState.seedBots || [];
+  const transportBots = gameState.transportBots || [];
+  const demolishBots = gameState.demolishBots || [];
 
   const allBots = [...harvestBots, ...waterBots, ...seedBots, ...transportBots, ...demolishBots];
   const idleBots = allBots.filter(bot => bot.status === 'idle');

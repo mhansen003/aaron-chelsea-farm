@@ -1076,7 +1076,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       const plantableTiles = currentJob.targetTiles.filter(targetTile => {
         const tile = grid[targetTile.y]?.[targetTile.x];
-        return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
       });
 
       if (plantableTiles.length === 0) {
@@ -1086,7 +1086,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
         const nextPlantableTiles = nextJob.targetTiles.filter(targetTile => {
           const tile = grid[targetTile.y]?.[targetTile.x];
-          return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+          return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
         });
 
         if (nextPlantableTiles.length > 0) {
@@ -1154,7 +1154,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       const refreshedPlantableTiles = currentJob.targetTiles.filter(targetTile => {
         const tile = updatedGrid[targetTile.y]?.[targetTile.x];
-        return tile && tile.type === 'dirt' && tile.cleared && !tile.crop && !tile.hasSprinkler;
+        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
       });
 
       if (refreshedPlantableTiles.length > 0) {
@@ -1171,7 +1171,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
-          if (tile && tile.type === 'dirt' && tile.cleared && !tile.crop) {
+          if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
             const ACTION_DURATION = 1500;
 
             if (bot.actionStartTime !== undefined) {

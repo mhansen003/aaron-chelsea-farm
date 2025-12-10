@@ -1284,6 +1284,31 @@ export default function Game() {
       }
     }
 
+    // Draw light overlay for tiles that are part of seed bot jobs (only when NOT in selection mode)
+    if (!tileSelectionMode?.active) {
+      const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+      const currentZone = gameState.zones[currentZoneKey];
+      const seedBots = currentZone?.seedBots || [];
+
+      seedBots.forEach(bot => {
+        bot.jobs.forEach(job => {
+          job.targetTiles.forEach(targetTile => {
+            const px = targetTile.x * GAME_CONFIG.tileSize;
+            const py = targetTile.y * GAME_CONFIG.tileSize;
+
+            // Draw subtle yellow/gold overlay to indicate this tile is part of a job
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.15)'; // Light amber overlay
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+            // Draw subtle border
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)'; // Amber border
+            ctx.lineWidth = 1;
+            ctx.strokeRect(px + 1, py + 1, GAME_CONFIG.tileSize - 2, GAME_CONFIG.tileSize - 2);
+          });
+        });
+      });
+    }
+
     // Draw progress bars for bot actions
     // Water bots
     waterBots?.forEach(bot => {

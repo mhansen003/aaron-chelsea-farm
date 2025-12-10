@@ -256,6 +256,7 @@ export default function Game() {
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartRow, setDragStartRow] = useState<number | null>(null);
+  const [mouseDownPos, setMouseDownPos] = useState<{ x: number; y: number } | null>(null);
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
@@ -1674,6 +1675,18 @@ export default function Game() {
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
 
+    // Check drag threshold - only start dragging if mouse moved > 5 pixels
+    if (mouseDownPos && !isDragging && tileSelectionMode && tileSelectionMode.active) {
+      const dx = e.clientX - mouseDownPos.x;
+      const dy = e.clientY - mouseDownPos.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 5) {
+        // Mouse moved enough to be considered a drag
+        setIsDragging(true);
+      }
+    }
+
     // Handle drag-to-draw in tile selection mode
     if (isDragging && tileSelectionMode && tileSelectionMode.active && dragStartRow !== null) {
       // Only allow dragging on the same row
@@ -1732,7 +1745,7 @@ export default function Game() {
       setHoveredTile(null);
       setCursorType('default');
     }
-  }, [gameState, getActionForTile, isDragging, tileSelectionMode, dragStartRow, selectedSeedBot]);
+  }, [gameState, getActionForTile, isDragging, tileSelectionMode, dragStartRow, selectedSeedBot, mouseDownPos]);
 
   // Handle canvas click to queue tasks
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -2046,14 +2059,17 @@ export default function Game() {
     const tileX = Math.floor((x / rect.width) * GAME_CONFIG.gridWidth);
     const tileY = Math.floor((y / rect.height) * GAME_CONFIG.gridHeight);
 
-    setIsDragging(true);
+    // Store mouse down position for drag threshold detection
+    setMouseDownPos({ x: e.clientX, y: e.clientY });
     setDragStartRow(tileY);
+    // Don't set isDragging here - wait for mouse move with threshold
   }, [tileSelectionMode]);
 
   // Handle mouse up to stop dragging
   const handleCanvasMouseUp = useCallback(() => {
     setIsDragging(false);
     setDragStartRow(null);
+    setMouseDownPos(null);
   }, []);
 
   // Keyboard shortcuts (no movement)

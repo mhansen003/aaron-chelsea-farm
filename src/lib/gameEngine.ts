@@ -841,7 +841,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               cleared: false,
               lastWorkedTime: undefined,
               overgrowthTime: undefined,
-            };
+            } as Tile;
           }
         }
 

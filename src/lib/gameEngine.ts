@@ -1687,11 +1687,23 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         });
       });
 
-      if (obstacleTiles.length > 0) {
-        // Find nearest obstacle
-        let nearest = obstacleTiles[0];
+      // Filter out obstacles already claimed by other bots
+      const claimedTiles = new Set<string>();
+      zone.demolishBots.forEach(otherBot => {
+        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
+          claimedTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
+        }
+      });
+
+      const availableObstacles = obstacleTiles.filter(obstacle =>
+        !claimedTiles.has(`${obstacle.x},${obstacle.y}`)
+      );
+
+      if (availableObstacles.length > 0) {
+        // Find nearest unclaimed obstacle
+        let nearest = availableObstacles[0];
         let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        obstacleTiles.forEach(obstacle => {
+        availableObstacles.forEach(obstacle => {
           const dist = Math.abs(botX - obstacle.x) + Math.abs(botY - obstacle.y);
           if (dist < minDist) { minDist = dist; nearest = obstacle; }
         });

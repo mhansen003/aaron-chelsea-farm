@@ -2944,38 +2944,10 @@ export default function Game() {
       )}
       </div>
 
-      {/* Compact Basket Sidebar */}
+      {/* Compact Sidebar - Farmer and Bots */}
       <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-hidden">
-        <div className="text-sm font-bold text-center">🧺 {gameState.player.basket.length}/{gameState.player.basketCapacity}</div>
-
-        {/* Basket Grid - Dynamic based on capacity */}
-        <div className="grid grid-cols-2 gap-1">
-          {Array.from({ length: gameState.player.basketCapacity }).map((_, idx) => {
-            const item = gameState.player.basket[idx];
-            return (
-              <div
-                key={idx}
-                className={`aspect-square rounded border flex items-center justify-center text-2xl ${
-                  item ? 'bg-amber-900/50 border-amber-600' : 'bg-gray-800/50 border-gray-600'
-                }`}
-              >
-                {item && (
-                  <div className="relative">
-                    <div>{item.crop === 'carrot' ? '🥕' : item.crop === 'wheat' ? '🌾' : '🍅'}</div>
-                    {item.quality.generation > 1 && (
-                      <div className="absolute -top-0.5 -right-0.5 text-[10px] bg-purple-600 rounded-full w-3 h-3 flex items-center justify-center">
-                        {item.quality.generation}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
         {/* Farmer Status and Task Queue */}
-        <div className="border-t border-gray-600 pt-2 flex-1 flex flex-col min-h-0">
+        <div className="flex-1 flex flex-col min-h-0">
           <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>
 
           {/* Current Task */}

@@ -742,7 +742,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return {
               ...tile,
               lastWorkedTime: newGameTime,
-              overgrowthTime: newGameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
+              overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
             };
           }
 
@@ -1044,7 +1044,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 updatedGrid = updatedGrid.map((row, rowY) =>
                   row.map((t, tileX) => {
                     if (tileX === nearest.x && rowY === nearest.y) {
-                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (420000 + Math.random() * 480000) };
+                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (900000 + Math.random() * 900000) };
                     }
                     return t;
                   })
@@ -1540,7 +1540,7 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
           type: 'grass' as TileType,
           cleared: true,
           lastWorkedTime: state.gameTime,
-          overgrowthTime: state.gameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
+          overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
         };
       }
       return t;
@@ -1608,7 +1608,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           growthStage: 0,
           plantedDay: undefined,
           lastWorkedTime: state.gameTime,
-          overgrowthTime: state.gameTime + (420000 + Math.random() * 480000), // 7-15 minutes random
+          overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
         };
       }
       return t;

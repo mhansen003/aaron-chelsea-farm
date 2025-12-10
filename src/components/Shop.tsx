@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -16,6 +16,7 @@ interface ShopProps {
   onUpgradeBag: () => void;
   onBuyMechanicShop: () => void;
   onBuyWell: () => void;
+  onBuyGarage: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
@@ -27,7 +28,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onBuyGarage, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -330,6 +331,62 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   ${WELL_COST}
                 </button>
               ) : gameState.player.inventory.wellPlaced ? (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Owned
+                </div>
+              ) : (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
+                  Place It!
+                </div>
+              )}
+            </div>
+
+            {/* Garage - Parking for idle bots */}
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+              gameState.player.inventory.garage >= 1
+                ? 'border-green-600'
+                : 'border-amber-600'
+            }`}>
+              {/* Icon */}
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                {gameState.player.inventory.garage >= 1 ? (
+                  <span className="text-5xl">✓</span>
+                ) : (
+                  <Image src="/garage.png" alt="Garage" width={80} height={80} className="object-contain" />
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Garage</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-orange-400">Parking for idle bots</div>
+                <div className="text-blue-400">
+                  {gameState.player.inventory.garagePlaced ? (
+                    <span className="text-green-400">Built</span>
+                  ) : gameState.player.inventory.garage >= 1 ? (
+                    <span className="text-yellow-400">Ready!</span>
+                  ) : (
+                    'Bots share garage'
+                  )}
+                </div>
+              </div>
+
+              {/* Buy/Action Button */}
+              {gameState.player.inventory.garage < 1 ? (
+                <button
+                  onClick={() => onBuyGarage()}
+                  disabled={gameState.player.money < GARAGE_COST}
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                    gameState.player.money >= GARAGE_COST
+                      ? 'bg-orange-600 hover:bg-orange-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  ${GARAGE_COST}
+                </button>
+              ) : gameState.player.inventory.garagePlaced ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

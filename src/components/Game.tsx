@@ -22,8 +22,10 @@ import {
   upgradeBag,
   buyMechanicShop,
   buyWell,
+  buyGarage,
   placeMechanicShop,
   placeWell,
+  placeGarage,
   relocateMechanicShop,
   toggleAutoBuy,
   addTask,
@@ -260,7 +262,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | 'garage' | null>(null);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
   const [tileSelectionMode, setTileSelectionMode] = useState<{
@@ -1897,6 +1899,15 @@ export default function Game() {
       return;
     }
 
+    if (placementMode === 'garage') {
+      // Allow placing garage on grass or cleared dirt tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
+        setGameState(prev => placeGarage(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
     // Handle arch clicks for zone purchase/travel
     if (tile.type === 'arch' && tile.archTargetZone) {
       const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
@@ -2644,6 +2655,7 @@ export default function Game() {
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
           onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
           onBuyWell={() => setGameState(prev => buyWell(prev))}
+          onBuyGarage={() => setGameState(prev => buyGarage(prev))}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}

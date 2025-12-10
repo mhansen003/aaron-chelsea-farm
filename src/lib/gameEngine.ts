@@ -9,9 +9,17 @@ export const GAME_CONFIG: GameConfig = {
 
 // Crop information: growth time (ms), sell price, seed cost
 export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
-  carrot: { daysToGrow: 1, growTime: 48000, sellPrice: 5, seedCost: 2 }, // 48 seconds (was 30)
-  wheat: { daysToGrow: 1, growTime: 72000, sellPrice: 3, seedCost: 1 }, // 72 seconds (was 45)
-  tomato: { daysToGrow: 2, growTime: 144000, sellPrice: 8, seedCost: 4 }, // 144 seconds (was 90)
+  carrot: { daysToGrow: 1, growTime: 48000, sellPrice: 5, seedCost: 2 }, // 48 seconds (profit: 3)
+  wheat: { daysToGrow: 1, growTime: 72000, sellPrice: 3, seedCost: 1 }, // 72 seconds (profit: 2)
+  tomato: { daysToGrow: 2, growTime: 144000, sellPrice: 8, seedCost: 4 }, // 144 seconds (profit: 4)
+  pumpkin: { daysToGrow: 2, growTime: 96000, sellPrice: 12, seedCost: 6 }, // 96 seconds (profit: 6)
+  watermelon: { daysToGrow: 2, growTime: 120000, sellPrice: 15, seedCost: 8 }, // 120 seconds (profit: 7)
+  peppers: { daysToGrow: 1, growTime: 60000, sellPrice: 6, seedCost: 3 }, // 60 seconds (profit: 3)
+  grapes: { daysToGrow: 2, growTime: 108000, sellPrice: 10, seedCost: 5 }, // 108 seconds (profit: 5)
+  oranges: { daysToGrow: 3, growTime: 132000, sellPrice: 14, seedCost: 7 }, // 132 seconds (profit: 7)
+  avocado: { daysToGrow: 3, growTime: 156000, sellPrice: 18, seedCost: 10 }, // 156 seconds (profit: 8)
+  rice: { daysToGrow: 2, growTime: 84000, sellPrice: 7, seedCost: 3 }, // 84 seconds (profit: 4)
+  corn: { daysToGrow: 2, growTime: 90000, sellPrice: 9, seedCost: 4 }, // 90 seconds (profit: 5)
   null: { daysToGrow: 0, growTime: 0, sellPrice: 0, seedCost: 0 },
 };
 
@@ -384,12 +392,28 @@ export function createInitialState(): GameState {
           carrot: 5,
           wheat: 3,
           tomato: 1,
+          pumpkin: 0,
+          watermelon: 0,
+          peppers: 0,
+          grapes: 0,
+          oranges: 0,
+          avocado: 0,
+          rice: 0,
+          corn: 0,
           null: 0,
         },
         seedQuality: {
           carrot: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
           wheat: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
           tomato: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          pumpkin: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          watermelon: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          peppers: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          grapes: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          oranges: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          avocado: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          rice: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
+          corn: { generation: 1, yield: 1.0, growthSpeed: 1.0 },
           null: { generation: 0, yield: 0, growthSpeed: 0 },
         },
         sprinklers: 0,
@@ -409,6 +433,14 @@ export function createInitialState(): GameState {
         carrot: true,
         wheat: true,
         tomato: true,
+        pumpkin: false,
+        watermelon: false,
+        peppers: false,
+        grapes: false,
+        oranges: false,
+        avocado: false,
+        rice: false,
+        corn: false,
       },
     },
     tools: [
@@ -2077,7 +2109,7 @@ export function checkAndAutoRefill(state: GameState): GameState {
   let newState = state;
 
   // Check each crop type
-  const cropTypes: Array<Exclude<CropType, null>> = ['carrot', 'wheat', 'tomato'];
+  const cropTypes: Array<Exclude<CropType, null>> = ['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'];
 
   for (const cropType of cropTypes) {
     // If auto-buy is enabled and seeds are at 0, buy 1 seed
@@ -2743,6 +2775,71 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
       inventory: {
         ...state.player.inventory,
         wellPlaced: true,
+      },
+    },
+  };
+}
+
+export function buyGarage(state: GameState): GameState {
+  // Check if player can afford it
+  if (state.player.money < GARAGE_COST) return state;
+
+  // Check if player already has a garage
+  if (state.player.inventory.garage >= 1) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - GARAGE_COST,
+      inventory: {
+        ...state.player.inventory,
+        garage: 1,
+      },
+    },
+  };
+}
+
+export function placeGarage(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
+
+  // Can only place on cleared grass/dirt tiles (not rocks/trees), and must have one in inventory
+  if (!tile || !tile.cleared || (tile.type !== 'grass' && tile.type !== 'dirt') || state.player.inventory.garage <= 0 || state.player.inventory.garagePlaced) {
+    return state;
+  }
+
+  // Place garage instantly
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY) {
+        return {
+          ...t,
+          type: 'garage' as const,
+          isConstructing: false,
+          constructionTarget: undefined,
+          constructionStartTime: undefined,
+          constructionDuration: undefined,
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        garagePlaced: true,
       },
     },
   };

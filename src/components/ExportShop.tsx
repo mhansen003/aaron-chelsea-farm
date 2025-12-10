@@ -32,6 +32,14 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           carrot: generatePrice(CROP_INFO.carrot.sellPrice),
           wheat: generatePrice(CROP_INFO.wheat.sellPrice),
           tomato: generatePrice(CROP_INFO.tomato.sellPrice),
+          pumpkin: generatePrice(CROP_INFO.pumpkin.sellPrice),
+          watermelon: generatePrice(CROP_INFO.watermelon.sellPrice),
+          peppers: generatePrice(CROP_INFO.peppers.sellPrice),
+          grapes: generatePrice(CROP_INFO.grapes.sellPrice),
+          oranges: generatePrice(CROP_INFO.oranges.sellPrice),
+          avocado: generatePrice(CROP_INFO.avocado.sellPrice),
+          rice: generatePrice(CROP_INFO.rice.sellPrice),
+          corn: generatePrice(CROP_INFO.corn.sellPrice),
         },
       },
       {
@@ -41,6 +49,14 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           carrot: generatePrice(CROP_INFO.carrot.sellPrice),
           wheat: generatePrice(CROP_INFO.wheat.sellPrice),
           tomato: generatePrice(CROP_INFO.tomato.sellPrice),
+          pumpkin: generatePrice(CROP_INFO.pumpkin.sellPrice),
+          watermelon: generatePrice(CROP_INFO.watermelon.sellPrice),
+          peppers: generatePrice(CROP_INFO.peppers.sellPrice),
+          grapes: generatePrice(CROP_INFO.grapes.sellPrice),
+          oranges: generatePrice(CROP_INFO.oranges.sellPrice),
+          avocado: generatePrice(CROP_INFO.avocado.sellPrice),
+          rice: generatePrice(CROP_INFO.rice.sellPrice),
+          corn: generatePrice(CROP_INFO.corn.sellPrice),
         },
       },
       {
@@ -50,6 +66,14 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           carrot: generatePrice(CROP_INFO.carrot.sellPrice),
           wheat: generatePrice(CROP_INFO.wheat.sellPrice),
           tomato: generatePrice(CROP_INFO.tomato.sellPrice),
+          pumpkin: generatePrice(CROP_INFO.pumpkin.sellPrice),
+          watermelon: generatePrice(CROP_INFO.watermelon.sellPrice),
+          peppers: generatePrice(CROP_INFO.peppers.sellPrice),
+          grapes: generatePrice(CROP_INFO.grapes.sellPrice),
+          oranges: generatePrice(CROP_INFO.oranges.sellPrice),
+          avocado: generatePrice(CROP_INFO.avocado.sellPrice),
+          rice: generatePrice(CROP_INFO.rice.sellPrice),
+          corn: generatePrice(CROP_INFO.corn.sellPrice),
         },
       },
     ];
@@ -77,8 +101,16 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
       carrot: 0,
       wheat: 0,
       tomato: 0,
+      pumpkin: 0,
+      watermelon: 0,
+      peppers: 0,
+      grapes: 0,
+      oranges: 0,
+      avocado: 0,
+      rice: 0,
+      corn: 0,
     };
-    (['carrot', 'wheat', 'tomato'] as const).forEach(crop => {
+    (['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).forEach(crop => {
       combined[crop] = (basketCounts[crop] || 0) + (warehouseCounts[crop] || 0);
     });
     return combined;
@@ -88,6 +120,14 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
     carrot: '🥕',
     wheat: '🌾',
     tomato: '🍅',
+    pumpkin: '🎃',
+    watermelon: '🍉',
+    peppers: '🌶️',
+    grapes: '🍇',
+    oranges: '🍊',
+    avocado: '🥑',
+    rice: '🍚',
+    corn: '🌽',
   };
 
   return (

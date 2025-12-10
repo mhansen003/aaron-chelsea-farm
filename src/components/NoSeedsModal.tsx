@@ -12,12 +12,28 @@ const CROP_NAMES = {
   carrot: 'Carrot',
   wheat: 'Wheat',
   tomato: 'Tomato',
+  pumpkin: 'Pumpkin',
+  watermelon: 'Watermelon',
+  peppers: 'Peppers',
+  grapes: 'Grapes',
+  oranges: 'Oranges',
+  avocado: 'Avocado',
+  rice: 'Rice',
+  corn: 'Corn',
 };
 
 const CROP_EMOJIS = {
   carrot: '🥕',
   wheat: '🌾',
   tomato: '🍅',
+  pumpkin: '🎃',
+  watermelon: '🍉',
+  peppers: '🌶️',
+  grapes: '🍇',
+  oranges: '🍊',
+  avocado: '🥑',
+  rice: '🍚',
+  corn: '🌽',
 };
 
 export default function NoSeedsModal({ cropType, onClose, onGoToShop }: NoSeedsModalProps) {

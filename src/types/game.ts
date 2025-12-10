@@ -24,7 +24,7 @@ export type TileType =
   | 'cave'
   | 'mountain';
 
-export type CropType = 'carrot' | 'wheat' | 'tomato' | null;
+export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' | 'peppers' | 'grapes' | 'oranges' | 'avocado' | 'rice' | 'corn' | null;
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
@@ -106,6 +106,14 @@ export interface Player {
     carrot: boolean;
     wheat: boolean;
     tomato: boolean;
+    pumpkin: boolean;
+    watermelon: boolean;
+    peppers: boolean;
+    grapes: boolean;
+    oranges: boolean;
+    avocado: boolean;
+    rice: boolean;
+    corn: boolean;
   };
 }
 

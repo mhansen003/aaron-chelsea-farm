@@ -15,33 +15,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a unique 6-digit code
     // Generate or reuse code
     let code = existingCode || generateCode();
     let attempts = 0;
+
     // Only check for uniqueness if generating a new code
     if (!existingCode) {
+      // Keep trying until we find a unique code
+      while (attempts < 100) {
+        const existing = await sql`
+          SELECT code FROM game_saves WHERE code = ${code}
+        `;
 
-    // Keep trying until we find a unique code
-    while (attempts < 100) {
-      const existing = await sql`
-        SELECT code FROM game_saves WHERE code = ${code}
-      `;
+        if (existing.length === 0) {
+          break; // Code is unique
+        }
 
-      if (existing.length === 0) {
-        break; // Code is unique
+        code = generateCode();
+        attempts++;
       }
 
-      code = generateCode();
-      attempts++;
-    }
-    }
-
-    if (attempts >= 100) {
-      return NextResponse.json(
-        { error: 'Failed to generate unique save code' },
-        { status: 500 }
-      );
+      if (attempts >= 100) {
+        return NextResponse.json(
+          { error: 'Failed to generate unique save code' },
+          { status: 500 }
+        );
+      }
     }
 
     // Save the game state

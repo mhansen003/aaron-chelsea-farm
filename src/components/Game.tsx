@@ -2229,9 +2229,9 @@ export default function Game() {
   // Save Game Handler
   const handleSaveGame = async () => {
     try {
-      const code = await generateSaveCode(gameState);
+      // Pass existing code if available
+      const code = await generateSaveCode(gameState, gameState.saveCode);
       setCurrentSaveCode(code);
-      // Store the code in gameState so it's reused on next save
       setGameState(prev => ({ ...prev, saveCode: code }));
       setShowSaveModal(true);
     } catch (error) {
@@ -2863,26 +2863,6 @@ export default function Game() {
             );
           })}
         </div>
-
-        {/* Compact Sell Button */}
-        <button
-          onClick={() => {
-            const result = sellBasket(gameState);
-            setSellMessage(result.message);
-            if (result.success) {
-              setGameState(result.state);
-            }
-            setTimeout(() => setSellMessage(''), 3000);
-          }}
-          disabled={gameState.player.basket.length === 0}
-          className={`px-2 py-1 rounded font-bold text-xs ${
-            gameState.player.basket.length > 0
-              ? 'bg-green-600 hover:bg-green-700'
-              : 'bg-gray-600 cursor-not-allowed'
-          }`}
-        >
-          💰 Sell (V)
-        </button>
 
         {/* Farmer Status and Task Queue */}
         <div className="border-t border-gray-600 pt-2 flex-1 flex flex-col min-h-0">

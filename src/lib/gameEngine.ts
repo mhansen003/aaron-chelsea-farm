@@ -9,9 +9,9 @@ export const GAME_CONFIG: GameConfig = {
 
 // Crop information: growth time (ms), sell price, seed cost
 export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
-  carrot: { daysToGrow: 1, growTime: 30000, sellPrice: 5, seedCost: 2 }, // 30 seconds
-  wheat: { daysToGrow: 1, growTime: 45000, sellPrice: 3, seedCost: 1 }, // 45 seconds
-  tomato: { daysToGrow: 2, growTime: 90000, sellPrice: 8, seedCost: 4 }, // 90 seconds
+  carrot: { daysToGrow: 1, growTime: 48000, sellPrice: 5, seedCost: 2 }, // 48 seconds (was 30)
+  wheat: { daysToGrow: 1, growTime: 72000, sellPrice: 3, seedCost: 1 }, // 72 seconds (was 45)
+  tomato: { daysToGrow: 2, growTime: 144000, sellPrice: 8, seedCost: 4 }, // 144 seconds (was 90)
   null: { daysToGrow: 0, growTime: 0, sellPrice: 0, seedCost: 0 },
 };
 
@@ -115,12 +115,12 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
         type = 'shop';
       }
-      // Export building at top-right corner (2x2) of starting zone only
-      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= 0 && y <= 1) {
+      // Export building at bottom-right corner (2x2) of starting zone only
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'export';
       }
-      // Warehouse building (2x2) to the left of export building
-      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= 0 && y <= 1) {
+      // Warehouse building (2x2) to the left of export building at bottom
+      else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 4 && x <= GAME_CONFIG.gridWidth - 3 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'warehouse';
       }
       // Mechanic building (2x2) - if placed by player

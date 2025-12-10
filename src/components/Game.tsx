@@ -2966,7 +2966,7 @@ const garageImg = new Image();    garageImg.src = '/garage.png';    garageImg.on
       </div>
 
       {/* Compact Sidebar - Farmer and Bots */}
-      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-hidden">
+      <div className="w-40 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
         {/* Farmer Status and Task Queue */}
         <div className="flex-1 flex flex-col min-h-0">
           <div className="text-xs font-bold text-center mb-2">👨‍🌾 Farmer</div>

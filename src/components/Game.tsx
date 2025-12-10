@@ -3119,6 +3119,46 @@ export default function Game() {
               </div>
             </div>
           )}
+
+          {/* Transport Bot Section */}
+          {(transportBots?.length ?? 0) > 0 && (
+            <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border-2 border-purple-500/60 rounded-lg p-2 mt-2 shadow-lg">
+              <div className="text-xs text-purple-300 font-bold mb-2 flex items-center gap-1">
+                <span className="text-base">🚚</span>
+                TRANSPORT BOTS
+                <span className="ml-auto bg-purple-600/30 px-1.5 rounded text-purple-200">{transportBots?.length ?? 0}</span>
+              </div>
+              <div className="space-y-1.5">
+                {transportBots?.map((bot, idx) => {
+                  const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded-lg p-2 border border-purple-600/30">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-purple-100">Bot #{idx + 1}</span>
+                        <span className="text-[10px] text-purple-300">
+                          {bot.status === 'traveling' && '🚶 Moving'}
+                          {bot.status === 'loading' && '📥 Loading'}
+                          {bot.status === 'transporting' && '🚚 Transporting'}
+                          {bot.status === 'selling' && '💰 Selling'}
+                          {bot.status === 'idle' && '😴 Idle'}
+                        </span>
+                      </div>
+                      {/* Inventory Progress Bar */}
+                      <div className="bg-gray-900/60 rounded-full h-3 overflow-hidden border border-purple-700/50">
+                        <div
+                          className={`h-full transition-all duration-300 ${inventoryPercent < 100 ? 'bg-gradient-to-r from-purple-400 to-violet-500' : 'bg-gradient-to-r from-yellow-400 to-amber-500'}`}
+                          style={{ width: `${inventoryPercent}%` }}
+                        />
+                      </div>
+                      <div className="text-[10px] text-purple-300/80 mt-0.5 text-center">
+                        {bot.inventory.length}/{bot.inventoryCapacity} crops
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

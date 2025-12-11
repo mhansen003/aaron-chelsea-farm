@@ -3321,7 +3321,7 @@ export default function Game() {
             <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
             <div className="space-y-1 overflow-y-auto flex-1">
               {currentZone.taskQueue.map((task, idx) => {
-                // Get crop-specific icon for plant tasks
+                // Get crop-specific icon for plant and harvest tasks
                 let icon = '🔨'; // Default
                 if (task.type === 'clear') icon = '⛏️';
                 else if (task.type === 'plant') {
@@ -3340,7 +3340,23 @@ export default function Game() {
                   else icon = '🌱'; // Fallback
                 }
                 else if (task.type === 'water') icon = '💧';
-                else if (task.type === 'harvest') icon = '🌾';
+                else if (task.type === 'harvest') {
+                  // Look up the crop on the tile being harvested
+                  const tile = currentZone.grid[task.tileY]?.[task.tileX];
+                  const cropType = tile?.crop;
+                  if (cropType === 'carrot') icon = '🥕';
+                  else if (cropType === 'wheat') icon = '🌾';
+                  else if (cropType === 'tomato') icon = '🍅';
+                  else if (cropType === 'pumpkin') icon = '🎃';
+                  else if (cropType === 'watermelon') icon = '🍉';
+                  else if (cropType === 'peppers') icon = '🌶️';
+                  else if (cropType === 'grapes') icon = '🍇';
+                  else if (cropType === 'oranges') icon = '🍊';
+                  else if (cropType === 'avocado') icon = '🥑';
+                  else if (cropType === 'rice') icon = '🍚';
+                  else if (cropType === 'corn') icon = '🌽';
+                  else icon = '🌱'; // Fallback
+                }
                 else if (task.type === 'place_sprinkler') icon = '💦';
                 else if (task.type === 'place_mechanic') icon = '⚙️';
                 else if (task.type === 'place_well') icon = '🪣';

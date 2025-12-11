@@ -3411,7 +3411,23 @@ export default function Game() {
           onClose={() => setShowMechanicShop(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
-          onBuySeedbots={amount => setGameState(prev => buySeedbots(prev, amount))}
+          onBuySeedbots={amount => {
+            const prevBotCount = gameState.player.inventory.seedbots;
+            setGameState(prev => buySeedbots(prev, amount));
+            // Auto-open seed bot config modal after purchase
+            setTimeout(() => {
+              const newBotCount = gameState.player.inventory.seedbots + amount;
+              if (newBotCount > prevBotCount) {
+                setShowMechanicShop(false);
+                // Find the newest seed bot and select it
+                const currentZone = gameState.zones[`${gameState.currentZone.x},${gameState.currentZone.y}`];
+                if (currentZone?.seedBots && currentZone.seedBots.length > 0) {
+                  setSelectedSeedBot(currentZone.seedBots[currentZone.seedBots.length - 1].id);
+                  setShowSeedBotConfig(true);
+                }
+              }
+            }, 100);
+          }}
           onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
           onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}
           onRelocate={() => setGameState(prev => relocateMechanicShop(prev))}

@@ -2626,7 +2626,7 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   }
 
   // Priority 4: Auto Plant (plant seeds on empty cleared dirt/grass)
-  if (farmerAuto.autoPlant && inventory.seeds[farmerAuto.autoPlantCrop] > 0) {
+  if (farmerAuto.autoPlant && farmerAuto.autoPlantCrop && inventory.seeds[farmerAuto.autoPlantCrop] > 0) {
     const plantableTiles: Array<{ x: number; y: number; dist: number }> = [];
     grid.forEach((row, y) => {
       row.forEach((tile, x) => {

@@ -3063,21 +3063,33 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  if (!allTilesValid || state.player.inventory.mechanicShop <= 0 || state.player.inventory.mechanicShopPlaced) {
+  if (!allTilesValid || state.player.inventory.mechanicShop <= 0) {
     return state;
   }
 
-  // Start construction phase on all 4 tiles (2x2)
+  // Check if this is a relocation (building already placed elsewhere)
+  const isRelocation = state.player.inventory.mechanicShopPlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
-        return {
-          ...t,
-          isConstructing: true,
-          constructionTarget: 'mechanic' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_DURATIONS.mechanic,
-        };
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'mechanic' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'mechanic' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.mechanic,
+          };
+        }
       }
       return t;
     })
@@ -3443,21 +3455,33 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  if (!allTilesValid || state.player.inventory.well <= 0 || state.player.inventory.wellPlaced) {
+  if (!allTilesValid || state.player.inventory.well <= 0) {
     return state;
   }
 
-  // Start construction phase on all 4 tiles (2x2)
+  // Check if this is a relocation (building already placed in this zone)
+  const isRelocation = state.player.inventory.wellPlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
-        return {
-          ...t,
-          isConstructing: true,
-          constructionTarget: 'well' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_DURATIONS.well,
-        };
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'well' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'well' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.well,
+          };
+        }
       }
       return t;
     })
@@ -3522,21 +3546,33 @@ export function placeGarage(state: GameState, tileX: number, tileY: number): Gam
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  if (!allTilesValid || state.player.inventory.garage <= 0 || state.player.inventory.garagePlaced) {
+  if (!allTilesValid || state.player.inventory.garage <= 0) {
     return state;
   }
 
-  // Start construction phase on all 4 tiles (2x2)
+  // Check if this is a relocation (building already placed in this zone)
+  const isRelocation = state.player.inventory.garagePlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
-        return {
-          ...t,
-          isConstructing: true,
-          constructionTarget: 'garage' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_DURATIONS.garage,
-        };
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'garage' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'garage' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.garage,
+          };
+        }
       }
       return t;
     })
@@ -3709,21 +3745,33 @@ export function placeSupercharger(state: GameState, tileX: number, tileY: number
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  if (!allTilesValid || state.player.inventory.supercharger <= 0 || state.player.inventory.superchargerPlaced) {
+  if (!allTilesValid || state.player.inventory.supercharger <= 0) {
     return state;
   }
 
-  // Start construction phase on all 4 tiles (2x2)
+  // Check if this is a relocation (building already placed elsewhere)
+  const isRelocation = state.player.inventory.superchargerPlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
-        return {
-          ...t,
-          isConstructing: true,
-          constructionTarget: 'supercharger' as const,
-          constructionStartTime: state.gameTime,
-          constructionDuration: CONSTRUCTION_DURATIONS.supercharger,
-        };
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'supercharger' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'supercharger' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.supercharger,
+          };
+        }
       }
       return t;
     })

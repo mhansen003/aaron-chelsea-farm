@@ -69,6 +69,7 @@ import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
 import WelcomeSplash from './WelcomeSplash';
 import SaveGameModal from './SaveGameModal';
+import TutorialModal from './TutorialModal';
 import {
   generateSaveCode,
   loadFromSaveCode,
@@ -356,6 +357,7 @@ export default function Game() {
   const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -2493,7 +2495,14 @@ export default function Game() {
       return;
     }
 
-    if (tile) {
+    // Set cursor based on mode and tile
+    if (placementMode) {
+      // Show crosshair cursor when in placement mode
+      setCursorType('crosshair');
+    } else if (tileSelectionMode && tileSelectionMode.active) {
+      // Show pointer cursor when in tile selection mode
+      setCursorType('pointer');
+    } else if (tile) {
       setHoveredTile({ x: tileX, y: tileY });
       const { cursor } = getActionForTile(tile, gameState.player.selectedCrop);
       setCursorType(cursor);
@@ -2501,7 +2510,7 @@ export default function Game() {
       setHoveredTile(null);
       setCursorType('default');
     }
-  }, [gameState, getActionForTile, isDragging, tileSelectionMode, dragStartRow, selectedSeedBot, mouseDownPos]);
+  }, [gameState, getActionForTile, isDragging, tileSelectionMode, dragStartRow, selectedSeedBot, mouseDownPos, placementMode]);
 
   // Handle canvas click to queue tasks
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -3401,6 +3410,7 @@ export default function Game() {
           </h1>
           <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">💾 Save</button>
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕 New Game</button>
+          <button onClick={() => setShowTutorialModal(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold" title="Open Tutorial">❓ Help</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
         </div>
 
@@ -4727,6 +4737,13 @@ export default function Game() {
             setPlacementMode('well');
             setShowWellModal(false);
           }}
+        />
+      )}
+
+      {/* Tutorial Modal */}
+      {showTutorialModal && (
+        <TutorialModal
+          onClose={() => setShowTutorialModal(false)}
         />
       )}
     </div>

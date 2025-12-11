@@ -263,10 +263,10 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         else if (rand < 0.25) type = 'tree'; // 10% trees (reduced from 20%)
       }
 
-      // Assign random variant for rocks (1-3) and trees (1-2)
+      // Assign random variant for rocks (1-4) and trees (1-2)
       let variant: number | undefined = undefined;
       if (type === 'rock') {
-        variant = Math.floor(Math.random() * 3) + 1; // Random 1, 2, or 3
+        variant = Math.floor(Math.random() * 4) + 1; // Random 1, 2, 3, or 4
       } else if (type === 'tree') {
         variant = Math.floor(Math.random() * 2) + 1; // Random 1 or 2
       }
@@ -1034,7 +1034,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const overgrowthType: TileType = Math.random() < 0.5 ? 'rock' : 'tree';
             // Assign random variant for overgrown obstacles
             const overgrowthVariant = overgrowthType === 'rock'
-              ? Math.floor(Math.random() * 3) + 1  // Random 1, 2, or 3 for rocks
+              ? Math.floor(Math.random() * 4) + 1  // Random 1, 2, 3, or 4 for rocks
               : Math.floor(Math.random() * 2) + 1; // Random 1 or 2 for trees
             return {
               ...tile,

@@ -381,6 +381,7 @@ export default function Game() {
   const rockImageRef = useRef<HTMLImageElement | null>(null);
   const rockImageRef2 = useRef<HTMLImageElement | null>(null);
   const rockImageRef3 = useRef<HTMLImageElement | null>(null);
+  const rockImageRef4 = useRef<HTMLImageElement | null>(null);
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
   const exportImageRef = useRef<HTMLImageElement | null>(null);
@@ -704,6 +705,16 @@ export default function Game() {
       rockImageRef3.current = rockImg3;
     };
 
+    // Load rocks variant 4
+    const rockImg4 = new Image();
+    rockImg4.src = `/${theme}-rocks4.png`;
+    rockImg4.onerror = () => {
+      rockImg4.src = '/farm-rocks4.png';
+    };
+    rockImg4.onload = () => {
+      rockImageRef4.current = rockImg4;
+    };
+
     // Load forest/trees (variant 1)
     const treeImg = new Image();
     treeImg.src = `/${theme}-forest.png`;
@@ -985,6 +996,8 @@ export default function Game() {
             rockImage = rockImageRef2.current;
           } else if (tile.variant === 3 && rockImageRef3.current) {
             rockImage = rockImageRef3.current;
+          } else if (tile.variant === 4 && rockImageRef4.current) {
+            rockImage = rockImageRef4.current;
           }
           if (rockImage) {
             ctx.drawImage(rockImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);

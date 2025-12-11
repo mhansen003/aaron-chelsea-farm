@@ -3054,6 +3054,7 @@ export default function Game() {
               },
             }))
           }
+          title="Carrot - Grows in 1 day | Cost: $2 | Sells for: $5 | Profit: $3"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'carrot'
               ? 'bg-orange-600 ring-2 ring-orange-300 scale-105 md:scale-110'
@@ -3072,6 +3073,7 @@ export default function Game() {
               },
             }))
           }
+          title="Wheat - Grows in 1 day | Cost: $1 | Sells for: $3 | Profit: $2"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'wheat'
               ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-105 md:scale-110'
@@ -3090,6 +3092,7 @@ export default function Game() {
               },
             }))
           }
+          title="Tomato - Grows in 2 days | Cost: $4 | Sells for: $8 | Profit: $4"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'tomato'
               ? 'bg-red-600 ring-2 ring-red-300 scale-105 md:scale-110'
@@ -3108,6 +3111,7 @@ export default function Game() {
               },
             }))
           }
+          title="Pumpkin - Grows in 2 days | Cost: $6 | Sells for: $12 | Profit: $6"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'pumpkin'
               ? 'bg-orange-500 ring-2 ring-orange-300 scale-105 md:scale-110'
@@ -3126,6 +3130,7 @@ export default function Game() {
               },
             }))
           }
+          title="Watermelon - Grows in 2 days | Cost: $8 | Sells for: $15 | Profit: $7"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'watermelon'
               ? 'bg-green-500 ring-2 ring-green-300 scale-105 md:scale-110'
@@ -3144,6 +3149,7 @@ export default function Game() {
               },
             }))
           }
+          title="Peppers - Grows in 1 day | Cost: $3 | Sells for: $6 | Profit: $3"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'peppers'
               ? 'bg-red-500 ring-2 ring-red-300 scale-105 md:scale-110'
@@ -3162,6 +3168,7 @@ export default function Game() {
               },
             }))
           }
+          title="Grapes - Grows in 2 days | Cost: $5 | Sells for: $10 | Profit: $5"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'grapes'
               ? 'bg-purple-600 ring-2 ring-purple-300 scale-105 md:scale-110'
@@ -3180,6 +3187,7 @@ export default function Game() {
               },
             }))
           }
+          title="Oranges - Grows in 3 days | Cost: $7 | Sells for: $14 | Profit: $7"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'oranges'
               ? 'bg-orange-400 ring-2 ring-orange-200 scale-105 md:scale-110'
@@ -3198,6 +3206,7 @@ export default function Game() {
               },
             }))
           }
+          title="Avocado - Grows in 3 days | Cost: $10 | Sells for: $18 | Profit: $8"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'avocado'
               ? 'bg-green-600 ring-2 ring-green-300 scale-105 md:scale-110'
@@ -3216,6 +3225,7 @@ export default function Game() {
               },
             }))
           }
+          title="Rice - Grows in 2 days | Cost: $3 | Sells for: $7 | Profit: $4"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'rice'
               ? 'bg-gray-400 ring-2 ring-gray-200 scale-105 md:scale-110'
@@ -3234,6 +3244,7 @@ export default function Game() {
               },
             }))
           }
+          title="Corn - Grows in 2 days | Cost: $4 | Sells for: $9 | Profit: $5"
           className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'corn'
               ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-105 md:scale-110'

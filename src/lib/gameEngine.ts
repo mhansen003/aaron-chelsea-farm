@@ -3404,7 +3404,7 @@ export function recordZoneEarnings(state: GameState, amount: number, zoneName: s
       ...zoneEarnings,
       [zoneKey]: updatedZoneEarnings,
     },
-  };
+  } as GameState;
 }
 
 export function sellBasket(state: GameState): {

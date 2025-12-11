@@ -25,8 +25,9 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white p-4 md:p-8 rounded-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-orange-600 shadow-2xl">
-        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-orange-900 to-orange-950 pb-2 z-10">
+      <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white rounded-xl max-w-5xl w-full max-h-[95vh] border-2 md:border-4 border-orange-600 shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 flex justify-between items-center p-4 md:p-6 border-b border-orange-700/50">
           <h2 className="text-2xl md:text-4xl font-bold">🏭 Bot Factory</h2>
           <button
             onClick={onClose}
@@ -36,11 +37,13 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
           </button>
         </div>
 
-        <div className="mb-4 md:mb-6 text-lg md:text-xl font-bold bg-black/40 px-4 md:px-6 py-2 md:py-3 rounded-lg border-2 border-yellow-600/50">
-          💰 Available Funds: ${gameState.player.money}
-        </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="mb-4 text-lg md:text-xl font-bold bg-black/40 px-4 md:px-6 py-2 md:py-3 rounded-lg border-2 border-yellow-600/50">
+            💰 Available Funds: ${gameState.player.money}
+          </div>
 
-        <div className="mb-4 md:mb-6">
+          <div>
           <p className="text-gray-300 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
             Welcome to the Bot Factory! Each bot is a specialized farming assistant designed to automate specific tasks on your farm. Choose wisely and build your automated farming empire!
           </p>
@@ -361,26 +364,29 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               )}
             </div>
           </div>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-6">
-          <button
-            onClick={() => {
-              onRelocate();
-              onClose();
-            }}
-            className="flex-1 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg"
-          >
-            🔄 Relocate Factory
-          </button>
+        {/* Sticky Footer with CTAs */}
+        <div className="flex-shrink-0 border-t border-orange-700/50 p-4 md:p-6 bg-orange-950/50">
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                onRelocate();
+                onClose();
+              }}
+              className="flex-1 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
+            >
+              🔄 Relocate Factory
+            </button>
 
-          <button
-            onClick={onClose}
-            className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
-          >
-            Close
-          </button>
+            <button
+              onClick={onClose}
+              className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

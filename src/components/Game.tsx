@@ -3812,18 +3812,18 @@ export default function Game() {
 
           {/* Water Robot Section */}
           {(waterBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-1.5 shadow-lg">
+            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-2 shadow-lg hover:shadow-cyan-500/30 hover:border-cyan-400 transition-all">
               <div
-                className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/30 rounded px-1 py-0.5 transition-colors group"
+                className="text-xs text-cyan-300 font-bold mb-1.5 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/40 rounded px-1.5 py-1 transition-colors group"
                 onClick={() => setShowBotInfoModal('water')}
                 title="Click to view bot history"
               >
-                <span>💧</span>
-                WATER
-                <span className="ml-auto bg-cyan-600/30 px-1 rounded text-[10px]">{waterBots?.length ?? 0}</span>
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+                <span className="text-base">💧</span>
+                <span>WATER</span>
+                <span className="ml-auto bg-cyan-600/30 px-1.5 py-0.5 rounded text-[10px]">{waterBots?.length ?? 0}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
                   const statusText =
@@ -3832,24 +3832,24 @@ export default function Game() {
                     bot.status === 'refilling' ? 'At well' :
                     'Ready';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-cyan-600/20 cursor-pointer hover:bg-cyan-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-cyan-100">Bot #{idx + 1}</span>
-                        <span className="text-[9px] text-cyan-300">
+                    <div key={bot.id} className="bg-black/20 rounded p-1.5 border border-cyan-600/20 hover:bg-cyan-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-cyan-100">Bot #{idx + 1}</span>
+                        <span className="text-sm text-cyan-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'watering' && '💦'}
                           {bot.status === 'idle' && '😴'}
                           {bot.status === 'refilling' && '⚡'}
                         </span>
                       </div>
-                      <div className="text-[8px] text-cyan-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
+                      <div className="text-[10px] text-cyan-200/70 mb-1 truncate font-medium">{statusText}</div>
+                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
                         <div
                           className={`h-full transition-all ${waterPercent > 30 ? 'bg-cyan-400' : 'bg-red-500'}`}
                           style={{ width: `${waterPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-cyan-300/70 text-center">Water: {bot.waterLevel}/10</div>
+                      <div className="text-[10px] text-cyan-300/80 text-center mt-0.5 font-medium">Water: {bot.waterLevel}/10</div>
                     </div>
                   );
                 })}

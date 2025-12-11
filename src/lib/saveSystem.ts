@@ -209,19 +209,19 @@ function migrateGameState(gameState: any): GameState {
             const canExpand = (
               x + 1 < row.length &&
               y + 1 < zone.grid.length &&
-              zone.grid[y][x + 1]?.cleared &&
-              (zone.grid[y][x + 1]?.type === 'grass' || zone.grid[y][x + 1]?.type === 'dirt') &&
-              zone.grid[y + 1][x]?.cleared &&
-              (zone.grid[y + 1][x]?.type === 'grass' || zone.grid[y + 1][x]?.type === 'dirt') &&
-              zone.grid[y + 1][x + 1]?.cleared &&
-              (zone.grid[y + 1][x + 1]?.type === 'grass' || zone.grid[y + 1][x + 1]?.type === 'dirt')
+              zone.grid[y][x + 1] &&
+              zone.grid[y + 1][x] &&
+              zone.grid[y + 1][x + 1]
             );
 
             if (canExpand) {
-              // Expand to 2x2
+              // Expand to 2x2 - force all tiles to be the building type
               zone.grid[y][x + 1].type = buildingType;
+              zone.grid[y][x + 1].cleared = true;
               zone.grid[y + 1][x].type = buildingType;
+              zone.grid[y + 1][x].cleared = true;
               zone.grid[y + 1][x + 1].type = buildingType;
+              zone.grid[y + 1][x + 1].cleared = true;
             }
           }
         });

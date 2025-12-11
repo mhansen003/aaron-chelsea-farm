@@ -1061,12 +1061,13 @@ export default function Game() {
               px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
             );
           } else if (!isPartOf2x2) {
-            // Draw at 1x size (fallback for old single-tile buildings or incomplete 2x2)
+            // Fallback: Draw at 1x size only (for old single-tile buildings or incomplete 2x2)
             ctx.drawImage(
               mechanicImageRef.current,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           }
+          // If isPartOf2x2 but not isTopLeftOf2x2, don't draw anything (already drawn by top-left tile)
         } else if (tile.type === 'well' && wellImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {

@@ -51,7 +51,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
             {/* Water Bot */}
             <div className={`bg-gradient-to-br from-cyan-900/40 to-blue-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.waterbots >= 2
+              gameState.player.inventory.waterbots >= 3
                 ? 'border-green-500 shadow-lg shadow-green-500/30'
                 : 'border-cyan-500/50 shadow-lg shadow-cyan-500/20'
             }`}>
@@ -65,7 +65,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                     height={96}
                     className="object-contain"
                   />
-                  {gameState.player.inventory.waterbots >= 2 && (
+                  {gameState.player.inventory.waterbots >= 3 && (
                     <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                       MAX
                     </div>
@@ -76,7 +76,7 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-cyan-300 mb-2">Water Bot</h3>
                   <p className="text-sm text-gray-300 leading-tight">
-                    The Water Bot is your tireless hydration specialist. Equipped with advanced moisture sensors and a 10-gallon tank, it autonomously waters your crops to ensure optimal growth.
+                    The Water Bot is your tireless hydration specialist. Equipped with advanced moisture sensors and a 12-gallon tank, it autonomously waters your crops to ensure optimal growth.
                   </p>
                 </div>
               </div>
@@ -85,15 +85,15 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
               <div className="bg-black/40 rounded-lg p-3 mb-3">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-cyan-400">Owned: {gameState.player.inventory.waterbots}/2</span>
+                  <span className="text-sm font-bold text-cyan-400">Owned: {gameState.player.inventory.waterbots}/3</span>
                 </div>
                 <div className="text-xs text-green-400">
-                  ✓ Auto-waters crops • ✓ 10-gallon capacity • ✓ Self-refilling
+                  ✓ Auto-waters crops • ✓ 12-gallon capacity • ✓ Self-refilling
                 </div>
               </div>
 
               {/* Buy Button */}
-              {gameState.player.inventory.waterbots >= 2 ? (
+              {gameState.player.inventory.waterbots >= 3 ? (
                 <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
                   ✓ MAXIMUM FLEET CAPACITY
                 </div>

@@ -70,7 +70,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
     );
   }
 
-  const nextSeason = getNextSeasonForecast(gameState.currentDay);
+  const nextSeason = getNextSeasonForecast(gameState.gameTime);
 
   // Draw price chart
   useEffect(() => {
@@ -117,13 +117,14 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
       return;
     }
 
-    // Find min/max prices for scaling
+    // Combine history and forecast for scaling
+    const allData = [...market.priceHistory, ...market.priceForecast];
     let minPrice = Infinity;
     let maxPrice = -Infinity;
 
     CROP_LIST.forEach(crop => {
       if (!visibleCrops[crop]) return;
-      market.priceHistory.forEach(snapshot => {
+      allData.forEach(snapshot => {
         const price = snapshot.prices[crop];
         if (price < minPrice) minPrice = price;
         if (price > maxPrice) maxPrice = price;
@@ -131,17 +132,21 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
     });
 
     const priceRange = maxPrice - minPrice || 1;
+    const historyLength = market.priceHistory.length;
+    const totalDataLength = allData.length;
 
     // Draw price lines for each visible crop
     CROP_LIST.forEach(crop => {
       if (!visibleCrops[crop]) return;
 
+      // Draw historical prices (solid line)
       ctx.strokeStyle = CROP_COLORS[crop];
       ctx.lineWidth = 2;
+      ctx.setLineDash([]); // Solid line
       ctx.beginPath();
 
       market.priceHistory.forEach((snapshot, index) => {
-        const x = (index / (market.priceHistory.length - 1)) * width;
+        const x = (index / (totalDataLength - 1)) * width;
         const price = snapshot.prices[crop];
         const y = height - ((price - minPrice) / priceRange) * height;
 
@@ -153,6 +158,38 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
       });
 
       ctx.stroke();
+
+      // Draw forecast prices (dotted line)
+      if (market.priceForecast.length > 0) {
+        ctx.strokeStyle = CROP_COLORS[crop];
+        ctx.globalAlpha = 0.6; // Make forecast slightly transparent
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]); // Dotted line
+        ctx.beginPath();
+
+        market.priceForecast.forEach((snapshot, forecastIndex) => {
+          const index = historyLength + forecastIndex;
+          const x = (index / (totalDataLength - 1)) * width;
+          const price = snapshot.prices[crop];
+          const y = height - ((price - minPrice) / priceRange) * height;
+
+          if (forecastIndex === 0 && historyLength > 0) {
+            // Connect to last historical point
+            const lastHistorical = market.priceHistory[historyLength - 1];
+            const lastX = ((historyLength - 1) / (totalDataLength - 1)) * width;
+            const lastPrice = lastHistorical.prices[crop];
+            const lastY = height - ((lastPrice - minPrice) / priceRange) * height;
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+
+        ctx.stroke();
+        ctx.globalAlpha = 1.0; // Reset alpha
+        ctx.setLineDash([]); // Reset line dash
+      }
     });
 
     // Draw Y-axis labels
@@ -286,7 +323,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm md:text-base capitalize">
-                <span className="font-bold">{nextSeason.season}</span> arrives in {nextSeason.daysUntil} days
+                <span className="font-bold">{nextSeason.season}</span> arrives in {nextSeason.minutesUntil} minutes
               </p>
               <p className="text-xs md:text-sm text-gray-300">Prepare to plant high-demand crops!</p>
             </div>

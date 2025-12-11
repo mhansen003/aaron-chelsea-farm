@@ -274,9 +274,11 @@ export interface PriceSnapshot {
 
 export interface MarketData {
   priceHistory: PriceSnapshot[]; // Historical price data (last 30 snapshots)
+  priceForecast: PriceSnapshot[]; // Predicted future prices (10 cycles ahead)
   currentPrices: Record<Exclude<CropType, null>, number>; // Current market sell prices
   priceMultipliers: Record<Exclude<CropType, null>, number>; // Current price multiplier from base (0.7-1.5)
   lastUpdateDay: number; // Last day prices were updated
+  lastForecastTime: number; // Game time when forecast was last generated
   currentSeason: Season; // Current season
   highDemandCrops: Array<Exclude<CropType, null>>; // Crops in high demand this season
 }

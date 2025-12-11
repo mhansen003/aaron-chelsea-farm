@@ -3665,21 +3665,23 @@ export default function Game() {
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onBuySeedbots={amount => {
-            const prevBotCount = gameState.player.inventory.seedbots;
-            setGameState(prev => buySeedbots(prev, amount));
-            // Auto-open seed bot config modal after purchase
-            setTimeout(() => {
-              const newBotCount = gameState.player.inventory.seedbots + amount;
-              if (newBotCount > prevBotCount) {
-                setShowMechanicShop(false);
-                // Find the newest seed bot and select it
-                const currentZone = gameState.zones[`${gameState.currentZone.x},${gameState.currentZone.y}`];
+            setGameState(prev => {
+              const newState = buySeedbots(prev, amount);
+
+              // Auto-open seed bot config modal for the newly created bot
+              setTimeout(() => {
+                const currentZone = newState.zones[`${newState.currentZone.x},${newState.currentZone.y}`];
                 if (currentZone?.seedBots && currentZone.seedBots.length > 0) {
-                  setSelectedSeedBot(currentZone.seedBots[currentZone.seedBots.length - 1].id);
+                  // Select the newest (last) seed bot
+                  const newestBot = currentZone.seedBots[currentZone.seedBots.length - 1];
+                  setSelectedSeedBot(newestBot.id);
                   setShowSeedBotConfig(true);
+                  setShowMechanicShop(false);
                 }
-              }
-            }, 100);
+              }, 100);
+
+              return newState;
+            });
           }}
           onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
           onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}

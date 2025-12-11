@@ -192,7 +192,8 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
 
   const handleJobClick = (bot: SeedBot, job: SeedBotJob) => {
     if (selectedCrop) {
-      const jobKey = `${bot.id}-${job.id}`;
+      // Use a separator that won't appear in IDs: "|||"
+      const jobKey = `${bot.id}|||${job.id}`;
       setPendingChanges(prev => ({
         ...prev,
         [jobKey]: selectedCrop,
@@ -206,7 +207,8 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
 
     if (onUpdateSeedBotJob) {
       Object.entries(pendingChanges).forEach(([jobKey, newCrop]) => {
-        const [botId, jobId] = jobKey.split('-');
+        // Split using the special separator
+        const [botId, jobId] = jobKey.split('|||');
         console.log(`Updating job: botId=${botId}, jobId=${jobId}, newCrop=${newCrop}`);
         onUpdateSeedBotJob(botId, jobId, newCrop);
       });
@@ -448,7 +450,7 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 max-h-40 overflow-y-auto">
                 {allSeedBots.map(({ bot, zoneName }, botIndex) => (
                   bot.jobs.map((job, jobIndex) => {
-                    const jobKey = `${bot.id}-${job.id}`;
+                    const jobKey = `${bot.id}|||${job.id}`;
                     const currentCrop = CROP_INFO[job.cropType];
                     const pendingCrop = pendingChanges[jobKey] ? CROP_INFO[pendingChanges[jobKey]] : null;
                     const isPending = !!pendingCrop;

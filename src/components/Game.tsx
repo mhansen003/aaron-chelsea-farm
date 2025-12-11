@@ -988,8 +988,9 @@ export default function Game() {
       if (deltaTime < 1000) {
         setGameState(prev => {
           const updated = updateGameState(prev, deltaTime);
-          // Update market prices when day changes
-          return updateMarketPrices(updated);
+          // TEMPORARY: Market price updates disabled due to module bundling issue
+          // TODO: Move updateMarketPrices to gameEngine.ts
+          return updated; // updateMarketPrices(updated);
         });
       }
 

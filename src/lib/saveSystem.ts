@@ -223,6 +223,29 @@ function migrateGameState(gameState: any): GameState {
     });
   }
 
+  // Migrate grass tiles to have variants (backward compatibility)
+  if (gameState.zones) {
+    Object.keys(gameState.zones).forEach(zoneKey => {
+      const zone = gameState.zones[zoneKey];
+
+      // Assign variants to grass tiles that don't have them
+      zone.grid = zone.grid.map(row =>
+        row.map(tile => {
+          if (tile.type === 'grass' && !tile.variant) {
+            // Assign random grass variant: 1 (80%), 2 (15%), 3 (5%)
+            const rand = Math.random();
+            let variant = 1;
+            if (rand >= 0.80 && rand < 0.95) variant = 2;
+            else if (rand >= 0.95) variant = 3;
+
+            return { ...tile, variant };
+          }
+          return tile;
+        })
+      );
+    });
+  }
+
   return gameState as GameState;
 }
 

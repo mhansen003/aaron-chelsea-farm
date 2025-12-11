@@ -359,6 +359,8 @@ export default function Game() {
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
+  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
+  const [showMusicDropdown, setShowMusicDropdown] = useState(false);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -855,48 +857,127 @@ export default function Game() {
     };
   }, []);
 
-  // Zone-specific music switching
+  // Music configuration - farm zone has multiple songs, other zones have single tracks
+  const farmSongs = [
+    { name: 'Farm Theme', file: '/farm.mp3' },
+    { name: 'Farm Theme 1', file: '/farm1.mp3' },
+    { name: 'Farm Theme 2', file: '/farm2.mp3' },
+    { name: 'Farm Theme 3', file: '/farm3.mp3' },
+    { name: 'Farm Theme 4', file: '/farm4.mp3' },
+    { name: 'Farm Theme 5', file: '/farm5.mp3' },
+  ];
+
+  const singleZoneMusic: Record<string, string> = {
+    beach: '/beach.mp3',
+    barn: '/barn.mp3',
+    mountain: '/mountains.mp3',
+    desert: '/desert.mp3',
+  };
+
+  // Check if current zone is farm
+  const isInFarmZone = useCallback(() => {
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+    return currentZone?.theme === 'farm';
+  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
+
+  // Get random song index (excluding current)
+  const getRandomSongIndex = useCallback((currentIndex: number, maxIndex: number) => {
+    if (maxIndex <= 1) return 0;
+    let newIndex = Math.floor(Math.random() * maxIndex);
+    while (newIndex === currentIndex && maxIndex > 1) {
+      newIndex = Math.floor(Math.random() * maxIndex);
+    }
+    return newIndex;
+  }, []);
+
+  // Zone-specific music switching - farm has playlist, others loop single track
   useEffect(() => {
     const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
     const currentZone = gameState.zones[currentZoneKey];
+    const zonetheme = currentZone?.theme || 'farm';
+    const isFarm = zonetheme === 'farm';
 
-    // Map zone themes to music files
-    const zoneMusic: Record<string, string> = {
-      farm: '/farm.mp3',
-      beach: '/beach.mp3',
-      barn: '/barn.mp3',
-      mountain: '/mountains.mp3',
-      desert: '/desert.mp3',
-    };
+    let musicFile: string;
 
-    const musicFile = zoneMusic[currentZone?.theme || 'farm'];
+    // Pause and cleanup old audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeEventListener('ended', () => {});
+      audioRef.current = null;
+    }
 
-    // Only change music if it's different from current
-    if (!audioRef.current || audioRef.current.src !== window.location.origin + musicFile) {
-      // Pause and cleanup old audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+    if (isFarm) {
+      // Farm zone: Pick a random song from the playlist
+      const randomIndex = getRandomSongIndex(-1, farmSongs.length);
+      setCurrentSongIndex(randomIndex);
+      musicFile = farmSongs[randomIndex].file;
 
-      // Create new audio for this zone
+      // Create new audio for farm zone
       audioRef.current = new Audio(musicFile);
-      audioRef.current.loop = true;
+      audioRef.current.loop = false; // We'll handle song advancement manually
       audioRef.current.volume = 0.5;
 
-      // Try to play music
-      audioRef.current.play().catch(() => {
-        // If autoplay fails, try again on first user interaction
-        const startAudio = () => {
-          audioRef.current?.play();
-          document.removeEventListener('click', startAudio);
-          document.removeEventListener('keydown', startAudio);
-        };
-        document.addEventListener('click', startAudio, { once: true });
-        document.addEventListener('keydown', startAudio, { once: true });
-      });
+      // When song ends, play next random song
+      const handleSongEnd = () => {
+        const nextIndex = getRandomSongIndex(currentSongIndex, farmSongs.length);
+        setCurrentSongIndex(nextIndex);
+
+        if (audioRef.current) {
+          audioRef.current.src = farmSongs[nextIndex].file;
+          audioRef.current.play().catch(() => {});
+        }
+      };
+      audioRef.current.addEventListener('ended', handleSongEnd);
+    } else {
+      // Other zones: Play single looping track
+      musicFile = singleZoneMusic[zonetheme] || '/farm.mp3';
+      audioRef.current = new Audio(musicFile);
+      audioRef.current.loop = true; // Loop continuously for non-farm zones
+      audioRef.current.volume = 0.5;
     }
-  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
+
+    // Try to play music
+    audioRef.current.play().catch(() => {
+      // If autoplay fails, try again on first user interaction
+      const startAudio = () => {
+        audioRef.current?.play();
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('keydown', startAudio);
+      };
+      document.addEventListener('click', startAudio, { once: true });
+      document.addEventListener('keydown', startAudio, { once: true });
+    });
+  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones, getRandomSongIndex, currentSongIndex]);
+
+  // Handle manual song selection (farm zone only)
+  const handleSongSelect = useCallback((index: number) => {
+    if (isInFarmZone() && index >= 0 && index < farmSongs.length) {
+      setCurrentSongIndex(index);
+      setShowMusicDropdown(false);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = farmSongs[index].file;
+        audioRef.current.play().catch(() => {});
+      }
+    }
+  }, [isInFarmZone]);
+
+  // Close music dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showMusicDropdown && !target.closest('.relative')) {
+        setShowMusicDropdown(false);
+      }
+    };
+
+    if (showMusicDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showMusicDropdown]);
 
   // Game loop
   useEffect(() => {
@@ -3446,6 +3527,38 @@ export default function Game() {
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕 New Game</button>
           <button onClick={() => setShowTutorialModal(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold" title="Open Tutorial">❓ Help</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
+
+          {/* Music Selector - Only show in farm zone */}
+          {isInFarmZone() && (
+            <div className="relative">
+              <button
+                onClick={() => setShowMusicDropdown(!showMusicDropdown)}
+                className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold flex items-center gap-1"
+                title="Select farm music"
+              >
+                🎵 Music
+              </button>
+              {showMusicDropdown && (
+                <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[200px]">
+                  <div className="p-2">
+                    <div className="text-xs font-bold text-pink-400 mb-2 px-2">Farm Music:</div>
+                    {farmSongs.map((song, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSongSelect(index)}
+                        className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors ${
+                          currentSongIndex === index ? 'bg-pink-600 font-bold' : ''
+                        }`}
+                      >
+                        {currentSongIndex === index && '▶ '}
+                        {song.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: Stats Icons */}

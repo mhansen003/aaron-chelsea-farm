@@ -3348,7 +3348,7 @@ export function depositToWarehouse(state: GameState): GameState {
     };
 
     // Record earnings for the zone
-    updatedState = recordZoneEarnings(updatedState, currentZoneKey, totalEarnings);
+    updatedState = recordZoneEarnings(updatedState, totalEarnings, currentZoneKey);
 
     return updatedState;
   }

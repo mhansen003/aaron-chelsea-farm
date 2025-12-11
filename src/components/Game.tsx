@@ -1040,20 +1040,37 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'mechanic' &&
-            gridRef[y + 1]?.[x]?.type === 'mechanic' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'mechanic'
-          );
 
-          if (isTopLeftOf2x2) {
-            // Draw mechanic image at 2x size to span the 2x2 area
-            ctx.drawImage(
-              mechanicImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
+          // Mechanic uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Determine which quadrant based on position in the 2x2 building
+          let offsetX = 0;
+          let offsetY = 0;
+
+          // Determine position in 2x2 grid
+          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic';
+          const isTopRight = gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic';
+          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic';
+          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic';
+
+          if (isTopLeft) {
+            offsetX = 0;
+            offsetY = 0;
+          } else if (isTopRight) {
+            offsetX = 512;
+            offsetY = 0;
+          } else if (isBottomLeft) {
+            offsetX = 0;
+            offsetY = 512;
+          } else if (isBottomRight) {
+            offsetX = 512;
+            offsetY = 512;
           }
+
+          ctx.drawImage(
+            mechanicImageRef.current,
+            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          );
         } else if (tile.type === 'well' && wellImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
@@ -1062,20 +1079,37 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'well' &&
-            gridRef[y + 1]?.[x]?.type === 'well' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'well'
-          );
 
-          if (isTopLeftOf2x2) {
-            // Draw well image at 2x size to span the 2x2 area
-            ctx.drawImage(
-              wellImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
+          // Well uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Determine which quadrant based on position in the 2x2 building
+          let offsetX = 0;
+          let offsetY = 0;
+
+          // Determine position in 2x2 grid
+          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well';
+          const isTopRight = gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well';
+          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well';
+          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well';
+
+          if (isTopLeft) {
+            offsetX = 0;
+            offsetY = 0;
+          } else if (isTopRight) {
+            offsetX = 512;
+            offsetY = 0;
+          } else if (isBottomLeft) {
+            offsetX = 0;
+            offsetY = 512;
+          } else if (isBottomRight) {
+            offsetX = 512;
+            offsetY = 512;
           }
+
+          ctx.drawImage(
+            wellImageRef.current,
+            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          );
         } else if (tile.type === 'garage' && garageImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
@@ -1084,20 +1118,37 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'garage' &&
-            gridRef[y + 1]?.[x]?.type === 'garage' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'garage'
-          );
 
-          if (isTopLeftOf2x2) {
-            // Draw garage image at 2x size to span the 2x2 area
-            ctx.drawImage(
-              garageImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
+          // Garage uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Determine which quadrant based on position in the 2x2 building
+          let offsetX = 0;
+          let offsetY = 0;
+
+          // Determine position in 2x2 grid
+          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage';
+          const isTopRight = gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage';
+          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage';
+          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage';
+
+          if (isTopLeft) {
+            offsetX = 0;
+            offsetY = 0;
+          } else if (isTopRight) {
+            offsetX = 512;
+            offsetY = 0;
+          } else if (isBottomLeft) {
+            offsetX = 0;
+            offsetY = 512;
+          } else if (isBottomRight) {
+            offsetX = 512;
+            offsetY = 512;
           }
+
+          ctx.drawImage(
+            garageImageRef.current,
+            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          );
         } else if (tile.type === 'supercharger') {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {

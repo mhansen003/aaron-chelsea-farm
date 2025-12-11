@@ -3209,3 +3209,95 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 }
 
 
+
+/**
+ * Migrate old 1x1 buildings to 2x2 by expanding them if there's space
+ * This ensures backward compatibility with old save files
+ */
+export function migrateBuildingsTo2x2(state: GameState): GameState {
+  const buildingTypes: TileType[] = ['mechanic', 'well', 'garage', 'supercharger'];
+
+  // Track buildings that couldn't be expanded
+  let needsRelocation = {
+    mechanic: false,
+    well: false,
+    garage: false,
+    supercharger: false,
+  };
+
+  // Process each zone
+  const newZones = { ...state.zones };
+  Object.keys(newZones).forEach(zoneKey => {
+    const zone = newZones[zoneKey];
+    if (!zone.grid) return;
+
+    let gridChanged = false;
+    const newGrid = zone.grid.map(row => [...row]); // Clone grid
+
+    // Find all building tiles
+    for (let y = 0; y < newGrid.length; y++) {
+      for (let x = 0; x < newGrid[y].length; x++) {
+        const tile = newGrid[y][x];
+
+        // Check if this is a building type
+        if (buildingTypes.includes(tile.type as TileType)) {
+          const buildingType = tile.type;
+
+          // Check if it's already part of a 2x2 (has neighbors of same type)
+          const hasRight = x + 1 < GAME_CONFIG.gridWidth && newGrid[y][x + 1]?.type === buildingType;
+          const hasBottom = y + 1 < GAME_CONFIG.gridHeight && newGrid[y + 1][x]?.type === buildingType;
+          const hasBottomRight = x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && newGrid[y + 1][x + 1]?.type === buildingType;
+
+          // If it's a standalone 1x1 building, try to expand it
+          if (!hasRight && !hasBottom && !hasBottomRight) {
+            // Check if we can expand to 2x2
+            const canExpandRight = x + 1 < GAME_CONFIG.gridWidth && newGrid[y][x + 1]?.cleared && (newGrid[y][x + 1]?.type === 'grass' || newGrid[y][x + 1]?.type === 'dirt');
+            const canExpandBottom = y + 1 < GAME_CONFIG.gridHeight && newGrid[y + 1][x]?.cleared && (newGrid[y + 1][x]?.type === 'grass' || newGrid[y + 1][x]?.type === 'dirt');
+            const canExpandBottomRight = x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight && newGrid[y + 1][x + 1]?.cleared && (newGrid[y + 1][x + 1]?.type === 'grass' || newGrid[y + 1][x + 1]?.type === 'dirt');
+
+            if (canExpandRight && canExpandBottom && canExpandBottomRight) {
+              // Expand to 2x2
+              newGrid[y][x + 1] = { ...newGrid[y][x + 1], type: buildingType as TileType };
+              newGrid[y + 1][x] = { ...newGrid[y + 1][x], type: buildingType as TileType };
+              newGrid[y + 1][x + 1] = { ...newGrid[y + 1][x + 1], type: buildingType as TileType };
+              gridChanged = true;
+            } else {
+              // Can't expand - remove it and mark for relocation
+              newGrid[y][x] = { ...newGrid[y][x], type: 'grass' as TileType };
+              needsRelocation[buildingType as keyof typeof needsRelocation] = true;
+              gridChanged = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (gridChanged) {
+      newZones[zoneKey] = { ...zone, grid: newGrid };
+    }
+  });
+
+  // Update player inventory to make buildings available for placement
+  const newInventory = { ...state.player.inventory };
+  if (needsRelocation.mechanic) {
+    newInventory.mechanicShopPlaced = false;
+  }
+  if (needsRelocation.well) {
+    newInventory.wellPlaced = false;
+  }
+  if (needsRelocation.garage) {
+    newInventory.garagePlaced = false;
+  }
+  if (needsRelocation.supercharger) {
+    newInventory.superchargerPlaced = false;
+  }
+
+  return {
+    ...state,
+    zones: newZones,
+    player: {
+      ...state.player,
+      inventory: newInventory,
+    },
+  };
+}

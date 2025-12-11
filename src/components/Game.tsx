@@ -41,6 +41,7 @@ import {
   createZone,
   getZoneKey,
   recordZoneEarnings,
+  migrateBuildingsTo2x2,
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
@@ -113,7 +114,8 @@ export default function Game() {
       // Try new autosave system first
       const autosave = loadFromLocalStorage();
       if (autosave) {
-        return autosave;
+        // Migrate old 1x1 buildings to 2x2
+        return migrateBuildingsTo2x2(autosave);
       }
 
       // Fall back to old save format for migration
@@ -2753,7 +2755,8 @@ export default function Game() {
   const handleContinue = () => {
     const saved = loadFromLocalStorage();
     if (saved) {
-      setGameState(saved);
+      // Migrate old 1x1 buildings to 2x2
+      setGameState(migrateBuildingsTo2x2(saved));
     }
     setShowWelcome(false);
     // Close all modals
@@ -2935,13 +2938,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'wheat'
-              ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-110'
+              ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/wheat.png" alt="Wheat" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.wheat}</span>
+          <NextImage src="/wheat.png" alt="Wheat" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.wheat}</span>
         </button>
         <button
           onClick={() =>
@@ -2953,13 +2956,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'tomato'
-              ? 'bg-red-600 ring-2 ring-red-300 scale-110'
+              ? 'bg-red-600 ring-2 ring-red-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/tomato.png" alt="Tomato" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.tomato}</span>
+          <NextImage src="/tomato.png" alt="Tomato" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.tomato}</span>
         </button>
         <button
           onClick={() =>
@@ -2971,13 +2974,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'pumpkin'
-              ? 'bg-orange-500 ring-2 ring-orange-300 scale-110'
+              ? 'bg-orange-500 ring-2 ring-orange-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/pumpkin.png" alt="Pumpkin" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+          <NextImage src="/pumpkin.png" alt="Pumpkin" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
         </button>
         <button
           onClick={() =>
@@ -2989,13 +2992,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'watermelon'
-              ? 'bg-green-500 ring-2 ring-green-300 scale-110'
+              ? 'bg-green-500 ring-2 ring-green-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/watermelon.png" alt="Watermelon" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+          <NextImage src="/watermelon.png" alt="Watermelon" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.watermelon}</span>
         </button>
         <button
           onClick={() =>
@@ -3007,13 +3010,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'peppers'
-              ? 'bg-red-500 ring-2 ring-red-300 scale-110'
+              ? 'bg-red-500 ring-2 ring-red-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/peppers.png" alt="Peppers" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.peppers}</span>
+          <NextImage src="/peppers.png" alt="Peppers" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.peppers}</span>
         </button>
         <button
           onClick={() =>
@@ -3025,13 +3028,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'grapes'
-              ? 'bg-purple-600 ring-2 ring-purple-300 scale-110'
+              ? 'bg-purple-600 ring-2 ring-purple-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/grapes.png" alt="Grapes" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.grapes}</span>
+          <NextImage src="/grapes.png" alt="Grapes" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.grapes}</span>
         </button>
         <button
           onClick={() =>
@@ -3043,13 +3046,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'oranges'
-              ? 'bg-orange-400 ring-2 ring-orange-200 scale-110'
+              ? 'bg-orange-400 ring-2 ring-orange-200 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/oranges.png" alt="Oranges" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.oranges}</span>
+          <NextImage src="/oranges.png" alt="Oranges" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.oranges}</span>
         </button>
         <button
           onClick={() =>
@@ -3061,13 +3064,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'avocado'
-              ? 'bg-green-600 ring-2 ring-green-300 scale-110'
+              ? 'bg-green-600 ring-2 ring-green-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/avocado.png" alt="Avocado" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.avocado}</span>
+          <NextImage src="/avocado.png" alt="Avocado" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.avocado}</span>
         </button>
         <button
           onClick={() =>
@@ -3079,13 +3082,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'rice'
-              ? 'bg-gray-400 ring-2 ring-gray-200 scale-110'
+              ? 'bg-gray-400 ring-2 ring-gray-200 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/rice.png" alt="Rice" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.rice}</span>
+          <NextImage src="/rice.png" alt="Rice" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.rice}</span>
         </button>
         <button
           onClick={() =>
@@ -3097,13 +3100,13 @@ export default function Game() {
               },
             }))
           }
-          className={`px-4 py-2 rounded-lg font-bold text-2xl flex items-center gap-2 transition-all ${
+          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
             gameState.player.selectedCrop === 'corn'
-              ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-110'
+              ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
         >
-          <NextImage src="/corn.png" alt="Corn" width={32} height={32} className="object-contain" /> <span className="text-sm">{gameState.player.inventory.seeds.corn}</span>
+          <NextImage src="/corn.png" alt="Corn" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.corn}</span>
         </button>
       </div>
 

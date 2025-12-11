@@ -4200,7 +4200,11 @@ export default function Game() {
           }}
           onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
           onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}
-          onRelocate={() => setGameState(prev => relocateBotFactory(prev))}
+          onRelocate={() => {
+            setGameState(prev => relocateBotFactory(prev));
+            setPlacementMode('botFactory');
+            setShowBotFactory(false);
+          }}
         />
       )}
 
@@ -4275,6 +4279,7 @@ export default function Game() {
           onRelocate={() => {
             setGameState(prev => relocateSupercharger(prev));
             setPlacementMode('supercharger');
+            setShowSuperchargerModal(false);
           }}
         />
       )}

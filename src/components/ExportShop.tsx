@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
 import { CROP_INFO, getCurrentSellPrice } from '@/lib/gameEngine';
+import { getMarketPrice } from '@/lib/marketEconomy';
 
 interface ExportShopProps {
   gameState: GameState;
@@ -19,8 +20,14 @@ interface Vendor {
 
 export default function ExportShop({ gameState, onClose, onSellToVendor }: ExportShopProps) {
   // Generate vendor prices with ±20% variation each time modal opens
+  // Use market prices if available, otherwise fall back to progression prices
   const vendors: Vendor[] = useMemo(() => {
-    const generatePrice = (basePrice: number) => {
+    const generatePrice = (crop: Exclude<CropType, null>) => {
+      // Use market price if market system is active, otherwise use progression price
+      const basePrice = gameState.market
+        ? getMarketPrice(crop, gameState)
+        : getCurrentSellPrice(crop, gameState.cropsSold);
+
       const variation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2 (±20%)
       return Math.round(basePrice * variation);
     };
@@ -30,55 +37,55 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
         name: 'Village Market',
         emoji: '🏘️',
         prices: {
-          carrot: generatePrice(getCurrentSellPrice('carrot', gameState.cropsSold)),
-          wheat: generatePrice(getCurrentSellPrice('wheat', gameState.cropsSold)),
-          tomato: generatePrice(getCurrentSellPrice('tomato', gameState.cropsSold)),
-          pumpkin: generatePrice(getCurrentSellPrice('pumpkin', gameState.cropsSold)),
-          watermelon: generatePrice(getCurrentSellPrice('watermelon', gameState.cropsSold)),
-          peppers: generatePrice(getCurrentSellPrice('peppers', gameState.cropsSold)),
-          grapes: generatePrice(getCurrentSellPrice('grapes', gameState.cropsSold)),
-          oranges: generatePrice(getCurrentSellPrice('oranges', gameState.cropsSold)),
-          avocado: generatePrice(getCurrentSellPrice('avocado', gameState.cropsSold)),
-          rice: generatePrice(getCurrentSellPrice('rice', gameState.cropsSold)),
-          corn: generatePrice(getCurrentSellPrice('corn', gameState.cropsSold)),
+          carrot: generatePrice('carrot'),
+          wheat: generatePrice('wheat'),
+          tomato: generatePrice('tomato'),
+          pumpkin: generatePrice('pumpkin'),
+          watermelon: generatePrice('watermelon'),
+          peppers: generatePrice('peppers'),
+          grapes: generatePrice('grapes'),
+          oranges: generatePrice('oranges'),
+          avocado: generatePrice('avocado'),
+          rice: generatePrice('rice'),
+          corn: generatePrice('corn'),
         },
       },
       {
         name: 'City Grocer',
         emoji: '🏙️',
         prices: {
-          carrot: generatePrice(getCurrentSellPrice('carrot', gameState.cropsSold)),
-          wheat: generatePrice(getCurrentSellPrice('wheat', gameState.cropsSold)),
-          tomato: generatePrice(getCurrentSellPrice('tomato', gameState.cropsSold)),
-          pumpkin: generatePrice(getCurrentSellPrice('pumpkin', gameState.cropsSold)),
-          watermelon: generatePrice(getCurrentSellPrice('watermelon', gameState.cropsSold)),
-          peppers: generatePrice(getCurrentSellPrice('peppers', gameState.cropsSold)),
-          grapes: generatePrice(getCurrentSellPrice('grapes', gameState.cropsSold)),
-          oranges: generatePrice(getCurrentSellPrice('oranges', gameState.cropsSold)),
-          avocado: generatePrice(getCurrentSellPrice('avocado', gameState.cropsSold)),
-          rice: generatePrice(getCurrentSellPrice('rice', gameState.cropsSold)),
-          corn: generatePrice(getCurrentSellPrice('corn', gameState.cropsSold)),
+          carrot: generatePrice('carrot'),
+          wheat: generatePrice('wheat'),
+          tomato: generatePrice('tomato'),
+          pumpkin: generatePrice('pumpkin'),
+          watermelon: generatePrice('watermelon'),
+          peppers: generatePrice('peppers'),
+          grapes: generatePrice('grapes'),
+          oranges: generatePrice('oranges'),
+          avocado: generatePrice('avocado'),
+          rice: generatePrice('rice'),
+          corn: generatePrice('corn'),
         },
       },
       {
         name: 'Premium Restaurant',
         emoji: '🍽️',
         prices: {
-          carrot: generatePrice(getCurrentSellPrice('carrot', gameState.cropsSold)),
-          wheat: generatePrice(getCurrentSellPrice('wheat', gameState.cropsSold)),
-          tomato: generatePrice(getCurrentSellPrice('tomato', gameState.cropsSold)),
-          pumpkin: generatePrice(getCurrentSellPrice('pumpkin', gameState.cropsSold)),
-          watermelon: generatePrice(getCurrentSellPrice('watermelon', gameState.cropsSold)),
-          peppers: generatePrice(getCurrentSellPrice('peppers', gameState.cropsSold)),
-          grapes: generatePrice(getCurrentSellPrice('grapes', gameState.cropsSold)),
-          oranges: generatePrice(getCurrentSellPrice('oranges', gameState.cropsSold)),
-          avocado: generatePrice(getCurrentSellPrice('avocado', gameState.cropsSold)),
-          rice: generatePrice(getCurrentSellPrice('rice', gameState.cropsSold)),
-          corn: generatePrice(getCurrentSellPrice('corn', gameState.cropsSold)),
+          carrot: generatePrice('carrot'),
+          wheat: generatePrice('wheat'),
+          tomato: generatePrice('tomato'),
+          pumpkin: generatePrice('pumpkin'),
+          watermelon: generatePrice('watermelon'),
+          peppers: generatePrice('peppers'),
+          grapes: generatePrice('grapes'),
+          oranges: generatePrice('oranges'),
+          avocado: generatePrice('avocado'),
+          rice: generatePrice('rice'),
+          corn: generatePrice('corn'),
         },
       },
     ];
-  }, [gameState.cropsSold]); // Regenerate when cropsSold changes
+  }, [gameState.cropsSold, gameState.market]); // Regenerate when cropsSold or market changes
 
   // Count basket items by crop type
   const basketCounts = useMemo(() => {

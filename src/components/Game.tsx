@@ -56,8 +56,10 @@ import GarageModal from './GarageModal';
 import SuperchargerModal from './SuperchargerModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
+import EconomyModal from './EconomyModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
+import { updateMarketPrices } from '@/lib/marketEconomy';
 import WelcomeSplash from './WelcomeSplash';
 import SaveGameModal from './SaveGameModal';
 import {
@@ -344,6 +346,7 @@ export default function Game() {
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
+  const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -823,7 +826,11 @@ export default function Game() {
       lastTimeRef.current = timestamp;
 
       if (deltaTime < 1000) {
-        setGameState(prev => updateGameState(prev, deltaTime));
+        setGameState(prev => {
+          const updated = updateGameState(prev, deltaTime);
+          // Update market prices when day changes
+          return updateMarketPrices(updated);
+        });
       }
 
       animationFrameRef.current = requestAnimationFrame(gameLoop);
@@ -2874,6 +2881,7 @@ export default function Game() {
             🌾 {gameState.player.farmName} ✏️
           </h1>
           <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold" title="Save Game">💾</button>
+          <button onClick={() => setShowEconomyModal(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold" title="Market Economy">📈</button>
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
@@ -3870,6 +3878,14 @@ export default function Game() {
         <ZoneEarningsModal
           gameState={gameState}
           onClose={() => setShowEarningsModal(false)}
+        />
+      )}
+
+      {/* Economy Modal */}
+      {showEconomyModal && (
+        <EconomyModal
+          gameState={gameState}
+          onClose={() => setShowEconomyModal(false)}
         />
       )}
     </div>

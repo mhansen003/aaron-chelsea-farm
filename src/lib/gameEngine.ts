@@ -105,6 +105,32 @@ function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
   return supercharged ? deltaTime / 250 : deltaTime / 500;
 }
 
+/**
+ * Find the garage position in a zone's grid
+ * Returns the top-left corner of the 2x2 garage building, or null if no garage exists
+ */
+function findGaragePosition(grid: Tile[][]): { x: number; y: number } | null {
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      const tile = grid[y][x];
+      if (tile.type === 'garage') {
+        // Check if this is the top-left tile of a 2x2 garage
+        const isTopLeft = (
+          x + 1 < grid[y].length &&
+          y + 1 < grid.length &&
+          grid[y][x + 1]?.type === 'garage' &&
+          grid[y + 1][x]?.type === 'garage' &&
+          grid[y + 1][x + 1]?.type === 'garage'
+        );
+        if (isTopLeft) {
+          return { x, y };
+        }
+      }
+    }
+  }
+  return null;
+}
+
 export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('@/types/game').ZoneTheme): Tile[][] {
   const grid: Tile[][] = [];
   const isStartingZone = zoneX === 0 && zoneY === 0;
@@ -1102,6 +1128,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: well.x, targetY: well.y, visualX, visualY };
           }
         }
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => { row.forEach((tile, x) => {
@@ -1115,6 +1159,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         }
       } else {
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => { row.forEach((tile, x) => {
@@ -1354,6 +1416,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY, idleStartTime: undefined };
         }
       } else {
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
@@ -1491,6 +1571,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       if (newState.player.inventory.seeds[cropType] <= 0) {
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: currentJob.id, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
@@ -1759,8 +1857,25 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
         }
       }
-      // Idle - wander near warehouse
+      // Idle - go to garage if it exists, otherwise wander near warehouse
       else {
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < (deltaTime / 400)) { // Slightly faster than other bots
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander near warehouse
         // Check if bot has reached current target (visual position matches logical position)
         const hasReachedTarget = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
 
@@ -1887,7 +2002,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
         }
       } else {
-        // No obstacles found, wander around
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {

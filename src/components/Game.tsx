@@ -2901,7 +2901,6 @@ export default function Game() {
             🌾 {gameState.player.farmName} ✏️
           </h1>
           <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold" title="Save Game">💾</button>
-          <button onClick={() => setShowEconomyModal(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold" title="Market Economy">📈</button>
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
           <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
@@ -2909,6 +2908,20 @@ export default function Game() {
 
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
+          {/* Economy Info - Click to open full market modal */}
+          {gameState.market && (
+            <div
+              className="flex items-center gap-2 cursor-pointer hover:bg-blue-700 px-2 py-1 rounded transition-colors border border-blue-500"
+              onClick={() => setShowEconomyModal(true)}
+              title="Click to view market economy"
+            >
+              <span>📈</span>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold capitalize">{gameState.market.currentSeason}</span>
+                <span className="text-xs text-gray-300">Day {gameState.currentDay}</span>
+              </div>
+            </div>
+          )}
           <div
             className="flex items-center gap-1 cursor-pointer hover:bg-green-700 px-2 py-1 rounded transition-colors"
             onClick={() => setShowEarningsModal(true)}

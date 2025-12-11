@@ -224,24 +224,37 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
   const minutesUntilNext = Math.floor(timeUntilNext / 60000);
   const secondsUntilNext = Math.floor((timeUntilNext % 60000) / 1000);
 
+  // Calculate progress percentage (0-100)
+  const cycleProgress = ((MARKET_CYCLE_DURATION - timeUntilNext) / MARKET_CYCLE_DURATION) * 100;
+
+  // Season info
+  const SEASON_INFO = {
+    spring: { name: 'Spring', emoji: '🌸', color: 'from-pink-500 to-green-500' },
+    summer: { name: 'Summer', emoji: '☀️', color: 'from-yellow-500 to-orange-500' },
+    fall: { name: 'Fall', emoji: '🍂', color: 'from-orange-500 to-red-500' },
+    winter: { name: 'Winter', emoji: '❄️', color: 'from-blue-400 to-cyan-400' },
+  };
+
+  const currentSeasonInfo = SEASON_INFO[market.currentSeason];
+
+  // Determine next season (cycles through spring -> summer -> fall -> winter -> spring)
+  const seasonOrder: Array<keyof typeof SEASON_INFO> = ['spring', 'summer', 'fall', 'winter'];
+  const currentSeasonIndex = seasonOrder.indexOf(market.currentSeason);
+  const nextSeasonIndex = (currentSeasonIndex + 1) % 4;
+  const nextSeason = seasonOrder[nextSeasonIndex];
+  const nextSeasonInfo = SEASON_INFO[nextSeason];
+
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-2 border-blue-500/50 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-blue-500/30">
-          <div className="flex-1">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              📊 Market Analysis
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">Click crop → click jobs to reassign → save</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Next Market Cycle Timer */}
-            <div className="bg-blue-900/40 border border-blue-500/40 rounded-lg px-4 py-2 text-center">
-              <div className="text-xs text-gray-400">Next Market Update</div>
-              <div className="text-lg font-bold text-cyan-400">
-                {minutesUntilNext}:{secondsUntilNext.toString().padStart(2, '0')}
-              </div>
+        <div className="flex-shrink-0 p-6 border-b border-blue-500/30">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex-1">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                📊 Market Analysis
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">Click crop → click jobs to reassign → save</p>
             </div>
             <button
               onClick={onClose}
@@ -249,6 +262,67 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
             >
               ✕
             </button>
+          </div>
+
+          {/* Market Cycle Progress Bar */}
+          <div className="bg-slate-900/60 rounded-xl border-2 border-blue-500/30 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{currentSeasonInfo.emoji}</span>
+                <div>
+                  <div className="text-sm text-gray-400">Current Market</div>
+                  <div className="text-lg font-bold">{currentSeasonInfo.name}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <div className="text-sm text-gray-400">Next Update</div>
+                  <div className="text-lg font-bold text-cyan-400">
+                    {minutesUntilNext}:{secondsUntilNext.toString().padStart(2, '0')}
+                  </div>
+                </div>
+                <span className="text-2xl">{nextSeasonInfo.emoji}</span>
+              </div>
+            </div>
+
+            {/* Progress Bar Container */}
+            <div className="relative w-full h-8 bg-gray-900/60 rounded-full overflow-hidden border-2 border-gray-700">
+              {/* Animated Progress Fill */}
+              <div
+                className={`absolute top-0 left-0 h-full bg-gradient-to-r ${currentSeasonInfo.color} transition-all duration-1000 ease-linear`}
+                style={{ width: `${cycleProgress}%` }}
+              >
+                {/* Shimmer Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"
+                     style={{
+                       backgroundSize: '200% 100%',
+                       animation: 'shimmer 2s infinite linear'
+                     }}
+                />
+              </div>
+
+              {/* Percentage Text */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-sm font-bold text-white drop-shadow-lg">
+                  {cycleProgress.toFixed(1)}%
+                </span>
+              </div>
+
+              {/* Arrow Indicator pointing to next season */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 transition-all duration-1000"
+                style={{ left: `${cycleProgress}%` }}
+              >
+                <div className="relative -translate-x-1/2">
+                  <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white drop-shadow-lg" />
+                </div>
+              </div>
+            </div>
+
+            {/* Helper Text */}
+            <div className="text-xs text-gray-400 mt-2 text-center">
+              Market cycles update every 8 minutes with new prices and trends
+            </div>
           </div>
         </div>
 

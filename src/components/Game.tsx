@@ -3839,7 +3839,9 @@ export default function Game() {
               <div className="space-y-1.5">
                 {waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
+                    isParked ? '🏠 Parked in garage' :
                     bot.status === 'traveling' ? 'Moving to crops' :
                     bot.status === 'watering' ? 'Watering plants' :
                     bot.status === 'refilling' ? 'At well' :
@@ -3886,7 +3888,9 @@ export default function Game() {
               <div className="space-y-1">
                 {harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
+                    isParked ? '🏠 Parked in garage' :
                     bot.status === 'traveling' ? 'Moving to field' :
                     bot.status === 'harvesting' ? 'Collecting crops' :
                     bot.status === 'depositing' ? 'At barn' :
@@ -3934,7 +3938,9 @@ export default function Game() {
                 {seedBots.map((bot, idx) => {
                   const jobCount = bot.jobs.length;
                   const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
+                    isParked ? '🏠 Parked in garage' :
                     bot.status === 'traveling' ? 'Moving to tile' :
                     bot.status === 'planting' ? 'Planting seeds' :
                     jobCount > 0 ? `${jobCount} job${jobCount > 1 ? 's' : ''} queued` :
@@ -3986,7 +3992,9 @@ export default function Game() {
               <div className="space-y-1">
                 {transportBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
+                    isParked ? '🏠 Parked in garage' :
                     bot.status === 'traveling' ? 'En route' :
                     bot.status === 'loading' ? 'Loading cargo' :
                     bot.status === 'transporting' ? 'To market' :
@@ -4034,7 +4042,9 @@ export default function Game() {
               </div>
               <div className="space-y-1">
                 {demolishBots?.map((bot, idx) => {
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
+                    isParked ? '🏠 Parked in garage' :
                     bot.status === 'traveling' ? 'Moving to target' :
                     bot.status === 'clearing' && bot.targetX !== undefined && bot.targetY !== undefined
                       ? `Clearing (${bot.targetX},${bot.targetY})`
@@ -4057,6 +4067,8 @@ export default function Game() {
               </div>
             </div>
           )}
+          </>;
+        })()}
       </div>
 
 

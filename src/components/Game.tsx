@@ -3305,8 +3305,8 @@ export default function Game() {
           <h1 className="text-xl font-bold cursor-pointer hover:text-green-300 transition-colors" onClick={() => setShowFarmNameEditor(true)}>
             🌾 {gameState.player.farmName} ✏️
           </h1>
-          <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold" title="Save Game">💾</button>
-          <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕</button>
+          <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold">💾 Save</button>
+          <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕 New Game</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
         </div>
 

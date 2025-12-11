@@ -48,7 +48,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
       id: `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       cropType: 'carrot', // Default to carrot
       targetTiles: [],
-      maxTiles: 10,
+      maxTiles: 20,
     };
 
     setJobs([...jobs, newJob]);
@@ -112,7 +112,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-300">
-                  {jobs.reduce((sum, job) => sum + job.targetTiles.length, 0)}/30
+                  {jobs.reduce((sum, job) => sum + job.targetTiles.length, 0)}/60
                 </div>
                 <div className="text-xs text-gray-400">Total Tiles</div>
               </div>
@@ -126,7 +126,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
           </div>
 
           <p className="text-sm text-gray-300 mb-4">
-            Configure up to 3 planting jobs. Each job can plant up to 10 tiles of a specific crop. Select tiles directly on the map to assign planting locations.
+            Configure up to 3 planting jobs. Each job can plant up to 20 tiles of a specific crop. Select tiles directly on the map to assign planting locations.
           </p>
 
           {/* Auto-Buy Seeds Toggle */}

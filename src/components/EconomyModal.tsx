@@ -158,7 +158,7 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
 
 export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }: EconomyModalProps) {
   const [selectedCrop, setSelectedCrop] = useState<Exclude<CropType, null> | null>(null);
-  const [selectedBot, setSelectedBot] = useState<{ bot: SeedBot; job: SeedBotJob } | null>(null);
+  const [pendingChanges, setPendingChanges] = useState<Record<string, Exclude<CropType, null>>>({});
 
   // Initialize market if it doesn't exist
   const market = gameState.market;
@@ -190,34 +190,66 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
     setSelectedCrop(crop);
   };
 
-  const handleAssignJob = (bot: SeedBot, job: SeedBotJob) => {
-    if (selectedCrop && onUpdateSeedBotJob) {
-      const botZone = allSeedBots.find(b => b.bot.id === bot.id);
-      if (botZone) {
-        onUpdateSeedBotJob(bot.id, job.id, selectedCrop);
-        setSelectedCrop(null);
-        setSelectedBot(null);
-      }
+  const handleJobClick = (bot: SeedBot, job: SeedBotJob) => {
+    if (selectedCrop) {
+      const jobKey = `${bot.id}-${job.id}`;
+      setPendingChanges(prev => ({
+        ...prev,
+        [jobKey]: selectedCrop,
+      }));
     }
   };
+
+  const handleSaveChanges = () => {
+    if (onUpdateSeedBotJob) {
+      Object.entries(pendingChanges).forEach(([jobKey, newCrop]) => {
+        const [botId, jobId] = jobKey.split('-');
+        onUpdateSeedBotJob(botId, jobId, newCrop);
+      });
+    }
+    setPendingChanges({});
+    setSelectedCrop(null);
+    onClose();
+  };
+
+  const handleCancelChanges = () => {
+    setPendingChanges({});
+    setSelectedCrop(null);
+  };
+
+  // Calculate time until next market cycle (8 minutes = 480000ms)
+  const MARKET_CYCLE_DURATION = 480000; // 8 minutes in milliseconds
+  const timeSinceLastUpdate = gameState.gameTime - (market.lastForecastTime || 0);
+  const timeUntilNext = Math.max(0, MARKET_CYCLE_DURATION - timeSinceLastUpdate);
+  const minutesUntilNext = Math.floor(timeUntilNext / 60000);
+  const secondsUntilNext = Math.floor((timeUntilNext % 60000) / 1000);
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-2 border-blue-500/50 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-blue-500/30">
-          <div>
+          <div className="flex-1">
             <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
               📊 Market Analysis
             </h2>
-            <p className="text-sm text-gray-400 mt-1">Click any crop to assign to seed bot jobs</p>
+            <p className="text-sm text-gray-400 mt-1">Click crop → click jobs to reassign → save</p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-4">
+            {/* Next Market Cycle Timer */}
+            <div className="bg-blue-900/40 border border-blue-500/40 rounded-lg px-4 py-2 text-center">
+              <div className="text-xs text-gray-400">Next Market Update</div>
+              <div className="text-lg font-bold text-cyan-400">
+                {minutesUntilNext}:{secondsUntilNext.toString().padStart(2, '0')}
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-2xl hover:text-red-400 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Content */}
@@ -309,59 +341,95 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
           </div>
         </div>
 
-        {/* Footer with Seed Bot Assignment */}
+        {/* Footer with Seed Bot Jobs */}
         <div className="flex-shrink-0 border-t border-blue-500/30 p-4 bg-slate-900/50">
-          {selectedCrop ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{CROP_INFO[selectedCrop].emoji}</span>
-                  <span className="font-bold">Assign {CROP_INFO[selectedCrop].name} to:</span>
-                </div>
-                <button
-                  onClick={() => setSelectedCrop(null)}
-                  className="text-sm text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-              </div>
-
-              {allSeedBots.length === 0 ? (
-                <div className="text-center text-gray-400 py-4">
-                  No seed bots available. Purchase seed bots from the Bot Factory!
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
-                  {allSeedBots.map(({ bot, zoneName, zoneKey }) => (
-                    bot.jobs.map((job, idx) => {
-                      const currentCrop = CROP_INFO[job.cropType];
-                      const newCrop = selectedCrop ? CROP_INFO[selectedCrop] : null;
-                      return (
-                        <button
-                          key={`${bot.id}-${job.id}`}
-                          onClick={() => handleAssignJob(bot, job)}
-                          className="bg-green-700/40 hover:bg-green-600/60 border border-green-500/50 rounded-lg p-2 text-sm transition-all hover:scale-[1.02]"
-                        >
-                          <div className="font-bold">Bot #{allSeedBots.findIndex(b => b.bot.id === bot.id) + 1} - Job {idx + 1}</div>
-                          <div className="text-xs text-gray-300">{zoneName}</div>
-                          <div className="text-xs text-green-300">{job.targetTiles.length} tiles</div>
-                          <div className="text-xs text-yellow-300 mt-1 flex items-center justify-center gap-1">
-                            {currentCrop.emoji} → {newCrop?.emoji}
-                          </div>
-                        </button>
-                      );
-                    })
-                  ))}
-                </div>
-              )}
+          {allSeedBots.length === 0 ? (
+            <div className="text-center text-gray-400 py-4">
+              No seed bots available. Purchase seed bots from the Bot Factory!
             </div>
           ) : (
-            <button
-              onClick={onClose}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg font-bold text-lg transition-all"
-            >
-              Close Market
-            </button>
+            <div className="space-y-3">
+              {/* Selected Crop Indicator */}
+              {selectedCrop && (
+                <div className="bg-blue-900/40 border border-blue-500/50 rounded-lg p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{CROP_INFO[selectedCrop].emoji}</span>
+                    <span className="font-bold">Assigning {CROP_INFO[selectedCrop].name}</span>
+                    <span className="text-sm text-gray-400">- Click jobs below to reassign</span>
+                  </div>
+                  <button
+                    onClick={handleCancelChanges}
+                    className="text-sm text-gray-400 hover:text-white px-3 py-1 rounded hover:bg-white/10"
+                  >
+                    Cancel Selection
+                  </button>
+                </div>
+              )}
+
+              {/* Seed Bot Jobs Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 max-h-40 overflow-y-auto">
+                {allSeedBots.map(({ bot, zoneName }, botIndex) => (
+                  bot.jobs.map((job, jobIndex) => {
+                    const jobKey = `${bot.id}-${job.id}`;
+                    const currentCrop = CROP_INFO[job.cropType];
+                    const pendingCrop = pendingChanges[jobKey] ? CROP_INFO[pendingChanges[jobKey]] : null;
+                    const isPending = !!pendingCrop;
+
+                    return (
+                      <button
+                        key={jobKey}
+                        onClick={() => handleJobClick(bot, job)}
+                        disabled={!selectedCrop}
+                        className={`rounded-lg p-2 text-sm transition-all border-2 ${
+                          isPending
+                            ? 'bg-yellow-700/60 border-yellow-400 shadow-lg shadow-yellow-400/30'
+                            : selectedCrop
+                            ? 'bg-green-700/40 hover:bg-green-600/60 border-green-500/50 hover:scale-[1.02] cursor-pointer'
+                            : 'bg-slate-800/60 border-slate-700 cursor-not-allowed opacity-60'
+                        }`}
+                      >
+                        <div className="font-bold text-xs mb-1">
+                          Bot {botIndex + 1} • Job {jobIndex + 1}
+                        </div>
+                        <div className="text-xs text-gray-300 mb-1">{zoneName}</div>
+                        <div className="text-xs text-green-300 mb-2">{job.targetTiles.length} tiles</div>
+
+                        {/* Current and Pending Assignment */}
+                        <div className="flex items-center justify-center gap-1 text-lg">
+                          {isPending ? (
+                            <>
+                              <span className="opacity-50">{currentCrop.emoji}</span>
+                              <span className="text-yellow-400">→</span>
+                              <span>{pendingCrop.emoji}</span>
+                            </>
+                          ) : (
+                            <span>{currentCrop.emoji}</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                {Object.keys(pendingChanges).length > 0 && (
+                  <button
+                    onClick={handleSaveChanges}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-lg font-bold text-lg transition-all shadow-lg"
+                  >
+                    💾 Save Changes ({Object.keys(pendingChanges).length})
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className={`${Object.keys(pendingChanges).length > 0 ? '' : 'flex-1'} px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg font-bold text-lg transition-all`}
+                >
+                  {Object.keys(pendingChanges).length > 0 ? 'Cancel' : 'Close Market'}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

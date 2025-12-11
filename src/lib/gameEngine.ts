@@ -3404,43 +3404,49 @@ export function superchargeBot(state: GameState, botId: string, botType: 'water'
 
   let updated = false;
 
-  // Find and supercharge the specific bot
-  const newState = { ...state };
+  // Get the current zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
 
-  if (botType === 'water' && newState.waterBots) {
-    newState.waterBots = newState.waterBots.map(bot => {
+  if (!currentZone) return state;
+
+  // Find and supercharge the specific bot in the current zone
+  let updatedZone = { ...currentZone };
+
+  if (botType === 'water' && updatedZone.waterBots) {
+    updatedZone.waterBots = updatedZone.waterBots.map(bot => {
       if (bot.id === botId && !bot.supercharged) {
         updated = true;
         return { ...bot, supercharged: true };
       }
       return bot;
     });
-  } else if (botType === 'harvest' && newState.harvestBots) {
-    newState.harvestBots = newState.harvestBots.map(bot => {
+  } else if (botType === 'harvest' && updatedZone.harvestBots) {
+    updatedZone.harvestBots = updatedZone.harvestBots.map(bot => {
       if (bot.id === botId && !bot.supercharged) {
         updated = true;
         return { ...bot, supercharged: true };
       }
       return bot;
     });
-  } else if (botType === 'seed' && newState.seedBots) {
-    newState.seedBots = newState.seedBots.map(bot => {
+  } else if (botType === 'seed' && updatedZone.seedBots) {
+    updatedZone.seedBots = updatedZone.seedBots.map(bot => {
       if (bot.id === botId && !bot.supercharged) {
         updated = true;
         return { ...bot, supercharged: true };
       }
       return bot;
     });
-  } else if (botType === 'transport' && newState.transportBots) {
-    newState.transportBots = newState.transportBots.map(bot => {
+  } else if (botType === 'transport' && updatedZone.transportBots) {
+    updatedZone.transportBots = updatedZone.transportBots.map(bot => {
       if (bot.id === botId && !bot.supercharged) {
         updated = true;
         return { ...bot, supercharged: true };
       }
       return bot;
     });
-  } else if (botType === 'demolish' && newState.demolishBots) {
-    newState.demolishBots = newState.demolishBots.map(bot => {
+  } else if (botType === 'demolish' && updatedZone.demolishBots) {
+    updatedZone.demolishBots = updatedZone.demolishBots.map(bot => {
       if (bot.id === botId && !bot.supercharged) {
         updated = true;
         return { ...bot, supercharged: true };
@@ -3452,10 +3458,14 @@ export function superchargeBot(state: GameState, botId: string, botType: 'water'
   // Only deduct money if a bot was actually supercharged
   if (updated) {
     return {
-      ...newState,
+      ...state,
+      zones: {
+        ...state.zones,
+        [currentZoneKey]: updatedZone,
+      },
       player: {
-        ...newState.player,
-        money: newState.player.money - SUPERCHARGE_BOT_COST,
+        ...state.player,
+        money: state.player.money - SUPERCHARGE_BOT_COST,
       },
     };
   }

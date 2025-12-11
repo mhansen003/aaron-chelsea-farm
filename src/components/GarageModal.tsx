@@ -19,15 +19,52 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
   const demolishBots = allZones.flatMap(zone => zone.demolishBots || []);
 
   const allBots = [...harvestBots, ...waterBots, ...seedBots, ...transportBots, ...demolishBots];
+  const garagedBots = allBots.filter(bot => bot.status === 'garaged');
+  const activeBots = allBots.filter(bot => bot.status !== 'garaged' && bot.status !== 'idle');
   const idleBots = allBots.filter(bot => bot.status === 'idle');
 
   // Detailed breakdown by bot type
   const botBreakdown = [
-    { type: '💧 Water Bots', total: waterBots.length, idle: waterBots.filter(b => b.status === 'idle').length, emoji: '💧' },
-    { type: '🌾 Harvest Bots', total: harvestBots.length, idle: harvestBots.filter(b => b.status === 'idle').length, emoji: '🌾' },
-    { type: '🌱 Seed Bots', total: seedBots.length, idle: seedBots.filter(b => b.status === 'idle').length, emoji: '🌱' },
-    { type: '🚚 Transport Bots', total: transportBots.length, idle: transportBots.filter(b => b.status === 'idle').length, emoji: '🚚' },
-    { type: '💥 Demolish Bots', total: demolishBots.length, idle: demolishBots.filter(b => b.status === 'idle').length, emoji: '💥' },
+    {
+      type: '💧 Water Bots',
+      total: waterBots.length,
+      active: waterBots.filter(b => b.status !== 'garaged' && b.status !== 'idle').length,
+      idle: waterBots.filter(b => b.status === 'idle').length,
+      garaged: waterBots.filter(b => b.status === 'garaged').length,
+      emoji: '💧'
+    },
+    {
+      type: '🌾 Harvest Bots',
+      total: harvestBots.length,
+      active: harvestBots.filter(b => b.status !== 'garaged' && b.status !== 'idle').length,
+      idle: harvestBots.filter(b => b.status === 'idle').length,
+      garaged: harvestBots.filter(b => b.status === 'garaged').length,
+      emoji: '🌾'
+    },
+    {
+      type: '🌱 Seed Bots',
+      total: seedBots.length,
+      active: seedBots.filter(b => b.status !== 'garaged' && b.status !== 'idle').length,
+      idle: seedBots.filter(b => b.status === 'idle').length,
+      garaged: seedBots.filter(b => b.status === 'garaged').length,
+      emoji: '🌱'
+    },
+    {
+      type: '🚚 Transport Bots',
+      total: transportBots.length,
+      active: transportBots.filter(b => b.status !== 'garaged' && b.status !== 'idle').length,
+      idle: transportBots.filter(b => b.status === 'idle').length,
+      garaged: transportBots.filter(b => b.status === 'garaged').length,
+      emoji: '🚚'
+    },
+    {
+      type: '💥 Demolish Bots',
+      total: demolishBots.length,
+      active: demolishBots.filter(b => b.status !== 'garaged' && b.status !== 'idle').length,
+      idle: demolishBots.filter(b => b.status === 'idle').length,
+      garaged: demolishBots.filter(b => b.status === 'garaged').length,
+      emoji: '💥'
+    },
   ].filter(bot => bot.total > 0);
 
   return (
@@ -63,10 +100,13 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
                 🤖 <span className="font-bold">Total Bots:</span> {allBots.length}
               </div>
               <div className="text-base md:text-lg">
-                😴 <span className="font-bold">Idle Bots:</span> {idleBots.length}
+                ⚙️ <span className="font-bold">Active:</span> <span className="text-green-400">{activeBots.length}</span>
               </div>
               <div className="text-base md:text-lg">
-                ⚙️ <span className="font-bold">Working Bots:</span> {allBots.length - idleBots.length}
+                😴 <span className="font-bold">Idle:</span> <span className="text-yellow-400">{idleBots.length}</span>
+              </div>
+              <div className="text-base md:text-lg">
+                🏗️ <span className="font-bold">Garaged:</span> <span className="text-blue-400">{garagedBots.length}</span>
               </div>
             </div>
 
@@ -79,12 +119,21 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
                     <span className="text-xl">{bot.emoji}</span>
                     <span className="font-semibold">{bot.type.split(' ').slice(1).join(' ')}</span>
                   </div>
-                  <div className="text-sm md:text-base">
-                    <span className="text-green-400 font-bold">{bot.total - bot.idle}</span>
-                    <span className="text-slate-400"> active</span>
-                    <span className="text-slate-500"> • </span>
-                    <span className="text-yellow-400 font-bold">{bot.idle}</span>
-                    <span className="text-slate-400"> idle</span>
+                  <div className="text-xs md:text-sm flex gap-2">
+                    <div>
+                      <span className="text-green-400 font-bold">{bot.active}</span>
+                      <span className="text-slate-400"> active</span>
+                    </div>
+                    <span className="text-slate-500">•</span>
+                    <div>
+                      <span className="text-yellow-400 font-bold">{bot.idle}</span>
+                      <span className="text-slate-400"> idle</span>
+                    </div>
+                    <span className="text-slate-500">•</span>
+                    <div>
+                      <span className="text-blue-400 font-bold">{bot.garaged}</span>
+                      <span className="text-slate-400"> stored</span>
+                    </div>
                   </div>
                 </div>
               ))}

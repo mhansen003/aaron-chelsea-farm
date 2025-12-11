@@ -173,7 +173,7 @@ export interface Zone {
 export interface WaterBot {
   id: string; // Unique bot ID
   waterLevel: number; // Current water (0-10)
-  status: 'idle' | 'watering' | 'refilling' | 'traveling';
+  status: 'idle' | 'watering' | 'refilling' | 'traveling' | 'garaged';
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X
@@ -189,7 +189,7 @@ export interface HarvestBot {
   id: string; // Unique bot ID
   inventory: BasketItem[]; // Crops currently held (max 8)
   inventoryCapacity: number; // Max inventory size (8)
-  status: 'idle' | 'harvesting' | 'depositing' | 'traveling';
+  status: 'idle' | 'harvesting' | 'depositing' | 'traveling' | 'garaged';
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X
@@ -213,7 +213,7 @@ export interface SeedBotJob {
 export interface SeedBot {
   id: string; // Unique bot ID
   jobs: SeedBotJob[]; // Up to 3 jobs (60 total tiles)
-  status: 'idle' | 'planting' | 'traveling';
+  status: 'idle' | 'planting' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
@@ -231,7 +231,7 @@ export interface TransportBot {
   id: string; // Unique bot ID
   inventory: BasketItem[]; // Crops currently being transported (max 16)
   inventoryCapacity: number; // Max inventory size (16)
-  status: 'idle' | 'loading' | 'transporting' | 'selling' | 'traveling';
+  status: 'idle' | 'loading' | 'transporting' | 'selling' | 'traveling' | 'garaged';
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X
@@ -245,7 +245,7 @@ export interface TransportBot {
 
 export interface DemolishBot {
   id: string; // Unique bot ID
-  status: 'idle' | 'clearing' | 'traveling';
+  status: 'idle' | 'clearing' | 'traveling' | 'garaged';
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X

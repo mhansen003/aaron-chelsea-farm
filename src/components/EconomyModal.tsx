@@ -223,15 +223,15 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
               <button
                 key={crop}
                 onClick={() => toggleCrop(crop)}
-                className={`px-2 md:px-3 py-1 md:py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-1 justify-center transition-all ${
+                className={`px-2 md:px-3 py-1 md:py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-1 justify-center transition-all border-2 ${
                   visibleCrops[crop]
-                    ? 'ring-2'
+                    ? 'ring-2 ring-offset-1'
                     : 'opacity-40 hover:opacity-70'
                 }`}
                 style={{
                   backgroundColor: CROP_COLORS[crop] + '40',
                   borderColor: CROP_COLORS[crop],
-                  ringColor: CROP_COLORS[crop],
+                  ['--tw-ring-color' as any]: CROP_COLORS[crop],
                 }}
               >
                 <Image src={`/${crop}.png`} alt={crop} width={20} height={20} className="object-contain" />

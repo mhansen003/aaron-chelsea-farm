@@ -2326,29 +2326,29 @@ export default function Game() {
 
   // Determine what action should be taken for a tile based on context
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
-    // Rocks and trees can be cleared - show pickaxe/axe cursor
+    // Rocks and trees can be cleared - show crosshair + pickaxe cursor
     if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
-      return { action: 'clear' as const, cursor: 'url("/cursor-clear.png") 16 16, pointer' };
+      return { action: 'clear' as const, cursor: 'crosshair' };
     }
 
-    // Grown crops can be harvested - show scythe cursor
+    // Grown crops can be harvested - show grab cursor
     if (tile.type === 'grown') {
-      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 16 16, pointer' };
+      return { action: 'harvest' as const, cursor: 'grab' };
     }
 
-    // Planted crops that need water - show watering can cursor
+    // Planted crops that need water - show cell cursor
     if (tile.type === 'planted' && !tile.wateredToday) {
-      return { action: 'water' as const, cursor: 'url("/cursor-water.png") 16 16, pointer' };
+      return { action: 'water' as const, cursor: 'cell' };
     }
 
-    // Planted crops already watered - show hand cursor (no action needed)
+    // Planted crops already watered - show progress cursor
     if (tile.type === 'planted' && tile.wateredToday) {
-      return { action: null, cursor: 'default' };
+      return { action: null, cursor: 'progress' };
     }
 
     // Grass/cleared dirt can be planted if we have a seed selected and no sprinkler
     if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && !tile.hasSprinkler && selectedCrop) {
-      return { action: 'plant' as const, cursor: 'url("/cursor-plant.png") 16 16, pointer' };
+      return { action: 'plant' as const, cursor: 'copy' };
     }
 
     // Shop tile - show pointer to indicate clickable
@@ -2391,9 +2391,9 @@ export default function Game() {
       return { action: 'arch' as const, cursor: 'pointer' };
     }
 
-    // Cleared grass/dirt with no seed selected - show crosshair (can plant if you select seed)
+    // Cleared grass/dirt with no seed selected - show not-allowed (need to select seed)
     if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && !tile.hasSprinkler && !selectedCrop) {
-      return { action: null, cursor: 'crosshair' };
+      return { action: null, cursor: 'not-allowed' };
     }
 
     // Default - no action

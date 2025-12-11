@@ -191,12 +191,11 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         if (rand < 0.30) type = 'cactus'; // 30% cactus
         else if (rand < 0.50) type = 'rocks'; // 20% rocks
       } else if (theme === 'mountain') {
-        // Mountain: dirt/rocky terrain with caves and mountains
+        // Mountain: dirt/rocky terrain with mountains and rocks (caves placed separately)
         type = 'dirt';
         const rand = Math.random();
         if (rand < 0.20) type = 'mountain'; // 20% mountain formations
-        else if (rand < 0.35) type = 'cave'; // 15% caves
-        else if (rand < 0.50) type = 'rocks'; // 15% rocks
+        else if (rand < 0.35) type = 'rocks'; // 15% rocks
       }
       // Shop building at top-left corner (2x2) of starting zone only
       else if (isStartingZone && x >= 0 && x <= 1 && y >= 0 && y <= 1) {
@@ -258,6 +257,42 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       });
     }
     grid.push(row);
+  }
+
+  // Place 1-3 cave entrances in mountain zones
+  if (theme === 'mountain') {
+    const numCaves = Math.floor(Math.random() * 3) + 1; // Random number 1-3
+    const cavePositions: Array<{ x: number; y: number }> = [];
+
+    // Find suitable positions (avoid edges, arches, and existing caves)
+    const margin = 2; // Stay away from edges
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    while (cavePositions.length < numCaves && attempts < maxAttempts) {
+      attempts++;
+      const x = Math.floor(Math.random() * (GAME_CONFIG.gridWidth - margin * 2)) + margin;
+      const y = Math.floor(Math.random() * (GAME_CONFIG.gridHeight - margin * 2)) + margin;
+
+      // Check if position is valid (not too close to other caves, not on arch)
+      const tooClose = cavePositions.some(pos =>
+        Math.abs(pos.x - x) < 3 || Math.abs(pos.y - y) < 3
+      );
+      const isArch = grid[y][x].type === 'arch';
+
+      if (!tooClose && !isArch) {
+        cavePositions.push({ x, y });
+      }
+    }
+
+    // Place the caves
+    cavePositions.forEach(pos => {
+      grid[pos.y][pos.x] = {
+        ...grid[pos.y][pos.x],
+        type: 'cave',
+        cleared: false,
+      };
+    });
   }
 
   return grid;

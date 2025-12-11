@@ -1488,6 +1488,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       if (bot.jobs.length === 0) {
+        // Idle - go to garage if it exists, otherwise wander
+        const garagePos = findGaragePosition(grid);
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (botX === garagePos.x && botY === garagePos.y) {
+            // Already at garage - stay parked
+            return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
+          } else {
+            // Travel to garage
+            let newX = botX, newY = botY;
+            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: undefined, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+          }
+        }
+        // No garage - wander randomly
         if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {

@@ -12,7 +12,7 @@ export type TileType =
   | 'warehouse'
   | 'waterbot'
   | 'arch'
-  | 'mechanic'
+  | 'botFactory'
   | 'well'
   | 'garage'
   | 'supercharger'
@@ -29,7 +29,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_mechanic' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit';
 
 export interface Task {
   id: string;
@@ -97,8 +97,8 @@ export interface Player {
     seedbots: number; // How many seed bots the player owns
     transportbots: number; // How many transport bots the player owns
     demolishbots: number; // How many demolish bots the player owns
-    mechanicShop: number; // How many mechanic shops the player owns (max 1)
-    mechanicShopPlaced: boolean; // Whether the mechanic shop has been placed
+    botFactory: number; // How many bot factories the player owns (max 1)
+    botFactoryPlaced: boolean; // Whether the bot factory has been placed
     well: number; // How many wells the player owns (max 1 per zone)
     wellPlaced: boolean; // Whether a well has been placed in current zone
     garage: number; // How many garages the player owns

@@ -21,18 +21,18 @@ import {
   buyDemolishbots,
   updateSeedBotJobs,
   upgradeBag,
-  buyMechanicShop,
+  buyBotFactory,
   buyWell,
   buyGarage,
   buySupercharger,
-  placeMechanicShop,
+  placeBotFactory,
   placeWell,
   placeGarage,
   placeSupercharger,
   superchargeBot,
   relocateGarage,
   relocateWell,
-  relocateMechanicShop,
+  relocateBotFactory,
   relocateSupercharger,
   toggleAutoBuy,
   addTask,
@@ -54,7 +54,7 @@ import { GameState, CropType, ToolType, Tile, Zone, SaleRecord } from '@/types/g
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
-import MechanicShop from './MechanicShop';
+import BotFactory from './BotFactory';
 import WarehouseModal from './WarehouseModal';
 import GarageModal from './GarageModal';
 import SuperchargerModal from './SuperchargerModal';
@@ -94,7 +94,7 @@ const COLORS = {
   waterbot: '#00bcd4',
   arch: '#9e9e9e',
   archActive: '#4caf50',
-  mechanic: '#ff5722',
+  botFactory: '#ff5722',
   well: '#03a9f4',
   garage: '#424242',
   ocean: '#1976d2',
@@ -156,11 +156,11 @@ export default function Game() {
           if (parsed.player.visualY === undefined) {
             parsed.player.visualY = parsed.player.y;
           }
-          if (parsed.player.inventory.mechanicShop === undefined) {
-            parsed.player.inventory.mechanicShop = 0;
+          if (parsed.player.inventory.botFactory === undefined) {
+            parsed.player.inventory.botFactory = 0;
           }
-          if (parsed.player.inventory.mechanicShopPlaced === undefined) {
-            parsed.player.inventory.mechanicShopPlaced = false;
+          if (parsed.player.inventory.botFactoryPlaced === undefined) {
+            parsed.player.inventory.botFactoryPlaced = false;
           }
           // Add basket if missing (for old saves)
           if (parsed.player.basket === undefined) {
@@ -298,7 +298,7 @@ export default function Game() {
             if (parsed.player.inventory.superchargerPlaced === undefined) parsed.player.inventory.superchargerPlaced = false;
             if (parsed.player.inventory.garagePlaced === undefined) parsed.player.inventory.garagePlaced = false;
             if (parsed.player.inventory.wellPlaced === undefined) parsed.player.inventory.wellPlaced = false;
-            if (parsed.player.inventory.mechanicShopPlaced === undefined) parsed.player.inventory.mechanicShopPlaced = false;
+            if (parsed.player.inventory.botFactoryPlaced === undefined) parsed.player.inventory.botFactoryPlaced = false;
           }
 
           const migratedState = parsed as GameState;
@@ -327,7 +327,7 @@ export default function Game() {
   const [purchaseZoneKey, setPurchaseZoneKey] = useState<string>('');
   const [sellMessage, setSellMessage] = useState<string>('');
   const [showSeedDropdown, setShowSeedDropdown] = useState(false);
-  const [showMechanicShop, setShowMechanicShop] = useState(false);
+  const [showBotFactory, setShowBotFactory] = useState(false);
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [showGarageModal, setShowGarageModal] = useState(false);
   const [showSuperchargerModal, setShowSuperchargerModal] = useState(false);
@@ -338,7 +338,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'mechanic' | 'well' | 'garage' | 'supercharger' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | null>(null);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
   const [tileSelectionMode, setTileSelectionMode] = useState<{
@@ -409,7 +409,7 @@ export default function Game() {
   const clearToolImageRef = useRef<HTMLImageElement | null>(null);
   const waterdropletImageRef = useRef<HTMLImageElement | null>(null);
   const harvestImageRef = useRef<HTMLImageElement | null>(null);
-  const mechanicImageRef = useRef<HTMLImageElement | null>(null);
+  const botFactoryImageRef = useRef<HTMLImageElement | null>(null);
   const wellImageRef = useRef<HTMLImageElement | null>(null);
   const garageImageRef = useRef<HTMLImageElement | null>(null);
   const superchargerImageRef = useRef<HTMLImageElement | null>(null);
@@ -629,10 +629,10 @@ export default function Game() {
       harvestImageRef.current = harvestImg;
     };
 
-    const mechanicImg = new Image();
-    mechanicImg.src = '/mechanic.png';
-    mechanicImg.onload = () => {
-      mechanicImageRef.current = mechanicImg;
+    const botFactoryImg = new Image();
+    botFactoryImg.src = '/mechanic.png';
+    botFactoryImg.onload = () => {
+      botFactoryImageRef.current = botFactoryImg;
     };
 
     const wellImg = new Image();
@@ -1186,8 +1186,8 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Check if this is a 2x2 building construction (mechanic, well, garage, supercharger)
-          const is2x2Building = tile.constructionTarget === 'mechanic' ||
+          // Check if this is a 2x2 building construction (bot factory, well, garage, supercharger)
+          const is2x2Building = tile.constructionTarget === 'botFactory' ||
                                 tile.constructionTarget === 'well' ||
                                 tile.constructionTarget === 'garage' ||
                                 tile.constructionTarget === 'supercharger';
@@ -1238,7 +1238,7 @@ export default function Game() {
             ctx.textAlign = 'center';
             ctx.fillText(`${Math.floor(progress)}%`, px + 8 + barWidth / 2, barY + barHeight / 2 + 4);
           }
-        } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
+        } else if (tile.type === 'botFactory' && botFactoryImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1253,40 +1253,40 @@ export default function Game() {
 
           // Check if this is top-left
           if (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-              gridRef[y]?.[x + 1]?.type === 'mechanic' &&
-              gridRef[y + 1]?.[x]?.type === 'mechanic' &&
-              gridRef[y + 1]?.[x + 1]?.type === 'mechanic') {
+              gridRef[y]?.[x + 1]?.type === 'botFactory' &&
+              gridRef[y + 1]?.[x]?.type === 'botFactory' &&
+              gridRef[y + 1]?.[x + 1]?.type === 'botFactory') {
             offsetX = 0;
             offsetY = 0;
           }
           // Check if this is top-right
           else if (x > 0 && y + 1 < GAME_CONFIG.gridHeight &&
-                   gridRef[y]?.[x - 1]?.type === 'mechanic' &&
-                   gridRef[y + 1]?.[x]?.type === 'mechanic' &&
+                   gridRef[y]?.[x - 1]?.type === 'botFactory' &&
+                   gridRef[y + 1]?.[x]?.type === 'botFactory' &&
                    gridRef[y + 1]?.[x - 1]?.type === 'mechanic') {
             offsetX = 512;
             offsetY = 0;
           }
           // Check if this is bottom-left
           else if (x + 1 < GAME_CONFIG.gridWidth && y > 0 &&
-                   gridRef[y]?.[x + 1]?.type === 'mechanic' &&
-                   gridRef[y - 1]?.[x]?.type === 'mechanic' &&
+                   gridRef[y]?.[x + 1]?.type === 'botFactory' &&
+                   gridRef[y - 1]?.[x]?.type === 'botFactory' &&
                    gridRef[y - 1]?.[x + 1]?.type === 'mechanic') {
             offsetX = 0;
             offsetY = 512;
           }
           // Check if this is bottom-right
           else if (x > 0 && y > 0 &&
-                   gridRef[y]?.[x - 1]?.type === 'mechanic' &&
-                   gridRef[y - 1]?.[x]?.type === 'mechanic' &&
-                   gridRef[y - 1]?.[x - 1]?.type === 'mechanic') {
+                   gridRef[y]?.[x - 1]?.type === 'botFactory' &&
+                   gridRef[y - 1]?.[x]?.type === 'botFactory' &&
+                   gridRef[y - 1]?.[x - 1]?.type === 'botFactory') {
             offsetX = 512;
             offsetY = 512;
           }
 
           // Draw the appropriate quadrant
           ctx.drawImage(
-            mechanicImageRef.current,
+            botFactoryImageRef.current,
             offsetX, offsetY, 512, 512,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
@@ -1939,8 +1939,8 @@ export default function Game() {
       }
     }
 
-    // Draw 2x2 building placement preview (mechanic, well, garage, supercharger)
-    if ((placementMode === 'mechanic' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger') && hoveredTile) {
+    // Draw 2x2 building placement preview (bot factory, well, garage, supercharger)
+    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger') && hoveredTile) {
       const currentGrid = getCurrentGrid(gameState);
       const tileX = hoveredTile.x;
       const tileY = hoveredTile.y;
@@ -2474,9 +2474,9 @@ export default function Game() {
       return { action: 'warehouse' as const, cursor: 'pointer' };
     }
 
-    // Mechanic tile - show pointer
-    if (tile.type === 'mechanic') {
-      return { action: 'mechanic' as const, cursor: 'pointer' };
+    // Bot Factory tile - show pointer
+    if (tile.type === 'botFactory') {
+      return { action: 'botFactory' as const, cursor: 'pointer' };
     }
 
     // Well tile - show pointer
@@ -2701,26 +2701,26 @@ export default function Game() {
       return;
     }
 
-    // Handle placement mode (sprinklers, mechanic shop, etc.) - instant placement
+    // Handle placement mode (sprinklers, bot factory, etc.) - instant placement
     if (placementMode === 'sprinkler') {
       setGameState(prev => placeSprinkler(prev, tileX, tileY));
       setPlacementMode(null); // Clear placement mode after placing
       return;
     }
 
-    if (placementMode === 'mechanic') {
-      console.log('Mechanic placement clicked:', { tileX, tileY, tileType: tile.type, cleared: tile.cleared });
-      // Allow placing mechanic shop on grass or cleared dirt tiles (2x2)
+    if (placementMode === 'botFactory') {
+      console.log('Bot Factory placement clicked:', { tileX, tileY, tileType: tile.type, cleared: tile.cleared });
+      // Allow placing bot factory on grass or cleared dirt tiles (2x2)
       if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
-        console.log('Attempting to place mechanic shop...');
+        console.log('Attempting to place bot factory...');
         setGameState(prev => {
-          const result = placeMechanicShop(prev, tileX, tileY);
-          console.log('Mechanic shop placement result:', result === prev ? 'FAILED (no change)' : 'SUCCESS');
+          const result = placeBotFactory(prev, tileX, tileY);
+          console.log('Bot Factory placement result:', result === prev ? 'FAILED (no change)' : 'SUCCESS');
           return result;
         });
         setPlacementMode(null); // Clear placement mode after placing
       } else {
-        console.log('Invalid tile for mechanic placement');
+        console.log('Invalid tile for bot factory placement');
       }
       return;
     }
@@ -2803,9 +2803,9 @@ export default function Game() {
       return;
     }
 
-    // Handle mechanic shop tile clicks
-    if (tile.type === 'mechanic') {
-      setShowMechanicShop(true);
+    // Handle bot factory tile clicks
+    if (tile.type === 'botFactory') {
+      setShowBotFactory(true);
       return;
     }
 
@@ -3081,7 +3081,7 @@ export default function Game() {
     setShowShop(false);
     setShowSellShop(false);
     setShowExportModal(false);
-    setShowMechanicShop(false);
+    setShowBotFactory(false);
     setShowWarehouseModal(false);
     setShowGarageModal(false);
     setShowInstructions(false);
@@ -3238,7 +3238,7 @@ export default function Game() {
     setShowShop(false);
     setShowSellShop(false);
     setShowExportModal(false);
-    setShowMechanicShop(false);
+    setShowBotFactory(false);
     setShowWarehouseModal(false);
     setShowGarageModal(false);
   };
@@ -3253,7 +3253,7 @@ export default function Game() {
     setShowShop(false);
     setShowSellShop(false);
     setShowExportModal(false);
-    setShowMechanicShop(false);
+    setShowBotFactory(false);
     setShowWarehouseModal(false);
     setShowGarageModal(false);
   };
@@ -3266,7 +3266,7 @@ export default function Game() {
     setShowShop(false);
     setShowSellShop(false);
     setShowExportModal(false);
-    setShowMechanicShop(false);
+    setShowBotFactory(false);
     setShowWarehouseModal(false);
     setShowGarageModal(false);
   };
@@ -3311,7 +3311,7 @@ export default function Game() {
                currentZone.currentTask.type === 'water' ? '💧 Watering' :
                currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
                currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
-               currentZone.currentTask.type === 'place_mechanic' ? '⚙️ Building Shop' :
+               currentZone.currentTask.type === 'place_botFactory' ? '⚙️ Building Factory' :
                currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
                currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
                '🔨 Working'}
@@ -3497,7 +3497,7 @@ export default function Game() {
                   else icon = '🌱'; // Fallback
                 }
                 else if (task.type === 'place_sprinkler') icon = '💦';
-                else if (task.type === 'place_mechanic') icon = '⚙️';
+                else if (task.type === 'place_botFactory') icon = '⚙️';
                 else if (task.type === 'place_well') icon = '🪣';
                 else if (task.type === 'deposit') icon = '📦';
 
@@ -3917,7 +3917,7 @@ export default function Game() {
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}
-      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false))) && (
+      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false))) && (
         <div className="w-full bg-gradient-to-r from-blue-900/90 to-purple-900/90 p-3 rounded-lg border-4 border-yellow-400 flex items-center gap-3 shadow-2xl animate-pulse" style={{
           boxShadow: '0 0 30px rgba(250, 204, 21, 0.8), 0 0 60px rgba(250, 204, 21, 0.5), 0 0 90px rgba(250, 204, 21, 0.3), 0 10px 40px rgba(0, 0, 0, 0.5)'
         }}>
@@ -3940,17 +3940,17 @@ export default function Game() {
             </button>
           )}
 
-          {/* Mechanic Shop Placement Button */}
-          {gameState.player.inventory.mechanicShop > 0 && !gameState.player.inventory.mechanicShopPlaced && (
+          {/* Bot Factory Placement Button */}
+          {gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced && (
             <button
-              onClick={() => setPlacementMode(placementMode === 'mechanic' ? null : 'mechanic')}
+              onClick={() => setPlacementMode(placementMode === 'botFactory' ? null : 'botFactory')}
               className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
-                placementMode === 'mechanic'
+                placementMode === 'botFactory'
                   ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
                   : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-orange-400/50'
               }`}
             >
-              ⚙️ Mechanic Shop
+              ⚙️ Bot Factory
             </button>
           )}
 
@@ -4010,7 +4010,7 @@ export default function Game() {
             <div className="text-yellow-300 text-sm font-bold ml-2 bg-black/40 px-3 py-1 rounded">
               👉 {
                 placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' :
-                placementMode === 'mechanic' ? 'Click grass tile to place shop (2 min build)' :
+                placementMode === 'botFactory' ? 'Click grass tile to place shop (2 min build)' :
                 placementMode === 'well' ? 'Click grass tile to place well' :
                 placementMode === 'garage' ? 'Click grass tile to place garage' :
                 placementMode === 'supercharger' ? 'Click grass tile to place supercharger' :
@@ -4138,7 +4138,7 @@ export default function Game() {
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
-          onBuyMechanicShop={() => setGameState(prev => buyMechanicShop(prev))}
+          onBuyBotFactory={() => setGameState(prev => buyBotFactory(prev))}
           onBuyWell={() => setGameState(prev => buyWell(prev))}
           onBuyGarage={() => setGameState(prev => buyGarage(prev))}
           onBuySupercharger={() => setGameState(prev => buySupercharger(prev))}
@@ -4172,10 +4172,10 @@ export default function Game() {
       )}
 
       {/* Mechanic Shop Modal */}
-      {showMechanicShop && (
-        <MechanicShop
+      {showBotFactory && (
+        <BotFactory
           gameState={gameState}
-          onClose={() => setShowMechanicShop(false)}
+          onClose={() => setShowBotFactory(false)}
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onBuySeedbots={amount => {
@@ -4190,7 +4190,7 @@ export default function Game() {
                   const newestBot = currentZone.seedBots[currentZone.seedBots.length - 1];
                   setSelectedSeedBot(newestBot.id);
                   setShowSeedBotConfig(true);
-                  setShowMechanicShop(false);
+                  setShowBotFactory(false);
                 }
               }, 100);
 
@@ -4199,7 +4199,7 @@ export default function Game() {
           }}
           onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
           onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}
-          onRelocate={() => setGameState(prev => relocateMechanicShop(prev))}
+          onRelocate={() => setGameState(prev => relocateBotFactory(prev))}
         />
       )}
 

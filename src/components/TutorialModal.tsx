@@ -112,7 +112,7 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
             <div className="bg-red-900/30 rounded-lg p-3 border border-red-500/30 flex items-start gap-3">
               <div className="text-3xl">⚙️</div>
               <div>
-                <h4 className="font-bold text-red-400">Mechanic Shop</h4>
+                <h4 className="font-bold text-red-400">Bot Factory</h4>
                 <p className="text-xs text-gray-300">Buy bots to automate your farm! Water bots, harvest bots, seed bots, and more.</p>
               </div>
             </div>

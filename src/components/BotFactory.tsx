@@ -4,7 +4,7 @@ import { GameState } from '@/types/game';
 import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
 
-interface MechanicShopProps {
+interface BotFactoryProps {
   gameState: GameState;
   onClose: () => void;
   onBuyWaterbots: (amount: number) => void;
@@ -15,7 +15,7 @@ interface MechanicShopProps {
   onRelocate: () => void;
 }
 
-export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: MechanicShopProps) {
+export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: BotFactoryProps) {
   // Calculate progressive costs based on how many bots are owned
   const waterbotCost = getBotCost(WATERBOT_COST, gameState.player.inventory.waterbots);
   const harvestbotCost = getBotCost(HARVESTBOT_COST, gameState.player.inventory.harvestbots);

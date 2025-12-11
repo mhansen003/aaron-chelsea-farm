@@ -164,7 +164,34 @@ function migrateGameState(gameState: any): GameState {
     if (gameState.player.inventory.superchargerPlaced === undefined) gameState.player.inventory.superchargerPlaced = false;
     if (gameState.player.inventory.garagePlaced === undefined) gameState.player.inventory.garagePlaced = false;
     if (gameState.player.inventory.wellPlaced === undefined) gameState.player.inventory.wellPlaced = false;
-    if (gameState.player.inventory.mechanicShopPlaced === undefined) gameState.player.inventory.mechanicShopPlaced = false;
+    // Migrate old mechanicShop names to botFactory
+    if ('mechanicShop' in gameState.player.inventory) {
+      (gameState.player.inventory as any).botFactory = (gameState.player.inventory as any).mechanicShop;
+      delete (gameState.player.inventory as any).mechanicShop;
+    }
+    if ('mechanicShopPlaced' in gameState.player.inventory) {
+      (gameState.player.inventory as any).botFactoryPlaced = (gameState.player.inventory as any).mechanicShopPlaced;
+      delete (gameState.player.inventory as any).mechanicShopPlaced;
+    }
+    if (gameState.player.inventory.botFactoryPlaced === undefined) gameState.player.inventory.botFactoryPlaced = false;
+  }
+
+  // Migrate 'mechanic' tile types to 'botFactory' in all zones
+  if (gameState.zones) {
+    Object.values(gameState.zones).forEach(zone => {
+      if (zone.grid) {
+        zone.grid.forEach(row => {
+          row.forEach(tile => {
+            if ((tile as any).type === 'mechanic') {
+              (tile as any).type = 'botFactory';
+            }
+            if ((tile as any).constructionTarget === 'mechanic') {
+              (tile as any).constructionTarget = 'botFactory';
+            }
+          });
+        });
+      }
+    });
   }
 
   // Initialize zoneEarnings if it doesn't exist (backward compatibility)

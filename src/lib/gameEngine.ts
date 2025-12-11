@@ -66,7 +66,7 @@ export const DEMOLISHBOT_COST = 100; // Cost to buy one demolish bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
-export const MECHANIC_SHOP_COST = 250; // Cost to buy the mechanic shop
+export const BOT_FACTORY_COST = 250; // Cost to buy the bot factory
 export const WELL_COST = 100; // Cost to buy a well
 export const GARAGE_COST = 175; // Cost to buy a garage
 export const SUPERCHARGER_COST = 5000; // Cost to buy a supercharger
@@ -90,7 +90,7 @@ export const TASK_DURATIONS = {
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   place_sprinkler: 3000, // 3 seconds to place sprinkler
-  place_mechanic: 100, // Instant - construction time handles the delay
+  place_botFactory: 100, // Instant - construction time handles the delay
   place_well: 100, // Instant - construction time handles the delay
   place_garage: 100, // Instant - construction time handles the delay
   place_supercharger: 100, // Instant - construction time handles the delay
@@ -112,7 +112,7 @@ function getRandomGrassVariant(): number {
 
 // Construction durations in milliseconds (separate from task durations)
 export const CONSTRUCTION_DURATIONS = {
-  mechanic: 5000, // 5 seconds to build mechanic shop (reduced for testing)
+  botFactory: 5000, // 5 seconds to build bot factory (reduced for testing)
   well: 5000, // 5 seconds to build well (reduced for testing)
   garage: 5000, // 5 seconds to build garage (reduced for testing)
   supercharger: 5000, // 5 seconds to build supercharger (reduced for testing)
@@ -250,7 +250,7 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       else if (isStartingZone && x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
         type = 'warehouse';
       }
-      // Mechanic building (2x2) - if placed by player
+      // Bot Factory building (2x2) - if placed by player
       // Will be handled separately when player places it
       // Arches (only in farm zones, not themed zones)
       // North arch (top center) - NOT in themed zones
@@ -584,8 +584,8 @@ export function createInitialState(): GameState {
         seedbots: 0,
         transportbots: 0,
         demolishbots: 0,
-        mechanicShop: 0,
-        mechanicShopPlaced: false,
+        botFactory: 0,
+        botFactoryPlaced: false,
         well: 0,
         wellPlaced: false,
         garage: 0,
@@ -802,8 +802,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'place_sprinkler':
           newState = placeSprinkler(newState, task.tileX, task.tileY);
           break;
-        case 'place_mechanic':
-          newState = placeMechanicShop(newState, task.tileX, task.tileY);
+        case 'place_botFactory':
+          newState = placeBotFactory(newState, task.tileX, task.tileY);
           break;
         case 'place_well':
           newState = placeWell(newState, task.tileX, task.tileY);
@@ -3041,9 +3041,9 @@ export function upgradeBag(state: GameState): GameState {
   };
 }
 
-export function buyMechanicShop(state: GameState): GameState {
+export function buyBotFactory(state: GameState): GameState {
   // Only allow buying if they don't already have one
-  if (state.player.money < MECHANIC_SHOP_COST || state.player.inventory.mechanicShop >= 1) {
+  if (state.player.money < BOT_FACTORY_COST || state.player.inventory.botFactory >= 1) {
     return state;
   }
 
@@ -3051,23 +3051,23 @@ export function buyMechanicShop(state: GameState): GameState {
     ...state,
     player: {
       ...state.player,
-      money: state.player.money - MECHANIC_SHOP_COST,
+      money: state.player.money - BOT_FACTORY_COST,
       inventory: {
         ...state.player.inventory,
-        mechanicShop: 1,
+        botFactory: 1,
       },
     },
   };
 }
 
-export function placeMechanicShop(state: GameState, tileX: number, tileY: number): GameState {
+export function placeBotFactory(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
 
-  console.log('[placeMechanicShop] Called:', { tileX, tileY, gridW: GAME_CONFIG.gridWidth, gridH: GAME_CONFIG.gridHeight });
+  console.log('[placeBotFactory] Called:', { tileX, tileY, gridW: GAME_CONFIG.gridWidth, gridH: GAME_CONFIG.gridHeight });
 
   // Check bounds for 2x2 placement
   if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
-    console.log('[placeMechanicShop] FAILED: Out of bounds');
+    console.log('[placeBotFactory] FAILED: Out of bounds');
     return state; // Not enough space
   }
 
@@ -3079,21 +3079,21 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     grid[tileY + 1]?.[tileX + 1],
   ];
 
-  console.log('[placeMechanicShop] Tiles:', tiles.map((t, i) => ({ i, type: t?.type, cleared: t?.cleared })));
+  console.log('[placeBotFactory] Tiles:', tiles.map((t, i) => ({ i, type: t?.type, cleared: t?.cleared })));
 
   const allTilesValid = tiles.every(t =>
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  console.log('[placeMechanicShop] Valid?', allTilesValid, 'HasShop?', state.player.inventory.mechanicShop > 0);
+  console.log('[placeBotFactory] Valid?', allTilesValid, 'HasFactory?', state.player.inventory.botFactory > 0);
 
-  if (!allTilesValid || state.player.inventory.mechanicShop <= 0) {
-    console.log('[placeMechanicShop] FAILED: Invalid tiles or no inventory');
+  if (!allTilesValid || state.player.inventory.botFactory <= 0) {
+    console.log('[placeBotFactory] FAILED: Invalid tiles or no inventory');
     return state;
   }
 
   // Check if this is a relocation (building already placed elsewhere)
-  const isRelocation = state.player.inventory.mechanicShopPlaced;
+  const isRelocation = state.player.inventory.botFactoryPlaced;
 
   // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>
@@ -3103,16 +3103,16 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
           // Instant placement for relocation
           return {
             ...t,
-            type: 'mechanic' as const,
+            type: 'botFactory' as const,
           };
         } else {
           // Construction phase for first-time placement
           return {
             ...t,
             isConstructing: true,
-            constructionTarget: 'mechanic' as const,
+            constructionTarget: 'botFactory' as const,
             constructionStartTime: state.gameTime,
-            constructionDuration: CONSTRUCTION_DURATIONS.mechanic,
+            constructionDuration: CONSTRUCTION_DURATIONS.botFactory,
           };
         }
       }
@@ -3128,33 +3128,33 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
       ...updatedState.player,
       inventory: {
         ...updatedState.player.inventory,
-        mechanicShopPlaced: true,
+        botFactoryPlaced: true,
       },
     },
   };
 }
 
-export function relocateMechanicShop(state: GameState): GameState {
+export function relocateBotFactory(state: GameState): GameState {
   // Only allow relocating if the shop is currently placed
-  if (!state.player.inventory.mechanicShopPlaced) {
+  if (!state.player.inventory.botFactoryPlaced) {
     return state;
   }
 
-  // Find and remove the mechanic shop tile from all zones (including construction sites)
+  // Find and remove the bot factory tile from all zones (including construction sites)
   const newZones = { ...state.zones };
   Object.entries(newZones).forEach(([zoneKey, zone]) => {
     const newGrid = zone.grid.map(row =>
       row.map(tile => {
-        // Remove completed mechanic shops
-        if (tile.type === 'mechanic') {
+        // Remove completed bot factories
+        if (tile.type === 'botFactory') {
           return {
             ...tile,
             type: 'grass' as const,
             variant: getRandomGrassVariant(),
           };
         }
-        // Also remove mechanic shops still under construction
-        if (tile.isConstructing && tile.constructionTarget === 'mechanic') {
+        // Also remove bot factories still under construction
+        if (tile.isConstructing && tile.constructionTarget === 'botFactory') {
           return {
             ...tile,
             type: 'grass' as const,
@@ -3171,7 +3171,7 @@ export function relocateMechanicShop(state: GameState): GameState {
     newZones[zoneKey] = { ...zone, grid: newGrid };
   });
 
-  // Keep mechanicShopPlaced=true so placement knows it's a relocation
+  // Keep botFactoryPlaced=true so placement knows it's a relocation
   return {
     ...state,
     zones: newZones,

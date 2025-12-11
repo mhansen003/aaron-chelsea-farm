@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, MECHANIC_SHOP_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -14,7 +14,7 @@ interface ShopProps {
   onBuyWaterbots: (amount: number) => void;
   onBuyHarvestbots: (amount: number) => void;
   onUpgradeBag: () => void;
-  onBuyMechanicShop: () => void;
+  onBuyBotFactory: () => void;
   onBuyWell: () => void;
   onBuyGarage: () => void;
   onBuySupercharger: () => void;
@@ -37,7 +37,7 @@ const SEED_INFO = {
 
 type ShopTab = 'seeds' | 'tools';
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyMechanicShop, onBuyWell, onBuyGarage, onBuySupercharger, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onToggleAutoBuy }: ShopProps) {
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
@@ -213,31 +213,31 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               );
             })}
 
-            {/* Mechanic Shop */}
+            {/* Bot Factory */}
             <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              gameState.player.inventory.mechanicShop >= 1
+              gameState.player.inventory.botFactory >= 1
                 ? 'border-green-600'
                 : 'border-amber-600'
             }`}>
               {/* Icon */}
               <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {gameState.player.inventory.mechanicShop >= 1 ? (
+                {gameState.player.inventory.botFactory >= 1 ? (
                   <span className="text-5xl">✓</span>
                 ) : (
-                  <Image src="/mechanic.png" alt="Mechanic Shop" width={80} height={80} className="object-contain" />
+                  <Image src="/mechanic.png" alt="Bot Factory" width={80} height={80} className="object-contain" />
                 )}
               </div>
 
               {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Mechanic Shop</div>
+              <div className="font-bold text-center mb-1 text-sm">Bot Factory</div>
 
               {/* Stats */}
               <div className="text-xs text-center mb-2 space-y-1">
                 <div className="text-purple-400">Premium Building</div>
                 <div className="text-blue-400">
-                  {gameState.player.inventory.mechanicShopPlaced ? (
+                  {gameState.player.inventory.botFactoryPlaced ? (
                     <span className="text-green-400">Installed</span>
-                  ) : gameState.player.inventory.mechanicShop >= 1 ? (
+                  ) : gameState.player.inventory.botFactory >= 1 ? (
                     <span className="text-yellow-400">Ready!</span>
                   ) : (
                     'Not Owned'
@@ -246,19 +246,19 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               </div>
 
               {/* Buy/Action Button */}
-              {gameState.player.inventory.mechanicShop < 1 ? (
+              {gameState.player.inventory.botFactory < 1 ? (
                 <button
-                  onClick={() => onBuyMechanicShop()}
-                  disabled={gameState.player.money < MECHANIC_SHOP_COST}
+                  onClick={() => onBuyBotFactory()}
+                  disabled={gameState.player.money < BOT_FACTORY_COST}
                   className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= MECHANIC_SHOP_COST
+                    gameState.player.money >= BOT_FACTORY_COST
                       ? 'bg-purple-600 hover:bg-purple-700'
                       : 'bg-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  ${MECHANIC_SHOP_COST}
+                  ${BOT_FACTORY_COST}
                 </button>
-              ) : gameState.player.inventory.mechanicShopPlaced ? (
+              ) : gameState.player.inventory.botFactoryPlaced ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

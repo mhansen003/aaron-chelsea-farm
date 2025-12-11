@@ -61,6 +61,7 @@ import SuperchargerModal from './SuperchargerModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
 import EconomyModal from './EconomyModal';
+import IncomeModal from './IncomeModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
 import { BotInfoModal } from './BotInfoModal';
@@ -351,6 +352,7 @@ export default function Game() {
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
@@ -3140,8 +3142,8 @@ export default function Game() {
           )}
           <div
             className="flex items-center gap-1 cursor-pointer hover:bg-green-700 px-2 py-1 rounded transition-colors"
-            onClick={() => setShowEarningsModal(true)}
-            title="Click to view zone earnings"
+            onClick={() => setShowIncomeModal(true)}
+            title="Click to view income history"
           >
             <span>💰</span><span className="font-bold">${gameState.player.money}</span>
           </div>

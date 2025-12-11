@@ -1847,6 +1847,37 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 return sum + (cropInfo.sellPrice * item.quality.yield);
               }, 0));
 
+              // Create sales records for this transport bot sale
+              const cropCounts: Record<string, number> = {};
+              bot.inventory.forEach(item => {
+                cropCounts[item.crop] = (cropCounts[item.crop] || 0) + 1;
+              });
+
+              const salesRecords: import('@/types/game').SaleRecord[] = [];
+              Object.entries(cropCounts).forEach(([crop, quantity]) => {
+                const cropType = crop as Exclude<import('@/types/game').CropType, null>;
+                const cropInfo = CROP_INFO[cropType];
+                const avgQuality = bot.inventory
+                  .filter(item => item.crop === crop)
+                  .reduce((sum, item) => sum + item.quality.yield, 0) / quantity;
+                const pricePerUnit = Math.floor(cropInfo.sellPrice * avgQuality);
+                const revenue = pricePerUnit * quantity;
+
+                salesRecords.push({
+                  timestamp: newGameTime,
+                  day: newState.currentDay,
+                  crop: cropType,
+                  quantity,
+                  pricePerUnit,
+                  totalRevenue: revenue,
+                  zoneKey: startZoneKey,
+                });
+              });
+
+              // Update sales history (keep last 100 records)
+              const existingSalesHistory = newState.salesHistory || [];
+              const newSalesHistory = [...existingSalesHistory, ...salesRecords].slice(-100);
+
               // Update player money
               newState = {
                 ...newState,
@@ -1854,6 +1885,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   ...newState.player,
                   money: newState.player.money + totalMoney,
                 },
+                salesHistory: newSalesHistory,
               };
 
               // Clear bot inventory
@@ -3052,12 +3084,34 @@ export function sellBasket(state: GameState): {
 
   let totalEarned = 0;
   const cropCounts: Record<string, number> = {};
+  const salesRecords: import('@/types/game').SaleRecord[] = [];
 
   state.player.basket.forEach(item => {
     const cropInfo = CROP_INFO[item.crop];
     const pricePerCrop = Math.floor(cropInfo.sellPrice * item.quality.yield);
     totalEarned += pricePerCrop;
     cropCounts[item.crop] = (cropCounts[item.crop] || 0) + 1;
+  });
+
+  // Create sale records for each crop type sold
+  Object.entries(cropCounts).forEach(([crop, quantity]) => {
+    const cropType = crop as Exclude<import('@/types/game').CropType, null>;
+    const cropInfo = CROP_INFO[cropType];
+    const avgQuality = state.player.basket
+      .filter(item => item.crop === crop)
+      .reduce((sum, item) => sum + item.quality.yield, 0) / quantity;
+    const pricePerUnit = Math.floor(cropInfo.sellPrice * avgQuality);
+    const revenue = pricePerUnit * quantity;
+
+    salesRecords.push({
+      timestamp: state.gameTime,
+      day: state.currentDay,
+      crop: cropType,
+      quantity,
+      pricePerUnit,
+      totalRevenue: revenue,
+      zoneKey: getZoneKey(state.currentZone.x, state.currentZone.y),
+    });
   });
 
   const summary = Object.entries(cropCounts)
@@ -3069,6 +3123,10 @@ export function sellBasket(state: GameState): {
   const currentZone = state.zones[currentZoneKey];
   const zoneName = currentZone?.name || 'Unknown Zone';
 
+  // Update sales history (keep last 100 records)
+  const existingSalesHistory = state.salesHistory || [];
+  const newSalesHistory = [...existingSalesHistory, ...salesRecords].slice(-100);
+
   let newState: GameState = {
     ...state,
     player: {
@@ -3076,6 +3134,7 @@ export function sellBasket(state: GameState): {
       money: state.player.money + totalEarned,
       basket: [], // Empty the basket
     },
+    salesHistory: newSalesHistory,
   };
 
   // Record earnings for this zone

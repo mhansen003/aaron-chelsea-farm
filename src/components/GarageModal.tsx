@@ -9,15 +9,26 @@ interface GarageModalProps {
 }
 
 export default function GarageModal({ gameState, onClose, onRelocate }: GarageModalProps) {
-  // Count idle bots
-  const harvestBots = gameState.harvestBots || [];
-  const waterBots = gameState.waterBots || [];
-  const seedBots = gameState.seedBots || [];
-  const transportBots = gameState.transportBots || [];
-  const demolishBots = gameState.demolishBots || [];
+  // Collect bots from all zones
+  const allZones = Object.values(gameState.zones);
+
+  const harvestBots = allZones.flatMap(zone => zone.harvestBots || []);
+  const waterBots = allZones.flatMap(zone => zone.waterBots || []);
+  const seedBots = allZones.flatMap(zone => zone.seedBots || []);
+  const transportBots = allZones.flatMap(zone => zone.transportBots || []);
+  const demolishBots = allZones.flatMap(zone => zone.demolishBots || []);
 
   const allBots = [...harvestBots, ...waterBots, ...seedBots, ...transportBots, ...demolishBots];
   const idleBots = allBots.filter(bot => bot.status === 'idle');
+
+  // Detailed breakdown by bot type
+  const botBreakdown = [
+    { type: '💧 Water Bots', total: waterBots.length, idle: waterBots.filter(b => b.status === 'idle').length, emoji: '💧' },
+    { type: '🌾 Harvest Bots', total: harvestBots.length, idle: harvestBots.filter(b => b.status === 'idle').length, emoji: '🌾' },
+    { type: '🌱 Seed Bots', total: seedBots.length, idle: seedBots.filter(b => b.status === 'idle').length, emoji: '🌱' },
+    { type: '🚚 Transport Bots', total: transportBots.length, idle: transportBots.filter(b => b.status === 'idle').length, emoji: '🚚' },
+    { type: '💥 Demolish Bots', total: demolishBots.length, idle: demolishBots.filter(b => b.status === 'idle').length, emoji: '💥' },
+  ].filter(bot => bot.total > 0);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
@@ -45,15 +56,38 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
         {/* Bot Status */}
         <div className="mb-4 md:mb-6">
           <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3 text-blue-300">Current Status:</h3>
-          <div className="bg-black/30 p-3 md:p-4 rounded space-y-2">
-            <div className="text-base md:text-lg">
-              🤖 <span className="font-bold">Total Bots:</span> {allBots.length}
+          <div className="bg-black/30 p-3 md:p-4 rounded space-y-3">
+            {/* Summary */}
+            <div className="space-y-2 pb-3 border-b border-slate-600">
+              <div className="text-base md:text-lg">
+                🤖 <span className="font-bold">Total Bots:</span> {allBots.length}
+              </div>
+              <div className="text-base md:text-lg">
+                😴 <span className="font-bold">Idle Bots:</span> {idleBots.length}
+              </div>
+              <div className="text-base md:text-lg">
+                ⚙️ <span className="font-bold">Working Bots:</span> {allBots.length - idleBots.length}
+              </div>
             </div>
-            <div className="text-base md:text-lg">
-              😴 <span className="font-bold">Idle Bots:</span> {idleBots.length}
-            </div>
-            <div className="text-base md:text-lg">
-              ⚙️ <span className="font-bold">Working Bots:</span> {allBots.length - idleBots.length}
+
+            {/* Detailed Breakdown */}
+            <div className="space-y-2">
+              <h4 className="text-sm md:text-base font-bold text-slate-300">Bot Fleet Breakdown:</h4>
+              {botBreakdown.map((bot) => (
+                <div key={bot.type} className="flex items-center justify-between bg-black/20 p-2 rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{bot.emoji}</span>
+                    <span className="font-semibold">{bot.type.split(' ').slice(1).join(' ')}</span>
+                  </div>
+                  <div className="text-sm md:text-base">
+                    <span className="text-green-400 font-bold">{bot.total - bot.idle}</span>
+                    <span className="text-slate-400"> active</span>
+                    <span className="text-slate-500"> • </span>
+                    <span className="text-yellow-400 font-bold">{bot.idle}</span>
+                    <span className="text-slate-400"> idle</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

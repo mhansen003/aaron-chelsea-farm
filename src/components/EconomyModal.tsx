@@ -239,6 +239,9 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
                 priceChange = ((futurePrice - currentPrice) / currentPrice) * 100;
               }
 
+              // Show HOT badge for crops with strong positive forecast (>10% increase)
+              const isHot = priceChange > 10;
+
               return (
                 <div
                   key={crop}
@@ -246,18 +249,18 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
                   className={`relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl ${
                     selectedCrop === crop
                       ? 'border-yellow-400 shadow-lg shadow-yellow-400/30'
-                      : isHighDemand
-                      ? 'border-orange-400/60'
+                      : isHot
+                      ? 'border-green-400/60'
                       : 'border-slate-700 hover:border-blue-500/60'
                   }`}
                   style={{
                     boxShadow: selectedCrop === crop ? `0 0 20px ${color}40` : undefined,
                   }}
                 >
-                  {/* High Demand Badge */}
-                  {isHighDemand && (
-                    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
-                      🔥 HOT
+                  {/* Hot Market Badge - for strong upward forecast */}
+                  {isHot && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
+                      🚀 HOT
                     </div>
                   )}
 
@@ -330,17 +333,24 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
                   {allSeedBots.map(({ bot, zoneName, zoneKey }) => (
-                    bot.jobs.map((job, idx) => (
-                      <button
-                        key={`${bot.id}-${job.id}`}
-                        onClick={() => handleAssignJob(bot, job)}
-                        className="bg-green-700/40 hover:bg-green-600/60 border border-green-500/50 rounded-lg p-2 text-sm transition-all hover:scale-[1.02]"
-                      >
-                        <div className="font-bold">Bot #{allSeedBots.findIndex(b => b.bot.id === bot.id) + 1} - Job {idx + 1}</div>
-                        <div className="text-xs text-gray-300">{zoneName}</div>
-                        <div className="text-xs text-green-300">{job.targetTiles.length} tiles</div>
-                      </button>
-                    ))
+                    bot.jobs.map((job, idx) => {
+                      const currentCrop = CROP_INFO[job.cropType];
+                      const newCrop = selectedCrop ? CROP_INFO[selectedCrop] : null;
+                      return (
+                        <button
+                          key={`${bot.id}-${job.id}`}
+                          onClick={() => handleAssignJob(bot, job)}
+                          className="bg-green-700/40 hover:bg-green-600/60 border border-green-500/50 rounded-lg p-2 text-sm transition-all hover:scale-[1.02]"
+                        >
+                          <div className="font-bold">Bot #{allSeedBots.findIndex(b => b.bot.id === bot.id) + 1} - Job {idx + 1}</div>
+                          <div className="text-xs text-gray-300">{zoneName}</div>
+                          <div className="text-xs text-green-300">{job.targetTiles.length} tiles</div>
+                          <div className="text-xs text-yellow-300 mt-1 flex items-center justify-center gap-1">
+                            {currentCrop.emoji} → {newCrop?.emoji}
+                          </div>
+                        </button>
+                      );
+                    })
                   ))}
                 </div>
               )}

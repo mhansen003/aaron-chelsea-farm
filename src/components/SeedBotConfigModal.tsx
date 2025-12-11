@@ -33,12 +33,19 @@ const CROP_INFO = {
 };
 
 export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpdateJobs, onEnterTileSelectionMode }: SeedBotConfigModalProps) {
-  const [jobs, setJobs] = useState<SeedBotJob[]>(seedBot.jobs);
+  // Upgrade old jobs with maxTiles < 20 to the new 20 tile limit on mount
+  const [jobs, setJobs] = useState<SeedBotJob[]>(() =>
+    seedBot.jobs.map(job => job.maxTiles < 20 ? { ...job, maxTiles: 20 } : job)
+  );
   const [autoBuySeeds, setAutoBuySeeds] = useState(seedBot.autoBuySeeds ?? true); // Default to true
 
   // Sync jobs state with seedBot prop when it changes (e.g., after tile selection)
+  // Also upgrade old jobs with maxTiles < 20 to the new 20 tile limit
   useEffect(() => {
-    setJobs(seedBot.jobs);
+    const upgradedJobs = seedBot.jobs.map(job =>
+      job.maxTiles < 20 ? { ...job, maxTiles: 20 } : job
+    );
+    setJobs(upgradedJobs);
   }, [seedBot.jobs]);
 
   const addJob = () => {

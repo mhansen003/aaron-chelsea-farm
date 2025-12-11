@@ -97,6 +97,19 @@ export const TASK_DURATIONS = {
   deposit: 3000, // 3 seconds to deposit crops at warehouse
 };
 
+/**
+ * Generates a random grass variant
+ * Variant 1: 80% (most common - original grass)
+ * Variant 2: 15% (less common - grass2)
+ * Variant 3: 5% (rare - grass3)
+ */
+function getRandomGrassVariant(): number {
+  const rand = Math.random();
+  if (rand < 0.80) return 1; // Original grass - most common
+  if (rand < 0.95) return 2; // Grass2 - less common
+  return 3; // Grass3 - rare
+}
+
 // Construction durations in milliseconds (separate from task durations)
 export const CONSTRUCTION_DURATIONS = {
   mechanic: 5000, // 5 seconds to build mechanic shop (reduced for testing)
@@ -271,12 +284,14 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         else if (rand < 0.25) type = 'tree'; // 10% trees (reduced from 20%)
       }
 
-      // Assign random variant for rocks (1-4) and trees (1-2)
+      // Assign random variant for rocks (1-4), trees (1-2), and grass (1-3)
       let variant: number | undefined = undefined;
       if (type === 'rock') {
         variant = Math.floor(Math.random() * 4) + 1; // Random 1, 2, 3, or 4
       } else if (type === 'tree') {
         variant = Math.floor(Math.random() * 2) + 1; // Random 1 or 2
+      } else if (type === 'grass') {
+        variant = getRandomGrassVariant(); // Assign grass variant
       }
 
       row.push({
@@ -593,7 +608,7 @@ export function createInitialState(): GameState {
       },
       farmerAuto: {
         autoPlant: true,
-        autoPlantCrop: 'carrot',
+        autoPlantCrops: ['carrot'], // Start with just carrot selected
         autoWater: true,
         autoHarvest: true,
         autoSell: true,
@@ -1013,6 +1028,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return {
               ...tile,
               type: 'grass' as TileType,
+              variant: getRandomGrassVariant(),
               lastWorkedTime: newGameTime,
               overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
             } as Tile;
@@ -2279,6 +2295,7 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
         return {
           ...t,
           type: 'grass' as TileType,
+          variant: getRandomGrassVariant(),
           cleared: true,
           lastWorkedTime: state.gameTime,
           overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
@@ -3125,6 +3142,7 @@ export function relocateMechanicShop(state: GameState): GameState {
           return {
             ...tile,
             type: 'grass' as const,
+            variant: getRandomGrassVariant(),
           };
         }
         // Also remove mechanic shops still under construction
@@ -3132,6 +3150,7 @@ export function relocateMechanicShop(state: GameState): GameState {
           return {
             ...tile,
             type: 'grass' as const,
+            variant: getRandomGrassVariant(),
             isConstructing: false,
             constructionTarget: undefined,
             constructionStartTime: undefined,
@@ -3607,6 +3626,7 @@ export function relocateGarage(state: GameState): GameState {
         return {
           ...tile,
           type: 'grass' as const,
+          variant: getRandomGrassVariant(),
           cleared: true,
         };
       }
@@ -3643,6 +3663,7 @@ export function relocateWell(state: GameState): GameState {
         return {
           ...tile,
           type: 'grass' as const,
+          variant: getRandomGrassVariant(),
           cleared: true,
         };
       }
@@ -3679,6 +3700,7 @@ export function relocateSupercharger(state: GameState): GameState {
         return {
           ...tile,
           type: 'grass' as const,
+          variant: getRandomGrassVariant(),
           cleared: true,
         };
       }

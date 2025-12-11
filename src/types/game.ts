@@ -121,7 +121,8 @@ export interface Player {
   };
   farmerAuto: {
     autoPlant: boolean;
-    autoPlantCrop: Exclude<CropType, null>; // Which crop to auto-plant
+    autoPlantCrops: Array<Exclude<CropType, null>>; // Multiple crops to rotate through
+    autoPlantCrop?: Exclude<CropType, null>; // DEPRECATED: Kept for backward compatibility
     autoWater: boolean;
     autoHarvest: boolean;
     autoSell: boolean;

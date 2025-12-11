@@ -364,6 +364,8 @@ export default function Game() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waterSplashRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
+  const grassImageRef2 = useRef<HTMLImageElement | null>(null);
+  const grassImageRef3 = useRef<HTMLImageElement | null>(null);
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
   const surferImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef = useRef<HTMLImageElement | null>(null);
@@ -656,7 +658,7 @@ export default function Game() {
     const currentZone = gameState.zones[getZoneKey(gameState.currentZone.x, gameState.currentZone.y)];
     const theme = currentZone?.theme || 'farm';
 
-    // Load grass
+    // Load grass (variant 1 - most common)
     const grassImg = new Image();
     grassImg.src = `/${theme}-grass.jpg`;
     grassImg.onerror = () => {
@@ -665,6 +667,20 @@ export default function Game() {
     };
     grassImg.onload = () => {
       grassImageRef.current = grassImg;
+    };
+
+    // Load grass variant 2
+    const grassImg2 = new Image();
+    grassImg2.src = '/grass2.png';
+    grassImg2.onload = () => {
+      grassImageRef2.current = grassImg2;
+    };
+
+    // Load grass variant 3
+    const grassImg3 = new Image();
+    grassImg3.src = '/grass3.png';
+    grassImg3.onload = () => {
+      grassImageRef3.current = grassImg3;
     };
 
     // Load dirt
@@ -966,9 +982,18 @@ export default function Game() {
         const py = y * GAME_CONFIG.tileSize;
 
         // Tile background
-        if (tile.type === 'grass' && grassImageRef.current) {
+        if (tile.type === 'grass') {
+          // Select the appropriate grass variant image
+          let grassImage = grassImageRef.current;
+          if (tile.variant === 2 && grassImageRef2.current) {
+            grassImage = grassImageRef2.current;
+          } else if (tile.variant === 3 && grassImageRef3.current) {
+            grassImage = grassImageRef3.current;
+          }
           // Draw grass texture
-          ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          if (grassImage) {
+            ctx.drawImage(grassImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
         } else if (tile.type === 'tree') {
           // Draw grass background first, then tree sprite
           if (grassImageRef.current) {

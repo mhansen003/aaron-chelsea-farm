@@ -3216,6 +3216,18 @@ function findWarehouseTile(state: GameState): { x: number; y: number } | null {
   return null;
 }
 
+function findExportTile(state: GameState): { x: number; y: number } | null {
+  const grid = getCurrentGrid(state);
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x].type === 'export') {
+        return { x, y };
+      }
+    }
+  }
+  return null;
+}
+
 // Deposit all items from basket to warehouse
 export function depositToWarehouse(state: GameState): GameState {
   return {

@@ -107,6 +107,25 @@ function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
 }
 
 /**
+ * Check if a tile at (x, y) is within range of any sprinkler in the grid
+ * Returns true if there's a sprinkler within SPRINKLER_RANGE (7x7 area)
+ */
+function isInSprinklerRange(grid: Tile[][], x: number, y: number): boolean {
+  for (let sy = 0; sy < grid.length; sy++) {
+    for (let sx = 0; sx < grid[sy].length; sx++) {
+      if (grid[sy][sx].hasSprinkler) {
+        const dx = Math.abs(x - sx);
+        const dy = Math.abs(y - sy);
+        if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Find the garage position in a zone's grid
  * Returns the top-left corner of the 2x2 garage building, or null if no garage exists
  */
@@ -878,50 +897,36 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
     let newGrid = zone.grid;
 
-    // If new day started, auto-water tiles with sprinklers and reset watered flags
-    if (isNewDay) {
-      newGrid = zone.grid.map((row, y) =>
-        row.map((tile, x) => {
-          // Check if any sprinkler is in range of this tile
-          let wateredToday = false;
-          for (let sy = 0; sy < GAME_CONFIG.gridHeight; sy++) {
-            for (let sx = 0; sx < GAME_CONFIG.gridWidth; sx++) {
-              const otherTile = zone.grid[sy][sx];
-              if (otherTile.hasSprinkler) {
-                const dx = Math.abs(x - sx);
-                const dy = Math.abs(y - sy);
-                if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
-                  wateredToday = true;
-                  break;
-                }
-              }
-            }
-            if (wateredToday) break;
-          }
-
-          return { ...tile, wateredToday };
-        })
-      );
-    }
+    // Note: Sprinkler auto-watering is now handled in the crop growth section below
+    // This ensures crops in sprinkler range are watered on EVERY tick, not just new days
 
     // Update crop growth - time-based growth after watering
-    newGrid = newGrid.map(row =>
-      row.map(tile => {
+    newGrid = newGrid.map((row, y) =>
+      row.map((tile, x) => {
         if (tile.type === 'planted' && tile.crop) {
           const cropInfo = CROP_INFO[tile.crop];
 
+          // Auto-water crops in sprinkler range (every tick, not just new days)
+          const inSprinklerRange = isInSprinklerRange(newGrid, x, y);
+          let updatedTile = tile;
+
+          if (inSprinklerRange && !tile.wateredToday) {
+            // Crops in sprinkler range are automatically watered
+            updatedTile = { ...tile, wateredToday: true };
+          }
+
           // Start growth timer when first watered
-          if (tile.wateredToday && !tile.wateredTimestamp) {
+          if (updatedTile.wateredToday && !updatedTile.wateredTimestamp) {
             return {
-              ...tile,
+              ...updatedTile,
               wateredTimestamp: newGameTime,
             };
           }
 
           // Calculate growth based on elapsed time since watering
-          if (tile.wateredTimestamp !== undefined) {
-            const timeSinceWatered = newGameTime - tile.wateredTimestamp;
-            const quality = newState.player.inventory.seedQuality[tile.crop];
+          if (updatedTile.wateredTimestamp !== undefined) {
+            const timeSinceWatered = newGameTime - updatedTile.wateredTimestamp;
+            const quality = newState.player.inventory.seedQuality[updatedTile.crop];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
             const adjustedGrowTime = cropInfo.growTime / growthMultiplier;
 
@@ -930,11 +935,13 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
             // Once watered, crops continue growing without needing more water
             return {
-              ...tile,
+              ...updatedTile,
               growthStage: newGrowthStage,
               type: (newGrowthStage >= 100 ? 'grown' : 'planted') as TileType,
             };
           }
+
+          return updatedTile;
         }
         return tile;
       })
@@ -1077,7 +1084,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const unwateredCrops: Array<{ x: number; y: number }> = [];
       grid.forEach((row, y) => {
         row.forEach((tile, x) => {
-          if (tile.type === 'planted' && tile.crop && !tile.wateredToday) {
+          // Skip crops in sprinkler range - they auto-water themselves
+          if (tile.type === 'planted' && tile.crop && !tile.wateredToday && !isInSprinklerRange(grid, x, y)) {
             unwateredCrops.push({ x, y });
           }
         });

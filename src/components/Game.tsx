@@ -59,6 +59,7 @@ import ZoneEarningsModal from './ZoneEarningsModal';
 import EconomyModal from './EconomyModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
+import { BotInfoModal } from './BotInfoModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
 import WelcomeSplash from './WelcomeSplash';
 import SaveGameModal from './SaveGameModal';
@@ -134,7 +135,7 @@ export default function Game() {
             parsed.currentTask = null;
           }
           if (!parsed.player.farmName) {
-            parsed.player.farmName = "Aaron & Chelsea's Farm";
+            parsed.player.farmName = "My Bot Farm";
           }
           if (!parsed.player.basketCapacity) {
             parsed.player.basketCapacity = 8;
@@ -347,6 +348,7 @@ export default function Game() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
+  const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -2891,8 +2893,7 @@ export default function Game() {
             🌾 {gameState.player.farmName} ✏️
           </h1>
           <button onClick={handleSaveGame} className="px-3 py-1 bg-green-600 hover:bg-green-700 rounded text-sm font-bold" title="Save Game">💾</button>
-          <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold">🔄</button>
-          <button onClick={() => setShowInstructions(true)} className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">❓</button>
+          <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
         </div>
 
@@ -3713,7 +3714,10 @@ export default function Game() {
           {/* Water Robot Section */}
           {(waterBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-1.5 shadow-lg">
-              <div className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1">
+              <div
+                className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/30 rounded px-1 py-0.5 transition-colors"
+                onClick={() => setShowBotInfoModal('water')}
+              >
                 <span>💧</span>
                 WATER
                 <span className="ml-auto bg-cyan-600/30 px-1 rounded text-[10px]">{waterBots?.length ?? 0}</span>
@@ -3721,10 +3725,15 @@ export default function Game() {
               <div className="space-y-1">
                 {waterBots?.map((bot, idx) => {
                   const waterPercent = (bot.waterLevel / 10) * 100;
+                  const statusText =
+                    bot.status === 'traveling' ? 'Moving to crops' :
+                    bot.status === 'watering' ? 'Watering plants' :
+                    bot.status === 'refilling' ? 'At well' :
+                    'Ready';
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-cyan-600/20 cursor-pointer hover:bg-cyan-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-cyan-100">#{idx + 1}</span>
+                        <span className="text-[10px] font-semibold text-cyan-100">Bot #{idx + 1}</span>
                         <span className="text-[9px] text-cyan-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'watering' && '💦'}
@@ -3732,13 +3741,14 @@ export default function Game() {
                           {bot.status === 'refilling' && '⚡'}
                         </span>
                       </div>
+                      <div className="text-[8px] text-cyan-200/60 mb-1 truncate">{statusText}</div>
                       <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full transition-all ${waterPercent > 30 ? 'bg-cyan-400' : 'bg-red-500'}`}
                           style={{ width: `${waterPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-cyan-300/70 text-center">{bot.waterLevel}/10</div>
+                      <div className="text-[9px] text-cyan-300/70 text-center">Water: {bot.waterLevel}/10</div>
                     </div>
                   );
                 })}
@@ -3749,7 +3759,10 @@ export default function Game() {
           {/* Harvest Robot Section */}
           {(harvestBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
-              <div className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1">
+              <div
+                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors"
+                onClick={() => setShowBotInfoModal('harvest')}
+              >
                 <span>🌾</span>
                 HARVEST
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{harvestBots?.length ?? 0}</span>
@@ -3757,10 +3770,15 @@ export default function Game() {
               <div className="space-y-1">
                 {harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  const statusText =
+                    bot.status === 'traveling' ? 'Moving to field' :
+                    bot.status === 'harvesting' ? 'Collecting crops' :
+                    bot.status === 'depositing' ? 'At barn' :
+                    'Ready';
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-orange-100">#{idx + 1}</span>
+                        <span className="text-[10px] font-semibold text-orange-100">Bot #{idx + 1}</span>
                         <span className="text-[9px] text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'harvesting' && '✂️'}
@@ -3768,13 +3786,14 @@ export default function Game() {
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
+                      <div className="text-[8px] text-orange-200/60 mb-1 truncate">{statusText}</div>
                       <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-green-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-orange-300/70 text-center">{bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-[9px] text-orange-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -3785,7 +3804,10 @@ export default function Game() {
           {/* Seed Bot Section */}
           {seedBots && seedBots.length > 0 && (
             <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border border-green-500/60 rounded-lg p-1.5 shadow-lg">
-              <div className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1">
+              <div
+                className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-green-900/30 rounded px-1 py-0.5 transition-colors"
+                onClick={() => setShowBotInfoModal('seed')}
+              >
                 <span>🌱</span>
                 SEED
                 <span className="ml-auto bg-green-600/30 px-1 rounded text-[10px]">{seedBots.length}</span>
@@ -3794,27 +3816,34 @@ export default function Game() {
                 {seedBots.map((bot, idx) => {
                   const jobCount = bot.jobs.length;
                   const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
+                  const statusText =
+                    bot.status === 'traveling' ? 'Moving to tile' :
+                    bot.status === 'planting' ? 'Planting seeds' :
+                    jobCount > 0 ? `${jobCount} job${jobCount > 1 ? 's' : ''} queued` :
+                    'Awaiting jobs';
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-green-100">#{idx + 1}</span>
+                        <span className="text-[10px] font-semibold text-green-100">Bot #{idx + 1}</span>
                         <span className="text-[9px] text-green-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'planting' && '🌱'}
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
+                      <div className="text-[8px] text-green-200/60 mb-1 truncate">{statusText}</div>
                       <div className="text-[9px] text-green-300/70 mb-0.5 text-center">
-                        {jobCount}j • {totalTiles}t
+                        Jobs: {jobCount} • Tiles: {totalTiles}
                       </div>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedSeedBot(bot.id);
                           setShowSeedBotConfig(true);
                         }}
                         className="w-full px-1 py-0.5 bg-green-600/30 hover:bg-green-600/50 rounded text-[9px] font-semibold transition-colors"
                       >
-                        ⚙️
+                        ⚙️ Configure
                       </button>
                     </div>
                   );
@@ -3826,7 +3855,10 @@ export default function Game() {
           {/* Transport Bot Section */}
           {(transportBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border border-purple-500/60 rounded-lg p-1.5 shadow-lg">
-              <div className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1">
+              <div
+                className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-purple-900/30 rounded px-1 py-0.5 transition-colors"
+                onClick={() => setShowBotInfoModal('transport')}
+              >
                 <span>🚚</span>
                 TRANSPORT
                 <span className="ml-auto bg-purple-600/30 px-1 rounded text-[10px]">{transportBots?.length ?? 0}</span>
@@ -3834,10 +3866,16 @@ export default function Game() {
               <div className="space-y-1">
                 {transportBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
+                  const statusText =
+                    bot.status === 'traveling' ? 'En route' :
+                    bot.status === 'loading' ? 'Loading cargo' :
+                    bot.status === 'transporting' ? 'To market' :
+                    bot.status === 'selling' ? 'Selling goods' :
+                    'Ready';
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-purple-100">#{idx + 1}</span>
+                        <span className="text-[10px] font-semibold text-purple-100">Bot #{idx + 1}</span>
                         <span className="text-[9px] text-purple-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'loading' && '📥'}
@@ -3846,13 +3884,14 @@ export default function Game() {
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
+                      <div className="text-[8px] text-purple-200/60 mb-1 truncate">{statusText}</div>
                       <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                         <div
                           className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-purple-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-purple-300/70 text-center">{bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-[9px] text-purple-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -3863,28 +3902,33 @@ export default function Game() {
           {/* Demolish Bot Section */}
           {(demolishBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
-              <div className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1">
+              <div
+                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors"
+                onClick={() => setShowBotInfoModal('demolish')}
+              >
                 <span>🚧</span>
                 DEMOLISH
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{demolishBots?.length ?? 0}</span>
               </div>
               <div className="space-y-1">
                 {demolishBots?.map((bot, idx) => {
+                  const statusText =
+                    bot.status === 'traveling' ? 'Moving to target' :
+                    bot.status === 'clearing' && bot.targetX !== undefined && bot.targetY !== undefined
+                      ? `Clearing (${bot.targetX},${bot.targetY})`
+                      : bot.status === 'clearing' ? 'Demolishing'
+                      : 'Ready';
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-orange-100">#{idx + 1}</span>
+                        <span className="text-[10px] font-semibold text-orange-100">Bot #{idx + 1}</span>
                         <span className="text-[9px] text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'clearing' && '🔨'}
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      {bot.status === 'clearing' && bot.targetX !== undefined && bot.targetY !== undefined && (
-                        <div className="text-[9px] text-orange-300/70 text-center">
-                          ({bot.targetX}, {bot.targetY})
-                        </div>
-                      )}
+                      <div className="text-[8px] text-orange-200/60 truncate">{statusText}</div>
                     </div>
                   );
                 })}
@@ -3925,6 +3969,14 @@ export default function Game() {
         <EconomyModal
           gameState={gameState}
           onClose={() => setShowEconomyModal(false)}
+        />
+      )}
+
+      {/* Bot Info Modal */}
+      {showBotInfoModal && (
+        <BotInfoModal
+          botType={showBotInfoModal}
+          onClose={() => setShowBotInfoModal(null)}
         />
       )}
     </div>

@@ -269,7 +269,7 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
 
   // Determine theme based on position relative to starting zone
   let theme: import('@/types/game').ZoneTheme = 'farm';
-  let name = "Aaron & Chelsea's Farm";
+  let name = "My Bot Farm";
   let description = "Your home farm with rich soil perfect for growing crops.";
   let npc: import('@/types/game').ZoneNPC | undefined;
   let features: import('@/types/game').ZoneFeature[] = [];
@@ -456,7 +456,7 @@ export function createInitialState(): GameState {
       x: 1,
       y: 1,
       money: 1000,
-      farmName: "Aaron & Chelsea's Farm",
+      farmName: "My Bot Farm",
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
       basket: [], // Empty basket to start

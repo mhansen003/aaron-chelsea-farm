@@ -1976,15 +1976,29 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         !claimedTiles.has(`${obstacle.x},${obstacle.y}`)
       );
 
-      if (availableObstacles.length > 0) {
-        // Find nearest unclaimed obstacle
-        let nearest = availableObstacles[0];
-        let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        availableObstacles.forEach(obstacle => {
-          const dist = Math.abs(botX - obstacle.x) + Math.abs(botY - obstacle.y);
-          if (dist < minDist) { minDist = dist; nearest = obstacle; }
-        });
+      // Check if bot has a current target and if it still exists
+      let currentTargetStillExists = false;
+      if (bot.targetX !== undefined && bot.targetY !== undefined) {
+        const targetTile = grid[bot.targetY]?.[bot.targetX];
+        currentTargetStillExists = targetTile && (targetTile.type === 'rock' || targetTile.type === 'tree');
+      }
 
+      // Only recalculate target if current target doesn't exist or bot is idle without a target
+      let nearest: { x: number; y: number } | null = null;
+      if (currentTargetStillExists && bot.targetX !== undefined && bot.targetY !== undefined) {
+        // Stick with current target
+        nearest = { x: bot.targetX, y: bot.targetY };
+      } else if (availableObstacles.length > 0) {
+        // Find nearest unclaimed obstacle (sorted approach like harvest bots)
+        const sortedObstacles = availableObstacles.sort((a, b) => {
+          const distA = Math.abs(botX - a.x) + Math.abs(botY - a.y);
+          const distB = Math.abs(botX - b.x) + Math.abs(botY - b.y);
+          return distA - distB;
+        });
+        nearest = sortedObstacles[0];
+      }
+
+      if (nearest) {
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           // Bot has arrived at obstacle, start/continue clearing

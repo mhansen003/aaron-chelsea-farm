@@ -4050,6 +4050,14 @@ export default function Game() {
                       ? `Clearing (${bot.targetX},${bot.targetY})`
                       : bot.status === 'clearing' ? 'Demolishing'
                       : 'Ready';
+
+                  // Calculate progress if bot is clearing
+                  let clearingProgress = 0;
+                  if (bot.status === 'clearing' && bot.actionStartTime !== undefined && bot.actionDuration !== undefined) {
+                    const elapsed = gameState.gameTime - bot.actionStartTime;
+                    clearingProgress = Math.min(100, (elapsed / bot.actionDuration) * 100);
+                  }
+
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
@@ -4060,7 +4068,22 @@ export default function Game() {
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      <div className="text-[10px] font-medium text-orange-200/60 truncate">{statusText}</div>
+                      <div className="text-[10px] font-medium text-orange-200/60 mb-1 truncate">{statusText}</div>
+
+                      {/* Progress bar when clearing */}
+                      {bot.status === 'clearing' && (
+                        <>
+                          <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className="h-full bg-orange-500 transition-all"
+                              style={{ width: `${clearingProgress}%` }}
+                            />
+                          </div>
+                          <div className="text-[10px] text-orange-300/70 text-center mt-0.5">
+                            {Math.floor(clearingProgress)}%
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}

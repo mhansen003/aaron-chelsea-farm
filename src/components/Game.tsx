@@ -1033,91 +1033,89 @@ export default function Game() {
             ctx.strokeRect(px + 4, barY, barWidth, barHeight);
           }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
-          // Draw grass background (on all 4 tiles)
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Check if this is a 2x2 building (all 4 tiles are mechanic)
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'mechanic' &&
-            gridRef[y + 1]?.[x]?.type === 'mechanic' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'mechanic'
-          );
-          // Check if this tile is part of a 2x2 that's drawn from another tile
-          const isPartOf2x2 = (
-            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic' && gridRef[y]?.[x - 1]?.type === 'mechanic') ||
-            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic') ||
-            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'mechanic' && gridRef[y - 1]?.[x + 1]?.type === 'mechanic' && gridRef[y]?.[x + 1]?.type === 'mechanic')
-          );
-
-          if (isTopLeftOf2x2) {
-            // Draw at 2x size to span the 2x2 area
-            ctx.drawImage(
-              mechanicImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
-          } else if (!isPartOf2x2) {
-            // Fallback: Draw at 1x size only (for old single-tile buildings or incomplete 2x2)
-            ctx.drawImage(
-              mechanicImageRef.current,
-              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
-            );
+          // Find the top-left corner of this 2x2 mechanic building
+          let topLeftX = x;
+          let topLeftY = y;
+          // Check if we're part of a 2x2, and if so, find its top-left
+          if (gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic') {
+            topLeftX = x - 1; topLeftY = y - 1; // We're bottom-right
+          } else if (gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic') {
+            topLeftX = x - 1; topLeftY = y; // We're top-right
+          } else if (gridRef[y - 1]?.[x]?.type === 'mechanic' && gridRef[y - 1]?.[x + 1]?.type === 'mechanic' && gridRef[y]?.[x + 1]?.type === 'mechanic') {
+            topLeftX = x; topLeftY = y - 1; // We're bottom-left
           }
-          // If isPartOf2x2 but not isTopLeftOf2x2, don't draw anything (already drawn by top-left tile)
+          // Calculate which quadrant this tile is (relative to top-left)
+          const quadrantX = (x - topLeftX) * 512;
+          const quadrantY = (y - topLeftY) * 512;
+          // Draw the appropriate quadrant
+          ctx.drawImage(
+            mechanicImageRef.current,
+            quadrantX, quadrantY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'well' && wellImageRef.current) {
-          // Draw grass background (on all 4 tiles)
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'well' &&
-            gridRef[y + 1]?.[x]?.type === 'well' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'well'
-          );
-          const isPartOf2x2 = (
-            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well' && gridRef[y]?.[x - 1]?.type === 'well') ||
-            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well') ||
-            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'well' && gridRef[y - 1]?.[x + 1]?.type === 'well' && gridRef[y]?.[x + 1]?.type === 'well')
-          );
-
-          if (isTopLeftOf2x2) {
-            ctx.drawImage(wellImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          } else if (!isPartOf2x2) {
-            ctx.drawImage(wellImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Find the top-left corner of this 2x2 well building
+          let topLeftX = x;
+          let topLeftY = y;
+          // Check if we're part of a 2x2, and if so, find its top-left
+          if (gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well') {
+            topLeftX = x - 1; topLeftY = y - 1; // We're bottom-right
+          } else if (gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well') {
+            topLeftX = x - 1; topLeftY = y; // We're top-right
+          } else if (gridRef[y - 1]?.[x]?.type === 'well' && gridRef[y - 1]?.[x + 1]?.type === 'well' && gridRef[y]?.[x + 1]?.type === 'well') {
+            topLeftX = x; topLeftY = y - 1; // We're bottom-left
           }
+          // Calculate which quadrant this tile is (relative to top-left)
+          const quadrantX = (x - topLeftX) * 512;
+          const quadrantY = (y - topLeftY) * 512;
+          // Draw the appropriate quadrant
+          ctx.drawImage(
+            wellImageRef.current,
+            quadrantX, quadrantY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'garage' && garageImageRef.current) {
-          // Draw grass background (on all 4 tiles)
+          // Draw grass background
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'garage' &&
-            gridRef[y + 1]?.[x]?.type === 'garage' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'garage'
-          );
-          const isPartOf2x2 = (
-            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage' && gridRef[y]?.[x - 1]?.type === 'garage') ||
-            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage') ||
-            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'garage' && gridRef[y - 1]?.[x + 1]?.type === 'garage' && gridRef[y]?.[x + 1]?.type === 'garage')
-          );
-
-          if (isTopLeftOf2x2) {
-            ctx.drawImage(garageImageRef.current, px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2);
-          } else if (!isPartOf2x2) {
-            ctx.drawImage(garageImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Find the top-left corner of this 2x2 garage building
+          let topLeftX = x;
+          let topLeftY = y;
+          // Check if we're part of a 2x2, and if so, find its top-left
+          if (gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage') {
+            topLeftX = x - 1; topLeftY = y - 1; // We're bottom-right
+          } else if (gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage') {
+            topLeftX = x - 1; topLeftY = y; // We're top-right
+          } else if (gridRef[y - 1]?.[x]?.type === 'garage' && gridRef[y - 1]?.[x + 1]?.type === 'garage' && gridRef[y]?.[x + 1]?.type === 'garage') {
+            topLeftX = x; topLeftY = y - 1; // We're bottom-left
           }
+          // Calculate which quadrant this tile is (relative to top-left)
+          const quadrantX = (x - topLeftX) * 512;
+          const quadrantY = (y - topLeftY) * 512;
+          // Draw the appropriate quadrant
+          ctx.drawImage(
+            garageImageRef.current,
+            quadrantX, quadrantY, 512, 512,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+          );
         } else if (tile.type === 'supercharger') {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {

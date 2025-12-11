@@ -86,11 +86,11 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
       onClick={onClose}
     >
       <div
-        className={`bg-gradient-to-br ${info.gradient} border-2 ${info.borderColor} rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+        className={`bg-gradient-to-br ${info.gradient} border-2 ${info.borderColor} rounded-xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-black/40 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between">
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-4xl">{info.icon}</span>
             <div>
@@ -106,8 +106,8 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Bot Image */}
           <div className="flex justify-center">
             <div className={`border-4 ${info.borderColor} rounded-lg overflow-hidden bg-black/40 p-4 shadow-xl`}>
@@ -138,16 +138,16 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
               {info.story}
             </p>
           </div>
+        </div>
 
-          {/* Close Button */}
-          <div className="flex justify-center pt-2">
-            <button
-              onClick={onClose}
-              className={`px-6 py-3 bg-gradient-to-r ${info.gradient} border-2 ${info.borderColor} rounded-lg font-bold ${info.textColor} hover:scale-105 transition-transform shadow-lg`}
-            >
-              Back to Fleet
-            </button>
-          </div>
+        {/* Sticky Footer with CTA */}
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-white/10 p-4">
+          <button
+            onClick={onClose}
+            className={`w-full px-6 py-3 bg-gradient-to-r ${info.gradient} border-2 ${info.borderColor} rounded-lg font-bold ${info.textColor} hover:scale-105 transition-transform shadow-lg`}
+          >
+            Back to Fleet
+          </button>
         </div>
       </div>
     </div>

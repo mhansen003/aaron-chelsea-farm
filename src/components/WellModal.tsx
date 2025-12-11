@@ -17,11 +17,11 @@ export function WellModal({ onClose, onRelocate }: WellModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-gradient-to-br from-blue-900 via-cyan-800 to-blue-900 border-2 border-cyan-400 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-gradient-to-br from-blue-900 via-cyan-800 to-blue-900 border-2 border-cyan-400 rounded-xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-black/40 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between">
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-4xl">💧</span>
             <div>
@@ -37,8 +37,8 @@ export function WellModal({ onClose, onRelocate }: WellModalProps) {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Well Image */}
           <div className="flex justify-center">
             <div className="border-4 border-cyan-400 rounded-lg overflow-hidden bg-black/40 p-4 shadow-xl">
@@ -92,24 +92,24 @@ export function WellModal({ onClose, onRelocate }: WellModalProps) {
               "The first well on Zone 0,0 was hand-dug by the farm's founders over 100 years ago. While we've since upgraded to modern drilling techniques, every well still bears the traditional stone archway as a tribute to those early farmers who understood that water is wealth."
             </p>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-2">
-            <button
-              onClick={handleRelocate}
-              className="w-full px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 rounded-lg font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-            >
-              <span>🔄</span>
-              <span>Relocate Well</span>
-            </button>
+        {/* Sticky Footer with CTAs */}
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-white/10 p-4 space-y-3">
+          <button
+            onClick={handleRelocate}
+            className="w-full px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 rounded-lg font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+          >
+            <span>🔄</span>
+            <span>Relocate Well</span>
+          </button>
 
-            <button
-              onClick={onClose}
-              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 rounded-lg font-bold text-white shadow-lg transition-all"
-            >
-              Close
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="w-full px-6 py-3 bg-gradient-to-r from-cyan-700 to-blue-700 hover:from-cyan-600 hover:to-blue-600 rounded-lg font-bold text-white shadow-lg transition-all"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

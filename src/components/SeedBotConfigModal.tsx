@@ -88,9 +88,10 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto border-4 border-green-600">
-        <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white rounded-xl max-w-4xl w-full max-h-[90vh] border-4 border-green-600 flex flex-col">
+        {/* Header */}
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-green-700/50">
           <h2 className="text-3xl font-bold">🌱 Seed Bot Configuration</h2>
           <button
             onClick={onClose}
@@ -100,7 +101,8 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
           </button>
         </div>
 
-        <div className="mb-6">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Summary Section */}
           <div className="bg-gradient-to-r from-green-800/40 to-green-900/40 border border-green-500/50 rounded-lg p-4 mb-4">
             <div className="grid grid-cols-3 gap-4 text-center">
@@ -248,20 +250,22 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <button
-            onClick={handleSave}
-            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-lg"
-          >
-            💾 Save Configuration
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-lg"
-          >
-            Cancel
-          </button>
+        {/* Sticky Footer with CTAs */}
+        <div className="flex-shrink-0 border-t border-green-700/50 p-6 bg-green-950/50">
+          <div className="flex gap-4">
+            <button
+              onClick={handleSave}
+              className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
+            >
+              💾 Save Configuration
+            </button>
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>

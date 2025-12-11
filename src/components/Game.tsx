@@ -2074,13 +2074,61 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw inventory indicator
+        // Draw crop icon indicator if carrying crops
         if (bot.inventory.length > 0) {
-          ctx.fillStyle = '#4caf50';
-          ctx.font = 'bold 12px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(bot.inventory.length.toString(), botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize - 8);
+          // Get the first crop type from inventory
+          const cropType = bot.inventory[0].crop;
+          let cropImage: HTMLImageElement | null = null;
+
+          // Map crop type to image ref
+          switch (cropType) {
+            case 'carrot': cropImage = carrotsImageRef.current; break;
+            case 'wheat': cropImage = wheatImageRef.current; break;
+            case 'tomato': cropImage = tomatoImageRef.current; break;
+            case 'pumpkin': cropImage = pumpkinImageRef.current; break;
+            case 'watermelon': cropImage = watermelonImageRef.current; break;
+            case 'peppers': cropImage = peppersImageRef.current; break;
+            case 'grapes': cropImage = grapesImageRef.current; break;
+            case 'oranges': cropImage = orangesImageRef.current; break;
+            case 'avocado': cropImage = avocadoImageRef.current; break;
+            case 'rice': cropImage = riceImageRef.current; break;
+            case 'corn': cropImage = cornImageRef.current; break;
+          }
+
+          // Draw crop icon next to the bot (top-right corner)
+          const iconSize = 16;
+          const iconX = botPx + GAME_CONFIG.tileSize - iconSize - 2;
+          const iconY = botPy + 2;
+
+          if (cropImage) {
+            // White background circle for visibility
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw crop icon
+            ctx.drawImage(cropImage, iconX, iconY, iconSize, iconSize);
+          }
+
+          // Draw inventory count badge (bottom-right)
+          if (bot.inventory.length > 1) {
+            const badgeX = botPx + GAME_CONFIG.tileSize - 10;
+            const badgeY = botPy + GAME_CONFIG.tileSize - 10;
+
+            // Badge background
+            ctx.fillStyle = '#4caf50';
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Badge number
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(bot.inventory.length.toString(), badgeX, badgeY);
+          }
         }
       }
     });

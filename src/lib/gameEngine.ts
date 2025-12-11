@@ -1,5 +1,5 @@
 // Game engine for Aaron and Chelsea's Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot, ZoneEarnings } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot, ZoneEarnings, BasketItem } from '@/types/game';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,

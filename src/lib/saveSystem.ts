@@ -178,7 +178,7 @@ function migrateGameState(gameState: any): GameState {
 
   // Migrate 'mechanic' tile types to 'botFactory' in all zones
   if (gameState.zones) {
-    Object.values(gameState.zones).forEach((zone: Zone) => {
+    (Object.values(gameState.zones) as Zone[]).forEach(zone => {
       if (zone.grid) {
         zone.grid.forEach(row => {
           row.forEach(tile => {

@@ -240,8 +240,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       // Random obstacles (only in non-themed zones)
       else if (!hasTheme) {
         const rand = Math.random();
-        if (rand < 0.30) type = 'rock'; // 30% rocks
-        else if (rand < 0.50) type = 'tree'; // 20% trees
+        if (rand < 0.15) type = 'rock'; // 15% rocks (reduced from 30%)
+        else if (rand < 0.25) type = 'tree'; // 10% trees (reduced from 20%)
       }
 
       row.push({

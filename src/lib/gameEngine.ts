@@ -991,7 +991,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
     const updatedGrid = zone.grid.map(row =>
       row.map(tile => {
-        // Dirt turns into grass after 90 seconds if untouched
+        // Dirt turns into grass after 30 seconds if untouched
         const isUntouchedDirt = tile.type === 'dirt' &&
                                 tile.cleared &&
                                 !tile.crop &&
@@ -1007,8 +1007,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             };
           }
 
-          // Convert dirt to grass after 90 seconds
-          const DIRT_TO_GRASS_TIME = 90000; // 90 seconds
+          // Convert dirt to grass after 30 seconds
+          const DIRT_TO_GRASS_TIME = 30000; // 30 seconds
           if (newGameTime - tile.lastWorkedTime >= DIRT_TO_GRASS_TIME) {
             return {
               ...tile,

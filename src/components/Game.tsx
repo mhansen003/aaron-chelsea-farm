@@ -393,6 +393,7 @@ export default function Game() {
   const mechanicImageRef = useRef<HTMLImageElement | null>(null);
   const wellImageRef = useRef<HTMLImageElement | null>(null);
   const garageImageRef = useRef<HTMLImageElement | null>(null);
+  const superchargerImageRef = useRef<HTMLImageElement | null>(null);
   const oceanImageRef = useRef<HTMLImageElement | null>(null);
   const sandImageRef = useRef<HTMLImageElement | null>(null);
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
@@ -625,6 +626,13 @@ export default function Game() {
     garageImg.src = '/garage.png';
     garageImg.onload = () => {
       garageImageRef.current = garageImg;
+    };
+
+    // Load supercharger image
+    const superchargerImg = new Image();
+    superchargerImg.src = '/supercharge.png';
+    superchargerImg.onload = () => {
+      superchargerImageRef.current = superchargerImg;
     };
   }, []);
 
@@ -1129,8 +1137,20 @@ export default function Game() {
             (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'supercharger' && gridRef[y - 1]?.[x + 1]?.type === 'supercharger' && gridRef[y]?.[x + 1]?.type === 'supercharger')
           );
 
-          if (isTopLeftOf2x2) {
-            // Draw supercharger graphics at 2x size to span the 2x2 area
+          if (isTopLeftOf2x2 && superchargerImageRef.current) {
+            // Draw supercharger image at 2x size to span the 2x2 area
+            ctx.drawImage(
+              superchargerImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          } else if (!isPartOf2x2 && superchargerImageRef.current) {
+            // Draw at 1x size for fallback
+            ctx.drawImage(
+              superchargerImageRef.current,
+              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+            );
+          } else if (isTopLeftOf2x2 && !superchargerImageRef.current) {
+            // Fallback gradient if image not loaded yet (2x2)
             const gradient = ctx.createRadialGradient(
               px + GAME_CONFIG.tileSize,
               py + GAME_CONFIG.tileSize,
@@ -1147,8 +1167,8 @@ export default function Game() {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('⚡', px + GAME_CONFIG.tileSize, py + GAME_CONFIG.tileSize);
-          } else if (!isPartOf2x2) {
-            // Draw at 1x size for fallback
+          } else if (!isPartOf2x2 && !superchargerImageRef.current) {
+            // Fallback gradient if image not loaded yet (1x1)
             const gradient = ctx.createRadialGradient(
               px + GAME_CONFIG.tileSize / 2,
               py + GAME_CONFIG.tileSize / 2,

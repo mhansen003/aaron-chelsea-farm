@@ -2525,25 +2525,22 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   const { farmerAuto, basket, basketCapacity, inventory } = state.player;
   const grid = zone.grid;
 
-  // Priority 1: Auto Sell (if basket has items and we're near export building)
+  // Priority 1: Auto Sell (if basket has items, go to export building to sell)
   if (farmerAuto.autoSell && basket.length > 0) {
     const exportPos = findExportTile(state);
     if (exportPos) {
-      // Check if farmer is close to export (within 3 tiles)
-      const distance = Math.abs(state.player.x - exportPos.x) + Math.abs(state.player.y - exportPos.y);
-      if (distance <= 3) {
-        tasks.push({
-          id: `auto-sell-${Date.now()}`,
-          type: 'deposit',
-          tileX: exportPos.x,
-          tileY: exportPos.y,
-          zoneX: state.currentZone.x,
-          zoneY: state.currentZone.y,
-          progress: 0,
-          duration: TASK_DURATIONS.deposit,
-        });
-        return tasks; // Return immediately - selling is highest priority
-      }
+      // Go to export building to sell crops (no distance restriction)
+      tasks.push({
+        id: `auto-sell-${Date.now()}`,
+        type: 'deposit',
+        tileX: exportPos.x,
+        tileY: exportPos.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.deposit,
+      });
+      return tasks; // Return immediately - selling is highest priority
     }
   }
 

@@ -3258,7 +3258,7 @@ export default function Game() {
               className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'mechanic'
                   ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-orange-400/50'
               }`}
             >
               ⚙️ Mechanic Shop
@@ -3272,7 +3272,7 @@ export default function Game() {
               className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'well'
                   ? 'bg-blue-500 ring-4 ring-blue-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-blue-400/50'
               }`}
             >
               🪣 Water Well
@@ -3285,7 +3285,7 @@ export default function Game() {
               className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'garage'
                   ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-orange-400/50'
               }`}
             >
               🚗 Garage
@@ -3299,7 +3299,7 @@ export default function Game() {
               className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
                 placementMode === 'supercharger'
                   ? 'bg-purple-500 ring-4 ring-purple-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-purple-400/50'
               }`}
             >
               ⚡ Supercharger

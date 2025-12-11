@@ -59,6 +59,7 @@ import EconomyModal from './EconomyModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
 import { BotInfoModal } from './BotInfoModal';
+import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
 import WelcomeSplash from './WelcomeSplash';
 import SaveGameModal from './SaveGameModal';
@@ -347,6 +348,7 @@ export default function Game() {
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
+  const [showWellModal, setShowWellModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -2480,6 +2482,12 @@ export default function Game() {
       return;
     }
 
+    // Handle well tile clicks
+    if (tile.type === 'well') {
+      setShowWellModal(true);
+      return;
+    }
+
     // Get context-aware action for this tile
     const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
@@ -4066,6 +4074,14 @@ export default function Game() {
         <BotInfoModal
           botType={showBotInfoModal}
           onClose={() => setShowBotInfoModal(null)}
+        />
+      )}
+
+      {/* Well Modal */}
+      {showWellModal && (
+        <WellModal
+          onClose={() => setShowWellModal(false)}
+          onRelocate={() => setPlacementMode('well')}
         />
       )}
     </div>

@@ -3291,15 +3291,64 @@ export function depositToWarehouse(state: GameState): GameState {
   const grid = getCurrentGrid(state);
   const currentTile = grid[state.player.y]?.[state.player.x];
 
-  // If at export building, sell the crops
-  if (currentTile?.type === 'export') {
-    // Use the sellCrops function which properly records sales history
-    const result = sellCrops(state);
-    if (result.success) {
-      return result.state;
-    }
-    // If sell failed, return unchanged state
-    return state;
+  // If at export building, sell the crops at market price
+  if (currentTile?.type === 'export' && state.player.basket.length > 0) {
+    // Import getMarketPrice dynamically to avoid circular dependency
+    const { getMarketPrice } = require('./marketEconomy');
+
+    let totalEarnings = 0;
+    const salesRecords: typeof state.salesHistory = [];
+    const updatedCropsSold = { ...state.cropsSold };
+    const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+
+    // Group basket items by crop type
+    const cropGroups = new Map<Exclude<CropType, null>, typeof state.player.basket>();
+    state.player.basket.forEach(item => {
+      const existing = cropGroups.get(item.crop) || [];
+      cropGroups.set(item.crop, [...existing, item]);
+    });
+
+    // Sell each crop type
+    cropGroups.forEach((items, cropType) => {
+      const marketPrice = getMarketPrice(cropType, state);
+      const avgQuality = items.reduce((sum, item) => sum + item.quality.yield, 0) / items.length;
+      const pricePerUnit = Math.floor(marketPrice * avgQuality);
+      const revenue = pricePerUnit * items.length;
+
+      totalEarnings += revenue;
+      updatedCropsSold[cropType] = (updatedCropsSold[cropType] || 0) + items.length;
+
+      // Create sale record
+      salesRecords.push({
+        timestamp: state.gameTime,
+        day: state.currentDay,
+        crop: cropType,
+        quantity: items.length,
+        pricePerUnit,
+        totalRevenue: revenue,
+        zoneKey: currentZoneKey,
+      });
+    });
+
+    // Update sales history (keep last 100 records)
+    const newSalesHistory = [...(state.salesHistory || []), ...salesRecords].slice(-100);
+
+    // Record zone earnings
+    let updatedState = {
+      ...state,
+      player: {
+        ...state.player,
+        money: state.player.money + totalEarnings,
+        basket: [], // Empty basket after selling
+      },
+      cropsSold: updatedCropsSold,
+      salesHistory: newSalesHistory,
+    };
+
+    // Record earnings for the zone
+    updatedState = recordZoneEarnings(updatedState, currentZoneKey, totalEarnings);
+
+    return updatedState;
   }
 
   // Otherwise, just deposit to warehouse (storage)

@@ -1041,36 +1041,22 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Mechanic uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Determine which quadrant based on position in the 2x2 building
-          let offsetX = 0;
-          let offsetY = 0;
-
-          // Determine position in 2x2 grid
-          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic';
-          const isTopRight = gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y + 1]?.[x]?.type === 'mechanic';
-          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic';
-          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'mechanic' && gridRef[y - 1]?.[x]?.type === 'mechanic';
-
-          if (isTopLeft) {
-            offsetX = 0;
-            offsetY = 0;
-          } else if (isTopRight) {
-            offsetX = 512;
-            offsetY = 0;
-          } else if (isBottomLeft) {
-            offsetX = 0;
-            offsetY = 512;
-          } else if (isBottomRight) {
-            offsetX = 512;
-            offsetY = 512;
-          }
-
-          ctx.drawImage(
-            mechanicImageRef.current,
-            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          // Check if this is the top-left tile of a 2x2 mechanic building
+          // Must verify all 3 other tiles (right, bottom, bottom-right) are also mechanic
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'mechanic' &&
+            gridRef[y + 1]?.[x]?.type === 'mechanic' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'mechanic'
           );
+
+          // Only draw the full building image from the top-left tile
+          if (isTopLeftOf2x2) {
+            ctx.drawImage(
+              mechanicImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'well' && wellImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
@@ -1080,36 +1066,22 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Well uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Determine which quadrant based on position in the 2x2 building
-          let offsetX = 0;
-          let offsetY = 0;
-
-          // Determine position in 2x2 grid
-          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well';
-          const isTopRight = gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y + 1]?.[x]?.type === 'well';
-          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well';
-          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'well' && gridRef[y - 1]?.[x]?.type === 'well';
-
-          if (isTopLeft) {
-            offsetX = 0;
-            offsetY = 0;
-          } else if (isTopRight) {
-            offsetX = 512;
-            offsetY = 0;
-          } else if (isBottomLeft) {
-            offsetX = 0;
-            offsetY = 512;
-          } else if (isBottomRight) {
-            offsetX = 512;
-            offsetY = 512;
-          }
-
-          ctx.drawImage(
-            wellImageRef.current,
-            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          // Check if this is the top-left tile of a 2x2 well building
+          // Must verify all 3 other tiles (right, bottom, bottom-right) are also well
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'well' &&
+            gridRef[y + 1]?.[x]?.type === 'well' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'well'
           );
+
+          // Only draw the full building image from the top-left tile
+          if (isTopLeftOf2x2) {
+            ctx.drawImage(
+              wellImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'garage' && garageImageRef.current) {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
@@ -1119,36 +1091,22 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
-          // Garage uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Determine which quadrant based on position in the 2x2 building
-          let offsetX = 0;
-          let offsetY = 0;
-
-          // Determine position in 2x2 grid
-          const isTopLeft = gridRef[y]?.[x + 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage';
-          const isTopRight = gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y + 1]?.[x]?.type === 'garage';
-          const isBottomLeft = gridRef[y]?.[x + 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage';
-          const isBottomRight = gridRef[y]?.[x - 1]?.type === 'garage' && gridRef[y - 1]?.[x]?.type === 'garage';
-
-          if (isTopLeft) {
-            offsetX = 0;
-            offsetY = 0;
-          } else if (isTopRight) {
-            offsetX = 512;
-            offsetY = 0;
-          } else if (isBottomLeft) {
-            offsetX = 0;
-            offsetY = 512;
-          } else if (isBottomRight) {
-            offsetX = 512;
-            offsetY = 512;
-          }
-
-          ctx.drawImage(
-            garageImageRef.current,
-            offsetX, offsetY, 512, 512, // Extract this quadrant from 1024x1024 source
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Draw at tile position
+          // Check if this is the top-left tile of a 2x2 garage building
+          // Must verify all 3 other tiles (right, bottom, bottom-right) are also garage
+          const isTopLeftOf2x2 = (
+            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+            gridRef[y]?.[x + 1]?.type === 'garage' &&
+            gridRef[y + 1]?.[x]?.type === 'garage' &&
+            gridRef[y + 1]?.[x + 1]?.type === 'garage'
           );
+
+          // Only draw the full building image from the top-left tile
+          if (isTopLeftOf2x2) {
+            ctx.drawImage(
+              garageImageRef.current,
+              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
+            );
+          }
         } else if (tile.type === 'supercharger') {
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {

@@ -3171,16 +3171,10 @@ export function relocateMechanicShop(state: GameState): GameState {
     newZones[zoneKey] = { ...zone, grid: newGrid };
   });
 
+  // Keep mechanicShopPlaced=true so placement knows it's a relocation
   return {
     ...state,
     zones: newZones,
-    player: {
-      ...state.player,
-      inventory: {
-        ...state.player.inventory,
-        mechanicShopPlaced: false,
-      },
-    },
   };
 }
 
@@ -3691,6 +3685,7 @@ export function relocateGarage(state: GameState): GameState {
     })
   );
 
+  // Keep garagePlaced=true so placement knows it's a relocation
   return {
     ...state,
     zones: {
@@ -3698,13 +3693,6 @@ export function relocateGarage(state: GameState): GameState {
       [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
         ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
         grid: newGrid,
-      },
-    },
-    player: {
-      ...state.player,
-      inventory: {
-        ...state.player.inventory,
-        garagePlaced: false,
       },
     },
   };
@@ -3728,6 +3716,7 @@ export function relocateWell(state: GameState): GameState {
     })
   );
 
+  // Keep wellPlaced=true so placement knows it's a relocation
   return {
     ...state,
     zones: {
@@ -3737,13 +3726,7 @@ export function relocateWell(state: GameState): GameState {
         grid: newGrid,
       },
     },
-    player: {
-      ...state.player,
-      inventory: {
-        ...state.player.inventory,
-        wellPlaced: false,
-      },
-    },
+    // Don't modify wellPlaced - keep it as true
   };
 }
 
@@ -3770,8 +3753,10 @@ export function relocateSupercharger(state: GameState): GameState {
   );
 
   console.log('[relocateSupercharger] Removed', removedCount, 'supercharger tiles');
-  console.log('[relocateSupercharger] Setting superchargerPlaced =', false);
+  console.log('[relocateSupercharger] KEEPING superchargerPlaced = true for instant re-placement');
 
+  // NOTE: We keep superchargerPlaced=true so that when the building is placed again,
+  // placeSupercharger knows it's a relocation and does instant placement instead of construction
   return {
     ...state,
     zones: {
@@ -3781,13 +3766,7 @@ export function relocateSupercharger(state: GameState): GameState {
         grid: newGrid,
       },
     },
-    player: {
-      ...state.player,
-      inventory: {
-        ...state.player.inventory,
-        superchargerPlaced: false,
-      },
-    },
+    // Don't modify superchargerPlaced - keep it as true
   };
 }
 

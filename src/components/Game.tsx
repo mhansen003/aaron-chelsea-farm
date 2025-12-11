@@ -2574,6 +2574,7 @@ export default function Game() {
 
     const currentGrid = getCurrentGrid(gameState);
     const tile = currentGrid[tileY]?.[tileX];
+    console.log('[handleCanvasClick] Clicked tile:', { tileX, tileY, tileType: tile?.type, cleared: tile?.cleared });
     if (!tile) return;
 
     // Check if this tile has a queued task - if yes, cancel it

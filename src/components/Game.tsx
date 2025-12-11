@@ -1192,6 +1192,15 @@ export default function Game() {
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize  // Dest: draw at tile position
           );
         } else if (tile.type === 'supercharger') {
+          // ═══════════════════════════════════════════════════════════════════════════
+          // STANDARD 2x2 BUILDING RENDERING PATTERN
+          // All 2x2 buildings should follow this approach for consistent rendering:
+          // 1. Draw grass background on all 4 tiles
+          // 2. Determine which quadrant position this tile occupies
+          // 3. Extract the corresponding 512x512 quadrant from 1024x1024 sprite
+          // 4. Draw at single tile size (32px)
+          // ═══════════════════════════════════════════════════════════════════════════
+
           // Draw grass background (on all 4 tiles)
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1199,50 +1208,53 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          const isTopLeftOf2x2 = (
-            x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
-            gridRef[y]?.[x + 1]?.type === 'supercharger' &&
-            gridRef[y + 1]?.[x]?.type === 'supercharger' &&
-            gridRef[y + 1]?.[x + 1]?.type === 'supercharger'
-          );
-          const isPartOf2x2 = (
-            (x > 0 && y > 0 && gridRef[y - 1]?.[x - 1]?.type === 'supercharger' && gridRef[y - 1]?.[x]?.type === 'supercharger' && gridRef[y]?.[x - 1]?.type === 'supercharger') ||
-            (x > 0 && y + 1 < GAME_CONFIG.gridHeight && gridRef[y]?.[x - 1]?.type === 'supercharger' && gridRef[y + 1]?.[x - 1]?.type === 'supercharger' && gridRef[y + 1]?.[x]?.type === 'supercharger') ||
-            (x + 1 < GAME_CONFIG.gridWidth && y > 0 && gridRef[y - 1]?.[x]?.type === 'supercharger' && gridRef[y - 1]?.[x + 1]?.type === 'supercharger' && gridRef[y]?.[x + 1]?.type === 'supercharger')
-          );
 
-          if (isTopLeftOf2x2 && superchargerImageRef.current) {
-            // Draw supercharger image at 2x size to span the 2x2 area
+          if (superchargerImageRef.current) {
+            // Find which position this tile is in the 2x2 building
+            let offsetX = 0;
+            let offsetY = 0;
+
+            // Check if this is top-left
+            if (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+                gridRef[y]?.[x + 1]?.type === 'supercharger' &&
+                gridRef[y + 1]?.[x]?.type === 'supercharger' &&
+                gridRef[y + 1]?.[x + 1]?.type === 'supercharger') {
+              offsetX = 0;
+              offsetY = 0;
+            }
+            // Check if this is top-right
+            else if (x > 0 && y + 1 < GAME_CONFIG.gridHeight &&
+                     gridRef[y]?.[x - 1]?.type === 'supercharger' &&
+                     gridRef[y + 1]?.[x]?.type === 'supercharger' &&
+                     gridRef[y + 1]?.[x - 1]?.type === 'supercharger') {
+              offsetX = 512;
+              offsetY = 0;
+            }
+            // Check if this is bottom-left
+            else if (x + 1 < GAME_CONFIG.gridWidth && y > 0 &&
+                     gridRef[y]?.[x + 1]?.type === 'supercharger' &&
+                     gridRef[y - 1]?.[x]?.type === 'supercharger' &&
+                     gridRef[y - 1]?.[x + 1]?.type === 'supercharger') {
+              offsetX = 0;
+              offsetY = 512;
+            }
+            // Check if this is bottom-right
+            else if (x > 0 && y > 0 &&
+                     gridRef[y]?.[x - 1]?.type === 'supercharger' &&
+                     gridRef[y - 1]?.[x]?.type === 'supercharger' &&
+                     gridRef[y - 1]?.[x - 1]?.type === 'supercharger') {
+              offsetX = 512;
+              offsetY = 512;
+            }
+
+            // Draw the appropriate quadrant
             ctx.drawImage(
               superchargerImageRef.current,
-              px, py, GAME_CONFIG.tileSize * 2, GAME_CONFIG.tileSize * 2
-            );
-          } else if (!isPartOf2x2 && superchargerImageRef.current) {
-            // Draw at 1x size for fallback
-            ctx.drawImage(
-              superchargerImageRef.current,
+              offsetX, offsetY, 512, 512,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
-          } else if (isTopLeftOf2x2 && !superchargerImageRef.current) {
-            // Fallback gradient if image not loaded yet (2x2)
-            const gradient = ctx.createRadialGradient(
-              px + GAME_CONFIG.tileSize,
-              py + GAME_CONFIG.tileSize,
-              0,
-              px + GAME_CONFIG.tileSize,
-              py + GAME_CONFIG.tileSize,
-              GAME_CONFIG.tileSize
-            );
-            gradient.addColorStop(0, '#a855f7');
-            gradient.addColorStop(1, '#7c3aed');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize * 2 - 4, GAME_CONFIG.tileSize * 2 - 4);
-            ctx.font = `${GAME_CONFIG.tileSize * 1.2}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('⚡', px + GAME_CONFIG.tileSize, py + GAME_CONFIG.tileSize);
-          } else if (!isPartOf2x2 && !superchargerImageRef.current) {
-            // Fallback gradient if image not loaded yet (1x1)
+          } else {
+            // Fallback if image not loaded - draw simple purple gradient
             const gradient = ctx.createRadialGradient(
               px + GAME_CONFIG.tileSize / 2,
               py + GAME_CONFIG.tileSize / 2,

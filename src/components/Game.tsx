@@ -1263,7 +1263,7 @@ export default function Game() {
           else if (x > 0 && y + 1 < GAME_CONFIG.gridHeight &&
                    gridRef[y]?.[x - 1]?.type === 'botFactory' &&
                    gridRef[y + 1]?.[x]?.type === 'botFactory' &&
-                   gridRef[y + 1]?.[x - 1]?.type === 'mechanic') {
+                   gridRef[y + 1]?.[x - 1]?.type === 'botFactory') {
             offsetX = 512;
             offsetY = 0;
           }
@@ -1271,7 +1271,7 @@ export default function Game() {
           else if (x + 1 < GAME_CONFIG.gridWidth && y > 0 &&
                    gridRef[y]?.[x + 1]?.type === 'botFactory' &&
                    gridRef[y - 1]?.[x]?.type === 'botFactory' &&
-                   gridRef[y - 1]?.[x + 1]?.type === 'mechanic') {
+                   gridRef[y - 1]?.[x + 1]?.type === 'botFactory') {
             offsetX = 0;
             offsetY = 512;
           }

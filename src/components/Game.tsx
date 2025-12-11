@@ -2326,19 +2326,24 @@ export default function Game() {
 
   // Determine what action should be taken for a tile based on context
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
-    // Rocks and trees can be cleared
+    // Rocks and trees can be cleared - show pickaxe/axe cursor
     if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
       return { action: 'clear' as const, cursor: 'url("/cursor-clear.png") 16 16, pointer' };
     }
 
-    // Planted crops that need water
+    // Grown crops can be harvested - show scythe cursor
+    if (tile.type === 'grown') {
+      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 16 16, pointer' };
+    }
+
+    // Planted crops that need water - show watering can cursor
     if (tile.type === 'planted' && !tile.wateredToday) {
       return { action: 'water' as const, cursor: 'url("/cursor-water.png") 16 16, pointer' };
     }
 
-    // Grown crops can be harvested
-    if (tile.type === 'grown') {
-      return { action: 'harvest' as const, cursor: 'url("/harvest.png") 16 16, pointer' };
+    // Planted crops already watered - show hand cursor (no action needed)
+    if (tile.type === 'planted' && tile.wateredToday) {
+      return { action: null, cursor: 'default' };
     }
 
     // Grass/cleared dirt can be planted if we have a seed selected and no sprinkler
@@ -2346,39 +2351,49 @@ export default function Game() {
       return { action: 'plant' as const, cursor: 'url("/cursor-plant.png") 16 16, pointer' };
     }
 
-    // Shop tile
+    // Shop tile - show pointer to indicate clickable
     if (tile.type === 'shop') {
       return { action: 'shop' as const, cursor: 'pointer' };
     }
 
-    // Export tile
+    // Export tile - show pointer
     if (tile.type === 'export') {
       return { action: 'export' as const, cursor: 'pointer' };
     }
 
-    // Warehouse tile
+    // Warehouse tile - show pointer
     if (tile.type === 'warehouse') {
       return { action: 'warehouse' as const, cursor: 'pointer' };
     }
 
-    // Mechanic tile
+    // Mechanic tile - show pointer
     if (tile.type === 'mechanic') {
       return { action: 'mechanic' as const, cursor: 'pointer' };
     }
 
-    // Garage tile
+    // Well tile - show pointer
+    if (tile.type === 'well') {
+      return { action: 'well' as const, cursor: 'pointer' };
+    }
+
+    // Garage tile - show pointer
     if (tile.type === 'garage') {
       return { action: 'garage' as const, cursor: 'pointer' };
     }
 
-    // Supercharger tile
+    // Supercharger tile - show pointer
     if (tile.type === 'supercharger') {
       return { action: 'supercharger' as const, cursor: 'pointer' };
     }
 
-    // Arch tile
+    // Arch tile - show pointer
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
+    }
+
+    // Cleared grass/dirt with no seed selected - show crosshair (can plant if you select seed)
+    if ((tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) && !tile.crop && !tile.hasSprinkler && !selectedCrop) {
+      return { action: null, cursor: 'crosshair' };
     }
 
     // Default - no action

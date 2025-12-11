@@ -4374,7 +4374,7 @@ export default function Game() {
             });
 
             if (botZone && botZoneKey) {
-              const bot = botZone.seedBots?.find(b => b.id === botId);
+              const bot = (botZone as Zone).seedBots?.find(b => b.id === botId);
               if (bot) {
                 // Update the specific job's crop type
                 const updatedJobs = bot.jobs.map(job =>

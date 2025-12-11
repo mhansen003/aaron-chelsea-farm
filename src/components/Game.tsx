@@ -31,7 +31,9 @@ import {
   placeSupercharger,
   superchargeBot,
   relocateGarage,
+  relocateWell,
   relocateMechanicShop,
+  relocateSupercharger,
   toggleAutoBuy,
   addTask,
   removeTask,
@@ -41,6 +43,7 @@ import {
   createZone,
   getZoneKey,
   recordZoneEarnings,
+  findGaragePosition,
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
@@ -3592,6 +3595,10 @@ export default function Game() {
           onSupercharge={(botId, botType) => {
             setGameState(prev => superchargeBot(prev, botId, botType));
           }}
+          onRelocate={() => {
+            setGameState(prev => relocateSupercharger(prev));
+            setPlacementMode('supercharger');
+          }}
         />
       )}
 
@@ -3810,6 +3817,12 @@ export default function Game() {
       <div className="w-56 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-1.5 max-h-full overflow-y-auto">
         <div className="text-sm font-bold text-center mb-1 text-blue-400">🤖 Bot Fleet</div>
 
+        {/* Calculate garage position once for all bots */}
+        {(() => {
+          const grid = getCurrentGrid(gameState);
+          const garagePos = findGaragePosition(grid);
+
+          return <>
           {/* Water Robot Section */}
           {(waterBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-2 shadow-lg hover:shadow-cyan-500/30 hover:border-cyan-400 transition-all">
@@ -3859,16 +3872,16 @@ export default function Game() {
 
           {/* Harvest Robot Section */}
           {(harvestBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
+            <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg hover:shadow-orange-500/30 hover:border-orange-400 transition-all">
               <div
-                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
+                className="text-xs text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('harvest')}
                 title="Click to view bot history"
               >
                 <span>🌾</span>
                 HARVEST
-                <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{harvestBots?.length ?? 0}</span>
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+                <span className="ml-auto bg-orange-600/30 px-1 rounded text-xs">{harvestBots?.length ?? 0}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {harvestBots?.map((bot, idx) => {
@@ -3881,22 +3894,22 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-orange-100">Bot #{idx + 1}</span>
-                        <span className="text-[9px] text-orange-300">
+                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'harvesting' && '✂️'}
                           {bot.status === 'depositing' && '📦'}
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      <div className="text-[8px] text-orange-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
+                      <div className="text-[10px] font-medium text-orange-200/60 mb-1 truncate">{statusText}</div>
+                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
                         <div
                           className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-green-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-orange-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-sm text-orange-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -3906,16 +3919,16 @@ export default function Game() {
 
           {/* Seed Bot Section */}
           {seedBots && seedBots.length > 0 && (
-            <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border border-green-500/60 rounded-lg p-1.5 shadow-lg">
+            <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border border-green-500/60 rounded-lg p-1.5 shadow-lg hover:shadow-green-500/30 hover:border-green-400 transition-all">
               <div
-                className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-green-900/30 rounded px-1 py-0.5 transition-colors group"
+                className="text-xs text-green-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-green-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('seed')}
                 title="Click to view bot history"
               >
                 <span>🌱</span>
                 SEED
-                <span className="ml-auto bg-green-600/30 px-1 rounded text-[10px]">{seedBots.length}</span>
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+                <span className="ml-auto bg-green-600/30 px-1 rounded text-xs">{seedBots.length}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {seedBots.map((bot, idx) => {
@@ -3929,15 +3942,15 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-green-100">Bot #{idx + 1}</span>
-                        <span className="text-[9px] text-green-300">
+                        <span className="text-xs font-semibold text-green-100">Bot #{idx + 1}</span>
+                        <span className="text-sm text-green-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'planting' && '🌱'}
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      <div className="text-[8px] text-green-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="text-[9px] text-green-300/70 mb-0.5 text-center">
+                      <div className="text-[10px] font-medium text-green-200/60 mb-1 truncate">{statusText}</div>
+                      <div className="text-sm text-green-300/70 mb-0.5 text-center">
                         Jobs: {jobCount} • Tiles: {totalTiles}
                       </div>
                       <button
@@ -3946,7 +3959,7 @@ export default function Game() {
                           setSelectedSeedBot(bot.id);
                           setShowSeedBotConfig(true);
                         }}
-                        className="w-full px-1 py-0.5 bg-green-600/30 hover:bg-green-600/50 rounded text-[9px] font-semibold transition-colors"
+                        className="w-full px-1 py-0.5 bg-green-600/30 hover:bg-green-600/50 rounded text-sm font-semibold transition-colors"
                       >
                         ⚙️ Configure
                       </button>
@@ -3959,16 +3972,16 @@ export default function Game() {
 
           {/* Transport Bot Section */}
           {(transportBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border border-purple-500/60 rounded-lg p-1.5 shadow-lg">
+            <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border border-purple-500/60 rounded-lg p-1.5 shadow-lg hover:shadow-purple-500/30 hover:border-purple-400 transition-all">
               <div
-                className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-purple-900/30 rounded px-1 py-0.5 transition-colors group"
+                className="text-xs text-purple-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-purple-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('transport')}
                 title="Click to view bot history"
               >
                 <span>🚚</span>
                 TRANSPORT
-                <span className="ml-auto bg-purple-600/30 px-1 rounded text-[10px]">{transportBots?.length ?? 0}</span>
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+                <span className="ml-auto bg-purple-600/30 px-1 rounded text-xs">{transportBots?.length ?? 0}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {transportBots?.map((bot, idx) => {
@@ -3982,8 +3995,8 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-purple-100">Bot #{idx + 1}</span>
-                        <span className="text-[9px] text-purple-300">
+                        <span className="text-xs font-semibold text-purple-100">Bot #{idx + 1}</span>
+                        <span className="text-sm text-purple-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'loading' && '📥'}
                           {bot.status === 'transporting' && '🚚'}
@@ -3991,14 +4004,14 @@ export default function Game() {
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      <div className="text-[8px] text-purple-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
+                      <div className="text-[10px] font-medium text-purple-200/60 mb-1 truncate">{statusText}</div>
+                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
                         <div
                           className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-purple-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-[9px] text-purple-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-sm text-purple-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
                     </div>
                   );
                 })}
@@ -4008,16 +4021,16 @@ export default function Game() {
 
           {/* Demolish Bot Section */}
           {(demolishBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
+            <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg hover:shadow-orange-500/30 hover:border-orange-400 transition-all">
               <div
-                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
+                className="text-xs text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('demolish')}
                 title="Click to view bot history"
               >
                 <span>🚧</span>
                 DEMOLISH
-                <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{demolishBots?.length ?? 0}</span>
-                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+                <span className="ml-auto bg-orange-600/30 px-1 rounded text-xs">{demolishBots?.length ?? 0}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {demolishBots?.map((bot, idx) => {
@@ -4030,14 +4043,14 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-[10px] font-semibold text-orange-100">Bot #{idx + 1}</span>
-                        <span className="text-[9px] text-orange-300">
+                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'clearing' && '🔨'}
                           {bot.status === 'idle' && '😴'}
                         </span>
                       </div>
-                      <div className="text-[8px] text-orange-200/60 truncate">{statusText}</div>
+                      <div className="text-[10px] font-medium text-orange-200/60 truncate">{statusText}</div>
                     </div>
                   );
                 })}
@@ -4093,7 +4106,11 @@ export default function Game() {
       {showWellModal && (
         <WellModal
           onClose={() => setShowWellModal(false)}
-          onRelocate={() => setPlacementMode('well')}
+          onRelocate={() => {
+            setGameState(prev => relocateWell(prev));
+            setPlacementMode('well');
+            setShowWellModal(false);
+          }}
         />
       )}
     </div>

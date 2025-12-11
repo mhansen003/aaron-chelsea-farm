@@ -109,7 +109,7 @@ function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
  * Find the garage position in a zone's grid
  * Returns the top-left corner of the 2x2 garage building, or null if no garage exists
  */
-function findGaragePosition(grid: Tile[][]): { x: number; y: number } | null {
+export function findGaragePosition(grid: Tile[][]): { x: number; y: number } | null {
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const tile = grid[y][x];
@@ -3203,6 +3203,78 @@ export function relocateGarage(state: GameState): GameState {
       inventory: {
         ...state.player.inventory,
         garagePlaced: false,
+      },
+    },
+  };
+}
+
+export function relocateWell(state: GameState): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Find and remove the current well
+  const newGrid = grid.map(row =>
+    row.map(tile => {
+      if (tile.type === 'well') {
+        return {
+          ...tile,
+          type: 'grass' as const,
+          cleared: true,
+        };
+      }
+      return tile;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        wellPlaced: false,
+      },
+    },
+  };
+}
+
+export function relocateSupercharger(state: GameState): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Find and remove the current supercharger
+  const newGrid = grid.map(row =>
+    row.map(tile => {
+      if (tile.type === 'supercharger') {
+        return {
+          ...tile,
+          type: 'grass' as const,
+          cleared: true,
+        };
+      }
+      return tile;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        superchargerPlaced: false,
       },
     },
   };

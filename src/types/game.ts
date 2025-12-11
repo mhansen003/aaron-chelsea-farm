@@ -264,6 +264,23 @@ export interface ZoneEarnings {
   earningsHistory: Array<{ timestamp: number; amount: number }>; // Last 20 sales
 }
 
+export type Season = 'spring' | 'summer' | 'fall' | 'winter';
+
+export interface PriceSnapshot {
+  timestamp: number; // Game time when price was recorded
+  day: number; // Game day number
+  prices: Record<Exclude<CropType, null>, number>; // Sell prices at this time
+}
+
+export interface MarketData {
+  priceHistory: PriceSnapshot[]; // Historical price data (last 30 snapshots)
+  currentPrices: Record<Exclude<CropType, null>, number>; // Current market sell prices
+  priceMultipliers: Record<Exclude<CropType, null>, number>; // Current price multiplier from base (0.7-1.5)
+  lastUpdateDay: number; // Last day prices were updated
+  currentSeason: Season; // Current season
+  highDemandCrops: Array<Exclude<CropType, null>>; // Crops in high demand this season
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -282,6 +299,7 @@ export interface GameState {
   saveCode?: string; // Persistent save code for this game
   cropsSold: Record<Exclude<CropType, null>, number>; // Track how many of each crop has been sold for price progression
   zoneEarnings?: Record<string, ZoneEarnings>; // Track earnings by zone (key is "x,y")
+  market?: MarketData; // Dynamic market pricing and seasonal demand
 }
 
 export interface GameConfig {

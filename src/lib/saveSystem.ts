@@ -161,6 +161,12 @@ function migrateGameState(gameState: any): GameState {
     gameState.zoneEarnings = {};
   }
 
+  // Initialize market system if it doesn't exist (backward compatibility)
+  // Market will be properly initialized on first price update
+  if (!gameState.market) {
+    gameState.market = undefined; // Will be initialized by updateMarketPrices on first game loop
+  }
+
   return gameState as GameState;
 }
 

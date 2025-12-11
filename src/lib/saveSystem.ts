@@ -167,6 +167,64 @@ function migrateGameState(gameState: any): GameState {
     gameState.market = undefined; // Will be initialized by updateMarketPrices on first game loop
   }
 
+  // Migrate 1x1 buildings to 2x2 (mechanic, well, garage, supercharger)
+  if (gameState.zones) {
+    Object.values(gameState.zones).forEach((zone: any) => {
+      if (!zone.grid) return;
+
+      const buildingTypes = ['mechanic', 'well', 'garage', 'supercharger'];
+
+      zone.grid.forEach((row: any[], y: number) => {
+        row.forEach((tile: any, x: number) => {
+          if (!buildingTypes.includes(tile.type)) return;
+
+          const buildingType = tile.type;
+
+          // Check if this is already part of a 2x2 building
+          const isPartOf2x2 = (
+            (x + 1 < row.length && y + 1 < zone.grid.length &&
+              zone.grid[y][x + 1]?.type === buildingType &&
+              zone.grid[y + 1][x]?.type === buildingType &&
+              zone.grid[y + 1][x + 1]?.type === buildingType) ||
+            (x > 0 && y > 0 &&
+              zone.grid[y - 1][x - 1]?.type === buildingType &&
+              zone.grid[y - 1][x]?.type === buildingType &&
+              zone.grid[y][x - 1]?.type === buildingType) ||
+            (x > 0 && y + 1 < zone.grid.length &&
+              zone.grid[y][x - 1]?.type === buildingType &&
+              zone.grid[y + 1][x - 1]?.type === buildingType &&
+              zone.grid[y + 1][x]?.type === buildingType) ||
+            (x + 1 < row.length && y > 0 &&
+              zone.grid[y - 1][x]?.type === buildingType &&
+              zone.grid[y - 1][x + 1]?.type === buildingType &&
+              zone.grid[y][x + 1]?.type === buildingType)
+          );
+
+          if (!isPartOf2x2) {
+            // This is a 1x1 building, expand it to 2x2 if possible
+            const canExpand = (
+              x + 1 < row.length &&
+              y + 1 < zone.grid.length &&
+              zone.grid[y][x + 1]?.cleared &&
+              (zone.grid[y][x + 1]?.type === 'grass' || zone.grid[y][x + 1]?.type === 'dirt') &&
+              zone.grid[y + 1][x]?.cleared &&
+              (zone.grid[y + 1][x]?.type === 'grass' || zone.grid[y + 1][x]?.type === 'dirt') &&
+              zone.grid[y + 1][x + 1]?.cleared &&
+              (zone.grid[y + 1][x + 1]?.type === 'grass' || zone.grid[y + 1][x + 1]?.type === 'dirt')
+            );
+
+            if (canExpand) {
+              // Expand to 2x2
+              zone.grid[y][x + 1].type = buildingType;
+              zone.grid[y + 1][x].type = buildingType;
+              zone.grid[y + 1][x + 1].type = buildingType;
+            }
+          }
+        });
+      });
+    });
+  }
+
   return gameState as GameState;
 }
 

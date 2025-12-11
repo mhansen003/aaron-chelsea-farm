@@ -209,8 +209,8 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-blue-900 to-blue-950 text-white p-4 md:p-8 rounded-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-blue-600">
-        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-blue-900 to-blue-950 pb-2 z-10">
+      <div className="bg-gradient-to-br from-blue-900 to-blue-950 text-white p-4 md:p-8 rounded-xl max-w-6xl w-full max-h-[95vh] border-2 md:border-4 border-blue-600 flex flex-col">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="text-2xl md:text-3xl font-bold">📈 Market Economy</h2>
           <button
             onClick={onClose}
@@ -220,6 +220,8 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
           </button>
         </div>
 
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto mb-4">
         {/* Current Season */}
         <div className="mb-4 md:mb-6 p-3 md:p-4 rounded-lg border-2" style={{ backgroundColor: SEASON_COLORS[market.currentSeason] + '20', borderColor: SEASON_COLORS[market.currentSeason] }}>
           <div className="flex items-center justify-between">
@@ -334,10 +336,12 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
             </div>
           </div>
         </div>
+        </div>
 
+        {/* Sticky Footer Button */}
         <button
           onClick={onClose}
-          className="w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg"
+          className="w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg flex-shrink-0"
         >
           Close
         </button>

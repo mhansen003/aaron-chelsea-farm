@@ -42,8 +42,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-amber-600">
-        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-amber-900 to-amber-950 pb-2 z-10">
+      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full max-h-[95vh] border-2 md:border-4 border-amber-600 flex flex-col">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
           <h2 className="text-2xl md:text-3xl font-bold">🏪 Farm Shop</h2>
           <button
             onClick={onClose}
@@ -81,6 +81,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           </button>
         </div>
 
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto mb-4">
         {/* Seeds Tab Content */}
         {activeTab === 'seeds' && (
         <div className="mb-4 md:mb-6">
@@ -420,7 +422,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 {(gameState.player.inventory.supercharger ?? 0) >= 1 ? (
                   <span className="text-5xl">✓</span>
                 ) : (
-                  <Image src="/supercharger.png" alt="Supercharger" width={80} height={80} className="object-contain" />
+                  <Image src="/supercharge.png" alt="Supercharger" width={80} height={80} className="object-contain" />
                 )}
               </div>
 
@@ -467,10 +469,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           </div>
         </div>
         )}
+        </div>
 
+        {/* Sticky Footer Button */}
         <button
           onClick={onClose}
-          className="mt-6 w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+          className="w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg flex-shrink-0"
         >
           Close Shop
         </button>

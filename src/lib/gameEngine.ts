@@ -1934,8 +1934,18 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
     const grid = zone.grid;
     let updatedGrid = grid;
-    const updatedDemolishBots = zone.demolishBots.map(bot => {
-      if (bot.x === undefined || bot.y === undefined) return bot;
+
+    // Track claimed tiles across all bots in this update cycle
+    const globalClaimedTiles = new Set<string>();
+
+    // Process bots sequentially to properly track claims
+    const updatedDemolishBots: import('@/types/game').DemolishBot[] = [];
+
+    for (const bot of zone.demolishBots) {
+      if (bot.x === undefined || bot.y === undefined) {
+        updatedDemolishBots.push(bot);
+        continue;
+      }
 
       const botX = bot.x;
       const botY = bot.y;
@@ -1964,16 +1974,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         });
       });
 
-      // Filter out obstacles already claimed by other bots
-      const claimedTiles = new Set<string>();
-      zone.demolishBots.forEach(otherBot => {
-        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
-          claimedTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
-        }
-      });
-
+      // Filter out obstacles already claimed by other bots processed before this one
       const availableObstacles = obstacleTiles.filter(obstacle =>
-        !claimedTiles.has(`${obstacle.x},${obstacle.y}`)
+        !globalClaimedTiles.has(`${obstacle.x},${obstacle.y}`)
       );
 
       // Check if bot has a current target and if it still exists
@@ -2015,23 +2018,38 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   return tile;
                 })
               );
-              return { ...bot, status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              const updatedBot = { ...bot, status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              updatedDemolishBots.push(updatedBot);
+              continue;
             } else {
-              // Still clearing
-              return { ...bot, status: 'clearing' as const, visualX, visualY };
+              // Still clearing - keep existing target
+              const updatedBot = { ...bot, status: 'clearing' as const, visualX, visualY };
+              if (updatedBot.targetX !== undefined && updatedBot.targetY !== undefined) {
+                globalClaimedTiles.add(`${updatedBot.targetX},${updatedBot.targetY}`);
+              }
+              updatedDemolishBots.push(updatedBot);
+              continue;
             }
           } else {
-            // Start clearing
-            return { ...bot, status: 'clearing' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: CLEARING_DURATION };
+            // Start clearing - keep existing target
+            const updatedBot = { ...bot, status: 'clearing' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: CLEARING_DURATION };
+            if (updatedBot.targetX !== undefined && updatedBot.targetY !== undefined) {
+              globalClaimedTiles.add(`${updatedBot.targetX},${updatedBot.targetY}`);
+            }
+            updatedDemolishBots.push(updatedBot);
+            continue;
           }
         } else {
-          // Travel to obstacle
+          // Travel to obstacle - claim new target
           let newX = botX, newY = botY;
           if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }
-          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
+          const updatedBot = { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, visualX, visualY };
+          globalClaimedTiles.add(`${nearest.x},${nearest.y}`);
+          updatedDemolishBots.push(updatedBot);
+          continue;
         }
       } else {
         // Idle - go to garage if it exists, otherwise wander
@@ -2040,7 +2058,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           // Garage exists - navigate to it and park
           if (botX === garagePos.x && botY === garagePos.y) {
             // Already at garage - stay parked
-            return { ...bot, status: 'idle' as const, visualX, visualY };
+            updatedDemolishBots.push({ ...bot, status: 'idle' as const, visualX, visualY });
+            continue;
           } else {
             // Travel to garage
             let newX = botX, newY = botY;
@@ -2048,7 +2067,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
-            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+            const updatedBot = { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+            globalClaimedTiles.add(`${garagePos.x},${garagePos.y}`);
+            updatedDemolishBots.push(updatedBot);
+            continue;
           }
         }
         // No garage - wander randomly
@@ -2063,12 +2085,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           const nearbyTiles = walkableTiles.filter(t => { const dx = Math.abs(t.x - botX); const dy = Math.abs(t.y - botY); return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0); });
           if (nearbyTiles.length > 0) {
             const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
-            return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY };
+            updatedDemolishBots.push({ ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, visualX, visualY });
+            continue;
           }
         }
       }
-      return { ...bot, visualX, visualY };
-    });
+      // Default: keep bot as-is
+      updatedDemolishBots.push({ ...bot, visualX, visualY });
+    }
     newZones[zoneKey] = { ...zone, demolishBots: updatedDemolishBots, grid: updatedGrid };
   });
 

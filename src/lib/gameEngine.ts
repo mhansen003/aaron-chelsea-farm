@@ -3750,10 +3750,14 @@ export function relocateWell(state: GameState): GameState {
 export function relocateSupercharger(state: GameState): GameState {
   const grid = getCurrentGrid(state);
 
-  // Find and remove the current supercharger
+  console.log('[relocateSupercharger] Starting relocation');
+
+  // Find and count current supercharger tiles
+  let removedCount = 0;
   const newGrid = grid.map(row =>
     row.map(tile => {
       if (tile.type === 'supercharger') {
+        removedCount++;
         return {
           ...tile,
           type: 'grass' as const,
@@ -3764,6 +3768,9 @@ export function relocateSupercharger(state: GameState): GameState {
       return tile;
     })
   );
+
+  console.log('[relocateSupercharger] Removed', removedCount, 'supercharger tiles');
+  console.log('[relocateSupercharger] Setting superchargerPlaced =', false);
 
   return {
     ...state,
@@ -3807,8 +3814,12 @@ export function buySupercharger(state: GameState): GameState {
 export function placeSupercharger(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
 
+  console.log('[placeSupercharger] Called at', { tileX, tileY });
+  console.log('[placeSupercharger] superchargerPlaced =', state.player.inventory.superchargerPlaced);
+
   // Check bounds for 2x2 placement
   if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    console.log('[placeSupercharger] FAILED: Out of bounds');
     return state; // Not enough space
   }
 
@@ -3820,16 +3831,20 @@ export function placeSupercharger(state: GameState, tileX: number, tileY: number
     grid[tileY + 1]?.[tileX + 1],
   ];
 
+  console.log('[placeSupercharger] Tiles:', tiles.map(t => ({ type: t?.type, cleared: t?.cleared })));
+
   const allTilesValid = tiles.every(t =>
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
   if (!allTilesValid || state.player.inventory.supercharger <= 0) {
+    console.log('[placeSupercharger] FAILED: Invalid tiles or no inventory', { allTilesValid, supercharger: state.player.inventory.supercharger });
     return state;
   }
 
   // Check if this is a relocation (building already placed elsewhere)
   const isRelocation = state.player.inventory.superchargerPlaced;
+  console.log('[placeSupercharger] isRelocation =', isRelocation);
 
   // If relocating, place instantly. If first time, go through construction.
   const newGrid = grid.map((row, y) =>

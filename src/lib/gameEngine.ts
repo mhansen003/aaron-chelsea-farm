@@ -583,6 +583,13 @@ export function createInitialState(): GameState {
         rice: true,
         corn: true,
       },
+      farmerAuto: {
+        autoPlant: true,
+        autoPlantCrop: 'carrot',
+        autoWater: true,
+        autoHarvest: true,
+        autoSell: true,
+      },
     },
     tools: [
       {
@@ -843,6 +850,16 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       // Set player position to warehouse so they walk there
       newState.player.x = warehousePos.x;
       newState.player.y = warehousePos.y;
+    }
+  }
+
+  // FARMER AUTOMATION: Generate automated tasks when farmer is idle
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0) {
+    const autoTasks = generateFarmerAutoTasks(newState, currentZone);
+    if (autoTasks.length > 0) {
+      // Add the first task as current, rest go to queue
+      currentZone.currentTask = autoTasks[0];
+      currentZone.taskQueue = [...autoTasks.slice(1)];
     }
   }
 
@@ -2489,6 +2506,139 @@ export function toggleAutoBuy(state: GameState, cropType: Exclude<CropType, null
       },
     },
   };
+}
+
+// Generate automated farmer tasks based on player's automation settings
+function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
+  const tasks: Task[] = [];
+  const { farmerAuto, basket, basketCapacity, inventory } = state.player;
+  const grid = zone.grid;
+
+  // Priority 1: Auto Sell (if basket has items and we're near export building)
+  if (farmerAuto.autoSell && basket.length > 0) {
+    const exportPos = findExportTile(state);
+    if (exportPos) {
+      // Check if farmer is close to export (within 3 tiles)
+      const distance = Math.abs(state.player.x - exportPos.x) + Math.abs(state.player.y - exportPos.y);
+      if (distance <= 3) {
+        tasks.push({
+          id: `auto-sell-${Date.now()}`,
+          type: 'deposit',
+          tileX: exportPos.x,
+          tileY: exportPos.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit,
+        });
+        return tasks; // Return immediately - selling is highest priority
+      }
+    }
+  }
+
+  // Priority 2: Auto Harvest (if basket not full and there are grown crops nearby)
+  if (farmerAuto.autoHarvest && basket.length < basketCapacity) {
+    const harvestableTiles: Array<{ x: number; y: number; dist: number }> = [];
+    grid.forEach((row, y) => {
+      row.forEach((tile, x) => {
+        if (tile.type === 'grown') {
+          const dist = Math.abs(state.player.x - x) + Math.abs(state.player.y - y);
+          harvestableTiles.push({ x, y, dist });
+        }
+      });
+    });
+
+    // Sort by distance and take closest tiles
+    harvestableTiles.sort((a, b) => a.dist - b.dist);
+    const nearbyHarvestable = harvestableTiles.slice(0, Math.min(5, basketCapacity - basket.length));
+
+    nearbyHarvestable.forEach(tile => {
+      tasks.push({
+        id: `auto-harvest-${tile.x}-${tile.y}-${Date.now()}`,
+        type: 'harvest',
+        tileX: tile.x,
+        tileY: tile.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.harvest,
+      });
+    });
+
+    if (tasks.length > 0) return tasks;
+  }
+
+  // Priority 3: Auto Water (water planted crops that need watering)
+  if (farmerAuto.autoWater) {
+    const unwateredTiles: Array<{ x: number; y: number; dist: number }> = [];
+    grid.forEach((row, y) => {
+      row.forEach((tile, x) => {
+        if (tile.type === 'planted' && !tile.wateredToday) {
+          const dist = Math.abs(state.player.x - x) + Math.abs(state.player.y - y);
+          unwateredTiles.push({ x, y, dist });
+        }
+      });
+    });
+
+    // Sort by distance and take closest tiles
+    unwateredTiles.sort((a, b) => a.dist - b.dist);
+    const nearbyUnwatered = unwateredTiles.slice(0, 10);
+
+    nearbyUnwatered.forEach(tile => {
+      tasks.push({
+        id: `auto-water-${tile.x}-${tile.y}-${Date.now()}`,
+        type: 'water',
+        tileX: tile.x,
+        tileY: tile.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.water,
+      });
+    });
+
+    if (tasks.length > 0) return tasks;
+  }
+
+  // Priority 4: Auto Plant (plant seeds on empty cleared dirt/grass)
+  if (farmerAuto.autoPlant && inventory.seeds[farmerAuto.autoPlantCrop] > 0) {
+    const plantableTiles: Array<{ x: number; y: number; dist: number }> = [];
+    grid.forEach((row, y) => {
+      row.forEach((tile, x) => {
+        const isPlantable =
+          (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) &&
+          !tile.crop &&
+          !tile.hasSprinkler &&
+          !tile.isConstructing;
+        if (isPlantable) {
+          const dist = Math.abs(state.player.x - x) + Math.abs(state.player.y - y);
+          plantableTiles.push({ x, y, dist });
+        }
+      });
+    });
+
+    // Sort by distance and take closest tiles (limit to available seeds)
+    plantableTiles.sort((a, b) => a.dist - b.dist);
+    const nearbyPlantable = plantableTiles.slice(0, Math.min(10, inventory.seeds[farmerAuto.autoPlantCrop]));
+
+    nearbyPlantable.forEach(tile => {
+      tasks.push({
+        id: `auto-plant-${tile.x}-${tile.y}-${Date.now()}`,
+        type: 'plant',
+        tileX: tile.x,
+        tileY: tile.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        cropType: farmerAuto.autoPlantCrop,
+        progress: 0,
+        duration: TASK_DURATIONS.plant,
+      });
+    });
+
+    if (tasks.length > 0) return tasks;
+  }
+
+  return tasks;
 }
 
 export function checkAndAutoRefill(state: GameState): GameState {

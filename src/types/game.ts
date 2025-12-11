@@ -119,6 +119,13 @@ export interface Player {
     rice: boolean;
     corn: boolean;
   };
+  farmerAuto: {
+    autoPlant: boolean;
+    autoPlantCrop: Exclude<CropType, null>; // Which crop to auto-plant
+    autoWater: boolean;
+    autoHarvest: boolean;
+    autoSell: boolean;
+  };
 }
 
 export interface CropGrowthInfo {

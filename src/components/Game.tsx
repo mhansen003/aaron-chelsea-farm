@@ -3156,6 +3156,131 @@ export default function Game() {
             </div>
           </div>
         )}
+
+        {/* Farmer Automation Controls */}
+        <div className="bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
+          <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
+          <div className="space-y-1.5">
+            {/* Auto Plant */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoPlant}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoPlant: !prev.player.farmerAuto.autoPlant,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Plant</span>
+            </label>
+            {/* Crop Selector for Auto Plant */}
+            {gameState.player.farmerAuto.autoPlant && (
+              <select
+                value={gameState.player.farmerAuto.autoPlantCrop}
+                onChange={(e) => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoPlantCrop: e.target.value as Exclude<CropType, null>,
+                      },
+                    },
+                  }));
+                }}
+                className="w-full text-xs bg-gray-800 text-white border border-gray-600 rounded px-1 py-0.5 ml-5"
+              >
+                <option value="carrot">🥕 Carrot</option>
+                <option value="wheat">🌾 Wheat</option>
+                <option value="tomato">🍅 Tomato</option>
+                <option value="pumpkin">🎃 Pumpkin</option>
+                <option value="watermelon">🍉 Watermelon</option>
+                <option value="peppers">🌶️ Peppers</option>
+                <option value="grapes">🍇 Grapes</option>
+                <option value="oranges">🍊 Oranges</option>
+                <option value="avocado">🥑 Avocado</option>
+                <option value="rice">🍚 Rice</option>
+                <option value="corn">🌽 Corn</option>
+              </select>
+            )}
+
+            {/* Auto Water */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoWater}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoWater: !prev.player.farmerAuto.autoWater,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Water</span>
+            </label>
+
+            {/* Auto Harvest */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoHarvest}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoHarvest: !prev.player.farmerAuto.autoHarvest,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Harvest</span>
+            </label>
+
+            {/* Auto Sell */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoSell}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoSell: !prev.player.farmerAuto.autoSell,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Sell</span>
+            </label>
+          </div>
+        </div>
       </div>
 
       {/* Main Game Area */}

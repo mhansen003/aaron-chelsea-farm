@@ -148,6 +148,17 @@ function migrateGameState(gameState: any): GameState {
     if (gameState.player.autoBuy.corn === undefined) gameState.player.autoBuy.corn = true;
   }
 
+  // Initialize farmerAuto if it doesn't exist (backward compatibility)
+  if (!gameState.player.farmerAuto) {
+    gameState.player.farmerAuto = {
+      autoPlant: true,
+      autoPlantCrop: 'carrot',
+      autoWater: true,
+      autoHarvest: true,
+      autoSell: true,
+    };
+  }
+
   // Initialize building placement flags if missing
   if (gameState.player?.inventory) {
     if (gameState.player.inventory.superchargerPlaced === undefined) gameState.player.inventory.superchargerPlaced = false;

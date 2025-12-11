@@ -4353,8 +4353,18 @@ export default function Game() {
 
           return <>
           {/* Water Robot Section */}
-          {(waterBots?.length ?? 0) > 0 && (
-            <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-2 shadow-lg hover:shadow-cyan-500/30 hover:border-cyan-400 transition-all">
+          {(waterBots?.length ?? 0) > 0 && (() => {
+            // Check if any bot is low on water and if there's a well
+            const hasLowWaterBot = waterBots?.some(bot => bot.waterLevel <= 3);
+            const hasWell = grid.some(row => row.some(tile => tile.type === 'well'));
+            const needsWell = hasLowWaterBot && !hasWell;
+
+            return (
+            <div className={`bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border rounded-lg p-2 shadow-lg transition-all ${
+              needsWell
+                ? 'border-red-500 shadow-red-500/50 animate-pulse'
+                : 'border-cyan-500/60 hover:shadow-cyan-500/30 hover:border-cyan-400'
+            }`}>
               <div
                 className="text-xs text-cyan-300 font-bold mb-1.5 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/40 rounded px-1.5 py-1 transition-colors group"
                 onClick={() => setShowBotInfoModal('water')}
@@ -4398,8 +4408,17 @@ export default function Game() {
                   );
                 })}
               </div>
+
+              {/* Warning message when bots need well */}
+              {needsWell && (
+                <div className="mt-2 bg-red-900/40 border border-red-500 rounded px-2 py-1.5 text-xs text-red-200">
+                  <div className="font-bold mb-0.5">⚠️ No Well Available!</div>
+                  <div className="text-[10px]">Build a well so bots can refill water</div>
+                </div>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           {/* Harvest Robot Section */}
           {(harvestBots?.length ?? 0) > 0 && (

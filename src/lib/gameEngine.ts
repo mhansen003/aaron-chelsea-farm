@@ -3336,12 +3336,12 @@ export function depositToWarehouse(state: GameState): GameState {
     const newSalesHistory = [...(state.salesHistory || []), ...salesRecords].slice(-100);
 
     // Record zone earnings
-    let updatedState = {
+    let updatedState: GameState = {
       ...state,
       player: {
         ...state.player,
         money: state.player.money + totalEarnings,
-        basket: [], // Empty basket after selling
+        basket: [] as BasketItem[], // Empty basket after selling
       },
       cropsSold: updatedCropsSold,
       salesHistory: newSalesHistory,

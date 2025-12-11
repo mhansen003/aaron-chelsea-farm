@@ -171,63 +171,9 @@ function migrateGameState(gameState: any): GameState {
     if (gameState.market.epicPriceEndTime === undefined) gameState.market.epicPriceEndTime = 0;
   }
 
-  // Migrate 1x1 buildings to 2x2 (mechanic, well, garage, supercharger)
-  if (gameState.zones) {
-    Object.values(gameState.zones).forEach((zone: any) => {
-      if (!zone.grid) return;
-
-      const buildingTypes = ['mechanic', 'well', 'garage', 'supercharger'];
-
-      zone.grid.forEach((row: any[], y: number) => {
-        row.forEach((tile: any, x: number) => {
-          if (!buildingTypes.includes(tile.type)) return;
-
-          const buildingType = tile.type;
-
-          // Check if this is already part of a 2x2 building
-          const isPartOf2x2 = (
-            (x + 1 < row.length && y + 1 < zone.grid.length &&
-              zone.grid[y][x + 1]?.type === buildingType &&
-              zone.grid[y + 1][x]?.type === buildingType &&
-              zone.grid[y + 1][x + 1]?.type === buildingType) ||
-            (x > 0 && y > 0 &&
-              zone.grid[y - 1][x - 1]?.type === buildingType &&
-              zone.grid[y - 1][x]?.type === buildingType &&
-              zone.grid[y][x - 1]?.type === buildingType) ||
-            (x > 0 && y + 1 < zone.grid.length &&
-              zone.grid[y][x - 1]?.type === buildingType &&
-              zone.grid[y + 1][x - 1]?.type === buildingType &&
-              zone.grid[y + 1][x]?.type === buildingType) ||
-            (x + 1 < row.length && y > 0 &&
-              zone.grid[y - 1][x]?.type === buildingType &&
-              zone.grid[y - 1][x + 1]?.type === buildingType &&
-              zone.grid[y][x + 1]?.type === buildingType)
-          );
-
-          if (!isPartOf2x2) {
-            // This is a 1x1 building, expand it to 2x2 if possible
-            const canExpand = (
-              x + 1 < row.length &&
-              y + 1 < zone.grid.length &&
-              zone.grid[y][x + 1] &&
-              zone.grid[y + 1][x] &&
-              zone.grid[y + 1][x + 1]
-            );
-
-            if (canExpand) {
-              // Expand to 2x2 - force all tiles to be the building type
-              zone.grid[y][x + 1].type = buildingType;
-              zone.grid[y][x + 1].cleared = true;
-              zone.grid[y + 1][x].type = buildingType;
-              zone.grid[y + 1][x].cleared = true;
-              zone.grid[y + 1][x + 1].type = buildingType;
-              zone.grid[y + 1][x + 1].cleared = true;
-            }
-          }
-        });
-      });
-    });
-  }
+  // NOTE: Removed 1x1 to 2x2 migration as it was corrupting properly-placed buildings
+  // All buildings are now placed as 2x2 from the start by the placement functions
+  // This migration was causing a "cascade" effect where repeated refreshes corrupted buildings
 
   return gameState as GameState;
 }

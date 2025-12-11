@@ -47,6 +47,8 @@ import {
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
+  getCurrentSeedCost,
+  getCurrentSellPrice,
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType, Tile, Zone } from '@/types/game';
 import Shop from './Shop';
@@ -3066,202 +3068,292 @@ export default function Game() {
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-orange-400 mb-1">🥕 Carrot</div>
             <div className="space-y-0.5">
-              <div>⏱️ Grows in <span className="text-green-400 font-semibold">1 day</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">$2</span> | Sells: <span className="text-green-400 font-semibold">$5</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">$3</span></div>
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.carrot.daysToGrow} day{CROP_INFO.carrot.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('carrot', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('carrot', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('carrot', gameState.cropsSold) - getCurrentSeedCost('carrot', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'wheat'
-              },
-            }))
-          }
-          title="Wheat - Grows in 1 day | Cost: $1 | Sells for: $3 | Profit: $2"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'wheat'
-              ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/wheat.png" alt="Wheat" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.wheat}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'tomato'
-              },
-            }))
-          }
-          title="Tomato - Grows in 2 days | Cost: $4 | Sells for: $8 | Profit: $4"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'tomato'
-              ? 'bg-red-600 ring-2 ring-red-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/tomato.png" alt="Tomato" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.tomato}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'pumpkin'
-              },
-            }))
-          }
-          title="Pumpkin - Grows in 2 days | Cost: $6 | Sells for: $12 | Profit: $6"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'pumpkin'
-              ? 'bg-orange-500 ring-2 ring-orange-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/pumpkin.png" alt="Pumpkin" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'watermelon'
-              },
-            }))
-          }
-          title="Watermelon - Grows in 2 days | Cost: $8 | Sells for: $15 | Profit: $7"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'watermelon'
-              ? 'bg-green-500 ring-2 ring-green-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/watermelon.png" alt="Watermelon" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.watermelon}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'peppers'
-              },
-            }))
-          }
-          title="Peppers - Grows in 1 day | Cost: $3 | Sells for: $6 | Profit: $3"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'peppers'
-              ? 'bg-red-500 ring-2 ring-red-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/peppers.png" alt="Peppers" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.peppers}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'grapes'
-              },
-            }))
-          }
-          title="Grapes - Grows in 2 days | Cost: $5 | Sells for: $10 | Profit: $5"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'grapes'
-              ? 'bg-purple-600 ring-2 ring-purple-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/grapes.png" alt="Grapes" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.grapes}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'oranges'
-              },
-            }))
-          }
-          title="Oranges - Grows in 3 days | Cost: $7 | Sells for: $14 | Profit: $7"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'oranges'
-              ? 'bg-orange-400 ring-2 ring-orange-200 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/oranges.png" alt="Oranges" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.oranges}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'avocado'
-              },
-            }))
-          }
-          title="Avocado - Grows in 3 days | Cost: $10 | Sells for: $18 | Profit: $8"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'avocado'
-              ? 'bg-green-600 ring-2 ring-green-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/avocado.png" alt="Avocado" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.avocado}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'rice'
-              },
-            }))
-          }
-          title="Rice - Grows in 2 days | Cost: $3 | Sells for: $7 | Profit: $4"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'rice'
-              ? 'bg-gray-400 ring-2 ring-gray-200 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/rice.png" alt="Rice" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.rice}</span>
-        </button>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'corn'
-              },
-            }))
-          }
-          title="Corn - Grows in 2 days | Cost: $4 | Sells for: $9 | Profit: $5"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'corn'
-              ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/corn.png" alt="Corn" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.corn}</span>
-        </button>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'wheat'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'wheat'
+                ? 'bg-yellow-600 ring-2 ring-yellow-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/wheat.png" alt="Wheat" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.wheat}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-yellow-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-yellow-400 mb-1">🌾 Wheat</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.wheat.daysToGrow} day{CROP_INFO.wheat.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('wheat', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('wheat', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('wheat', gameState.cropsSold) - getCurrentSeedCost('wheat', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'tomato'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'tomato'
+                ? 'bg-red-600 ring-2 ring-red-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/tomato.png" alt="Tomato" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.tomato}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-red-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-red-400 mb-1">🍅 Tomato</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.tomato.daysToGrow} day{CROP_INFO.tomato.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('tomato', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('tomato', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('tomato', gameState.cropsSold) - getCurrentSeedCost('tomato', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'pumpkin'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'pumpkin'
+                ? 'bg-orange-500 ring-2 ring-orange-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/pumpkin.png" alt="Pumpkin" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-orange-400 mb-1">🎃 Pumpkin</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.pumpkin.daysToGrow} day{CROP_INFO.pumpkin.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('pumpkin', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('pumpkin', gameState.cropsSold) - getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'watermelon'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'watermelon'
+                ? 'bg-green-500 ring-2 ring-green-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/watermelon.png" alt="Watermelon" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-green-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-green-400 mb-1">🍉 Watermelon</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.watermelon.daysToGrow} day{CROP_INFO.watermelon.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('watermelon', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('watermelon', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('watermelon', gameState.cropsSold) - getCurrentSeedCost('watermelon', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'peppers'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'peppers'
+                ? 'bg-red-500 ring-2 ring-red-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/peppers.png" alt="Peppers" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.peppers}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-red-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-red-400 mb-1">🌶️ Peppers</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.peppers.daysToGrow} day{CROP_INFO.peppers.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('peppers', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('peppers', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('peppers', gameState.cropsSold) - getCurrentSeedCost('peppers', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'grapes'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'grapes'
+                ? 'bg-purple-600 ring-2 ring-purple-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/grapes.png" alt="Grapes" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.grapes}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-purple-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-purple-400 mb-1">🍇 Grapes</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.grapes.daysToGrow} day{CROP_INFO.grapes.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('grapes', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('grapes', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('grapes', gameState.cropsSold) - getCurrentSeedCost('grapes', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'oranges'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'oranges'
+                ? 'bg-orange-400 ring-2 ring-orange-200 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/oranges.png" alt="Oranges" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.oranges}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-400/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-orange-300 mb-1">🍊 Oranges</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.oranges.daysToGrow} day{CROP_INFO.oranges.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('oranges', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('oranges', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('oranges', gameState.cropsSold) - getCurrentSeedCost('oranges', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'avocado'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'avocado'
+                ? 'bg-green-600 ring-2 ring-green-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/avocado.png" alt="Avocado" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.avocado}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-green-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-green-400 mb-1">🥑 Avocado</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.avocado.daysToGrow} day{CROP_INFO.avocado.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('avocado', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('avocado', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('avocado', gameState.cropsSold) - getCurrentSeedCost('avocado', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'rice'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'rice'
+                ? 'bg-gray-400 ring-2 ring-gray-200 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/rice.png" alt="Rice" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.rice}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-gray-400/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-gray-300 mb-1">🍚 Rice</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.rice.daysToGrow} day{CROP_INFO.rice.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('rice', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('rice', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('rice', gameState.cropsSold) - getCurrentSeedCost('rice', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'corn'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'corn'
+                ? 'bg-yellow-500 ring-2 ring-yellow-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/corn.png" alt="Corn" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.corn}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-yellow-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-yellow-300 mb-1">🌽 Corn</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.corn.daysToGrow} day{CROP_INFO.corn.daysToGrow !== 1 ? 's' : ''}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('corn', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('corn', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('corn', gameState.cropsSold) - getCurrentSeedCost('corn', gameState.cropsSold)}</span></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}

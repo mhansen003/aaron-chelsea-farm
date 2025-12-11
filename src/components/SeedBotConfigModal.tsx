@@ -124,7 +124,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
           </div>
 
           <p className="text-sm text-gray-300 mb-4">
-            Configure up to 3 planting jobs. Each job can plant up to 10 tiles of a specific crop type. Color-coded tiles help you track which job each tile belongs to.
+            Configure up to 3 planting jobs. Each job can plant up to 10 tiles of a specific crop. Select tiles directly on the map to assign planting locations.
           </p>
 
           {/* Auto-Buy Seeds Toggle */}
@@ -142,38 +142,52 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
             </label>
           </div>
 
-          {/* Jobs List */}
-          <div className="space-y-4 mb-4">
+          {/* Jobs List - Simple Card View */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             {jobs.map((job, idx) => {
               const jobColor = JOB_COLORS[idx % JOB_COLORS.length];
               const tilePercent = (job.targetTiles.length / job.maxTiles) * 100;
+              const cropInfo = CROP_INFO[job.cropType as keyof typeof CROP_INFO];
 
               return (
-                <div key={job.id} className={`bg-gradient-to-br from-green-800/50 to-green-900/50 border-2 ${jobColor.border} rounded-lg p-4 shadow-lg`}>
-                  {/* Header */}
+                <div key={job.id} className={`bg-gradient-to-br from-green-800/40 to-green-900/40 border-2 ${jobColor.border} rounded-lg p-4 hover:shadow-xl transition-shadow`}>
+                  {/* Header with crop emoji */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className={`w-4 h-4 ${jobColor.bg} rounded-full`}></div>
-                      <h3 className={`text-xl font-bold ${jobColor.text}`}>Job #{idx + 1}</h3>
-                      <span className="text-2xl">{CROP_INFO[job.cropType as keyof typeof CROP_INFO].emoji}</span>
+                      <span className="text-3xl">{cropInfo.emoji}</span>
+                      <h3 className={`text-lg font-bold ${jobColor.text}`}>Job {idx + 1}</h3>
                     </div>
                     <button
                       onClick={() => removeJob(job.id)}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded font-bold text-sm transition-colors"
+                      className="text-red-400 hover:text-red-300 text-xl transition-colors"
+                      title="Remove job"
                     >
-                      ✕ Remove Job
+                      ✕
                     </button>
                   </div>
 
-                  {/* Tile Progress Bar */}
+                  {/* Crop Selection */}
+                  <select
+                    value={job.cropType}
+                    onChange={(e) => updateJobCrop(job.id, e.target.value as Exclude<CropType, null>)}
+                    className="w-full px-3 py-2 bg-black/40 border border-green-600 rounded text-white mb-3 hover:bg-black/60 transition-colors text-sm"
+                  >
+                    {Object.entries(CROP_INFO).map(([key, info]) => (
+                      <option key={key} value={key}>
+                        {info.emoji} {info.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Tile Count Display */}
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="font-semibold">Tiles Configured</span>
+                      <span className="text-gray-300">Tiles</span>
                       <span className={`font-bold ${tilePercent === 100 ? 'text-yellow-400' : jobColor.text}`}>
                         {job.targetTiles.length}/{job.maxTiles}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-900/60 rounded-full h-3 overflow-hidden border border-gray-700">
+                    <div className="w-full bg-gray-900/60 rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full ${jobColor.bg} transition-all duration-300`}
                         style={{ width: `${tilePercent}%` }}
@@ -181,81 +195,23 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
                     </div>
                   </div>
 
-                  {/* Crop Selection and Actions */}
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    {/* Crop Selection */}
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-gray-300">Crop Type:</label>
-                      <select
-                        value={job.cropType}
-                        onChange={(e) => updateJobCrop(job.id, e.target.value as Exclude<CropType, null>)}
-                        className="w-full px-3 py-2 bg-black/40 border border-green-600 rounded text-white hover:bg-black/60 transition-colors"
-                      >
-                        {Object.entries(CROP_INFO).map(([key, info]) => (
-                          <option key={key} value={key}>
-                            {info.emoji} {info.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Tile Selection Button */}
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-gray-300">Tile Selection:</label>
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => handleSelectTiles(job.id, job.cropType)}
+                      className={`w-full px-3 py-2 ${jobColor.bg} hover:opacity-90 rounded font-bold text-sm transition-all`}
+                    >
+                      📍 Select Tiles
+                    </button>
+                    {job.targetTiles.length > 0 && (
                       <button
-                        onClick={() => handleSelectTiles(job.id, job.cropType)}
-                        className={`w-full px-3 py-2 ${jobColor.bg} hover:opacity-90 rounded font-bold transition-all shadow-md`}
+                        onClick={() => clearAllTilesFromJob(job.id)}
+                        className="w-full px-3 py-1.5 bg-red-600/60 hover:bg-red-600 rounded text-xs transition-colors"
                       >
-                        📍 Select on Map
+                        Clear All Tiles
                       </button>
-                    </div>
+                    )}
                   </div>
-
-                  {/* Visual Tile Display */}
-                  {job.targetTiles.length > 0 && (
-                    <div className={`mt-3 ${jobColor.light} border ${jobColor.border} rounded-lg p-3`}>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-semibold text-gray-200">Selected Tiles:</span>
-                        <button
-                          onClick={() => clearAllTilesFromJob(job.id)}
-                          className="text-xs px-2 py-1 bg-red-600/80 hover:bg-red-600 rounded transition-colors"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-                        {job.targetTiles.map((tile, i) => (
-                          <div
-                            key={i}
-                            className={`group relative ${jobColor.bg} px-2 py-1 rounded text-xs font-mono flex items-center gap-1 hover:opacity-75 transition-opacity`}
-                          >
-                            <span>({tile.x},{tile.y})</span>
-                            <button
-                              onClick={() => removeTileFromJob(job.id, i)}
-                              className="opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-100 font-bold transition-opacity"
-                              title="Remove this tile"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      {job.targetTiles.length > job.maxTiles && (
-                        <div className="mt-2 text-xs text-yellow-400">
-                          ⚠️ Warning: {job.targetTiles.length - job.maxTiles} tiles over limit
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Empty State */}
-                  {job.targetTiles.length === 0 && (
-                    <div className="mt-3 bg-black/20 border border-dashed border-gray-600 rounded-lg p-4 text-center text-gray-400">
-                      <div className="text-3xl mb-2">📍</div>
-                      <div className="text-sm">No tiles selected yet</div>
-                      <div className="text-xs mt-1">Click "Select on Map" to choose planting locations</div>
-                    </div>
-                  )}
                 </div>
               );
             })}

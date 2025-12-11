@@ -1112,7 +1112,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               updatedGrid = updatedGrid.map((row, rowY) =>
                 row.map((tile, tileX) => {
                   if (tileX === nearest.x && rowY === nearest.y) {
-                    return { ...tile, wateredToday: true, wateredTimestamp: tile.wateredTimestamp ?? newGameTime };
+                    return { ...tile, wateredToday: true, wateredTimestamp: newGameTime }; // Always use current time, don't reuse old timestamps
                   }
                   return tile;
                 })
@@ -1408,7 +1408,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 updatedGrid = updatedGrid.map((row, rowY) =>
                   row.map((t, tileX) => {
                     if (tileX === nearest.x && rowY === nearest.y) {
-                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (900000 + Math.random() * 900000) };
+                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, wateredTimestamp: undefined, wateredToday: false, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (900000 + Math.random() * 900000) };
                     }
                     return t;
                   })
@@ -2236,6 +2236,8 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           crop: null,
           growthStage: 0,
           plantedDay: undefined,
+          wateredTimestamp: undefined, // Clear old timestamp to prevent reuse on next crop
+          wateredToday: false, // Reset watering status
           lastWorkedTime: state.gameTime,
           overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
         };

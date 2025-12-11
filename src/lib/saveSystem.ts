@@ -1,4 +1,4 @@
-import { GameState, Tile } from '@/types/game';
+import { GameState, Tile, Zone } from '@/types/game';
 
 interface SaveCodeHistory {
   code: string;
@@ -178,7 +178,7 @@ function migrateGameState(gameState: any): GameState {
 
   // Migrate 'mechanic' tile types to 'botFactory' in all zones
   if (gameState.zones) {
-    Object.values(gameState.zones).forEach(zone => {
+    Object.values(gameState.zones).forEach((zone: Zone) => {
       if (zone.grid) {
         zone.grid.forEach(row => {
           row.forEach(tile => {

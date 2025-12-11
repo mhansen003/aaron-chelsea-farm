@@ -3296,21 +3296,40 @@ export default function Game() {
           <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 flex-1 flex flex-col min-h-0">
             <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
             <div className="space-y-1 overflow-y-auto flex-1">
-              {currentZone.taskQueue.map((task, idx) => (
-                <div key={task.id} className="text-sm flex items-center gap-1">
-                  <span className="text-gray-400">{idx + 1}.</span>
-                  {task.type === 'clear' ? '⛏️' :
-                   task.type === 'plant' ? '🌱' :
-                   task.type === 'water' ? '💧' :
-                   task.type === 'harvest' ? '🌾' :
-                   task.type === 'place_sprinkler' ? '💦' :
-                   task.type === 'place_mechanic' ? '⚙️' :
-                   task.type === 'place_well' ? '🪣' :
-                   task.type === 'deposit' ? '📦' :
-                   '🔨'}
-                  <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
-                </div>
-              ))}
+              {currentZone.taskQueue.map((task, idx) => {
+                // Get crop-specific icon for plant tasks
+                let icon = '🔨'; // Default
+                if (task.type === 'clear') icon = '⛏️';
+                else if (task.type === 'plant') {
+                  // Show specific crop icon based on cropType
+                  if (task.cropType === 'carrot') icon = '🥕';
+                  else if (task.cropType === 'wheat') icon = '🌾';
+                  else if (task.cropType === 'tomato') icon = '🍅';
+                  else if (task.cropType === 'pumpkin') icon = '🎃';
+                  else if (task.cropType === 'watermelon') icon = '🍉';
+                  else if (task.cropType === 'peppers') icon = '🌶️';
+                  else if (task.cropType === 'grapes') icon = '🍇';
+                  else if (task.cropType === 'oranges') icon = '🍊';
+                  else if (task.cropType === 'avocado') icon = '🥑';
+                  else if (task.cropType === 'rice') icon = '🍚';
+                  else if (task.cropType === 'corn') icon = '🌽';
+                  else icon = '🌱'; // Fallback
+                }
+                else if (task.type === 'water') icon = '💧';
+                else if (task.type === 'harvest') icon = '🌾';
+                else if (task.type === 'place_sprinkler') icon = '💦';
+                else if (task.type === 'place_mechanic') icon = '⚙️';
+                else if (task.type === 'place_well') icon = '🪣';
+                else if (task.type === 'deposit') icon = '📦';
+
+                return (
+                  <div key={task.id} className="text-sm flex items-center gap-1">
+                    <span className="text-gray-400">{idx + 1}.</span>
+                    {icon}
+                    <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

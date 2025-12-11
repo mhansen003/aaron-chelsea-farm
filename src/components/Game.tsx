@@ -1077,34 +1077,58 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Draw working icon to show construction in progress
-          ctx.drawImage(
-            workingImageRef.current,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
-          );
 
-          // Draw construction progress bar
-          if (tile.constructionStartTime !== undefined && tile.constructionDuration !== undefined) {
+          // Check if this is a 2x2 building construction (mechanic, well, garage, supercharger)
+          const is2x2Building = tile.constructionTarget === 'mechanic' ||
+                                tile.constructionTarget === 'well' ||
+                                tile.constructionTarget === 'garage' ||
+                                tile.constructionTarget === 'supercharger';
+
+          // For 2x2 buildings, only draw working icon on top-left tile
+          const isTopLeft = is2x2Building &&
+                           x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+                           gridRef[y]?.[x + 1]?.isConstructing &&
+                           gridRef[y + 1]?.[x]?.isConstructing &&
+                           gridRef[y + 1]?.[x + 1]?.isConstructing;
+
+          // Draw working icon (on all tiles for 1x1, only top-left for 2x2)
+          if (!is2x2Building || isTopLeft) {
+            // For 2x2, draw larger working icon across the area
+            const iconSize = is2x2Building ? GAME_CONFIG.tileSize * 2 : GAME_CONFIG.tileSize;
+            ctx.drawImage(
+              workingImageRef.current,
+              px, py, iconSize, iconSize
+            );
+          }
+
+          // Draw construction progress bar (only on top-left for 2x2)
+          if ((!is2x2Building || isTopLeft) && tile.constructionStartTime !== undefined && tile.constructionDuration !== undefined) {
             const elapsedTime = gameState.gameTime - tile.constructionStartTime;
             const progress = Math.min(100, (elapsedTime / tile.constructionDuration) * 100);
 
-            const barHeight = 8;
-            const barY = py + GAME_CONFIG.tileSize - barHeight - 4;
-            const barWidth = GAME_CONFIG.tileSize - 8;
+            const barHeight = 12;
+            const barWidth = is2x2Building ? (GAME_CONFIG.tileSize * 2 - 16) : (GAME_CONFIG.tileSize - 8);
+            const barY = py + (is2x2Building ? GAME_CONFIG.tileSize * 2 : GAME_CONFIG.tileSize) - barHeight - 8;
 
             // Background
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-            ctx.fillRect(px + 4, barY, barWidth, barHeight);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(px + 8, barY, barWidth, barHeight);
 
             // Progress
             const progressWidth = (barWidth * progress) / 100;
             ctx.fillStyle = '#ff9800'; // Orange for construction
-            ctx.fillRect(px + 4, barY, progressWidth, barHeight);
+            ctx.fillRect(px + 8, barY, progressWidth, barHeight);
 
             // Border
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(px + 4, barY, barWidth, barHeight);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(px + 8, barY, barWidth, barHeight);
+
+            // Progress text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${Math.floor(progress)}%`, px + 8 + barWidth / 2, barY + barHeight / 2 + 4);
           }
         } else if (tile.type === 'mechanic' && mechanicImageRef.current) {
           // Draw grass background (on all 4 tiles)

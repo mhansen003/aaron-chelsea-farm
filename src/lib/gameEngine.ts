@@ -99,10 +99,10 @@ export const TASK_DURATIONS = {
 
 // Construction durations in milliseconds (separate from task durations)
 export const CONSTRUCTION_DURATIONS = {
-  mechanic: 60000, // 1 minute to build mechanic shop
-  well: 30000, // 30 seconds to build well
-  garage: 15000, // 15 seconds to build garage
-  supercharger: 20000, // 20 seconds to build supercharger
+  mechanic: 5000, // 5 seconds to build mechanic shop (reduced for testing)
+  well: 5000, // 5 seconds to build well (reduced for testing)
+  garage: 5000, // 5 seconds to build garage (reduced for testing)
+  supercharger: 5000, // 5 seconds to build supercharger (reduced for testing)
 };
 
 // Helper functions for supercharged bot speed calculations

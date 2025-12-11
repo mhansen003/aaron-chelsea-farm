@@ -908,6 +908,10 @@ export default function Game() {
     // Draw grid
     const currentGrid = getCurrentGrid(gameState);
     const gridRef = currentGrid; // Reference for closure capture
+
+    // Find garage position for bot despawn/respawn logic
+    const garagePos = findGaragePosition(currentGrid);
+
     currentGrid.forEach((row, y) => {
       row.forEach((tile, x) => {
         const px = x * GAME_CONFIG.tileSize;
@@ -2002,6 +2006,10 @@ export default function Game() {
     // Draw water bots using visual position for smooth movement
     waterBots?.forEach(bot => {
       if (bot.x !== undefined && bot.y !== undefined) {
+        // Skip rendering if bot is parked in garage (despawned)
+        const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
+        if (isParked) return; // Bot is hidden inside garage
+
         const visualX = bot.visualX ?? bot.x;
         const visualY = bot.visualY ?? bot.y;
         const botPx = visualX * GAME_CONFIG.tileSize;
@@ -2296,11 +2304,31 @@ export default function Game() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
 
-    const mouseX = (e.clientX - rect.left) * scaleX;
-    const mouseY = (e.clientY - rect.top) * scaleY;
+    // Account for object-fit: contain - the canvas may be centered with letterboxing
+    const canvasAspectRatio = canvas.width / canvas.height;
+    const rectAspectRatio = rect.width / rect.height;
+
+    let renderWidth = rect.width;
+    let renderHeight = rect.height;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (rectAspectRatio > canvasAspectRatio) {
+      // Letterboxing on left/right
+      renderWidth = rect.height * canvasAspectRatio;
+      offsetX = (rect.width - renderWidth) / 2;
+    } else {
+      // Letterboxing on top/bottom
+      renderHeight = rect.width / canvasAspectRatio;
+      offsetY = (rect.height - renderHeight) / 2;
+    }
+
+    const scaleX = canvas.width / renderWidth;
+    const scaleY = canvas.height / renderHeight;
+
+    const mouseX = (e.clientX - rect.left - offsetX) * scaleX;
+    const mouseY = (e.clientY - rect.top - offsetY) * scaleY;
 
     const tileX = Math.floor(mouseX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(mouseY / GAME_CONFIG.tileSize);
@@ -2379,11 +2407,31 @@ export default function Game() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
 
-    const clickX = (e.clientX - rect.left) * scaleX;
-    const clickY = (e.clientY - rect.top) * scaleY;
+    // Account for object-fit: contain - the canvas may be centered with letterboxing
+    const canvasAspectRatio = canvas.width / canvas.height;
+    const rectAspectRatio = rect.width / rect.height;
+
+    let renderWidth = rect.width;
+    let renderHeight = rect.height;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (rectAspectRatio > canvasAspectRatio) {
+      // Letterboxing on left/right
+      renderWidth = rect.height * canvasAspectRatio;
+      offsetX = (rect.width - renderWidth) / 2;
+    } else {
+      // Letterboxing on top/bottom
+      renderHeight = rect.width / canvasAspectRatio;
+      offsetY = (rect.height - renderHeight) / 2;
+    }
+
+    const scaleX = canvas.width / renderWidth;
+    const scaleY = canvas.height / renderHeight;
+
+    const clickX = (e.clientX - rect.left - offsetX) * scaleX;
+    const clickY = (e.clientY - rect.top - offsetY) * scaleY;
 
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
@@ -2700,11 +2748,36 @@ export default function Game() {
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!tileSelectionMode || !tileSelectionMode.active) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const tileX = Math.floor((x / rect.width) * GAME_CONFIG.gridWidth);
-    const tileY = Math.floor((y / rect.height) * GAME_CONFIG.gridHeight);
+    const canvas = e.currentTarget;
+    const rect = canvas.getBoundingClientRect();
+
+    // Account for object-fit: contain - the canvas may be centered with letterboxing
+    const canvasAspectRatio = canvas.width / canvas.height;
+    const rectAspectRatio = rect.width / rect.height;
+
+    let renderWidth = rect.width;
+    let renderHeight = rect.height;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (rectAspectRatio > canvasAspectRatio) {
+      // Letterboxing on left/right
+      renderWidth = rect.height * canvasAspectRatio;
+      offsetX = (rect.width - renderWidth) / 2;
+    } else {
+      // Letterboxing on top/bottom
+      renderHeight = rect.width / canvasAspectRatio;
+      offsetY = (rect.height - renderHeight) / 2;
+    }
+
+    const scaleX = canvas.width / renderWidth;
+    const scaleY = canvas.height / renderHeight;
+
+    const mouseX = (e.clientX - rect.left - offsetX) * scaleX;
+    const mouseY = (e.clientY - rect.top - offsetY) * scaleY;
+
+    const tileX = Math.floor(mouseX / GAME_CONFIG.tileSize);
+    const tileY = Math.floor(mouseY / GAME_CONFIG.tileSize);
 
     // Store mouse down position for drag threshold detection
     setMouseDownPos({ x: e.clientX, y: e.clientY });

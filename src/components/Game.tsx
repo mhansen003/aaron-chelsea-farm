@@ -41,7 +41,6 @@ import {
   createZone,
   getZoneKey,
   recordZoneEarnings,
-  migrateBuildingsTo2x2,
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
@@ -117,8 +116,7 @@ export default function Game() {
       // Try new autosave system first
       const autosave = loadFromLocalStorage();
       if (autosave) {
-        // Migrate old 1x1 buildings to 2x2
-        return migrateBuildingsTo2x2(autosave);
+        return autosave;
       }
 
       // Fall back to old save format for migration
@@ -2774,8 +2772,7 @@ export default function Game() {
   const handleContinue = () => {
     const saved = loadFromLocalStorage();
     if (saved) {
-      // Migrate old 1x1 buildings to 2x2
-      setGameState(migrateBuildingsTo2x2(saved));
+      setGameState(saved);
     }
     setShowWelcome(false);
     // Close all modals

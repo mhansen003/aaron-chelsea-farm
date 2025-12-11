@@ -2627,10 +2627,18 @@ export default function Game() {
     }
 
     if (placementMode === 'mechanic') {
-      // Only allow placing mechanic shop on grass tiles
-      if (tile.type === 'grass') {
-        setGameState(prev => placeMechanicShop(prev, tileX, tileY));
+      console.log('Mechanic placement clicked:', { tileX, tileY, tileType: tile.type, cleared: tile.cleared });
+      // Allow placing mechanic shop on grass or cleared dirt tiles (2x2)
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
+        console.log('Attempting to place mechanic shop...');
+        setGameState(prev => {
+          const result = placeMechanicShop(prev, tileX, tileY);
+          console.log('Mechanic shop placement result:', result === prev ? 'FAILED (no change)' : 'SUCCESS');
+          return result;
+        });
         setPlacementMode(null); // Clear placement mode after placing
+      } else {
+        console.log('Invalid tile for mechanic placement');
       }
       return;
     }

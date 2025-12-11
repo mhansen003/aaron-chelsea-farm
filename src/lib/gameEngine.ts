@@ -3063,8 +3063,11 @@ export function buyMechanicShop(state: GameState): GameState {
 export function placeMechanicShop(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
 
+  console.log('[placeMechanicShop] Called:', { tileX, tileY, gridW: GAME_CONFIG.gridWidth, gridH: GAME_CONFIG.gridHeight });
+
   // Check bounds for 2x2 placement
   if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    console.log('[placeMechanicShop] FAILED: Out of bounds');
     return state; // Not enough space
   }
 
@@ -3076,11 +3079,16 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     grid[tileY + 1]?.[tileX + 1],
   ];
 
+  console.log('[placeMechanicShop] Tiles:', tiles.map((t, i) => ({ i, type: t?.type, cleared: t?.cleared })));
+
   const allTilesValid = tiles.every(t =>
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
+  console.log('[placeMechanicShop] Valid?', allTilesValid, 'HasShop?', state.player.inventory.mechanicShop > 0);
+
   if (!allTilesValid || state.player.inventory.mechanicShop <= 0) {
+    console.log('[placeMechanicShop] FAILED: Invalid tiles or no inventory');
     return state;
   }
 

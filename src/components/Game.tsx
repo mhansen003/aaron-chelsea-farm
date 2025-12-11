@@ -4402,6 +4402,14 @@ export default function Game() {
         />
       )}
 
+      {/* Income Modal */}
+      {showIncomeModal && (
+        <IncomeModal
+          gameState={gameState}
+          onClose={() => setShowIncomeModal(false)}
+        />
+      )}
+
       {/* Bot Info Modal */}
       {showBotInfoModal && (
         <BotInfoModal

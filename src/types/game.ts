@@ -285,6 +285,16 @@ export interface MarketData {
   epicPriceEndTime: number; // Game time when epic price event ends
 }
 
+export interface SaleRecord {
+  timestamp: number; // Game time when sale occurred
+  day: number; // Game day number
+  crop: Exclude<CropType, null>; // Crop type sold
+  quantity: number; // How many sold
+  pricePerUnit: number; // Price per unit at time of sale
+  totalRevenue: number; // Total money earned
+  zoneKey?: string; // Which zone the crop was from (if tracked)
+}
+
 export interface GameState {
   zones: Record<string, Zone>; // Key is "x,y"
   currentZone: { x: number; y: number }; // Which zone player is viewing
@@ -304,6 +314,7 @@ export interface GameState {
   cropsSold: Record<Exclude<CropType, null>, number>; // Track how many of each crop has been sold for price progression
   zoneEarnings?: Record<string, ZoneEarnings>; // Track earnings by zone (key is "x,y")
   market?: MarketData; // Dynamic market pricing and seasonal demand
+  salesHistory?: SaleRecord[]; // Detailed history of all sales (last 100 transactions)
 }
 
 export interface GameConfig {

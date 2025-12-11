@@ -2022,8 +2022,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               updatedDemolishBots.push(updatedBot);
               continue;
             } else {
-              // Still clearing - keep existing target
-              const updatedBot = { ...bot, status: 'clearing' as const, visualX, visualY };
+              // Still clearing - keep existing target and preserve timing for progress bar
+              const updatedBot = { ...bot, status: 'clearing' as const, visualX, visualY, actionStartTime: bot.actionStartTime, actionDuration: bot.actionDuration };
               if (updatedBot.targetX !== undefined && updatedBot.targetY !== undefined) {
                 globalClaimedTiles.add(`${updatedBot.targetX},${updatedBot.targetY}`);
               }

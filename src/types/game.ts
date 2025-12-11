@@ -212,7 +212,7 @@ export interface SeedBotJob {
 
 export interface SeedBot {
   id: string; // Unique bot ID
-  jobs: SeedBotJob[]; // Up to 3 jobs (30 total tiles)
+  jobs: SeedBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'planting' | 'traveling';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X

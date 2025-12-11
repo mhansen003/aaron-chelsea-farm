@@ -1870,7 +1870,7 @@ export default function Game() {
             // Show red overlay for deselection
             ctx.fillStyle = 'rgba(239, 68, 68, 0.3)';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-          } else if (tileSelectionMode.selectedTiles.length < 10) {
+          } else if (tileSelectionMode.selectedTiles.length < 20) {
             // Show green overlay for selection
             ctx.fillStyle = 'rgba(34, 197, 94, 0.3)';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -2367,8 +2367,8 @@ export default function Game() {
         if (existingIndex >= 0) {
           // Remove tile if already selected
           newSelectedTiles = tileSelectionMode.selectedTiles.filter((_, i) => i !== existingIndex);
-        } else if (tileSelectionMode.selectedTiles.length < 10) {
-          // Add tile if under limit (10 per job)
+        } else if (tileSelectionMode.selectedTiles.length < 20) {
+          // Add tile if under limit (20 per job)
           newSelectedTiles = [...tileSelectionMode.selectedTiles, tileCoord];
         } else {
           // Already at max, don't add
@@ -3044,25 +3044,34 @@ export default function Game() {
       {/* Seed Selection Bar */}
       <div className="flex gap-2 w-full bg-black/70 p-2 rounded-lg overflow-x-auto">
         <div className="text-white font-bold text-lg flex items-center hidden md:flex">🌱</div>
-        <button
-          onClick={() =>
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                selectedCrop: 'carrot'
-              },
-            }))
-          }
-          title="Carrot - Grows in 1 day | Cost: $2 | Sells for: $5 | Profit: $3"
-          className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
-            gameState.player.selectedCrop === 'carrot'
-              ? 'bg-orange-600 ring-2 ring-orange-300 scale-105 md:scale-110'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          <NextImage src="/carrot.png" alt="Carrot" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.carrot}</span>
-        </button>
+        <div className="relative group">
+          <button
+            onClick={() =>
+              setGameState(prev => ({
+                ...prev,
+                player: {
+                  ...prev.player,
+                  selectedCrop: 'carrot'
+                },
+              }))
+            }
+            className={`px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+              gameState.player.selectedCrop === 'carrot'
+                ? 'bg-orange-600 ring-2 ring-orange-300 scale-105 md:scale-110'
+                : 'bg-gray-700 hover:bg-gray-600'
+            }`}
+          >
+            <NextImage src="/carrot.png" alt="Carrot" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.carrot}</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="font-bold text-orange-400 mb-1">🥕 Carrot</div>
+            <div className="space-y-0.5">
+              <div>⏱️ Grows in <span className="text-green-400 font-semibold">1 day</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">$2</span> | Sells: <span className="text-green-400 font-semibold">$5</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">$3</span></div>
+            </div>
+          </div>
+        </div>
         <button
           onClick={() =>
             setGameState(prev => ({

@@ -281,6 +281,8 @@ export interface MarketData {
   lastForecastTime: number; // Game time when forecast was last generated
   currentSeason: Season; // Current season
   highDemandCrops: Array<Exclude<CropType, null>>; // Crops in high demand this season
+  epicPriceCrop: Exclude<CropType, null> | null; // Crop currently experiencing epic 5x price event
+  epicPriceEndTime: number; // Game time when epic price event ends
 }
 
 export interface GameState {

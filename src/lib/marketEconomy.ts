@@ -69,6 +69,8 @@ export function initializeMarket(gameState: GameState): MarketData {
     lastForecastTime: gameState.gameTime,
     currentSeason,
     highDemandCrops,
+    epicPriceCrop: null,
+    epicPriceEndTime: 0,
   };
 
   // Generate initial 10-cycle forecast
@@ -170,6 +172,21 @@ export function updateMarketPrices(gameState: GameState): GameState {
     'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
   ];
 
+  // Handle epic price events
+  const EPIC_DURATION = 15 * 60 * 1000; // Epic prices last 15 minutes
+
+  // Check if current epic price has ended
+  if (market.epicPriceCrop && gameState.gameTime >= market.epicPriceEndTime) {
+    market.epicPriceCrop = null;
+    market.epicPriceEndTime = 0;
+  }
+
+  // Randomly trigger new epic price event (5% chance per day)
+  if (!market.epicPriceCrop && Math.random() < 0.05) {
+    market.epicPriceCrop = crops[Math.floor(Math.random() * crops.length)];
+    market.epicPriceEndTime = gameState.gameTime + EPIC_DURATION;
+  }
+
   // Update each crop's price multiplier with daily fluctuation
   crops.forEach(crop => {
     const basePrice = CROP_INFO[crop].sellPrice;
@@ -185,8 +202,12 @@ export function updateMarketPrices(gameState: GameState): GameState {
     const isHighDemand = market.highDemandCrops.includes(crop);
     const seasonalBoost = isHighDemand ? 0.5 + (Math.random() * 0.5) : 0; // +50-100%
 
+    // Epic price boost: 5x multiplier for epic crop
+    const isEpicPrice = market.epicPriceCrop === crop;
+    const epicBoost = isEpicPrice ? 4.0 : 0; // +400% (total 5x)
+
     market.priceMultipliers[crop] = newMultiplier;
-    market.currentPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost));
+    market.currentPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));
   });
 
   market.lastUpdateDay = gameState.currentDay;

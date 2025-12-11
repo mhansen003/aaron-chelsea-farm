@@ -165,6 +165,10 @@ function migrateGameState(gameState: any): GameState {
   // Market will be properly initialized on first price update
   if (!gameState.market) {
     gameState.market = undefined; // Will be initialized by updateMarketPrices on first game loop
+  } else {
+    // Add epic price fields to existing market data
+    if (gameState.market.epicPriceCrop === undefined) gameState.market.epicPriceCrop = null;
+    if (gameState.market.epicPriceEndTime === undefined) gameState.market.epicPriceEndTime = 0;
   }
 
   // Migrate 1x1 buildings to 2x2 (mechanic, well, garage, supercharger)

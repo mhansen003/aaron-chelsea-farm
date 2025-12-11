@@ -19,72 +19,21 @@ interface Vendor {
 }
 
 export default function ExportShop({ gameState, onClose, onSellToVendor }: ExportShopProps) {
-  // Generate vendor prices with ±20% variation each time modal opens
-  // Use market prices if available, otherwise fall back to progression prices
-  const vendors: Vendor[] = useMemo(() => {
-    const generatePrice = (crop: Exclude<CropType, null>) => {
-      // Use market price if market system is active, otherwise use progression price
-      const basePrice = gameState.market
+  // Use single market prices (no vendor variation)
+  const marketPrices: Record<Exclude<CropType, null>, number> = useMemo(() => {
+    const crops: Array<Exclude<CropType, null>> = [
+      'carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon',
+      'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
+    ];
+
+    const prices: any = {};
+    crops.forEach(crop => {
+      prices[crop] = gameState.market
         ? getMarketPrice(crop, gameState)
         : getCurrentSellPrice(crop, gameState.cropsSold);
+    });
 
-      const variation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2 (±20%)
-      return Math.round(basePrice * variation);
-    };
-
-    return [
-      {
-        name: 'Village Market',
-        emoji: '🏘️',
-        prices: {
-          carrot: generatePrice('carrot'),
-          wheat: generatePrice('wheat'),
-          tomato: generatePrice('tomato'),
-          pumpkin: generatePrice('pumpkin'),
-          watermelon: generatePrice('watermelon'),
-          peppers: generatePrice('peppers'),
-          grapes: generatePrice('grapes'),
-          oranges: generatePrice('oranges'),
-          avocado: generatePrice('avocado'),
-          rice: generatePrice('rice'),
-          corn: generatePrice('corn'),
-        },
-      },
-      {
-        name: 'City Grocer',
-        emoji: '🏙️',
-        prices: {
-          carrot: generatePrice('carrot'),
-          wheat: generatePrice('wheat'),
-          tomato: generatePrice('tomato'),
-          pumpkin: generatePrice('pumpkin'),
-          watermelon: generatePrice('watermelon'),
-          peppers: generatePrice('peppers'),
-          grapes: generatePrice('grapes'),
-          oranges: generatePrice('oranges'),
-          avocado: generatePrice('avocado'),
-          rice: generatePrice('rice'),
-          corn: generatePrice('corn'),
-        },
-      },
-      {
-        name: 'Premium Restaurant',
-        emoji: '🍽️',
-        prices: {
-          carrot: generatePrice('carrot'),
-          wheat: generatePrice('wheat'),
-          tomato: generatePrice('tomato'),
-          pumpkin: generatePrice('pumpkin'),
-          watermelon: generatePrice('watermelon'),
-          peppers: generatePrice('peppers'),
-          grapes: generatePrice('grapes'),
-          oranges: generatePrice('oranges'),
-          avocado: generatePrice('avocado'),
-          rice: generatePrice('rice'),
-          corn: generatePrice('corn'),
-        },
-      },
-    ];
+    return prices;
   }, [gameState.cropsSold, gameState.market]); // Regenerate when cropsSold or market changes
 
   // Count basket items by crop type
@@ -163,65 +112,72 @@ export default function ExportShop({ gameState, onClose, onSellToVendor }: Expor
           </div>
         ) : (
           <div className="space-y-3 md:space-y-4">
-            {vendors.map((vendor, index) => (
-              <div
-                key={index}
-                className="bg-black/40 p-3 md:p-5 rounded-lg border-2 border-amber-700"
-              >
-                <div className="flex justify-between items-center mb-3 md:mb-4">
-                  <div className="flex items-center gap-2 md:gap-3">
-                    <span className="text-2xl md:text-3xl">{vendor.emoji}</span>
-                    <span className="text-lg md:text-xl font-bold">{vendor.name}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-                  {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => {
-                    const count = totalCounts[crop]; // Use combined basket + warehouse count
-                    const price = vendor.prices[crop];
-                    const totalValue = count * price;
-                    const hasItems = count > 0;
-
-                    return (
-                      <div
-                        key={crop}
-                        className={`p-2 md:p-3 rounded-lg border-2 ${
-                          hasItems
-                            ? 'bg-green-900/30 border-green-600'
-                            : 'bg-gray-800/30 border-gray-600'
-                        }`}
-                      >
-                        <div className="text-center mb-1 md:mb-2">
-                          <Image src={`/${crop}.png`} alt={crop} width={40} height={40} className="object-contain mx-auto mb-1 md:w-12 md:h-12" />
-                          <div className="text-xs md:text-sm font-bold capitalize text-amber-300">
-                            ${price}
-                          </div>
-                        </div>
-                        <div className="text-center mb-1 md:mb-2">
-                          <div className="text-xs text-gray-300">Have: {count}</div>
-                          {hasItems && (
-                            <div className="text-xs md:text-sm font-bold text-green-300">
-                              ${totalValue}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => onSellToVendor(index, crop, price)}
-                          disabled={!hasItems}
-                          className={`w-full px-2 py-1.5 md:px-3 md:py-2 rounded font-bold text-xs md:text-sm ${
-                            hasItems
-                              ? 'bg-green-600 hover:bg-green-700'
-                              : 'bg-gray-600 cursor-not-allowed opacity-50'
-                          }`}
-                        >
-                          Sell
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Market Header */}
+            <div className="flex items-center gap-2 md:gap-3 mb-4">
+              <span className="text-3xl md:text-4xl">🌍</span>
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold">Global Market</h3>
+                <p className="text-xs md:text-sm text-gray-300">Current market prices • {gameState.market?.epicPriceCrop && '⚡ EPIC PRICES ACTIVE!'}</p>
               </div>
-            ))}
+            </div>
+
+            {/* Crop Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+              {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map((crop) => {
+                const count = totalCounts[crop]; // Use combined basket + warehouse count
+                const price = marketPrices[crop];
+                const totalValue = count * price;
+                const hasItems = count > 0;
+                const isEpic = gameState.market?.epicPriceCrop === crop;
+                const isHighDemand = gameState.market?.highDemandCrops.includes(crop);
+
+                return (
+                  <div
+                    key={crop}
+                    className={`p-2 md:p-3 rounded-lg border-2 ${
+                      isEpic
+                        ? 'bg-purple-900/50 border-purple-400 ring-2 ring-purple-400'
+                        : isHighDemand
+                        ? 'bg-yellow-900/30 border-yellow-500'
+                        : hasItems
+                        ? 'bg-green-900/30 border-green-600'
+                        : 'bg-gray-800/30 border-gray-600'
+                    }`}
+                  >
+                    {isEpic && (
+                      <div className="text-center text-xs font-bold text-purple-300 mb-1">⚡ EPIC 5X!</div>
+                    )}
+                    <div className="text-center mb-1 md:mb-2">
+                      <Image src={`/${crop}.png`} alt={crop} width={40} height={40} className="object-contain mx-auto mb-1 md:w-12 md:h-12" />
+                      <div className="text-xs md:text-sm font-bold capitalize text-amber-300">
+                        ${price}
+                      </div>
+                    </div>
+                    <div className="text-center mb-1 md:mb-2">
+                      <div className="text-xs text-gray-300">Have: {count}</div>
+                      {hasItems && (
+                        <div className="text-xs md:text-sm font-bold text-green-300">
+                          = ${totalValue}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => onSellToVendor(0, crop, price)}
+                      disabled={!hasItems}
+                      className={`w-full px-2 py-1.5 md:px-3 md:py-2 rounded font-bold text-xs md:text-sm ${
+                        hasItems
+                          ? isEpic
+                            ? 'bg-purple-600 hover:bg-purple-700'
+                            : 'bg-green-600 hover:bg-green-700'
+                          : 'bg-gray-600 cursor-not-allowed opacity-50'
+                      }`}
+                    >
+                      {hasItems ? 'Sell All' : 'No Stock'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
         </div>

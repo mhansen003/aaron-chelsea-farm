@@ -4364,6 +4364,9 @@ export default function Game() {
           gameState={gameState}
           onClose={() => setShowEconomyModal(false)}
           onUpdateSeedBotJob={(botId, jobId, newCrop) => {
+            console.log('=== onUpdateSeedBotJob CALLED ===');
+            console.log('Received:', { botId, jobId, newCrop });
+
             // Update the game state using the functional setState pattern
             setGameState(prev => {
               // Find the zone containing this bot
@@ -4389,10 +4392,15 @@ export default function Game() {
                 return prev;
               }
 
+              console.log('Found bot in zone:', targetZoneKey);
+              console.log('Bot jobs before update:', bot.jobs.map(j => ({ id: j.id, crop: j.cropType })));
+
               // Update the specific job's crop type
               const updatedJobs = bot.jobs.map(job =>
                 job.id === jobId ? { ...job, cropType: newCrop } : job
               );
+
+              console.log('Updated jobs:', updatedJobs.map(j => ({ id: j.id, crop: j.cropType })));
 
               // Return updated state
               return {

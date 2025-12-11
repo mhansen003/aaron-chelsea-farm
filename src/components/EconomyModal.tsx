@@ -201,9 +201,13 @@ export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }:
   };
 
   const handleSaveChanges = () => {
+    console.log('=== SAVE CHANGES CLICKED ===');
+    console.log('Pending changes:', pendingChanges);
+
     if (onUpdateSeedBotJob) {
       Object.entries(pendingChanges).forEach(([jobKey, newCrop]) => {
         const [botId, jobId] = jobKey.split('-');
+        console.log(`Updating job: botId=${botId}, jobId=${jobId}, newCrop=${newCrop}`);
         onUpdateSeedBotJob(botId, jobId, newCrop);
       });
     }

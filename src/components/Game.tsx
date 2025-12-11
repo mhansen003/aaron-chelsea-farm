@@ -920,13 +920,16 @@ export default function Game() {
 
       // When song ends, play next random song
       const handleSongEnd = () => {
-        const nextIndex = getRandomSongIndex(currentSongIndex, farmSongs.length);
-        setCurrentSongIndex(nextIndex);
+        setCurrentSongIndex(prevIndex => {
+          const nextIndex = getRandomSongIndex(prevIndex, farmSongs.length);
 
-        if (audioRef.current) {
-          audioRef.current.src = farmSongs[nextIndex].file;
-          audioRef.current.play().catch(() => {});
-        }
+          if (audioRef.current) {
+            audioRef.current.src = farmSongs[nextIndex].file;
+            audioRef.current.play().catch(() => {});
+          }
+
+          return nextIndex;
+        });
       };
       audioRef.current.addEventListener('ended', handleSongEnd);
     } else {
@@ -948,7 +951,7 @@ export default function Game() {
       document.addEventListener('click', startAudio, { once: true });
       document.addEventListener('keydown', startAudio, { once: true });
     });
-  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones, getRandomSongIndex, currentSongIndex]);
+  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones, getRandomSongIndex]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
@@ -3564,12 +3567,11 @@ export default function Game() {
 
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
-          {/* Economy Info - Click to open full market modal */}
+          {/* Economy Info - TEMPORARILY DISABLED: Market button causes crash due to module bundling issue */}
           {gameState.market && (
             <div
-              className="flex items-center gap-2 cursor-pointer hover:bg-blue-700 px-2 py-1 rounded transition-colors border border-blue-500"
-              onClick={() => setShowEconomyModal(true)}
-              title="Click to view market economy"
+              className="flex items-center gap-2 px-2 py-1 rounded border border-blue-500 opacity-60"
+              title="Market economy (temporarily disabled)"
             >
               <span>📈</span>
               <div className="flex flex-col">

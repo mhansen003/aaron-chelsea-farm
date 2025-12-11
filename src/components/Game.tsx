@@ -4288,6 +4288,42 @@ export default function Game() {
         <EconomyModal
           gameState={gameState}
           onClose={() => setShowEconomyModal(false)}
+          onUpdateSeedBotJob={(botId, jobId, newCrop) => {
+            // Find the zone containing this bot
+            let botZone: Zone | null = null;
+            let botZoneKey = '';
+            Object.entries(gameState.zones).forEach(([zoneKey, zone]) => {
+              const foundBot = zone.seedBots?.find(b => b.id === botId);
+              if (foundBot) {
+                botZone = zone;
+                botZoneKey = zoneKey;
+              }
+            });
+
+            if (botZone && botZoneKey) {
+              const bot = botZone.seedBots?.find(b => b.id === botId);
+              if (bot) {
+                // Update the specific job's crop type
+                const updatedJobs = bot.jobs.map(job =>
+                  job.id === jobId ? { ...job, cropType: newCrop } : job
+                );
+
+                // Update the game state
+                setGameState(prev => ({
+                  ...prev,
+                  zones: {
+                    ...prev.zones,
+                    [botZoneKey]: {
+                      ...prev.zones[botZoneKey],
+                      seedBots: prev.zones[botZoneKey].seedBots.map(b =>
+                        b.id === botId ? { ...b, jobs: updatedJobs } : b
+                      ),
+                    },
+                  },
+                }));
+              }
+            }
+          }}
         />
       )}
 

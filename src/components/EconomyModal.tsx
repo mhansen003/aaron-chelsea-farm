@@ -2,18 +2,33 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { GameState, CropType } from '@/types/game';
-import { getMarketPrice, getPriceTrend, getNextSeasonForecast } from '@/lib/marketEconomy';
+import { GameState, CropType, SeedBot, SeedBotJob } from '@/types/game';
+import { getMarketPrice, getPriceTrend } from '@/lib/marketEconomy';
 
 interface EconomyModalProps {
   gameState: GameState;
   onClose: () => void;
+  onUpdateSeedBotJob?: (botId: string, jobId: string, newCrop: Exclude<CropType, null>) => void;
 }
 
 const CROP_LIST: Array<Exclude<CropType, null>> = [
   'carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon',
   'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
 ];
+
+const CROP_INFO: Record<Exclude<CropType, null>, { name: string; emoji: string }> = {
+  carrot: { name: 'Carrot', emoji: '🥕' },
+  wheat: { name: 'Wheat', emoji: '🌾' },
+  tomato: { name: 'Tomato', emoji: '🍅' },
+  pumpkin: { name: 'Pumpkin', emoji: '🎃' },
+  watermelon: { name: 'Watermelon', emoji: '🍉' },
+  peppers: { name: 'Peppers', emoji: '🌶️' },
+  grapes: { name: 'Grapes', emoji: '🍇' },
+  oranges: { name: 'Oranges', emoji: '🍊' },
+  avocado: { name: 'Avocado', emoji: '🥑' },
+  rice: { name: 'Rice', emoji: '🍚' },
+  corn: { name: 'Corn', emoji: '🌽' },
+};
 
 const CROP_COLORS: Record<Exclude<CropType, null>, string> = {
   carrot: '#ff6b35',
@@ -29,35 +44,128 @@ const CROP_COLORS: Record<Exclude<CropType, null>, string> = {
   corn: '#ffb703',
 };
 
-const SEASON_COLORS: Record<string, string> = {
-  spring: '#90ee90',
-  summer: '#ffeb3b',
-  fall: '#ff9800',
-  winter: '#64b5f6',
-};
+interface MiniChartProps {
+  crop: Exclude<CropType, null>;
+  gameState: GameState;
+  color: string;
+}
 
-export default function EconomyModal({ gameState, onClose }: EconomyModalProps) {
+function MiniChart({ crop, gameState, color }: MiniChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [visibleCrops, setVisibleCrops] = useState<Record<Exclude<CropType, null>, boolean>>({
-    carrot: true,
-    wheat: true,
-    tomato: true,
-    pumpkin: false,
-    watermelon: false,
-    peppers: false,
-    grapes: false,
-    oranges: false,
-    avocado: false,
-    rice: false,
-    corn: false,
-  });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !gameState.market) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const market = gameState.market;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Combine history and forecast
+    const allData = [...market.priceHistory, ...market.priceForecast];
+    if (allData.length < 2) return;
+
+    // Get price range for this crop
+    const prices = allData.map(snapshot => snapshot.prices[crop]);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceRange = maxPrice - minPrice || 1;
+
+    const historyLength = market.priceHistory.length;
+    const currentIndex = historyLength - 1;
+
+    // Draw historical line (solid)
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+
+    market.priceHistory.forEach((snapshot, index) => {
+      const x = (index / (allData.length - 1)) * width;
+      const price = snapshot.prices[crop];
+      const y = height - ((price - minPrice) / priceRange) * (height - 10) - 5;
+
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw forecast line (dashed)
+    if (market.priceForecast.length > 0) {
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+
+      market.priceForecast.forEach((snapshot, forecastIndex) => {
+        const index = historyLength + forecastIndex;
+        const x = (index / (allData.length - 1)) * width;
+        const price = snapshot.prices[crop];
+        const y = height - ((price - minPrice) / priceRange) * (height - 10) - 5;
+
+        if (forecastIndex === 0) {
+          // Connect to last historical point
+          const lastPrice = market.priceHistory[historyLength - 1].prices[crop];
+          const lastX = ((historyLength - 1) / (allData.length - 1)) * width;
+          const lastY = height - ((lastPrice - minPrice) / priceRange) * (height - 10) - 5;
+          ctx.moveTo(lastX, lastY);
+        }
+        ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+      ctx.setLineDash([]);
+    }
+
+    // Draw current price indicator (vertical line)
+    if (currentIndex >= 0) {
+      const x = (currentIndex / (allData.length - 1)) * width;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+      ctx.globalAlpha = 1.0;
+
+      // Draw dot at current price
+      const currentPrice = market.priceHistory[currentIndex].prices[crop];
+      const y = height - ((currentPrice - minPrice) / priceRange) * (height - 10) - 5;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, [crop, gameState.market, color]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={200}
+      height={60}
+      className="w-full h-full"
+    />
+  );
+}
+
+export default function EconomyModal({ gameState, onClose, onUpdateSeedBotJob }: EconomyModalProps) {
+  const [selectedCrop, setSelectedCrop] = useState<Exclude<CropType, null> | null>(null);
+  const [selectedBot, setSelectedBot] = useState<{ bot: SeedBot; job: SeedBotJob } | null>(null);
 
   // Initialize market if it doesn't exist
   const market = gameState.market;
   if (!market) {
     return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-        <div className="bg-gradient-to-br from-blue-900 to-blue-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full">
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="bg-gradient-to-br from-blue-900 to-blue-950 text-white p-8 rounded-xl max-w-4xl w-full">
           <p className="text-center text-lg">Market system initializing...</p>
           <button
             onClick={onClose}
@@ -70,248 +178,127 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
     );
   }
 
-  const nextSeason = getNextSeasonForecast(gameState.gameTime);
-
-  // Draw price chart
-  useEffect(() => {
-    if (!canvasRef.current || !market) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear canvas
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, width, height);
-
-    // Draw grid
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
-
-    // Horizontal lines
-    for (let i = 0; i <= 5; i++) {
-      const y = (height / 5) * i;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    // Vertical lines
-    for (let i = 0; i <= 10; i++) {
-      const x = (width / 10) * i;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-
-    if (market.priceHistory.length < 2) {
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Price data collecting...', width / 2, height / 2);
-      return;
-    }
-
-    // Combine history and forecast for scaling
-    const allData = [...market.priceHistory, ...market.priceForecast];
-    let minPrice = Infinity;
-    let maxPrice = -Infinity;
-
-    CROP_LIST.forEach(crop => {
-      if (!visibleCrops[crop]) return;
-      allData.forEach(snapshot => {
-        const price = snapshot.prices[crop];
-        if (price < minPrice) minPrice = price;
-        if (price > maxPrice) maxPrice = price;
-      });
+  // Get all seed bots from all zones
+  const allSeedBots: Array<{ bot: SeedBot; zoneName: string; zoneKey: string }> = [];
+  Object.entries(gameState.zones).forEach(([zoneKey, zone]) => {
+    zone.seedBots?.forEach(bot => {
+      allSeedBots.push({ bot, zoneName: zone.name, zoneKey });
     });
+  });
 
-    const priceRange = maxPrice - minPrice || 1;
-    const historyLength = market.priceHistory.length;
-    const totalDataLength = allData.length;
+  const handleCropClick = (crop: Exclude<CropType, null>) => {
+    setSelectedCrop(crop);
+  };
 
-    // Draw price lines for each visible crop
-    CROP_LIST.forEach(crop => {
-      if (!visibleCrops[crop]) return;
-
-      // Draw historical prices (solid line)
-      ctx.strokeStyle = CROP_COLORS[crop];
-      ctx.lineWidth = 2;
-      ctx.setLineDash([]); // Solid line
-      ctx.beginPath();
-
-      market.priceHistory.forEach((snapshot, index) => {
-        const x = (index / (totalDataLength - 1)) * width;
-        const price = snapshot.prices[crop];
-        const y = height - ((price - minPrice) / priceRange) * height;
-
-        if (index === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      });
-
-      ctx.stroke();
-
-      // Draw forecast prices (dotted line)
-      if (market.priceForecast.length > 0) {
-        ctx.strokeStyle = CROP_COLORS[crop];
-        ctx.globalAlpha = 0.6; // Make forecast slightly transparent
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]); // Dotted line
-        ctx.beginPath();
-
-        market.priceForecast.forEach((snapshot, forecastIndex) => {
-          const index = historyLength + forecastIndex;
-          const x = (index / (totalDataLength - 1)) * width;
-          const price = snapshot.prices[crop];
-          const y = height - ((price - minPrice) / priceRange) * height;
-
-          if (forecastIndex === 0 && historyLength > 0) {
-            // Connect to last historical point
-            const lastHistorical = market.priceHistory[historyLength - 1];
-            const lastX = ((historyLength - 1) / (totalDataLength - 1)) * width;
-            const lastPrice = lastHistorical.prices[crop];
-            const lastY = height - ((lastPrice - minPrice) / priceRange) * height;
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        });
-
-        ctx.stroke();
-        ctx.globalAlpha = 1.0; // Reset alpha
-        ctx.setLineDash([]); // Reset line dash
+  const handleAssignJob = (bot: SeedBot, job: SeedBotJob) => {
+    if (selectedCrop && onUpdateSeedBotJob) {
+      const botZone = allSeedBots.find(b => b.bot.id === bot.id);
+      if (botZone) {
+        onUpdateSeedBotJob(bot.id, job.id, selectedCrop);
+        setSelectedCrop(null);
+        setSelectedBot(null);
       }
-    });
-
-    // Draw Y-axis labels
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'right';
-    for (let i = 0; i <= 5; i++) {
-      const price = maxPrice - ((maxPrice - minPrice) / 5) * i;
-      const y = (height / 5) * i;
-      ctx.fillText(`$${Math.round(price)}`, width - 5, y + 4);
     }
-  }, [market, visibleCrops]);
-
-  const toggleCrop = (crop: Exclude<CropType, null>) => {
-    setVisibleCrops(prev => ({ ...prev, [crop]: !prev[crop] }));
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-blue-900 to-blue-950 text-white p-4 md:p-8 rounded-xl max-w-6xl w-full max-h-[95vh] border-2 md:border-4 border-blue-600 flex flex-col">
-        <div className="flex justify-between items-center mb-4 md:mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">📈 Market Economy</h2>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-2 border-blue-500/50 flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-blue-500/30">
+          <div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              📊 Market Analysis
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">Click any crop to assign to seed bot jobs</p>
+          </div>
           <button
             onClick={onClose}
-            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
+            className="text-2xl hover:text-red-400 transition-colors"
           >
             ✕
           </button>
         </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto mb-4">
-        {/* Current Season */}
-        <div className="mb-4 md:mb-6 p-3 md:p-4 rounded-lg border-2" style={{ backgroundColor: SEASON_COLORS[market.currentSeason] + '20', borderColor: SEASON_COLORS[market.currentSeason] }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg md:text-xl font-bold capitalize">{market.currentSeason} Season</h3>
-              <p className="text-sm md:text-base text-gray-200">Day {gameState.currentDay}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs md:text-sm text-gray-300">High Demand:</p>
-              <div className="flex gap-1 md:gap-2 flex-wrap justify-end">
-                {market.highDemandCrops.map(crop => (
-                  <Image key={crop} src={`/${crop}.png`} alt={crop} width={24} height={24} className="md:w-8 md:h-8 object-contain" />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Price Chart */}
-        <div className="mb-4 md:mb-6">
-          <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">Price Trends</h3>
-          <div className="bg-slate-900 p-2 md:p-4 rounded-lg border-2 border-blue-500">
-            <canvas
-              ref={canvasRef}
-              width={800}
-              height={300}
-              className="w-full"
-              style={{ maxHeight: '300px' }}
-            />
-          </div>
-        </div>
-
-        {/* Crop Toggle Buttons */}
-        <div className="mb-4 md:mb-6">
-          <h3 className="text-base md:text-lg font-bold mb-2">Show/Hide Crops:</h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-1 md:gap-2">
-            {CROP_LIST.map(crop => (
-              <button
-                key={crop}
-                onClick={() => toggleCrop(crop)}
-                className={`px-2 md:px-3 py-1 md:py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-1 justify-center transition-all border-2 ${
-                  visibleCrops[crop]
-                    ? 'ring-2 ring-offset-1'
-                    : 'opacity-40 hover:opacity-70'
-                }`}
-                style={{
-                  backgroundColor: CROP_COLORS[crop] + '40',
-                  borderColor: CROP_COLORS[crop],
-                  ['--tw-ring-color' as any]: CROP_COLORS[crop],
-                }}
-              >
-                <Image src={`/${crop}.png`} alt={crop} width={20} height={20} className="object-contain" />
-                <span className="capitalize hidden md:inline">{crop}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Current Prices Table */}
-        <div className="mb-4 md:mb-6">
-          <h3 className="text-lg md:text-xl font-bold mb-2 md:mb-3">Current Market Prices</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Crop Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {CROP_LIST.map(crop => {
               const price = getMarketPrice(crop, gameState);
               const trend = getPriceTrend(crop, market);
               const isHighDemand = market.highDemandCrops.includes(crop);
+              const info = CROP_INFO[crop];
+              const color = CROP_COLORS[crop];
+
+              // Calculate price change from forecast
+              let priceChange = 0;
+              if (market.priceForecast.length > 0 && market.priceHistory.length > 0) {
+                const currentPrice = market.priceHistory[market.priceHistory.length - 1].prices[crop];
+                const futurePrice = market.priceForecast[market.priceForecast.length - 1].prices[crop];
+                priceChange = ((futurePrice - currentPrice) / currentPrice) * 100;
+              }
 
               return (
                 <div
                   key={crop}
-                  className={`bg-slate-800/60 p-2 md:p-3 rounded-lg border-2 ${
-                    isHighDemand ? 'border-yellow-400' : 'border-blue-500/30'
+                  onClick={() => handleCropClick(crop)}
+                  className={`relative bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl border-2 p-4 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl ${
+                    selectedCrop === crop
+                      ? 'border-yellow-400 shadow-lg shadow-yellow-400/30'
+                      : isHighDemand
+                      ? 'border-orange-400/60'
+                      : 'border-slate-700 hover:border-blue-500/60'
                   }`}
+                  style={{
+                    boxShadow: selectedCrop === crop ? `0 0 20px ${color}40` : undefined,
+                  }}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Image src={`/${crop}.png`} alt={crop} width={32} height={32} className="object-contain" />
+                  {/* High Demand Badge */}
+                  {isHighDemand && (
+                    <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-pulse">
+                      🔥 HOT
+                    </div>
+                  )}
+
+                  {/* Crop Header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-4xl">{info.emoji}</div>
                     <div className="flex-1">
-                      <div className="font-bold capitalize text-sm md:text-base">{crop}</div>
-                      {isHighDemand && (
-                        <div className="text-xs text-yellow-400">🔥 High Demand</div>
-                      )}
+                      <div className="font-bold text-lg">{info.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold" style={{ color }}>
+                          ${price}
+                        </span>
+                        <span className="text-xl">
+                          {trend === 'rising' && '📈'}
+                          {trend === 'falling' && '📉'}
+                          {trend === 'stable' && '➡️'}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-lg md:text-xl font-bold text-green-400">${price}</div>
-                    <div className="text-lg md:text-xl">
-                      {trend === 'rising' && '📈'}
-                      {trend === 'falling' && '📉'}
-                      {trend === 'stable' && '➡️'}
-                    </div>
+
+                  {/* Mini Chart */}
+                  <div className="bg-black/30 rounded-lg p-2 mb-3 h-16">
+                    <MiniChart crop={crop} gameState={gameState} color={color} />
+                  </div>
+
+                  {/* Forecast Indicator */}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400">Forecast:</span>
+                    <span
+                      className={`font-bold ${
+                        priceChange > 5
+                          ? 'text-green-400'
+                          : priceChange < -5
+                          ? 'text-red-400'
+                          : 'text-gray-400'
+                      }`}
+                    >
+                      {priceChange > 0 ? '+' : ''}
+                      {priceChange.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               );
@@ -319,32 +306,54 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
           </div>
         </div>
 
-        {/* Next Season Forecast */}
-        <div className="mb-4 p-3 md:p-4 rounded-lg border-2" style={{ backgroundColor: SEASON_COLORS[nextSeason.season] + '15', borderColor: SEASON_COLORS[nextSeason.season] }}>
-          <h3 className="text-base md:text-lg font-bold mb-2">📅 Forecast: Next Season</h3>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm md:text-base capitalize">
-                <span className="font-bold">{nextSeason.season}</span> arrives in {nextSeason.minutesUntil} minutes
-              </p>
-              <p className="text-xs md:text-sm text-gray-300">Prepare to plant high-demand crops!</p>
-            </div>
-            <div className="flex gap-1 md:gap-2">
-              {nextSeason.crops.map(crop => (
-                <Image key={crop} src={`/${crop}.png`} alt={crop} width={28} height={28} className="md:w-10 md:h-10 object-contain" />
-              ))}
-            </div>
-          </div>
-        </div>
-        </div>
+        {/* Footer with Seed Bot Assignment */}
+        <div className="flex-shrink-0 border-t border-blue-500/30 p-4 bg-slate-900/50">
+          {selectedCrop ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{CROP_INFO[selectedCrop].emoji}</span>
+                  <span className="font-bold">Assign {CROP_INFO[selectedCrop].name} to:</span>
+                </div>
+                <button
+                  onClick={() => setSelectedCrop(null)}
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
 
-        {/* Sticky Footer Button */}
-        <button
-          onClick={onClose}
-          className="w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg flex-shrink-0"
-        >
-          Close
-        </button>
+              {allSeedBots.length === 0 ? (
+                <div className="text-center text-gray-400 py-4">
+                  No seed bots available. Purchase seed bots from the Bot Factory!
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+                  {allSeedBots.map(({ bot, zoneName, zoneKey }) => (
+                    bot.jobs.map((job, idx) => (
+                      <button
+                        key={`${bot.id}-${job.id}`}
+                        onClick={() => handleAssignJob(bot, job)}
+                        className="bg-green-700/40 hover:bg-green-600/60 border border-green-500/50 rounded-lg p-2 text-sm transition-all hover:scale-[1.02]"
+                      >
+                        <div className="font-bold">Bot #{allSeedBots.findIndex(b => b.bot.id === bot.id) + 1} - Job {idx + 1}</div>
+                        <div className="text-xs text-gray-300">{zoneName}</div>
+                        <div className="text-xs text-green-300">{job.targetTiles.length} tiles</div>
+                      </button>
+                    ))
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={onClose}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg font-bold text-lg transition-all"
+            >
+              Close Market
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

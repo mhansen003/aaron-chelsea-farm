@@ -2715,6 +2715,7 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
     newBots.push({
       id: botId,
       waterLevel: WATERBOT_MAX_WATER, // Start with full water
+      jobs: [], // Start with no jobs
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,
@@ -2771,6 +2772,7 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
       id: botId,
       inventory: [], // Start with empty inventory
       inventoryCapacity: 8, // Same as player basket capacity
+      jobs: [], // Start with no jobs
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,
@@ -2948,6 +2950,7 @@ export function buyDemolishbots(state: GameState, amount: number): GameState {
     const spawnY = state.player.y;
     newBots.push({
       id: botId,
+      jobs: [], // Start with no jobs
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,

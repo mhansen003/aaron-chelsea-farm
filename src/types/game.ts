@@ -178,10 +178,18 @@ export interface Zone {
   currentTask: Task | null; // Task currently being executed in this zone
 }
 
+export interface WaterBotJob {
+  id: string; // Unique job ID
+  targetTiles: Array<{ x: number; y: number }>; // Tiles to water (max 20)
+  maxTiles: number; // Maximum tiles for this job (20)
+}
+
 export interface WaterBot {
   id: string; // Unique bot ID
   waterLevel: number; // Current water (0-10)
+  jobs: WaterBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'watering' | 'refilling' | 'traveling' | 'garaged';
+  currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X
@@ -194,11 +202,19 @@ export interface WaterBot {
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
+export interface HarvestBotJob {
+  id: string; // Unique job ID
+  targetTiles: Array<{ x: number; y: number }>; // Tiles to harvest (max 20)
+  maxTiles: number; // Maximum tiles for this job (20)
+}
+
 export interface HarvestBot {
   id: string; // Unique bot ID
   inventory: BasketItem[]; // Crops currently held (max 8)
   inventoryCapacity: number; // Max inventory size (8)
+  jobs: HarvestBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'harvesting' | 'depositing' | 'traveling' | 'garaged';
+  currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X
@@ -252,9 +268,17 @@ export interface TransportBot {
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
+export interface DemolishBotJob {
+  id: string; // Unique job ID
+  targetTiles: Array<{ x: number; y: number }>; // Tiles to clear (max 20)
+  maxTiles: number; // Maximum tiles for this job (20)
+}
+
 export interface DemolishBot {
   id: string; // Unique bot ID
+  jobs: DemolishBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'clearing' | 'traveling' | 'garaged';
+  currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
   targetY?: number; // Target tile Y
   x?: number; // Current tile position X

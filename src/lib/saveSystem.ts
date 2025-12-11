@@ -186,6 +186,43 @@ function migrateGameState(gameState: any): GameState {
   // All buildings are now placed as 2x2 from the start by the placement functions
   // This migration was causing a "cascade" effect where repeated refreshes corrupted buildings
 
+  // Migrate bots to have jobs array (backward compatibility)
+  if (gameState.zones) {
+    Object.keys(gameState.zones).forEach(zoneKey => {
+      const zone = gameState.zones[zoneKey];
+
+      // Migrate water bots
+      if (zone.waterBots) {
+        zone.waterBots = zone.waterBots.map((bot: any) => {
+          if (!bot.jobs) {
+            return { ...bot, jobs: [] };
+          }
+          return bot;
+        });
+      }
+
+      // Migrate harvest bots
+      if (zone.harvestBots) {
+        zone.harvestBots = zone.harvestBots.map((bot: any) => {
+          if (!bot.jobs) {
+            return { ...bot, jobs: [] };
+          }
+          return bot;
+        });
+      }
+
+      // Migrate demolish bots
+      if (zone.demolishBots) {
+        zone.demolishBots = zone.demolishBots.map((bot: any) => {
+          if (!bot.jobs) {
+            return { ...bot, jobs: [] };
+          }
+          return bot;
+        });
+      }
+    });
+  }
+
   return gameState as GameState;
 }
 

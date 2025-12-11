@@ -24,28 +24,28 @@ export default function MechanicShop({ gameState, onClose, onBuyWaterbots, onBuy
   const demolishbotCost = getBotCost(DEMOLISHBOT_COST, gameState.player.inventory.demolishbots || 0);
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white p-8 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-4 border-orange-600 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-4xl font-bold">⚙️ Bot Command Center</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white p-4 md:p-8 rounded-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-orange-600 shadow-2xl">
+        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-orange-900 to-orange-950 pb-2 z-10">
+          <h2 className="text-2xl md:text-4xl font-bold">⚙️ Bot Command Center</h2>
           <button
             onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
+            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-6 text-xl font-bold bg-black/40 px-6 py-3 rounded-lg border-2 border-yellow-600/50">
+        <div className="mb-4 md:mb-6 text-lg md:text-xl font-bold bg-black/40 px-4 md:px-6 py-2 md:py-3 rounded-lg border-2 border-yellow-600/50">
           💰 Available Funds: ${gameState.player.money}
         </div>
 
-        <div className="mb-6">
-          <p className="text-gray-300 text-base mb-6 leading-relaxed">
+        <div className="mb-4 md:mb-6">
+          <p className="text-gray-300 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
             Welcome to the Bot Command Center! Each bot is a specialized farming assistant designed to automate specific tasks on your farm. Choose wisely and build your automated farming empire!
           </p>
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
             {/* Water Bot */}
             <div className={`bg-gradient-to-br from-cyan-900/40 to-blue-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
               gameState.player.inventory.waterbots >= 2

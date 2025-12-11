@@ -41,27 +41,27 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
   const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-8 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-y-auto border-4 border-amber-600">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">🏪 Farm Shop</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
+      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-amber-600">
+        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-amber-900 to-amber-950 pb-2 z-10">
+          <h2 className="text-2xl md:text-3xl font-bold">🏪 Farm Shop</h2>
           <button
             onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
+            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-4 text-xl font-bold bg-black/30 px-4 py-2 rounded">
+        <div className="mb-3 md:mb-4 text-lg md:text-xl font-bold bg-black/30 px-3 md:px-4 py-2 rounded">
           Your Money: 💰 ${gameState.player.money}
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-4 md:mb-6">
           <button
             onClick={() => setActiveTab('seeds')}
-            className={`flex-1 px-4 py-3 rounded-lg font-bold transition-all ${
+            className={`flex-1 px-3 md:px-4 py-2 md:py-3 rounded-lg font-bold text-sm md:text-base transition-all ${
               activeTab === 'seeds'
                 ? 'bg-green-600 ring-2 ring-green-300'
                 : 'bg-black/40 hover:bg-black/60'
@@ -71,7 +71,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           </button>
           <button
             onClick={() => setActiveTab('tools')}
-            className={`flex-1 px-4 py-3 rounded-lg font-bold transition-all ${
+            className={`flex-1 px-3 md:px-4 py-2 md:py-3 rounded-lg font-bold text-sm md:text-base transition-all ${
               activeTab === 'tools'
                 ? 'bg-blue-600 ring-2 ring-blue-300'
                 : 'bg-black/40 hover:bg-black/60'
@@ -83,8 +83,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
 
         {/* Seeds Tab Content */}
         {activeTab === 'seeds' && (
-        <div className="mb-6">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="mb-4 md:mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
             {Object.entries(SEED_INFO).map(([cropKey, info]) => {
               const crop = cropKey as Exclude<CropType, null>;
               const owned = gameState.player.inventory.seeds[crop];

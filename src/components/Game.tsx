@@ -3133,32 +3133,8 @@ export default function Game() {
           </div>
         )}
 
-        {/* Task Queue */}
-        {currentZone.taskQueue.length > 0 && (
-          <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 flex-1 flex flex-col min-h-0">
-            <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
-            <div className="space-y-1 overflow-y-auto flex-1">
-              {currentZone.taskQueue.map((task, idx) => (
-                <div key={task.id} className="text-sm flex items-center gap-1">
-                  <span className="text-gray-400">{idx + 1}.</span>
-                  {task.type === 'clear' ? '⛏️' :
-                   task.type === 'plant' ? '🌱' :
-                   task.type === 'water' ? '💧' :
-                   task.type === 'harvest' ? '🌾' :
-                   task.type === 'place_sprinkler' ? '💦' :
-                   task.type === 'place_mechanic' ? '⚙️' :
-                   task.type === 'place_well' ? '🪣' :
-                   task.type === 'deposit' ? '📦' :
-                   '🔨'}
-                  <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Farmer Automation Controls */}
-        <div className="bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
+        <div className="bg-purple-900/30 border border-purple-600 rounded px-2 py-2 mb-2">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
           <div className="space-y-1.5">
             {/* Auto Plant */}
@@ -3198,7 +3174,7 @@ export default function Game() {
                     },
                   }));
                 }}
-                className="w-full text-xs bg-gray-800 text-white border border-gray-600 rounded px-1 py-0.5 ml-5"
+                className="text-xs bg-gray-800 text-white border border-gray-600 rounded px-1 py-0.5 ml-5 mr-1 max-w-[130px]"
               >
                 <option value="carrot">🥕 Carrot</option>
                 <option value="wheat">🌾 Wheat</option>
@@ -3281,6 +3257,30 @@ export default function Game() {
             </label>
           </div>
         </div>
+
+        {/* Task Queue */}
+        {currentZone.taskQueue.length > 0 && (
+          <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 flex-1 flex flex-col min-h-0">
+            <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
+            <div className="space-y-1 overflow-y-auto flex-1">
+              {currentZone.taskQueue.map((task, idx) => (
+                <div key={task.id} className="text-sm flex items-center gap-1">
+                  <span className="text-gray-400">{idx + 1}.</span>
+                  {task.type === 'clear' ? '⛏️' :
+                   task.type === 'plant' ? '🌱' :
+                   task.type === 'water' ? '💧' :
+                   task.type === 'harvest' ? '🌾' :
+                   task.type === 'place_sprinkler' ? '💦' :
+                   task.type === 'place_mechanic' ? '⚙️' :
+                   task.type === 'place_well' ? '🪣' :
+                   task.type === 'deposit' ? '📦' :
+                   '🔨'}
+                  <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Main Game Area */}

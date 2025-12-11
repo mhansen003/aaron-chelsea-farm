@@ -10,11 +10,15 @@ interface SuperchargerModalProps {
 }
 
 export default function SuperchargerModal({ gameState, onClose, onSupercharge, onRelocate }: SuperchargerModalProps) {
-  const waterBots = gameState.waterBots || [];
-  const harvestBots = gameState.harvestBots || [];
-  const seedBots = gameState.seedBots || [];
-  const transportBots = gameState.transportBots || [];
-  const demolishBots = gameState.demolishBots || [];
+  // Get bots from current zone, not global gameState
+  const currentZoneKey = `${gameState.currentZone.x},${gameState.currentZone.y}`;
+  const currentZone = gameState.zones[currentZoneKey];
+
+  const waterBots = currentZone?.waterBots || [];
+  const harvestBots = currentZone?.harvestBots || [];
+  const seedBots = currentZone?.seedBots || [];
+  const transportBots = currentZone?.transportBots || [];
+  const demolishBots = currentZone?.demolishBots || [];
 
   const totalBots = waterBots.length + harvestBots.length + seedBots.length + transportBots.length + demolishBots.length;
 

@@ -1,4 +1,4 @@
-import { GameState } from '@/types/game';
+import { GameState, Tile } from '@/types/game';
 
 interface SaveCodeHistory {
   code: string;
@@ -229,8 +229,8 @@ function migrateGameState(gameState: any): GameState {
       const zone = gameState.zones[zoneKey];
 
       // Assign variants to grass tiles that don't have them
-      zone.grid = zone.grid.map(row =>
-        row.map(tile => {
+      zone.grid = zone.grid.map((row: Tile[]) =>
+        row.map((tile: Tile) => {
           if (tile.type === 'grass' && !tile.variant) {
             // Assign random grass variant: 1 (80%), 2 (15%), 3 (5%)
             const rand = Math.random();

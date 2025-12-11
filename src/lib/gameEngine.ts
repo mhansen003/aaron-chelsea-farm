@@ -90,11 +90,19 @@ export const TASK_DURATIONS = {
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   place_sprinkler: 3000, // 3 seconds to place sprinkler
-  place_mechanic: 60000, // 1 minute to install mechanic shop
-  place_well: 30000, // 30 seconds to dig/place well
-  place_garage: 15000, // 15 seconds to build garage
-  place_supercharger: 20000, // 20 seconds to install supercharger
+  place_mechanic: 100, // Instant - construction time handles the delay
+  place_well: 100, // Instant - construction time handles the delay
+  place_garage: 100, // Instant - construction time handles the delay
+  place_supercharger: 100, // Instant - construction time handles the delay
   deposit: 3000, // 3 seconds to deposit crops at warehouse
+};
+
+// Construction durations in milliseconds (separate from task durations)
+export const CONSTRUCTION_DURATIONS = {
+  mechanic: 60000, // 1 minute to build mechanic shop
+  well: 30000, // 30 seconds to build well
+  garage: 15000, // 15 seconds to build garage
+  supercharger: 20000, // 20 seconds to build supercharger
 };
 
 // Helper functions for supercharged bot speed calculations
@@ -2249,6 +2257,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     },
   };
 
+  // Check for completed constructions and convert them to final buildings
+  newState = checkConstructionCompletion(newState);
+
   return {
     ...newState,
     currentDay: newDay,
@@ -3056,17 +3067,16 @@ export function placeMechanicShop(state: GameState, tileX: number, tileY: number
     return state;
   }
 
-  // Place mechanic shop instantly on all 4 tiles (2x2)
+  // Start construction phase on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
-          type: 'mechanic' as const,
-          isConstructing: false,
-          constructionTarget: undefined,
-          constructionStartTime: undefined,
-          constructionDuration: undefined,
+          isConstructing: true,
+          constructionTarget: 'mechanic' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_DURATIONS.mechanic,
         };
       }
       return t;
@@ -3422,17 +3432,16 @@ export function placeWell(state: GameState, tileX: number, tileY: number): GameS
     return state;
   }
 
-  // Place well instantly on all 4 tiles (2x2)
+  // Start construction phase on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
-          type: 'well' as const,
-          isConstructing: false,
-          constructionTarget: undefined,
-          constructionStartTime: undefined,
-          constructionDuration: undefined,
+          isConstructing: true,
+          constructionTarget: 'well' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_DURATIONS.well,
         };
       }
       return t;
@@ -3502,17 +3511,16 @@ export function placeGarage(state: GameState, tileX: number, tileY: number): Gam
     return state;
   }
 
-  // Place garage instantly on all 4 tiles (2x2)
+  // Start construction phase on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
-          type: 'garage' as const,
-          isConstructing: false,
-          constructionTarget: undefined,
-          constructionStartTime: undefined,
-          constructionDuration: undefined,
+          isConstructing: true,
+          constructionTarget: 'garage' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_DURATIONS.garage,
         };
       }
       return t;
@@ -3690,17 +3698,16 @@ export function placeSupercharger(state: GameState, tileX: number, tileY: number
     return state;
   }
 
-  // Place supercharger instantly on all 4 tiles (2x2)
+  // Start construction phase on all 4 tiles (2x2)
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
         return {
           ...t,
-          type: 'supercharger' as const,
-          isConstructing: false,
-          constructionTarget: undefined,
-          constructionStartTime: undefined,
-          constructionDuration: undefined,
+          isConstructing: true,
+          constructionTarget: 'supercharger' as const,
+          constructionStartTime: state.gameTime,
+          constructionDuration: CONSTRUCTION_DURATIONS.supercharger,
         };
       }
       return t;
@@ -3724,6 +3731,56 @@ export function placeSupercharger(state: GameState, tileX: number, tileY: number
       },
     },
   };
+}
+
+/**
+ * Checks all tiles in all zones for completed constructions and converts them to final buildings
+ */
+function checkConstructionCompletion(state: GameState): GameState {
+  let newState = { ...state };
+
+  // Iterate through all zones
+  Object.keys(newState.zones).forEach(zoneKey => {
+    const zone = newState.zones[zoneKey];
+    let gridChanged = false;
+
+    const newGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Check if this tile is constructing and construction is complete
+        if (
+          tile.isConstructing &&
+          tile.constructionStartTime !== undefined &&
+          tile.constructionDuration !== undefined &&
+          tile.constructionTarget
+        ) {
+          const elapsedTime = newState.gameTime - tile.constructionStartTime;
+
+          if (elapsedTime >= tile.constructionDuration) {
+            // Construction complete! Convert to final building type
+            gridChanged = true;
+            return {
+              ...tile,
+              type: tile.constructionTarget,
+              isConstructing: false,
+              constructionTarget: undefined,
+              constructionStartTime: undefined,
+              constructionDuration: undefined,
+            };
+          }
+        }
+        return tile;
+      })
+    );
+
+    if (gridChanged) {
+      newState.zones[zoneKey] = {
+        ...zone,
+        grid: newGrid,
+      };
+    }
+  });
+
+  return newState;
 }
 
 export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'): GameState {

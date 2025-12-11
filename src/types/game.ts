@@ -180,6 +180,7 @@ export interface WaterBot {
   y?: number; // Current tile position Y
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
+  idleStartTime?: number; // Game time when bot became idle at garage (for despawning)
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)

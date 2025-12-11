@@ -1063,6 +1063,25 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     const grid = zone.grid;
     let updatedGrid = grid;
     const updatedBots = zone.waterBots.map(bot => {
+      // Respawn garaged bots if there's work to do
+      if (bot.status === 'garaged') {
+        // Check if there are unwatered crops
+        const hasWork = grid.some((row, y) =>
+          row.some((tile, x) =>
+            tile.type === 'planted' && tile.crop && !tile.wateredToday && !isInSprinklerRange(grid, x, y)
+          )
+        );
+
+        if (hasWork) {
+          // Respawn at garage
+          const garagePos = findGaragePosition(grid);
+          if (garagePos) {
+            return { ...bot, status: 'idle' as const, x: garagePos.x, y: garagePos.y, visualX: garagePos.x, visualY: garagePos.y };
+          }
+        }
+        return bot; // Stay garaged
+      }
+
       if (bot.x === undefined || bot.y === undefined) return bot;
 
       const botX = bot.x;
@@ -1178,8 +1197,18 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (garagePos) {
           // Garage exists - navigate to it and park
           if (botX === garagePos.x && botY === garagePos.y) {
-            // Already at garage - stay parked
-            return { ...bot, status: 'idle' as const, visualX, visualY };
+            // Already at garage - check if should despawn
+            const GARAGE_DESPAWN_TIME = 5000; // 5 seconds
+            const idleTime = bot.idleStartTime ? newGameTime - bot.idleStartTime : 0;
+
+            if (idleTime >= GARAGE_DESPAWN_TIME) {
+              // Despawn - set to garaged status and clear position
+              return { ...bot, status: 'garaged' as const, x: undefined, y: undefined, visualX: undefined, visualY: undefined, targetX: undefined, targetY: undefined, idleStartTime: undefined };
+            } else {
+              // Track idle time at garage
+              const startTime = bot.idleStartTime || newGameTime;
+              return { ...bot, status: 'idle' as const, visualX, visualY, idleStartTime: startTime };
+            }
           } else {
             // Travel to garage
             let newX = botX, newY = botY;
@@ -1187,7 +1216,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
-            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+            return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY, idleStartTime: undefined };
           }
         }
         // No garage - wander randomly

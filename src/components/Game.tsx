@@ -50,7 +50,7 @@ import {
   getCurrentSeedCost,
   getCurrentSellPrice,
 } from '@/lib/gameEngine';
-import { GameState, CropType, ToolType, Tile, Zone } from '@/types/game';
+import { GameState, CropType, ToolType, Tile, Zone, SaleRecord } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
@@ -3018,6 +3018,25 @@ export default function Game() {
     const currentZone = gameState.zones[currentZoneKey];
     const zoneName = currentZone?.name || 'Unknown Zone';
 
+    // Calculate average quality for this crop type
+    const avgQuality = allCropsToSell.reduce((sum, item) => sum + item.quality.yield, 0) / allCropsToSell.length;
+    const pricePerUnit = Math.floor(vendorPrice * avgQuality);
+
+    // Create sale record
+    const saleRecord: SaleRecord = {
+      timestamp: gameState.gameTime,
+      day: gameState.currentDay,
+      crop: cropType,
+      quantity: allCropsToSell.length,
+      pricePerUnit,
+      totalRevenue: totalEarned,
+      zoneKey: currentZoneKey,
+    };
+
+    // Update sales history (keep last 100 records)
+    const existingSalesHistory = gameState.salesHistory || [];
+    const newSalesHistory = [...existingSalesHistory, saleRecord].slice(-100);
+
     // Create updated state with earnings and sales
     let updatedState: GameState = {
       ...gameState,
@@ -3031,6 +3050,7 @@ export default function Game() {
         ...gameState.cropsSold,
         [cropType]: (gameState.cropsSold[cropType] || 0) + allCropsToSell.length,
       },
+      salesHistory: newSalesHistory,
     };
 
     // Record earnings for this zone

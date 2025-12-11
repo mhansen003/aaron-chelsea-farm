@@ -3255,8 +3255,23 @@ function findExportTile(state: GameState): { x: number; y: number } | null {
   return null;
 }
 
-// Deposit all items from basket to warehouse
+// Deposit all items from basket - if at export building, sell them; if at warehouse, store them
 export function depositToWarehouse(state: GameState): GameState {
+  const grid = getCurrentGrid(state);
+  const currentTile = grid[state.player.y]?.[state.player.x];
+
+  // If at export building, sell the crops
+  if (currentTile?.type === 'export') {
+    // Use the sellCrops function which properly records sales history
+    const result = sellCrops(state);
+    if (result.success) {
+      return result.state;
+    }
+    // If sell failed, return unchanged state
+    return state;
+  }
+
+  // Otherwise, just deposit to warehouse (storage)
   return {
     ...state,
     warehouse: [...state.warehouse, ...state.player.basket],

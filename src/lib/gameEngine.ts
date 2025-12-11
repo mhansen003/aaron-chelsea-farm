@@ -3174,13 +3174,30 @@ export function addTask(
     duration: TASK_DURATIONS[type],
   };
 
+  // Manual tasks should be prioritized above automated tasks
+  // Find the first automated task (IDs start with "auto-")
+  const firstAutoTaskIndex = currentZone.taskQueue.findIndex(t => t.id.startsWith('auto-'));
+
+  let newTaskQueue: import('@/types/game').Task[];
+  if (firstAutoTaskIndex >= 0) {
+    // Insert manual task before first automated task
+    newTaskQueue = [
+      ...currentZone.taskQueue.slice(0, firstAutoTaskIndex),
+      task,
+      ...currentZone.taskQueue.slice(firstAutoTaskIndex),
+    ];
+  } else {
+    // No automated tasks, add to end normally
+    newTaskQueue = [...currentZone.taskQueue, task];
+  }
+
   return {
     ...state,
     zones: {
       ...state.zones,
       [currentZoneKey]: {
         ...currentZone,
-        taskQueue: [...currentZone.taskQueue, task],
+        taskQueue: newTaskQueue,
       },
     },
   };

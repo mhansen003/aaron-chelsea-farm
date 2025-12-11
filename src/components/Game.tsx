@@ -3712,12 +3712,14 @@ export default function Game() {
           {(waterBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-cyan-950/40 to-cyan-900/20 border border-cyan-500/60 rounded-lg p-1.5 shadow-lg">
               <div
-                className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/30 rounded px-1 py-0.5 transition-colors"
+                className="text-[11px] text-cyan-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-cyan-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('water')}
+                title="Click to view bot history"
               >
                 <span>💧</span>
                 WATER
                 <span className="ml-auto bg-cyan-600/30 px-1 rounded text-[10px]">{waterBots?.length ?? 0}</span>
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {waterBots?.map((bot, idx) => {
@@ -3757,12 +3759,14 @@ export default function Game() {
           {(harvestBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-amber-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
               <div
-                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors"
+                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('harvest')}
+                title="Click to view bot history"
               >
                 <span>🌾</span>
                 HARVEST
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{harvestBots?.length ?? 0}</span>
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {harvestBots?.map((bot, idx) => {
@@ -3802,12 +3806,14 @@ export default function Game() {
           {seedBots && seedBots.length > 0 && (
             <div className="bg-gradient-to-br from-green-950/40 to-lime-900/20 border border-green-500/60 rounded-lg p-1.5 shadow-lg">
               <div
-                className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-green-900/30 rounded px-1 py-0.5 transition-colors"
+                className="text-[11px] text-green-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-green-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('seed')}
+                title="Click to view bot history"
               >
                 <span>🌱</span>
                 SEED
                 <span className="ml-auto bg-green-600/30 px-1 rounded text-[10px]">{seedBots.length}</span>
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {seedBots.map((bot, idx) => {
@@ -3853,12 +3859,14 @@ export default function Game() {
           {(transportBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-purple-950/40 to-violet-900/20 border border-purple-500/60 rounded-lg p-1.5 shadow-lg">
               <div
-                className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-purple-900/30 rounded px-1 py-0.5 transition-colors"
+                className="text-[11px] text-purple-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-purple-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('transport')}
+                title="Click to view bot history"
               >
                 <span>🚚</span>
                 TRANSPORT
                 <span className="ml-auto bg-purple-600/30 px-1 rounded text-[10px]">{transportBots?.length ?? 0}</span>
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {transportBots?.map((bot, idx) => {
@@ -3900,12 +3908,14 @@ export default function Game() {
           {(demolishBots?.length ?? 0) > 0 && (
             <div className="bg-gradient-to-br from-orange-950/40 to-red-900/20 border border-orange-500/60 rounded-lg p-1.5 shadow-lg">
               <div
-                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors"
+                className="text-[11px] text-orange-300 font-bold mb-1 flex items-center gap-1 cursor-pointer hover:bg-orange-900/30 rounded px-1 py-0.5 transition-colors group"
                 onClick={() => setShowBotInfoModal('demolish')}
+                title="Click to view bot history"
               >
                 <span>🚧</span>
                 DEMOLISH
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-[10px]">{demolishBots?.length ?? 0}</span>
+                <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
               <div className="space-y-1">
                 {demolishBots?.map((bot, idx) => {

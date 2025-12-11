@@ -365,6 +365,7 @@ export default function Game() {
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
   const surferImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef = useRef<HTMLImageElement | null>(null);
+  const treeImageRef2 = useRef<HTMLImageElement | null>(null);
   const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
   const carrotsImageRef = useRef<HTMLImageElement | null>(null);
   const wheatImageRef = useRef<HTMLImageElement | null>(null);
@@ -378,6 +379,8 @@ export default function Game() {
   const riceImageRef = useRef<HTMLImageElement | null>(null);
   const cornImageRef = useRef<HTMLImageElement | null>(null);
   const rockImageRef = useRef<HTMLImageElement | null>(null);
+  const rockImageRef2 = useRef<HTMLImageElement | null>(null);
+  const rockImageRef3 = useRef<HTMLImageElement | null>(null);
   const dirtImageRef = useRef<HTMLImageElement | null>(null);
   const shopImageRef = useRef<HTMLImageElement | null>(null);
   const exportImageRef = useRef<HTMLImageElement | null>(null);
@@ -671,7 +674,7 @@ export default function Game() {
       dirtImageRef.current = dirtImg;
     };
 
-    // Load rocks
+    // Load rocks (variant 1)
     const rockImg = new Image();
     rockImg.src = `/${theme}-rocks.png`;
     rockImg.onerror = () => {
@@ -681,7 +684,27 @@ export default function Game() {
       rockImageRef.current = rockImg;
     };
 
-    // Load forest/trees
+    // Load rocks variant 2
+    const rockImg2 = new Image();
+    rockImg2.src = `/${theme}-rocks2.png`;
+    rockImg2.onerror = () => {
+      rockImg2.src = '/farm-rocks2.png';
+    };
+    rockImg2.onload = () => {
+      rockImageRef2.current = rockImg2;
+    };
+
+    // Load rocks variant 3
+    const rockImg3 = new Image();
+    rockImg3.src = `/${theme}-rocks3.png`;
+    rockImg3.onerror = () => {
+      rockImg3.src = '/farm-rocks3.png';
+    };
+    rockImg3.onload = () => {
+      rockImageRef3.current = rockImg3;
+    };
+
+    // Load forest/trees (variant 1)
     const treeImg = new Image();
     treeImg.src = `/${theme}-forest.png`;
     treeImg.onerror = () => {
@@ -689,6 +712,16 @@ export default function Game() {
     };
     treeImg.onload = () => {
       treeImageRef.current = treeImg;
+    };
+
+    // Load forest/trees variant 2
+    const treeImg2 = new Image();
+    treeImg2.src = `/${theme}-forest2.png`;
+    treeImg2.onerror = () => {
+      treeImg2.src = '/farm-forest2.png';
+    };
+    treeImg2.onload = () => {
+      treeImageRef2.current = treeImg2;
     };
 
     // Load themed tiles (beach, desert, mountain)
@@ -923,7 +956,7 @@ export default function Game() {
         if (tile.type === 'grass' && grassImageRef.current) {
           // Draw grass texture
           ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        } else if (tile.type === 'tree' && treeImageRef.current) {
+        } else if (tile.type === 'tree') {
           // Draw grass background first, then tree sprite
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -931,8 +964,14 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          ctx.drawImage(treeImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        } else if (tile.type === 'rock' && rockImageRef.current) {
+          // Select the appropriate tree variant image
+          const treeImage = tile.variant === 2 && treeImageRef2.current
+            ? treeImageRef2.current
+            : treeImageRef.current;
+          if (treeImage) {
+            ctx.drawImage(treeImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+        } else if (tile.type === 'rock') {
           // Draw grass background first, then rock sprite
           if (grassImageRef.current) {
             ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -940,7 +979,16 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          ctx.drawImage(rockImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Select the appropriate rock variant image
+          let rockImage = rockImageRef.current;
+          if (tile.variant === 2 && rockImageRef2.current) {
+            rockImage = rockImageRef2.current;
+          } else if (tile.variant === 3 && rockImageRef3.current) {
+            rockImage = rockImageRef3.current;
+          }
+          if (rockImage) {
+            ctx.drawImage(rockImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
         } else if (tile.type === 'dirt' && dirtImageRef.current) {
           // Draw grass background first, then dirt sprite on top
           if (grassImageRef.current) {

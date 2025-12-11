@@ -62,6 +62,7 @@ export interface Tile {
   constructionDuration?: number; // How long construction takes (ms)
   lastWorkedTime?: number; // Game time when tile was last cleared/planted/harvested
   overgrowthTime?: number; // Game time when tile will overgrow (randomized 3-5 min)
+  variant?: number; // Visual variant for rocks (1-3) and trees/forest (1-2)
 }
 
 export interface SeedQuality {

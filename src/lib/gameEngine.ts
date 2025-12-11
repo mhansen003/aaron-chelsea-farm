@@ -924,9 +924,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
 
           // Calculate growth based on elapsed time since watering
-          if (updatedTile.wateredTimestamp !== undefined) {
+          if (updatedTile.wateredTimestamp !== undefined && updatedTile.crop) {
             const timeSinceWatered = newGameTime - updatedTile.wateredTimestamp;
-            const quality = newState.player.inventory.seedQuality[updatedTile.crop];
+            const cropType = updatedTile.crop as Exclude<import('@/types/game').CropType, null>;
+            const quality = newState.player.inventory.seedQuality[cropType];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
             const adjustedGrowTime = cropInfo.growTime / growthMultiplier;
 

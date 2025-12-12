@@ -125,9 +125,15 @@ export default function Game() {
   const loadSavedGame = (): GameState => {
     if (typeof window !== 'undefined') {
       // Try new autosave system first
-      const autosave = loadFromLocalStorage();
-      if (autosave) {
-        return autosave;
+      try {
+        const autosave = loadFromLocalStorage();
+        if (autosave) {
+          return autosave;
+        }
+      } catch (e) {
+        console.error('Failed to load autosave:', e);
+        localStorage.removeItem('farm_autosave');
+        setShowCorruptedSaveMessage(true);
       }
 
       // Fall back to old save format for migration
@@ -313,19 +319,21 @@ export default function Game() {
           return migratedState;
         } catch (e) {
           console.error('Failed to load saved game:', e);
-          // Clear corrupted save to prevent crashes
+          // Clear corrupted saves to prevent future crashes
           localStorage.removeItem('aaron-chelsea-farm-save');
-          // Show message to user after component mounts
-          if (typeof window !== 'undefined') {
-            setTimeout(() => setShowCorruptedSaveMessage(true), 100);
-          }
+          localStorage.removeItem('farm_autosave');
+          // Show error message to user
+          setShowCorruptedSaveMessage(true);
         }
       }
     }
     return createInitialState();
   };
 
-  const [gameState, setGameState] = useState<GameState>(loadSavedGame());
+  // Always start with fresh state to prevent hydration mismatch
+  // Load from localStorage happens in useEffect after mount
+  const [gameState, setGameState] = useState<GameState>(createInitialState);
+  const [isLoadingSave, setIsLoadingSave] = useState(true);
   const [showShop, setShowShop] = useState(false);
   const [showSellShop, setShowSellShop] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -430,6 +438,16 @@ export default function Game() {
   const rocksImageRef = useRef<HTMLImageElement | null>(null);
   const caveImageRef = useRef<HTMLImageElement | null>(null);
   const mountainImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Load saved game after mount to prevent hydration mismatch
+  useEffect(() => {
+    const savedState = loadSavedGame();
+    // Only update if we got a different state (i.e., loaded from localStorage)
+    if (savedState !== gameState) {
+      setGameState(savedState);
+    }
+    setIsLoadingSave(false);
+  }, []);
 
   // Auto-load game if autosave exists (client-side only)
   useEffect(() => {

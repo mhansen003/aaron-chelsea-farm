@@ -118,6 +118,9 @@ const TOOL_ICONS: Record<ToolType, string> = {
 export default function Game() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Track if we failed to load a save
+  const [showCorruptedSaveMessage, setShowCorruptedSaveMessage] = useState(false);
+
   // Load saved game state from localStorage or create new game
   const loadSavedGame = (): GameState => {
     if (typeof window !== 'undefined') {
@@ -310,6 +313,12 @@ export default function Game() {
           return migratedState;
         } catch (e) {
           console.error('Failed to load saved game:', e);
+          // Clear corrupted save to prevent crashes
+          localStorage.removeItem('aaron-chelsea-farm-save');
+          // Show message to user after component mounts
+          if (typeof window !== 'undefined') {
+            setTimeout(() => setShowCorruptedSaveMessage(true), 100);
+          }
         }
       }
     }
@@ -4125,6 +4134,30 @@ export default function Game() {
               className="mt-6 w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg"
             >
               Got it! Let&apos;s Farm! 🌾
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Corrupted Save Message Modal */}
+      {showCorruptedSaveMessage && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-red-900 to-red-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-red-600">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold mb-4">⚠️ Save Game Error</h2>
+              <p className="text-lg">
+                Your previous save game could not be loaded. This may happen when the game is updated with new features.
+              </p>
+              <p className="text-lg mt-4 font-semibold text-yellow-300">
+                Starting a new game...
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowCorruptedSaveMessage(false)}
+              className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg transition-colors"
+            >
+              OK, Start Fresh 🌱
             </button>
           </div>
         </div>

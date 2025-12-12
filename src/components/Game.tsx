@@ -751,7 +751,7 @@ export default function Game() {
       document.addEventListener('click', startAudio, { once: true });
       document.addEventListener('keydown', startAudio, { once: true });
     });
-  }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones, getRandomSongIndex]);
+  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomSongIndex]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {

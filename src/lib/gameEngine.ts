@@ -2631,7 +2631,7 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
     grid.forEach((row, y) => {
       row.forEach((tile, x) => {
         const isPlantable =
-          (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) &&
+          ((tile.type === 'grass' || tile.type === 'dirt') && tile.cleared) &&
           !tile.crop &&
           !tile.hasSprinkler &&
           !tile.isConstructing;

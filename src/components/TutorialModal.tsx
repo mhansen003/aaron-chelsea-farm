@@ -49,6 +49,23 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
     }
   }, [gameState]);
 
+  const handleLoadGame = async () => {
+    if (!saveCode.trim() || saveCode.trim().length !== 6) {
+      setError('Please enter a 6-digit code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await onLoadGame!(saveCode.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load game');
+      setLoading(false);
+    }
+  };
+
   const pages = [
     {
       title: "Welcome to My Bot Farm!",
@@ -536,23 +553,6 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
   }] : [];
 
   const allPages = [...gameOptionsPage, ...pages, ...savePage];
-
-  const handleLoadGame = async () => {
-    if (!saveCode.trim() || saveCode.trim().length !== 6) {
-      setError('Please enter a 6-digit code');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      await onLoadGame!(saveCode.trim());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load game');
-      setLoading(false);
-    }
-  };
 
   const handleNext = () => {
     if (currentPage < allPages.length - 1) {

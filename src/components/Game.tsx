@@ -67,7 +67,6 @@ import SeedBotConfigModal from './SeedBotConfigModal';
 import { BotInfoModal } from './BotInfoModal';
 import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
-import WelcomeSplash from './WelcomeSplash';
 import SaveGameModal from './SaveGameModal';
 import TutorialModal from './TutorialModal';
 import {
@@ -4652,12 +4651,14 @@ export default function Game() {
 
 
 
-      {/* Welcome Splash */}
+      {/* Welcome Screen with Tutorial */}
       {showWelcome && (
-        <WelcomeSplash
+        <TutorialModal
+          onClose={() => setShowWelcome(false)}
           onStartNew={handleStartNew}
           onLoadGame={handleLoadFromCode}
           onContinue={handleContinue}
+          isInitialWelcome={true}
         />
       )}
 
@@ -4767,10 +4768,12 @@ export default function Game() {
         />
       )}
 
-      {/* Tutorial Modal */}
+      {/* Tutorial Modal (from Help button) */}
       {showTutorialModal && (
         <TutorialModal
           onClose={() => setShowTutorialModal(false)}
+          gameState={gameState}
+          isInitialWelcome={false}
         />
       )}
     </div>

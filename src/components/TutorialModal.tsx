@@ -1,14 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { hasAutosave, getAutosaveTimestamp, exportSave } from '@/lib/saveSystem';
+import { GameState } from '@/types/game';
 
 interface TutorialModalProps {
   onClose: () => void;
+  onStartNew?: () => void;
+  onLoadGame?: (saveCode: string) => Promise<void>;
+  onContinue?: () => void;
+  gameState?: GameState; // For showing save code when in-game
+  isInitialWelcome?: boolean; // True when showing on startup, false when accessed via help button
 }
 
-export default function TutorialModal({ onClose }: TutorialModalProps) {
+export default function TutorialModal({ onClose, onStartNew, onLoadGame, onContinue, gameState, isInitialWelcome = false }: TutorialModalProps) {
   const [currentPage, setCurrentPage] = useState(0);
+  const [showLoadInput, setShowLoadInput] = useState(false);
+  const [saveCode, setSaveCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [hasAutoSave, setHasAutoSave] = useState(false);
+  const [autoSaveTime, setAutoSaveTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check for autosave when showing initial welcome
+    if (isInitialWelcome && onContinue) {
+      const autoSaveExists = hasAutosave();
+      setHasAutoSave(autoSaveExists);
+
+      if (autoSaveExists) {
+        const timestamp = getAutosaveTimestamp();
+        if (timestamp) {
+          const date = new Date(timestamp);
+          setAutoSaveTime(date.toLocaleString());
+        }
+      }
+    }
+  }, [isInitialWelcome, onContinue]);
 
   const pages = [
     {
@@ -353,8 +382,167 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
     },
   ];
 
+  // Add game options page at the beginning when showing initial welcome
+  const gameOptionsPage = isInitialWelcome ? [{
+    title: "🤖 My Bot Farm 🤖",
+    icon: "🚜",
+    content: (
+      <div className="space-y-4">
+        {!showLoadInput ? (
+          /* Main Menu */
+          <div className="space-y-4">
+            {hasAutoSave && (
+              <button
+                onClick={() => { onContinue!(); onClose(); }}
+                className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg font-bold text-xl shadow-lg transform transition hover:scale-105"
+              >
+                ▶️ Continue Game
+                {autoSaveTime && (
+                  <div className="text-sm font-normal opacity-90 mt-1">
+                    Last played: {autoSaveTime}
+                  </div>
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={() => { onStartNew!(); onClose(); }}
+              className="w-full px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-bold text-xl shadow-lg transform transition hover:scale-105"
+            >
+              🆕 Start New Game
+            </button>
+
+            <button
+              onClick={() => setShowLoadInput(true)}
+              className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg font-bold text-xl shadow-lg transform transition hover:scale-105"
+            >
+              💾 Load with Code
+            </button>
+
+            <div className="mt-6 p-4 bg-black/40 rounded-lg border border-green-500/30">
+              <h3 className="text-green-400 font-bold mb-2 flex items-center gap-2">
+                <span className="text-2xl">❓</span>
+                <span>How to Play</span>
+              </h3>
+              <p className="text-gray-300 text-sm mb-3">
+                Navigate through the tutorial pages to learn all the basics, or jump right in and discover as you play!
+              </p>
+              <button
+                onClick={() => setCurrentPage(1)}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded font-bold text-sm"
+              >
+                📖 View Tutorial →
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Load Game Input */
+          <div className="space-y-4">
+            <div>
+              <label className="block text-amber-200 font-bold mb-2 text-lg">
+                Enter Your 6-Digit Save Code:
+              </label>
+              <input
+                type="text"
+                value={saveCode}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                  setSaveCode(value);
+                  setError('');
+                }}
+                placeholder="123456"
+                maxLength={6}
+                className="w-full px-4 py-3 bg-black/40 border-2 border-green-600 rounded-lg text-white text-3xl font-mono text-center tracking-widest"
+                autoFocus
+                disabled={loading}
+              />
+              {error && (
+                <p className="text-red-400 mt-2 text-sm text-center">{error}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleLoadGame}
+                disabled={loading || saveCode.length !== 6}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg shadow-lg"
+              >
+                {loading ? '⏳ Loading...' : '✅ Load Game'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowLoadInput(false);
+                  setSaveCode('');
+                  setError('');
+                }}
+                disabled={loading}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 disabled:opacity-50 text-white rounded-lg font-bold text-lg shadow-lg"
+              >
+                ← Back
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    ),
+  }] : [];
+
+  // Add save page at the end when gameState is available
+  const savePage = gameState ? [{
+    title: "💾 Save Your Game",
+    icon: "💾",
+    content: (
+      <div className="space-y-4">
+        <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 rounded-lg p-6 border border-blue-500/30">
+          <h3 className="text-xl font-bold text-cyan-400 mb-4">Your Save Code:</h3>
+          <div className="bg-black/40 border-2 border-cyan-600 rounded-lg p-4 mb-4">
+            <p className="text-4xl font-mono text-center tracking-widest text-white">
+              {exportSave(gameState)}
+            </p>
+          </div>
+          <p className="text-sm text-gray-300 mb-3">
+            💡 Write down this 6-digit code or take a screenshot. You can use it to load your game on any device!
+          </p>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(exportSave(gameState));
+              alert('Save code copied to clipboard!');
+            }}
+            className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded font-bold"
+          >
+            📋 Copy Code to Clipboard
+          </button>
+        </div>
+        <div className="bg-yellow-900/30 border border-yellow-600/30 rounded-lg p-4">
+          <p className="text-sm text-yellow-200">
+            ⚠️ <strong>Important:</strong> The game also auto-saves locally. You can continue from your last session without a code if you're on the same device and browser.
+          </p>
+        </div>
+      </div>
+    ),
+  }] : [];
+
+  const allPages = [...gameOptionsPage, ...pages, ...savePage];
+
+  const handleLoadGame = async () => {
+    if (!saveCode.trim() || saveCode.trim().length !== 6) {
+      setError('Please enter a 6-digit code');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      await onLoadGame!(saveCode.trim());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load game');
+      setLoading(false);
+    }
+  };
+
   const handleNext = () => {
-    if (currentPage < pages.length - 1) {
+    if (currentPage < allPages.length - 1) {
       setCurrentPage(currentPage + 1);
     } else {
       onClose();
@@ -367,7 +555,7 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
     }
   };
 
-  const currentPageData = pages[currentPage];
+  const currentPageData = allPages[currentPage];
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -381,7 +569,7 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
                 {currentPageData.title}
               </h2>
               <p className="text-sm text-gray-400">
-                Page {currentPage + 1} of {pages.length}
+                Page {currentPage + 1} of {allPages.length}
               </p>
             </div>
           </div>
@@ -401,7 +589,7 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
 
         {/* Progress Dots */}
         <div className="flex-shrink-0 flex justify-center gap-2 py-3 border-t border-green-500/30">
-          {pages.map((_, index) => (
+          {allPages.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentPage(index)}

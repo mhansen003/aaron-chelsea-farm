@@ -165,6 +165,7 @@ export default function Game() {
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -763,10 +764,27 @@ export default function Game() {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = farmSongs[index].file;
+        if (!isMusicMuted) {
+          audioRef.current.play().catch(() => {});
+        }
+      }
+    }
+  }, [isInFarmZone, isMusicMuted]);
+
+  // Handle music mute/unmute
+  const toggleMusicMute = useCallback(() => {
+    setIsMusicMuted(prev => !prev);
+    if (audioRef.current) {
+      if (!isMusicMuted) {
+        // Muting
+        audioRef.current.pause();
+      } else {
+        // Unmuting
         audioRef.current.play().catch(() => {});
       }
     }
-  }, [isInFarmZone]);
+    setShowMusicDropdown(false);
+  }, [isMusicMuted]);
 
   // Close music dropdown when clicking outside
   useEffect(() => {
@@ -3375,21 +3393,27 @@ export default function Game() {
                 className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold flex items-center gap-1"
                 title="Select farm music"
               >
-                🎵 Music
+                {isMusicMuted ? '🔇' : '🎵'} Music
               </button>
               {showMusicDropdown && (
                 <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[200px]">
                   <div className="p-2">
                     <div className="text-xs font-bold text-pink-400 mb-2 px-2">Farm Music:</div>
+                    <button
+                      onClick={toggleMusicMute}
+                      className="w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors bg-pink-800 mb-1 border-b border-pink-600"
+                    >
+                      {isMusicMuted ? '🔊 Unmute' : '🔇 Mute'}
+                    </button>
                     {farmSongs.map((song, index) => (
                       <button
                         key={index}
                         onClick={() => handleSongSelect(index)}
                         className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors ${
-                          currentSongIndex === index ? 'bg-pink-600 font-bold' : ''
+                          currentSongIndex === index && !isMusicMuted ? 'bg-pink-600 font-bold' : ''
                         }`}
                       >
-                        {currentSongIndex === index && '▶ '}
+                        {currentSongIndex === index && !isMusicMuted && '▶ '}
                         {song.name}
                       </button>
                     ))}

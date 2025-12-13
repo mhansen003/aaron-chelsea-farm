@@ -1579,15 +1579,7 @@ export default function Game() {
           ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
           ctx.fillRect(px + 2, barY, progressWidth, barHeight);
 
-          // Blinking water droplet if not watered (to start growth)
-          if (!tile.wateredTimestamp) {
-            const blink = Math.floor(Date.now() / 500) % 2; // Blink every 500ms
-            if (blink === 0) {
-              ctx.font = '20px Arial';
-              ctx.textAlign = 'center';
-              ctx.fillText('💧', px + GAME_CONFIG.tileSize / 2, py + 20);
-            }
-          }
+          // Note: Water droplet indicator removed - now only shown via task icon image
         }
 
         // Draw blinking task-specific icon for queued tasks in the current zone

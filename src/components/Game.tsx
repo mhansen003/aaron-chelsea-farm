@@ -161,6 +161,7 @@ export default function Game() {
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
@@ -3316,52 +3317,62 @@ export default function Game() {
             <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
             <div className="space-y-1 overflow-y-auto flex-1">
               {currentZone.taskQueue.map((task, idx) => {
-                // Get crop-specific icon for plant and harvest tasks
-                let icon = '🔨'; // Default
-                if (task.type === 'clear') icon = '⛏️';
-                else if (task.type === 'plant') {
-                  // Show specific crop icon based on cropType
-                  if (task.cropType === 'carrot') icon = '🥕';
-                  else if (task.cropType === 'wheat') icon = '🌾';
-                  else if (task.cropType === 'tomato') icon = '🍅';
-                  else if (task.cropType === 'pumpkin') icon = '🎃';
-                  else if (task.cropType === 'watermelon') icon = '🍉';
-                  else if (task.cropType === 'peppers') icon = '🌶️';
-                  else if (task.cropType === 'grapes') icon = '🍇';
-                  else if (task.cropType === 'oranges') icon = '🍊';
-                  else if (task.cropType === 'avocado') icon = '🥑';
-                  else if (task.cropType === 'rice') icon = '🍚';
-                  else if (task.cropType === 'corn') icon = '🌽';
-                  else icon = '🌱'; // Fallback
+                // Helper function to get crop icon
+                const getCropIcon = (cropType: string | null | undefined) => {
+                  if (cropType === 'carrot') return '🥕';
+                  else if (cropType === 'wheat') return '🌾';
+                  else if (cropType === 'tomato') return '🍅';
+                  else if (cropType === 'pumpkin') return '🎃';
+                  else if (cropType === 'watermelon') return '🍉';
+                  else if (cropType === 'peppers') return '🌶️';
+                  else if (cropType === 'grapes') return '🍇';
+                  else if (cropType === 'oranges') return '🍊';
+                  else if (cropType === 'avocado') return '🥑';
+                  else if (cropType === 'rice') return '🍚';
+                  else if (cropType === 'corn') return '🌽';
+                  else return '🌱'; // Fallback
+                };
+
+                // Get work icon and crop icon
+                let workIcon = '🔨'; // Default
+                let cropIcon = '';
+
+                if (task.type === 'clear') {
+                  workIcon = '⛏️';
                 }
-                else if (task.type === 'water') icon = '💧';
+                else if (task.type === 'plant') {
+                  workIcon = '🌱';
+                  cropIcon = getCropIcon(task.cropType);
+                }
+                else if (task.type === 'water') {
+                  workIcon = '💧';
+                  // Look up the crop on the tile being watered
+                  const tile = currentZone.grid[task.tileY]?.[task.tileX];
+                  cropIcon = getCropIcon(tile?.crop);
+                }
                 else if (task.type === 'harvest') {
+                  workIcon = '🌾';
                   // Look up the crop on the tile being harvested
                   const tile = currentZone.grid[task.tileY]?.[task.tileX];
-                  const cropType = tile?.crop;
-                  if (cropType === 'carrot') icon = '🥕';
-                  else if (cropType === 'wheat') icon = '🌾';
-                  else if (cropType === 'tomato') icon = '🍅';
-                  else if (cropType === 'pumpkin') icon = '🎃';
-                  else if (cropType === 'watermelon') icon = '🍉';
-                  else if (cropType === 'peppers') icon = '🌶️';
-                  else if (cropType === 'grapes') icon = '🍇';
-                  else if (cropType === 'oranges') icon = '🍊';
-                  else if (cropType === 'avocado') icon = '🥑';
-                  else if (cropType === 'rice') icon = '🍚';
-                  else if (cropType === 'corn') icon = '🌽';
-                  else icon = '🌱'; // Fallback
+                  cropIcon = getCropIcon(tile?.crop);
                 }
-                else if (task.type === 'place_sprinkler') icon = '💦';
-                else if (task.type === 'place_botFactory') icon = '⚙️';
-                else if (task.type === 'place_well') icon = '🪣';
-                else if (task.type === 'deposit') icon = '📦';
+                else if (task.type === 'place_sprinkler') {
+                  workIcon = '💦';
+                }
+                else if (task.type === 'place_botFactory') {
+                  workIcon = '⚙️';
+                }
+                else if (task.type === 'place_well') {
+                  workIcon = '🪣';
+                }
+                else if (task.type === 'deposit') {
+                  workIcon = '📦';
+                }
 
                 return (
                   <div key={task.id} className="text-sm flex items-center gap-1">
                     <span className="text-gray-400">{idx + 1}.</span>
-                    {icon}
-                    <span className="text-gray-300 text-xs">({task.tileX},{task.tileY})</span>
+                    <span>{workIcon}{cropIcon}</span>
                   </div>
                 );
               })}
@@ -3993,10 +4004,22 @@ export default function Game() {
           onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
           onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
-          onBuyBotFactory={() => setGameState(prev => buyBotFactory(prev))}
-          onBuyWell={() => setGameState(prev => buyWell(prev))}
-          onBuyGarage={() => setGameState(prev => buyGarage(prev))}
-          onBuySupercharger={() => setGameState(prev => buySupercharger(prev))}
+          onBuyBotFactory={() => {
+            setGameState(prev => buyBotFactory(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
+          onBuyWell={() => {
+            setGameState(prev => buyWell(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
+          onBuyGarage={() => {
+            setGameState(prev => buyGarage(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
+          onBuySupercharger={() => {
+            setGameState(prev => buySupercharger(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
@@ -4775,6 +4798,34 @@ export default function Game() {
           gameState={gameState}
           isInitialWelcome={false}
         />
+      )}
+
+      {/* Building Purchase Tip */}
+      {showBuildingPurchaseTip && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-amber-900 to-amber-950 border-4 border-amber-500 rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <div className="text-6xl mb-2">🏗️</div>
+              <h2 className="text-2xl font-bold text-amber-200 mb-2">Building Purchased!</h2>
+            </div>
+            <div className="bg-black/30 rounded-lg p-4 mb-4">
+              <p className="text-amber-100 text-center mb-3">
+                Look at the <strong className="text-amber-300">bottom of your screen</strong> to find the placement button for your new building!
+              </p>
+              <div className="flex items-center justify-center gap-2 text-amber-200">
+                <span className="text-2xl">👇</span>
+                <span className="font-bold">Scroll down to place it</span>
+                <span className="text-2xl">👇</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowBuildingPurchaseTip(false)}
+              className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-bold text-lg shadow-lg"
+            >
+              Got It!
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { hasAutosave, getAutosaveTimestamp, exportSave } from '@/lib/saveSystem';
+import { hasAutosave, getAutosaveTimestamp, generateSaveCode } from '@/lib/saveSystem';
 import { GameState } from '@/types/game';
 
 interface TutorialModalProps {
@@ -22,6 +22,7 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
   const [loading, setLoading] = useState(false);
   const [hasAutoSave, setHasAutoSave] = useState(false);
   const [autoSaveTime, setAutoSaveTime] = useState<string | null>(null);
+  const [generatedSaveCode, setGeneratedSaveCode] = useState<string>('');
 
   useEffect(() => {
     // Check for autosave when showing initial welcome
@@ -38,6 +39,15 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
       }
     }
   }, [isInitialWelcome, onContinue]);
+
+  useEffect(() => {
+    // Generate save code when gameState is available
+    if (gameState) {
+      generateSaveCode(gameState).then(code => {
+        setGeneratedSaveCode(code);
+      });
+    }
+  }, [gameState]);
 
   const pages = [
     {
@@ -497,7 +507,7 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
           <h3 className="text-xl font-bold text-cyan-400 mb-4">Your Save Code:</h3>
           <div className="bg-black/40 border-2 border-cyan-600 rounded-lg p-4 mb-4">
             <p className="text-4xl font-mono text-center tracking-widest text-white">
-              {exportSave(gameState)}
+              {generatedSaveCode || 'Generating...'}
             </p>
           </div>
           <p className="text-sm text-gray-300 mb-3">
@@ -505,10 +515,13 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
           </p>
           <button
             onClick={() => {
-              navigator.clipboard.writeText(exportSave(gameState));
-              alert('Save code copied to clipboard!');
+              if (generatedSaveCode) {
+                navigator.clipboard.writeText(generatedSaveCode);
+                alert('Save code copied to clipboard!');
+              }
             }}
-            className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded font-bold"
+            disabled={!generatedSaveCode}
+            className="w-full px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed rounded font-bold"
           >
             📋 Copy Code to Clipboard
           </button>

@@ -659,12 +659,12 @@ export default function Game() {
 
   // Music configuration - farm zone has multiple songs, other zones have single tracks
   const farmSongs = [
-    { name: 'Farm Theme', file: '/farm.mp3' },
-    { name: 'Farm Theme 1', file: '/farm1.mp3' },
-    { name: 'Farm Theme 2', file: '/farm2.mp3' },
-    { name: 'Farm Theme 3', file: '/farm3.mp3' },
-    { name: 'Farm Theme 4', file: '/farm4.mp3' },
-    { name: 'Farm Theme 5', file: '/farm5.mp3' },
+    { name: 'Morning Meadow', file: '/farm.mp3' },
+    { name: 'Peaceful Pastures', file: '/farm1.mp3' },
+    { name: 'Gentle Harvest', file: '/farm2.mp3' },
+    { name: 'Quiet Fields', file: '/farm3.mp3' },
+    { name: 'Sunset Valley', file: '/farm4.mp3' },
+    { name: 'Tranquil Garden', file: '/farm5.mp3' },
   ];
 
   const singleZoneMusic: Record<string, string> = {

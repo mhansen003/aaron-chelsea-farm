@@ -3176,36 +3176,71 @@ export default function Game() {
               />
               <span className="text-xs text-white">Auto Plant</span>
             </label>
-            {/* Crop Selector for Auto Plant */}
+            {/* Crop Selector for Auto Plant - Multi-select with rotation */}
             {gameState.player.farmerAuto.autoPlant && (
-              <select
-                value={gameState.player.farmerAuto.autoPlantCrop}
-                onChange={(e) => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoPlantCrop: e.target.value as Exclude<CropType, null>,
-                      },
-                    },
-                  }));
-                }}
-                className="text-xs bg-gray-800 text-white border border-gray-600 rounded px-1 py-0.5 ml-5 mr-1 max-w-[130px]"
-              >
-                <option value="carrot">🥕 Carrot</option>
-                <option value="wheat">🌾 Wheat</option>
-                <option value="tomato">🍅 Tomato</option>
-                <option value="pumpkin">🎃 Pumpkin</option>
-                <option value="watermelon">🍉 Watermelon</option>
-                <option value="peppers">🌶️ Peppers</option>
-                <option value="grapes">🍇 Grapes</option>
-                <option value="oranges">🍊 Oranges</option>
-                <option value="avocado">🥑 Avocado</option>
-                <option value="rice">🍚 Rice</option>
-                <option value="corn">🌽 Corn</option>
-              </select>
+              <div className="ml-5 space-y-0.5 text-xs">
+                <div className="text-gray-400 mb-1">Select crops to rotate:</div>
+                {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map(crop => {
+                  const cropEmojis = {
+                    carrot: '🥕',
+                    wheat: '🌾',
+                    tomato: '🍅',
+                    pumpkin: '🎃',
+                    watermelon: '🍉',
+                    peppers: '🌶️',
+                    grapes: '🍇',
+                    oranges: '🍊',
+                    avocado: '🥑',
+                    rice: '🍚',
+                    corn: '🌽'
+                  };
+                  const cropNames = {
+                    carrot: 'Carrot',
+                    wheat: 'Wheat',
+                    tomato: 'Tomato',
+                    pumpkin: 'Pumpkin',
+                    watermelon: 'Watermelon',
+                    peppers: 'Peppers',
+                    grapes: 'Grapes',
+                    oranges: 'Oranges',
+                    avocado: 'Avocado',
+                    rice: 'Rice',
+                    corn: 'Corn'
+                  };
+
+                  const isSelected = gameState.player.farmerAuto.autoPlantCrops.includes(crop);
+
+                  return (
+                    <label key={crop} className="flex items-center gap-1 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {
+                          setGameState(prev => {
+                            const currentCrops = [...prev.player.farmerAuto.autoPlantCrops];
+                            const newCrops = isSelected
+                              ? currentCrops.filter(c => c !== crop)
+                              : [...currentCrops, crop];
+
+                            return {
+                              ...prev,
+                              player: {
+                                ...prev.player,
+                                farmerAuto: {
+                                  ...prev.player.farmerAuto,
+                                  autoPlantCrops: newCrops,
+                                },
+                              },
+                            };
+                          });
+                        }}
+                        className="w-3 h-3"
+                      />
+                      <span className="text-white">{cropEmojis[crop]} {cropNames[crop]}</span>
+                    </label>
+                  );
+                })}
+              </div>
             )}
 
             {/* Auto Water */}

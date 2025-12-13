@@ -112,10 +112,10 @@ function getRandomGrassVariant(): number {
 
 // Construction durations in milliseconds (separate from task durations)
 export const CONSTRUCTION_DURATIONS = {
-  botFactory: 1000, // 1 second to build bot factory
-  well: 1000, // 1 second to build well
-  garage: 1000, // 1 second to build garage
-  supercharger: 1000, // 1 second to build supercharger
+  botFactory: 100, // Near-instant construction (100ms)
+  well: 100, // Near-instant construction (100ms)
+  garage: 100, // Near-instant construction (100ms)
+  supercharger: 100, // Near-instant construction (100ms)
 };
 
 // Helper functions for supercharged bot speed calculations

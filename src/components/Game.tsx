@@ -2225,7 +2225,7 @@ export default function Game() {
       }
     });
 
-  }, [gameState]);
+  }, [gameState, hoveredTile, placementMode]);
 
   // Play water splash sound effect
   const playWaterSplash = useCallback(() => {

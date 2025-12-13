@@ -2626,41 +2626,47 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   }
 
   // Priority 4: Auto Plant (plant seeds on empty cleared dirt/grass)
-  if (farmerAuto.autoPlant && farmerAuto.autoPlantCrop && inventory.seeds[farmerAuto.autoPlantCrop] > 0) {
-    const plantableTiles: Array<{ x: number; y: number; dist: number }> = [];
-    grid.forEach((row, y) => {
-      row.forEach((tile, x) => {
-        const isPlantable =
-          ((tile.type === 'grass' || tile.type === 'dirt') && tile.cleared) &&
-          !tile.crop &&
-          !tile.hasSprinkler &&
-          !tile.isConstructing;
-        if (isPlantable) {
-          const dist = Math.abs(state.player.x - x) + Math.abs(state.player.y - y);
-          plantableTiles.push({ x, y, dist });
-        }
+  if (farmerAuto.autoPlant && farmerAuto.autoPlantCrops.length > 0) {
+    // Check which crops we have seeds for
+    const availableCrops = farmerAuto.autoPlantCrops.filter(crop => inventory.seeds[crop] > 0);
+
+    if (availableCrops.length > 0) {
+      const cropToPlant = availableCrops[0]; // Use first available crop
+      const plantableTiles: Array<{ x: number; y: number; dist: number }> = [];
+      grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          const isPlantable =
+            ((tile.type === 'grass' || tile.type === 'dirt') && tile.cleared) &&
+            !tile.crop &&
+            !tile.hasSprinkler &&
+            !tile.isConstructing;
+          if (isPlantable) {
+            const dist = Math.abs(state.player.x - x) + Math.abs(state.player.y - y);
+            plantableTiles.push({ x, y, dist });
+          }
+        });
       });
-    });
 
-    // Sort by distance and take closest tiles (limit to available seeds)
-    plantableTiles.sort((a, b) => a.dist - b.dist);
-    const nearbyPlantable = plantableTiles.slice(0, Math.min(10, inventory.seeds[farmerAuto.autoPlantCrop]));
+      // Sort by distance and take closest tiles (limit to available seeds)
+      plantableTiles.sort((a, b) => a.dist - b.dist);
+      const nearbyPlantable = plantableTiles.slice(0, Math.min(10, inventory.seeds[cropToPlant]));
 
-    nearbyPlantable.forEach(tile => {
-      tasks.push({
-        id: `auto-plant-${tile.x}-${tile.y}-${Date.now()}`,
-        type: 'plant',
-        tileX: tile.x,
-        tileY: tile.y,
-        zoneX: state.currentZone.x,
-        zoneY: state.currentZone.y,
-        cropType: farmerAuto.autoPlantCrop,
-        progress: 0,
-        duration: TASK_DURATIONS.plant,
+      nearbyPlantable.forEach(tile => {
+        tasks.push({
+          id: `auto-plant-${tile.x}-${tile.y}-${Date.now()}`,
+          type: 'plant',
+          tileX: tile.x,
+          tileY: tile.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          cropType: cropToPlant,
+          progress: 0,
+          duration: TASK_DURATIONS.plant,
+        });
       });
-    });
 
-    if (tasks.length > 0) return tasks;
+      if (tasks.length > 0) return tasks;
+    }
   }
 
   return tasks;

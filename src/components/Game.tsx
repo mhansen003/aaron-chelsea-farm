@@ -3176,70 +3176,42 @@ export default function Game() {
               />
               <span className="text-xs text-white">Auto Plant</span>
             </label>
-            {/* Crop Selector for Auto Plant - Multi-select with rotation */}
+            {/* Crop Selector for Auto Plant - Dropdown */}
             {gameState.player.farmerAuto.autoPlant && (
-              <div className="ml-5 space-y-0.5 text-xs">
-                <div className="text-gray-400 mb-1">Select crops to rotate:</div>
-                {(['carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon', 'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'] as const).map(crop => {
-                  const cropEmojis = {
-                    carrot: '🥕',
-                    wheat: '🌾',
-                    tomato: '🍅',
-                    pumpkin: '🎃',
-                    watermelon: '🍉',
-                    peppers: '🌶️',
-                    grapes: '🍇',
-                    oranges: '🍊',
-                    avocado: '🥑',
-                    rice: '🍚',
-                    corn: '🌽'
-                  };
-                  const cropNames = {
-                    carrot: 'Carrot',
-                    wheat: 'Wheat',
-                    tomato: 'Tomato',
-                    pumpkin: 'Pumpkin',
-                    watermelon: 'Watermelon',
-                    peppers: 'Peppers',
-                    grapes: 'Grapes',
-                    oranges: 'Oranges',
-                    avocado: 'Avocado',
-                    rice: 'Rice',
-                    corn: 'Corn'
-                  };
-
-                  const isSelected = gameState.player.farmerAuto.autoPlantCrops.includes(crop);
-
-                  return (
-                    <label key={crop} className="flex items-center gap-1 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => {
-                          setGameState(prev => {
-                            const currentCrops = [...prev.player.farmerAuto.autoPlantCrops];
-                            const newCrops = isSelected
-                              ? currentCrops.filter(c => c !== crop)
-                              : [...currentCrops, crop];
-
-                            return {
-                              ...prev,
-                              player: {
-                                ...prev.player,
-                                farmerAuto: {
-                                  ...prev.player.farmerAuto,
-                                  autoPlantCrops: newCrops,
-                                },
-                              },
-                            };
-                          });
-                        }}
-                        className="w-3 h-3"
-                      />
-                      <span className="text-white">{cropEmojis[crop]} {cropNames[crop]}</span>
-                    </label>
-                  );
-                })}
+              <div className="ml-5 text-xs">
+                <label className="text-gray-400 mb-1 block">Crop rotation:</label>
+                <select
+                  multiple
+                  value={gameState.player.farmerAuto.autoPlantCrops}
+                  onChange={(e) => {
+                    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value) as any[];
+                    setGameState(prev => ({
+                      ...prev,
+                      player: {
+                        ...prev.player,
+                        farmerAuto: {
+                          ...prev.player.farmerAuto,
+                          autoPlantCrops: selectedOptions,
+                        },
+                      },
+                    }));
+                  }}
+                  className="w-full bg-purple-900/50 border border-purple-600 rounded px-2 py-1 text-white text-xs"
+                  size={5}
+                >
+                  <option value="carrot">🥕 Carrot</option>
+                  <option value="wheat">🌾 Wheat</option>
+                  <option value="tomato">🍅 Tomato</option>
+                  <option value="pumpkin">🎃 Pumpkin</option>
+                  <option value="watermelon">🍉 Watermelon</option>
+                  <option value="peppers">🌶️ Peppers</option>
+                  <option value="grapes">🍇 Grapes</option>
+                  <option value="oranges">🍊 Oranges</option>
+                  <option value="avocado">🥑 Avocado</option>
+                  <option value="rice">🍚 Rice</option>
+                  <option value="corn">🌽 Corn</option>
+                </select>
+                <div className="text-gray-500 text-[10px] mt-1">Hold Ctrl/Cmd to select multiple</div>
               </div>
             )}
 

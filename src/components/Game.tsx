@@ -850,6 +850,7 @@ export default function Game() {
     const harvestBots = currentZone?.harvestBots || [];
     const seedBots = currentZone?.seedBots || [];
     const transportBots = currentZone?.transportBots || [];
+    const demolishBots = currentZone?.demolishBots || [];
 
     // Clear canvas with green farm background
     ctx.fillStyle = '#7cb342'; // Green grass color
@@ -1971,6 +1972,29 @@ export default function Game() {
 
         // Progress fill
         ctx.fillStyle = '#22c55e'; // Green for planting
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
+
+        // Border
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+      }
+    });
+
+    // Demolish bots
+    demolishBots?.forEach(bot => {
+      if (bot.actionStartTime !== undefined && bot.actionDuration && bot.x !== undefined && bot.y !== undefined) {
+        const elapsed = gameState.gameTime - bot.actionStartTime;
+        const progress = Math.min(1, elapsed / bot.actionDuration);
+        const px = bot.x * GAME_CONFIG.tileSize;
+        const py = bot.y * GAME_CONFIG.tileSize;
+
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+
+        // Progress fill
+        ctx.fillStyle = '#f97316'; // Orange for demolishing
         ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
 
         // Border

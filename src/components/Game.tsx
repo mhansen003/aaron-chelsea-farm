@@ -2408,7 +2408,8 @@ export default function Game() {
 
     // Set cursor based on mode and tile
     if (placementMode) {
-      // Show crosshair cursor when in placement mode
+      // Show crosshair cursor when in placement mode and set hovered tile for preview
+      setHoveredTile({ x: tileX, y: tileY });
       setCursorType('crosshair');
     } else if (tileSelectionMode && tileSelectionMode.active) {
       // Show pointer cursor when in tile selection mode

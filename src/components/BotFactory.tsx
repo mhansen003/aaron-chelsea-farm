@@ -311,7 +311,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 {/* Bot Image */}
                 <div className="relative w-24 h-24 flex-shrink-0">
                   <Image
-                    src="/drill-bot.png"
+                    src="/demolish-bot.png"
                     alt="Demolish Bot"
                     width={96}
                     height={96}

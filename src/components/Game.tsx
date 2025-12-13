@@ -703,7 +703,8 @@ export default function Game() {
     // Pause and cleanup old audio
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.removeEventListener('ended', () => {});
+      // Remove all event listeners by setting src to empty
+      audioRef.current.src = '';
       audioRef.current = null;
     }
 

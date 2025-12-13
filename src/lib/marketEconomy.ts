@@ -1,4 +1,4 @@
-// Market Economy System for Aaron and Chelsea's Farm
+// Market Economy System for My Bot Farm
 import { GameState, MarketData, Season, PriceSnapshot, CropType } from '@/types/game';
 import { CROP_INFO } from './cropConstants';
 

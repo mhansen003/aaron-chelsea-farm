@@ -54,7 +54,7 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue }: We
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-amber-200 mb-2">
-            🌾 Aaron & Chelsea's Farm 🌾
+            🤖 My Bot Farm 🤖
           </h1>
           <p className="text-amber-300 text-lg">
             Build your farming empire, automate with bots, and grow your wealth!

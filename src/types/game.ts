@@ -1,4 +1,4 @@
-// Game types for Aaron and Chelsea's Farm
+// Game types for My Bot Farm
 
 export type TileType =
   | 'grass'

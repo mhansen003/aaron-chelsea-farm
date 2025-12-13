@@ -12,7 +12,7 @@ export default function TutorialModal({ onClose }: TutorialModalProps) {
 
   const pages = [
     {
-      title: "Welcome to Aaron & Chelsea's Farm!",
+      title: "Welcome to My Bot Farm!",
       icon: "🌾",
       content: (
         <div className="space-y-4">

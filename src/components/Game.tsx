@@ -212,6 +212,7 @@ export default function Game() {
   const seedBotImageRef = useRef<HTMLImageElement | null>(null);
   const transportBotImageRef = useRef<HTMLImageElement | null>(null);
   const demolishBotImageRef = useRef<HTMLImageElement | null>(null);
+  const chargedImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
   const archBarnImageRef = useRef<HTMLImageElement | null>(null);
@@ -376,6 +377,12 @@ export default function Game() {
     demolishBotImg.src = '/demolish-bot.png';
     demolishBotImg.onload = () => {
       demolishBotImageRef.current = demolishBotImg;
+    };
+
+    const chargedImg = new Image();
+    chargedImg.src = '/charged.png';
+    chargedImg.onload = () => {
+      chargedImageRef.current = chargedImg;
     };
 
     const archFarmImg = new Image();
@@ -2110,6 +2117,14 @@ export default function Game() {
           ctx.fill();
         }
 
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+        }
+
         // Draw glowing red indicator on right side if out of water
         if (bot.waterLevel === 0) {
           const indicatorX = botPx + GAME_CONFIG.tileSize - 15;
@@ -2163,6 +2178,14 @@ export default function Game() {
           ctx.beginPath();
           ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
           ctx.fill();
+        }
+
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw crop icon indicator if carrying crops
@@ -2244,6 +2267,14 @@ export default function Game() {
           ctx.fill();
         }
 
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+        }
+
         // Draw job indicator if bot has jobs configured
         if (bot.jobs.length > 0) {
           ctx.fillStyle = '#66bb6a';
@@ -2275,6 +2306,14 @@ export default function Game() {
           ctx.fill();
         }
 
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+        }
+
         // Draw inventory indicator if bot has items
         if (bot.inventory.length > 0) {
           ctx.fillStyle = '#ab47bc';
@@ -2304,6 +2343,14 @@ export default function Game() {
           ctx.beginPath();
           ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
           ctx.fill();
+        }
+
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
         }
       }
     });

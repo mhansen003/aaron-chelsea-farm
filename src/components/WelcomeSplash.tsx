@@ -146,13 +146,6 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue, onSh
 
             <div className="flex gap-3">
               <button
-                onClick={handleLoadGame}
-                disabled={loading || saveCode.length !== 6}
-                className="flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-base shadow-lg transition-all duration-200 border border-emerald-500/30 disabled:border-slate-600/50"
-              >
-                {loading ? 'Loading...' : 'Load Game'}
-              </button>
-              <button
                 onClick={() => {
                   setShowLoadInput(false);
                   setSaveCode('');
@@ -162,6 +155,13 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue, onSh
                 className="flex-1 px-6 py-3.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded-xl font-semibold text-base shadow-lg transition-all duration-200 border border-slate-600/50"
               >
                 Back
+              </button>
+              <button
+                onClick={handleLoadGame}
+                disabled={loading || saveCode.length !== 6}
+                className="flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-base shadow-lg transition-all duration-200 border border-emerald-500/30 disabled:border-slate-600/50"
+              >
+                {loading ? 'Loading...' : 'Load Game'}
               </button>
             </div>
           </div>

@@ -2141,12 +2141,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2212,12 +2212,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2307,12 +2307,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2354,12 +2354,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2401,12 +2401,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2490,12 +2490,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged (2 bolts side by side)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
-          const gap = 4; // Gap between the two bolts
+          const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy - chargedSize * 0.8;
+          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { hasAutosave, getAutosaveTimestamp } from '@/lib/saveSystem';
+import Image from 'next/image';
 
 interface WelcomeSplashProps {
   onStartNew: () => void;
@@ -53,8 +54,15 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue }: We
       <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-8 md:p-12 max-w-2xl w-full shadow-2xl">
         {/* Title */}
         <div className="text-center mb-10">
-          <div className="inline-block mb-4">
-            <div className="text-6xl mb-3">🤖</div>
+          <div className="inline-block mb-6">
+            <Image
+              src="/splash.png"
+              alt="My Bot Farm"
+              width={300}
+              height={300}
+              className="object-contain rounded-2xl"
+              priority
+            />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
             My Bot Farm

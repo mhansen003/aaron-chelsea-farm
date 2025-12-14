@@ -165,6 +165,7 @@ export default function Game() {
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
+  const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -803,6 +804,21 @@ export default function Game() {
       return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [showMusicDropdown]);
+
+  // Close crop dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showCropDropdown && !target.closest('.crop-dropdown-container')) {
+        setShowCropDropdown(false);
+      }
+    };
+
+    if (showCropDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showCropDropdown]);
 
   // Game loop
   useEffect(() => {
@@ -3199,40 +3215,66 @@ export default function Game() {
             </label>
             {/* Crop Selector for Auto Plant - Dropdown */}
             {gameState.player.farmerAuto.autoPlant && (
-              <div className="ml-5 text-xs">
+              <div className="ml-5 text-xs crop-dropdown-container relative">
                 <label className="text-gray-400 mb-1 block">Crop rotation:</label>
-                <select
-                  multiple
-                  value={gameState.player.farmerAuto.autoPlantCrops}
-                  onChange={(e) => {
-                    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value) as any[];
-                    setGameState(prev => ({
-                      ...prev,
-                      player: {
-                        ...prev.player,
-                        farmerAuto: {
-                          ...prev.player.farmerAuto,
-                          autoPlantCrops: selectedOptions,
-                        },
-                      },
-                    }));
-                  }}
-                  className="w-full bg-purple-900/50 border border-purple-600 rounded px-2 py-1 text-white text-xs"
-                  size={5}
+                <button
+                  onClick={() => setShowCropDropdown(!showCropDropdown)}
+                  className="w-full bg-purple-900/50 border border-purple-600 rounded px-2 py-1.5 text-white text-xs text-left flex items-center justify-between hover:bg-purple-800/50 transition-colors"
                 >
-                  <option value="carrot">🥕 Carrot</option>
-                  <option value="wheat">🌾 Wheat</option>
-                  <option value="tomato">🍅 Tomato</option>
-                  <option value="pumpkin">🎃 Pumpkin</option>
-                  <option value="watermelon">🍉 Watermelon</option>
-                  <option value="peppers">🌶️ Peppers</option>
-                  <option value="grapes">🍇 Grapes</option>
-                  <option value="oranges">🍊 Oranges</option>
-                  <option value="avocado">🥑 Avocado</option>
-                  <option value="rice">🍚 Rice</option>
-                  <option value="corn">🌽 Corn</option>
-                </select>
-                <div className="text-gray-500 text-[10px] mt-1">Hold Ctrl/Cmd to select multiple</div>
+                  <span>
+                    {gameState.player.farmerAuto.autoPlantCrops.length === 0
+                      ? 'Select crops...'
+                      : `${gameState.player.farmerAuto.autoPlantCrops.length} crop${gameState.player.farmerAuto.autoPlantCrops.length !== 1 ? 's' : ''} selected`}
+                  </span>
+                  <span className="text-purple-400">{showCropDropdown ? '▲' : '▼'}</span>
+                </button>
+                {showCropDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-purple-950 border border-purple-600 rounded shadow-lg z-50 max-h-48 overflow-y-auto">
+                    {[
+                      { value: 'carrot', label: '🥕 Carrot' },
+                      { value: 'wheat', label: '🌾 Wheat' },
+                      { value: 'tomato', label: '🍅 Tomato' },
+                      { value: 'pumpkin', label: '🎃 Pumpkin' },
+                      { value: 'watermelon', label: '🍉 Watermelon' },
+                      { value: 'peppers', label: '🌶️ Peppers' },
+                      { value: 'grapes', label: '🍇 Grapes' },
+                      { value: 'oranges', label: '🍊 Oranges' },
+                      { value: 'avocado', label: '🥑 Avocado' },
+                      { value: 'rice', label: '🍚 Rice' },
+                      { value: 'corn', label: '🌽 Corn' },
+                    ].map((crop) => {
+                      const isSelected = gameState.player.farmerAuto.autoPlantCrops.includes(crop.value as any);
+                      return (
+                        <label
+                          key={crop.value}
+                          className="flex items-center gap-2 px-3 py-2 hover:bg-purple-800/50 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              const newCrops = e.target.checked
+                                ? [...gameState.player.farmerAuto.autoPlantCrops, crop.value]
+                                : gameState.player.farmerAuto.autoPlantCrops.filter(c => c !== crop.value);
+                              setGameState(prev => ({
+                                ...prev,
+                                player: {
+                                  ...prev.player,
+                                  farmerAuto: {
+                                    ...prev.player.farmerAuto,
+                                    autoPlantCrops: newCrops as any[],
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-3.5 h-3.5"
+                          />
+                          <span className="text-white">{crop.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 

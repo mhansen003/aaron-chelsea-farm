@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST, getCurrentSeedCost } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -18,6 +18,7 @@ interface ShopProps {
   onBuyWell: () => void;
   onBuyGarage: () => void;
   onBuySupercharger: () => void;
+  onBuyFertilizerBuilding: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
@@ -35,7 +36,7 @@ const SEED_INFO = {
   corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2 },
 };
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onBuyFertilizerBuilding, onToggleAutoBuy }: ShopProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
@@ -365,6 +366,62 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                   ${SUPERCHARGER_COST}
                 </button>
               ) : gameState.player.inventory.superchargerPlaced ? (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
+                  Owned
+                </div>
+              ) : (
+                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
+                  Place It!
+                </div>
+              )}
+            </div>
+
+            {/* Fertilizer Building - Refills fertilizer bot */}
+            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
+              (gameState.player.inventory.fertilizerBuilding ?? 0) >= 1
+                ? 'border-green-600'
+                : 'border-amber-600'
+            }`}>
+              {/* Icon */}
+              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+                {(gameState.player.inventory.fertilizerBuilding ?? 0) >= 1 ? (
+                  <span className="text-5xl">✓</span>
+                ) : (
+                  <Image src="/fertilizer-building.png" alt="Fertilizer Building" width={80} height={80} className="object-contain" />
+                )}
+              </div>
+
+              {/* Name */}
+              <div className="font-bold text-center mb-1 text-sm">Fertilizer Building</div>
+
+              {/* Stats */}
+              <div className="text-xs text-center mb-2 space-y-1">
+                <div className="text-green-400">Refills fertilizer bot</div>
+                <div className="text-blue-400">
+                  {gameState.player.inventory.fertilizerBuildingPlaced ? (
+                    <span className="text-green-400">Built</span>
+                  ) : (gameState.player.inventory.fertilizerBuilding ?? 0) >= 1 ? (
+                    <span className="text-yellow-400">Ready!</span>
+                  ) : (
+                    'Max 1 building'
+                  )}
+                </div>
+              </div>
+
+              {/* Buy/Action Button */}
+              {(gameState.player.inventory.fertilizerBuilding ?? 0) < 1 ? (
+                <button
+                  onClick={() => onBuyFertilizerBuilding()}
+                  disabled={gameState.player.money < FERTILIZER_BUILDING_COST}
+                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
+                    gameState.player.money >= FERTILIZER_BUILDING_COST
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  ${FERTILIZER_BUILDING_COST}
+                </button>
+              ) : gameState.player.inventory.fertilizerBuildingPlaced ? (
                 <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
                   Owned
                 </div>

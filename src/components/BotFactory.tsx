@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { GameState, TransportBotConfig } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, HUNTERBOT_COST, getBotCost } from '@/lib/gameEngine';
+import { GameState, TransportBotConfig, FertilizerBotConfig } from '@/types/game';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, HUNTERBOT_COST, FERTILIZERBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
 import BotNameModal from './BotNameModal';
 import TransportBotConfigModal from './TransportBotConfigModal';
+import FertilizerBotConfigModal from './FertilizerBotConfigModal';
 
 interface BotFactoryProps {
   gameState: GameState;
@@ -16,15 +17,18 @@ interface BotFactoryProps {
   onBuyTransportbots: (amount: number, name?: string, config?: TransportBotConfig) => void;
   onBuyDemolishbots: (amount: number, name?: string) => void;
   onBuyHunterbots: (amount: number, name?: string) => void;
+  onBuyFertilizerbot: (name?: string, config?: FertilizerBotConfig) => void;
   onRelocate: () => void;
 }
 
-type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | null;
+type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' | null;
 
-export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onBuyHunterbots, onRelocate }: BotFactoryProps) {
+export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onBuyHunterbots, onBuyFertilizerbot, onRelocate }: BotFactoryProps) {
   const [namingBot, setNamingBot] = useState<BotType>(null);
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
   const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
+  const [configuringFertilizerBot, setConfiguringFertilizerBot] = useState(false);
+  const [fertilizerBotName, setFertilizerBotName] = useState<string | undefined>(undefined);
   // Calculate progressive costs based on how many bots are owned
   const waterbotCost = getBotCost(WATERBOT_COST, gameState.player.inventory.waterbots);
   const harvestbotCost = getBotCost(HARVESTBOT_COST, gameState.player.inventory.harvestbots);
@@ -32,6 +36,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
   const transportbotCost = getBotCost(TRANSPORTBOT_COST, gameState.player.inventory.transportbots || 0);
   const demolishbotCost = getBotCost(DEMOLISHBOT_COST, gameState.player.inventory.demolishbots || 0);
   const hunterbotCost = getBotCost(HUNTERBOT_COST, gameState.player.inventory.hunterbots || 0);
+  const fertilizerbotCost = FERTILIZERBOT_COST; // Fixed cost, only 1 allowed
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
@@ -436,6 +441,74 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </button>
               )}
             </div>
+
+            {/* Fertilizer Bot */}
+            <div className={`bg-gradient-to-br from-green-900/40 to-emerald-950/40 p-5 rounded-xl border-3 shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.fertilizerbot >= 1
+                ? 'border-green-500 shadow-green-500/30'
+                : 'border-green-500/50'
+            }`}>
+              <div className="flex gap-4 mb-4">
+                {/* Bot Image */}
+                <div className="relative w-24 h-24 flex-shrink-0">
+                  <Image
+                    src="/fertilizer-bot.png"
+                    alt="Fertilizer Bot"
+                    width={96}
+                    height={96}
+                    className="object-contain"
+                  />
+                  {gameState.player.inventory.fertilizerbot >= 1 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      OWNED
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-green-300 mb-2">Fertilizer Bot</h3>
+                  <p className="text-sm text-gray-300 leading-tight">
+                    The Fertilizer Bot boosts your crop growth by 50%! It intelligently fertilizes watered crops based on your custom priority list, refills from the Fertilizer Building, and works tirelessly to maximize your harvests.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="bg-black/40 rounded-lg p-3 mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-400">SPECIAL UNIT</span>
+                  <span className="text-sm font-bold text-green-400">Owned: {gameState.player.inventory.fertilizerbot}/1</span>
+                </div>
+                <div className="text-xs text-green-400">
+                  ✓ 50% faster growth • ✓ Smart prioritization • ✓ Auto-refill
+                </div>
+                {gameState.player.inventory.fertilizerbot === 0 && (
+                  <div className="text-xs text-yellow-400 mt-2">
+                    ⚠ Requires Fertilizer Building to be placed first
+                  </div>
+                )}
+              </div>
+
+              {/* Buy Button */}
+              {gameState.player.inventory.fertilizerbot >= 1 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ FERTILIZER BOT OWNED
+                </div>
+              ) : (
+                <button
+                  onClick={() => setNamingBot('fertilizer')}
+                  disabled={gameState.player.money < FERTILIZERBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= FERTILIZERBOT_COST
+                      ? 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= fertilizerbotCost ? `Purchase for $${fertilizerbotCost}` : `Insufficient Funds ($${fertilizerbotCost})`}
+                </button>
+              )}
+            </div>
           </div>
           </div>
         </div>
@@ -472,7 +545,8 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             namingBot === 'seed' ? 'Seed Bot' :
             namingBot === 'transport' ? 'Transport Bot' :
             namingBot === 'demolish' ? 'Demolish Bot' :
-            'Hunter Bot'
+            namingBot === 'hunter' ? 'Hunter Bot' :
+            'Fertilizer Bot'
           }
           onConfirm={(name) => {
             if (namingBot === 'water') onBuyWaterbots(1, name);
@@ -486,9 +560,15 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             }
             else if (namingBot === 'demolish') onBuyDemolishbots(1, name);
             else if (namingBot === 'hunter') onBuyHunterbots(1, name);
+            else if (namingBot === 'fertilizer') {
+              // Show config modal for fertilizer bot
+              setFertilizerBotName(name);
+              setNamingBot(null);
+              setConfiguringFertilizerBot(true);
+            }
 
-            // For non-transport bots, close naming modal
-            if (namingBot !== 'transport') {
+            // For non-config bots, close naming modal
+            if (namingBot !== 'transport' && namingBot !== 'fertilizer') {
               setNamingBot(null);
             }
           }}
@@ -509,6 +589,22 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
           onCancel={() => {
             setConfiguringTransportBot(false);
             setTransportBotName(undefined);
+          }}
+        />
+      )}
+
+      {/* Fertilizer Bot Config Modal */}
+      {configuringFertilizerBot && (
+        <FertilizerBotConfigModal
+          botName={fertilizerBotName}
+          onSave={(config) => {
+            onBuyFertilizerbot(fertilizerBotName, config);
+            setConfiguringFertilizerBot(false);
+            setFertilizerBotName(undefined);
+          }}
+          onCancel={() => {
+            setConfiguringFertilizerBot(false);
+            setFertilizerBotName(undefined);
           }}
         />
       )}

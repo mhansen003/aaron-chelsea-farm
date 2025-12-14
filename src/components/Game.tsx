@@ -721,6 +721,27 @@ export default function Game() {
     setIsMounted(true);
   }, []);
 
+  // Sync automationOrder with gameState
+  useEffect(() => {
+    if (gameState.player.farmerAuto.automationOrder) {
+      setAutomationOrder(gameState.player.farmerAuto.automationOrder);
+    }
+  }, [gameState.player.farmerAuto.automationOrder]);
+
+  // Update gameState when automationOrder changes
+  useEffect(() => {
+    setGameState(prev => ({
+      ...prev,
+      player: {
+        ...prev.player,
+        farmerAuto: {
+          ...prev.player.farmerAuto,
+          automationOrder,
+        },
+      },
+    }));
+  }, [automationOrder]);
+
   // Removed auto-open shop effect - shop now opens only on click or 'B' key
 
   // Background music and sound effects

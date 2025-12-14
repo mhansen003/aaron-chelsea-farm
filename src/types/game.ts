@@ -143,6 +143,7 @@ export interface Player {
     autoWater: boolean;
     autoHarvest: boolean;
     autoSell: boolean;
+    automationOrder: ('plant' | 'water' | 'harvest')[]; // Priority order for automation tasks
   };
 }
 

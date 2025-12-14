@@ -1329,9 +1329,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             // Already at garage - stay parked
             return { ...bot, status: 'idle' as const, visualX, visualY };
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             let newX = botX, newY = botY;
-            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+            if (Math.random() < (deltaTime / 2000)) {
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
@@ -2091,9 +2091,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             // Already at garage - stay parked
             return { ...bot, status: 'idle' as const, visualX, visualY };
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             let newX = botX, newY = botY;
-            if (Math.random() < (deltaTime / 400)) { // Slightly faster than other bots
+            if (Math.random() < (deltaTime / 2000)) {
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
@@ -2268,9 +2268,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             updatedDemolishBots.push({ ...bot, status: 'idle' as const, visualX, visualY });
             continue;
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             let newX = botX, newY = botY;
-            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+            if (Math.random() < (deltaTime / 2000)) {
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
@@ -5227,11 +5227,11 @@ function updateHunterBots(
               });
             }
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             const dx = garagePos.x - visualX;
             const dy = garagePos.y - visualY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1);
+            const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1);
             const newVisualX = visualX + (dx / dist) * moveSpeed;
             const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5269,7 +5269,7 @@ function updateHunterBots(
             const dx = hunter.targetX - visualX;
             const dy = hunter.targetY - visualY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1); // Slower idle speed when wandering
+            const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow idle speed when wandering
             const newVisualX = visualX + (dx / dist) * moveSpeed;
             const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5388,7 +5388,7 @@ function updateHunterBots(
         const dx = targetX - visualX;
         const dy = targetY - visualY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1); // Slower speed when escorting
+        const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow speed when escorting
         const newVisualX = visualX + (dx / dist) * moveSpeed;
         const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5658,8 +5658,8 @@ function updateFertilizerBot(
           grid: updatedGrid,
         };
       } else {
-        // Move to garage
-        const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
+        // Move to garage (slow idle speed)
+        const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
         return {
           zone: {
             ...zone,
@@ -5701,7 +5701,7 @@ function updateFertilizerBot(
       const dx = bot.targetX - visualX;
       const dy = bot.targetY - visualY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
+      const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
 
       return {
         zone: {
@@ -5710,7 +5710,7 @@ function updateFertilizerBot(
             ...bot,
             status: 'idle',
             visualX: visualX + (dx / dist) * moveSpeed,
-            visualY: visualY + (dy / dist) * moveSpeed,
+            visualY: visualY + (dx / dist) * moveSpeed,
             x: Math.round(visualX + (dx / dist) * moveSpeed),
             y: Math.round(visualY + (dy / dist) * moveSpeed),
           },

@@ -3354,6 +3354,34 @@ export function updateBotName(
   };
 }
 
+/**
+ * Update a transport bot's configuration
+ */
+export function updateTransportBotConfig(
+  state: GameState,
+  botId: string,
+  config: import('@/types/game').TransportBotConfig
+): GameState {
+  // Transport bots are only in zone 0,0
+  const startZoneKey = '0,0';
+  const startZone = state.zones[startZoneKey];
+
+  if (!startZone) return state;
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [startZoneKey]: {
+        ...startZone,
+        transportBots: startZone.transportBots.map((bot) =>
+          bot.id === botId ? { ...bot, config } : bot
+        ),
+      },
+    },
+  };
+}
+
 export function sellBot(
   state: GameState,
   botId: string,

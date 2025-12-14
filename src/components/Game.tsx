@@ -71,6 +71,7 @@ import {
   getHarvestBotCapacity,
   getTransportBotCapacity,
   getFertilizerBotCapacity,
+  updateTransportBotConfig,
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem } from '@/types/game';
 import Shop from './Shop';
@@ -87,6 +88,7 @@ import IncomeModal from './IncomeModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
 import BotNameModal from './BotNameModal';
+import TransportBotConfigModal from './TransportBotConfigModal';
 import { BotInfoModal } from './BotInfoModal';
 import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
@@ -174,6 +176,8 @@ export default function Game() {
   const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizer' | 'hopper' | null>(null);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
+  const [showTransportBotConfig, setShowTransportBotConfig] = useState(false);
+  const [selectedTransportBot, setSelectedTransportBot] = useState<string | null>(null);
   const [tileSelectionMode, setTileSelectionMode] = useState<{
     active: boolean;
     jobId: string;
@@ -5129,6 +5133,30 @@ export default function Game() {
         />
       )}
 
+      {/* Transport Bot Config Modal */}
+      {showTransportBotConfig && selectedTransportBot && (() => {
+        const startZone = gameState.zones['0,0'];
+        const transportBots = startZone?.transportBots || [];
+        const selectedBot = transportBots.find(b => b.id === selectedTransportBot);
+
+        return selectedBot ? (
+          <TransportBotConfigModal
+            gameState={gameState}
+            botName={selectedBot.name || 'Transport Bot'}
+            existingConfig={selectedBot.config}
+            onSave={(config) => {
+              setGameState(prev => updateTransportBotConfig(prev, selectedTransportBot, config));
+              setShowTransportBotConfig(false);
+              setSelectedTransportBot(null);
+            }}
+            onCancel={() => {
+              setShowTransportBotConfig(false);
+              setSelectedTransportBot(null);
+            }}
+          />
+        ) : null;
+      })()}
+
       {/* Warehouse Modal */}
       {showWarehouseModal && (
         <WarehouseModal
@@ -5724,7 +5752,17 @@ export default function Game() {
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-sm text-purple-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-sm text-purple-300/70 text-center mb-1">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTransportBot(bot.id);
+                          setShowTransportBotConfig(true);
+                        }}
+                        className="w-full px-1 py-0.5 bg-purple-600/30 hover:bg-purple-600/50 rounded text-xs font-semibold transition-colors"
+                      >
+                        ⚙️ Sell Rules
+                      </button>
                     </div>
                   );
                 })}

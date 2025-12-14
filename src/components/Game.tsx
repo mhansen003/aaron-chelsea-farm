@@ -1979,10 +1979,19 @@ export default function Game() {
           ctx.fillStyle = '#00000088';
           ctx.fillRect(px + 2, barY, barWidth, barHeight);
 
-          // Progress
+          // Progress (green bar for fertilized crops grows faster)
           const progressWidth = (barWidth * tile.growthStage) / 100;
-          ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
+          ctx.fillStyle = tile.fertilized ? '#00ff00' : (tile.growthStage < 50 ? '#ff9800' : '#4caf50');
           ctx.fillRect(px + 2, barY, progressWidth, barHeight);
+        }
+
+        // Draw lightning bolt for fertilized crops
+        if (tile.type === 'planted' && tile.crop && tile.fertilized) {
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          // Position at bottom center of tile
+          ctx.fillText('⚡', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize - 2);
         }
 
         // Draw blinking water droplet for crops that need water

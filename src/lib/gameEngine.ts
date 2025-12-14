@@ -85,6 +85,7 @@ export const TASK_DURATIONS: Record<TaskType, number> = {
   harvest: 2000, // 2 seconds to harvest
   uproot: 2000, // 2 seconds to uproot a crop
   place_sprinkler: 3000, // 3 seconds to place sprinkler
+  fertilize: 15000, // 15 seconds to fertilize a crop
   place_botFactory: 100, // Instant - construction time handles the delay
   place_well: 100, // Instant - construction time handles the delay
   place_garage: 100, // Instant - construction time handles the delay
@@ -5738,29 +5739,76 @@ function updateFertilizerBot(
   const dist = Math.sqrt(dx * dx + dy * dy);
 
   if (dist < 0.3) {
-    // Fertilize the crop
-    updatedGrid[targetCrop.y][targetCrop.x] = {
-      ...updatedGrid[targetCrop.y][targetCrop.x],
-      fertilized: true,
-    };
+    // Bot has arrived at crop - start/continue fertilizing
+    const FERTILIZE_DURATION = getAdjustedDuration(TASK_DURATIONS.fertilize, bot.supercharged); // 15 seconds (or 7.5s if supercharged)
 
-    return {
-      zone: {
-        ...zone,
-        fertilizerBot: {
-          ...bot,
-          fertilizerLevel: bot.fertilizerLevel - 1,
-          status: 'idle',
-          visualX: targetCrop.x,
-          visualY: targetCrop.y,
-          x: targetCrop.x,
-          y: targetCrop.y,
+    if (bot.actionStartTime !== undefined) {
+      const elapsed = gameTime - bot.actionStartTime;
+      if (elapsed >= FERTILIZE_DURATION) {
+        // Fertilizing complete
+        updatedGrid[targetCrop.y][targetCrop.x] = {
+          ...updatedGrid[targetCrop.y][targetCrop.x],
+          fertilized: true,
+        };
+
+        return {
+          zone: {
+            ...zone,
+            fertilizerBot: {
+              ...bot,
+              fertilizerLevel: bot.fertilizerLevel - 1,
+              status: 'idle',
+              visualX: targetCrop.x,
+              visualY: targetCrop.y,
+              x: targetCrop.x,
+              y: targetCrop.y,
+              actionStartTime: undefined,
+              actionDuration: undefined,
+            },
+          },
+          grid: updatedGrid,
+        };
+      } else {
+        // Still fertilizing - keep existing timing for progress bar
+        return {
+          zone: {
+            ...zone,
+            fertilizerBot: {
+              ...bot,
+              status: 'fertilizing',
+              visualX: targetCrop.x,
+              visualY: targetCrop.y,
+              x: targetCrop.x,
+              y: targetCrop.y,
+              actionStartTime: bot.actionStartTime,
+              actionDuration: bot.actionDuration,
+            },
+          },
+          grid: updatedGrid,
+        };
+      }
+    } else {
+      // Start fertilizing action
+      return {
+        zone: {
+          ...zone,
+          fertilizerBot: {
+            ...bot,
+            status: 'fertilizing',
+            visualX: targetCrop.x,
+            visualY: targetCrop.y,
+            x: targetCrop.x,
+            y: targetCrop.y,
+            actionStartTime: gameTime,
+            actionDuration: FERTILIZE_DURATION,
+          },
         },
-      },
-      grid: updatedGrid,
-    };
+        grid: updatedGrid,
+      };
+    }
   } else {
-    const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
+    // Move to crop (slower speed to match water bots)
+    const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
     return {
       zone: {
         ...zone,

@@ -3826,6 +3826,7 @@ export default function Game() {
                   x, y, visualX: x, visualY: y,
                   status: 'wandering' as const,
                   spawnTime: prev.gameTime,
+                  cropsEaten: 0,
                 };
 
                 return {

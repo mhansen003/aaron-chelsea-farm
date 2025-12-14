@@ -2326,20 +2326,22 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     // Update rabbits (movement, eating crops)
     const rabbitUpdate = updateRabbits(zone, newGameTime, deltaTime);
     zone = rabbitUpdate.zone;
-    newZones[zoneKey] = { ...zone, grid: rabbitUpdate.grid };
+    let currentGrid = rabbitUpdate.grid; // Track grid changes through all updates
 
     // Update hunter bots (detecting and chasing rabbits)
     if (zone.hunterBots.length > 0) {
       zone = updateHunterBots(zone, deltaTime, newGameTime);
-      newZones[zoneKey] = zone;
     }
 
     // Update fertilizer bot (find crops, fertilize, refill)
     if (zone.fertilizerBot) {
       const fertilizerUpdate = updateFertilizerBot(zone, deltaTime, newGameTime);
       zone = fertilizerUpdate.zone;
-      newZones[zoneKey] = { ...zone, grid: fertilizerUpdate.grid };
+      currentGrid = fertilizerUpdate.grid; // Fertilizer can also modify grid
     }
+
+    // Save final zone state with all grid modifications
+    newZones[zoneKey] = { ...zone, grid: currentGrid };
   });
 
   // Check and auto-refill seeds if enabled

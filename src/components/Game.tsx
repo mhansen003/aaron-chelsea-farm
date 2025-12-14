@@ -41,6 +41,7 @@ import {
   placeSupercharger,
   placeHopper,
   superchargeBot,
+  hopperUpgrade,
   relocateGarage,
   relocateWell,
   relocateBotFactory,
@@ -74,6 +75,7 @@ import BotFactory from './BotFactory';
 import WarehouseModal from './WarehouseModal';
 import GarageModal from './GarageModal';
 import SuperchargerModal from './SuperchargerModal';
+import HopperModal from './HopperModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
 import EconomyModal from './EconomyModal';
@@ -157,6 +159,7 @@ export default function Game() {
   const [showWarehouseModal, setShowWarehouseModal] = useState(false);
   const [showGarageModal, setShowGarageModal] = useState(false);
   const [showSuperchargerModal, setShowSuperchargerModal] = useState(false);
+  const [showHopperModal, setShowHopperModal] = useState(false);
   const [showZonePreview, setShowZonePreview] = useState(false);
   const [previewZone, setPreviewZone] = useState<Zone | null>(null);
   const [showNoSeedsModal, setShowNoSeedsModal] = useState(false);
@@ -164,7 +167,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizer' | 'hopper' | null>(null);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
   const [tileSelectionMode, setTileSelectionMode] = useState<{
@@ -742,6 +745,7 @@ export default function Game() {
     { name: 'Plow Game Strong', file: '/farm_rap8.mp3' },
     { name: 'Seed Money', file: '/farm_rap9.mp3' },
     { name: 'Cultivate Greatness', file: '/farm_rap10.mp3' },
+    { name: 'Country Flex', file: '/farm_rap11.mp3' },
   ];
 
   // Combined all farm songs for random selection (memoized to prevent re-renders)
@@ -4829,6 +4833,22 @@ export default function Game() {
             setGameState(prev => relocateSupercharger(prev));
             setPlacementMode('supercharger');
             setShowSuperchargerModal(false);
+          }}
+        />
+      )}
+
+      {/* Hopper Modal */}
+      {showHopperModal && (
+        <HopperModal
+          gameState={gameState}
+          onClose={() => setShowHopperModal(false)}
+          onUpgrade={(botId, botType) => {
+            setGameState(prev => hopperUpgrade(prev, botId, botType));
+          }}
+          onRelocate={() => {
+            setGameState(prev => relocateHopper(prev));
+            setPlacementMode('hopper');
+            setShowHopperModal(false);
           }}
         />
       )}

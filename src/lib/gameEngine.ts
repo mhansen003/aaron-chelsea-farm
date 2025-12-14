@@ -4892,6 +4892,24 @@ function updateRabbits(
       continue;
     }
 
+    // Check if any hunter is chasing this rabbit
+    const isBeingChased = zone.hunterBots.some(
+      hunter => hunter.status === 'chasing' && hunter.targetRabbitId === rabbit.id
+    );
+
+    // If being chased while eating, interrupt eating and flee
+    if (isBeingChased && rabbit.status === 'eating') {
+      updatedRabbits.push({
+        ...rabbit,
+        status: 'fleeing',
+        eatingStartTime: undefined,
+        eatingDuration: undefined,
+        targetX: undefined,
+        targetY: undefined,
+      });
+      continue;
+    }
+
     // Find nearest crop (growing or ready to harvest)
     if (rabbit.status === 'wandering' || rabbit.status === 'approaching_crop') {
       let nearestCrop: { x: number; y: number; distance: number } | null = null;
@@ -5245,9 +5263,16 @@ function updateHunterBots(
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < 0.5) {
-          // Caught the rabbit!
+          // Caught the rabbit! Clear any eating state
           updatedRabbits = updatedRabbits.map(r =>
-            r.id === targetRabbit.id ? { ...r, status: 'captured' as const } : r
+            r.id === targetRabbit.id ? {
+              ...r,
+              status: 'captured' as const,
+              eatingStartTime: undefined,
+              eatingDuration: undefined,
+              targetX: undefined,
+              targetY: undefined,
+            } : r
           );
 
           updatedHunterBots.push({

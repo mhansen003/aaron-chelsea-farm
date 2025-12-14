@@ -4371,19 +4371,6 @@ export default function Game() {
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
           {/* Goods Economy Button */}
-          {gameState.market && (
-            <div
-              className="flex items-center gap-2 px-2 py-1 rounded border border-blue-500 cursor-pointer hover:bg-blue-700 transition-colors"
-              onClick={() => setShowEconomyModal(true)}
-              title="Click to view Goods Economy - Price trends & forecasts"
-            >
-              <span>📊</span>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold capitalize">{gameState.market.currentSeason}</span>
-                <span className="text-xs text-gray-300">Day {gameState.currentDay}</span>
-              </div>
-            </div>
-          )}
           <div
             className="flex items-center gap-1 cursor-pointer hover:bg-green-700 px-2 py-1 rounded transition-colors"
             onClick={() => setShowIncomeModal(true)}
@@ -5929,13 +5916,6 @@ export default function Game() {
         <ZoneEarningsModal
           gameState={gameState}
           onClose={() => setShowEarningsModal(false)}
-        />
-      )}
-
-      {/* Economy Modal */}
-        <EconomyModal
-          gameState={gameState}
-          onClose={() => setShowEconomyModal(false)}
         />
       )}
 

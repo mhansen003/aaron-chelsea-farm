@@ -2848,28 +2848,13 @@ export default function Game() {
       case 'plant':
         if (gameState.player.selectedCrop) {
           const crop = gameState.player.selectedCrop;
-          // Check if we have seeds available
-          if (gameState.player.inventory.seeds[crop] > 0) {
-            setGameState(prev => {
-              // Decrease seed count immediately when queuing
-              const newState = {
-                ...prev,
-                player: {
-                  ...prev.player,
-                  inventory: {
-                    ...prev.player.inventory,
-                    seeds: {
-                      ...prev.player.inventory.seeds,
-                      [crop]: prev.player.inventory.seeds[crop] - 1,
-                    },
-                  },
-                },
-              };
-              // Then add the task
-              return addTask(newState, 'plant', tileX, tileY, crop);
-            });
+          // Check if player has enough money to buy seed
+          const seedCost = getCurrentSeedCost(crop, gameState.cropsSold);
+          if (gameState.player.money >= seedCost) {
+            // Just add the task - seed will be auto-purchased when planting
+            setGameState(prev => addTask(prev, 'plant', tileX, tileY, crop));
           } else {
-            // Show no seeds modal
+            // Show no money message
             setNoSeedsCropType(crop);
             setShowNoSeedsModal(true);
           }
@@ -2934,19 +2919,7 @@ export default function Game() {
       const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
       const currentZone = prev.zones[currentZoneKey];
 
-      const cancelledTasks = currentZone.taskQueue.filter(
-        task => task.tileX === tileX && task.tileY === tileY &&
-                task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y
-      );
-
-      // Refund seeds for cancelled plant tasks
-      let newSeeds = { ...prev.player.inventory.seeds };
-      cancelledTasks.forEach(task => {
-        if (task.type === 'plant' && task.cropType) {
-          newSeeds[task.cropType] = newSeeds[task.cropType] + 1;
-        }
-      });
-
+      // No need to refund seeds since they're purchased when actually planting
       return {
         ...prev,
         zones: {
@@ -2957,13 +2930,6 @@ export default function Game() {
               !(task.tileX === tileX && task.tileY === tileY &&
                 task.zoneX === prev.currentZone.x && task.zoneY === prev.currentZone.y)
             ),
-          },
-        },
-        player: {
-          ...prev.player,
-          inventory: {
-            ...prev.player.inventory,
-            seeds: newSeeds,
           },
         },
       };
@@ -3693,7 +3659,6 @@ export default function Game() {
           >
             <span>💰</span><span className="font-bold">${gameState.player.money}</span>
           </div>
-          <div className="flex items-center gap-1"><span>🧺</span><span>{gameState.player.basket.length}/{gameState.player.basketCapacity}</span></div>
         </div>
       </div>
 

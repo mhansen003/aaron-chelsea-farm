@@ -2316,7 +2316,10 @@ export function plantSeed(
   if (tile.hasSprinkler) return state; // Don't plant on sprinklers
   if (tile.type !== 'grass' && tile.type !== 'dirt') return state; // Don't plant on buildings
 
-  // Seed count is already decreased when task was queued, so just plant
+  // Auto-buy seed: deduct cost from player's money
+  const seedCost = getCurrentSeedCost(cropType, state.cropsSold);
+  if (state.player.money < seedCost) return state; // Can't afford seed
+
   const newGrid = grid.map((row, y) =>
     row.map((t, x) => {
       if (x === tileX && y === tileY) {
@@ -2336,7 +2339,15 @@ export function plantSeed(
     })
   );
 
-  return updateCurrentGrid(state, newGrid);
+  // Deduct seed cost from player's money
+  const updatedState = updateCurrentGrid(state, newGrid);
+  return {
+    ...updatedState,
+    player: {
+      ...updatedState.player,
+      money: updatedState.player.money - seedCost,
+    },
+  };
 }
 
 export function harvestCrop(state: GameState, tileX: number, tileY: number): GameState {

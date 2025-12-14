@@ -1,5 +1,5 @@
 // Game engine for My Bot Farm
-import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, DemolishBot, ZoneEarnings, BasketItem } from '@/types/game';
+import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, TaskType, DemolishBot, ZoneEarnings, BasketItem } from '@/types/game';
 import { CROP_INFO } from './cropConstants';
 import { getMarketPrice } from './marketEconomy';
 
@@ -72,7 +72,7 @@ export function getBotCost(baseCost: number, owned: number): number {
 }
 
 // Task durations in milliseconds
-export const TASK_DURATIONS = {
+export const TASK_DURATIONS: Record<TaskType, number> = {
   clear: 10000, // 10 seconds to clear rocks/trees
   plant: 2000, // 2 seconds to plant
   water: 1000, // 1 second to water

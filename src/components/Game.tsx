@@ -2634,7 +2634,10 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (demolishBotImageRef.current) {
-          ctx.drawImage(demolishBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Scale demolish bot up by 15% to match other bots
+          const scaledSize = GAME_CONFIG.tileSize * 1.15;
+          const offset = (scaledSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(demolishBotImageRef.current, botPx - offset, botPy - offset, scaledSize, scaledSize);
         } else {
           // Fallback to orange circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;

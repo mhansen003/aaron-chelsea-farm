@@ -187,6 +187,7 @@ export interface WaterBotJob {
 
 export interface WaterBot {
   id: string; // Unique bot ID
+  name: string; // Bot's custom name
   waterLevel: number; // Current water (0-10)
   jobs: WaterBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'watering' | 'refilling' | 'traveling' | 'garaged';
@@ -211,6 +212,7 @@ export interface HarvestBotJob {
 
 export interface HarvestBot {
   id: string; // Unique bot ID
+  name: string; // Bot's custom name
   inventory: BasketItem[]; // Crops currently held (max 8)
   inventoryCapacity: number; // Max inventory size (8)
   jobs: HarvestBotJob[]; // Up to 3 jobs (60 total tiles)
@@ -238,6 +240,7 @@ export interface SeedBotJob {
 
 export interface SeedBot {
   id: string; // Unique bot ID
+  name: string; // Bot's custom name
   jobs: SeedBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'planting' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
@@ -253,8 +256,26 @@ export interface SeedBot {
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 
+export interface CropSellConfig {
+  crop: Exclude<CropType, null>;
+  enabled: boolean; // Whether to sell this crop at all
+  minPriceMultiplier: number; // Minimum price as multiple of base (e.g., 1.2 = 120% of base)
+  waitForHighDemand: boolean; // Only sell when in high demand
+  waitForEpic: boolean; // Only sell when epic pricing
+}
+
+export interface TransportBotConfig {
+  mode: 'simple' | 'advanced'; // Simple = global settings, Advanced = per-crop
+  globalMinPriceMultiplier: number; // Default for all crops (e.g., 1.2)
+  globalWaitForHighDemand: boolean; // Apply to all crops
+  globalWaitForEpic: boolean; // Apply to all crops
+  perCropSettings: CropSellConfig[]; // Individual crop overrides (used in advanced mode)
+  sellWhenFull: boolean; // Override all settings when inventory is full
+}
+
 export interface TransportBot {
   id: string; // Unique bot ID
+  name: string; // Bot's custom name
   inventory: BasketItem[]; // Crops currently being transported (max 16)
   inventoryCapacity: number; // Max inventory size (16)
   status: 'idle' | 'loading' | 'transporting' | 'selling' | 'traveling' | 'garaged';
@@ -267,6 +288,7 @@ export interface TransportBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  config?: TransportBotConfig; // Sell trigger configuration
 }
 
 export interface DemolishBotJob {
@@ -277,6 +299,7 @@ export interface DemolishBotJob {
 
 export interface DemolishBot {
   id: string; // Unique bot ID
+  name: string; // Bot's custom name
   jobs: DemolishBotJob[]; // Up to 3 jobs (60 total tiles)
   status: 'idle' | 'clearing' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on

@@ -1,21 +1,29 @@
 'use client';
 
-import { GameState } from '@/types/game';
+import { useState } from 'react';
+import { GameState, TransportBotConfig } from '@/types/game';
 import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
+import BotNameModal from './BotNameModal';
+import TransportBotConfigModal from './TransportBotConfigModal';
 
 interface BotFactoryProps {
   gameState: GameState;
   onClose: () => void;
-  onBuyWaterbots: (amount: number) => void;
-  onBuyHarvestbots: (amount: number) => void;
-  onBuySeedbots: (amount: number) => void;
-  onBuyTransportbots: (amount: number) => void;
-  onBuyDemolishbots: (amount: number) => void;
+  onBuyWaterbots: (amount: number, name?: string) => void;
+  onBuyHarvestbots: (amount: number, name?: string) => void;
+  onBuySeedbots: (amount: number, name?: string) => void;
+  onBuyTransportbots: (amount: number, name?: string, config?: TransportBotConfig) => void;
+  onBuyDemolishbots: (amount: number, name?: string) => void;
   onRelocate: () => void;
 }
 
+type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null;
+
 export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: BotFactoryProps) {
+  const [namingBot, setNamingBot] = useState<BotType>(null);
+  const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
+  const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
   // Calculate progressive costs based on how many bots are owned
   const waterbotCost = getBotCost(WATERBOT_COST, gameState.player.inventory.waterbots);
   const harvestbotCost = getBotCost(HARVESTBOT_COST, gameState.player.inventory.harvestbots);
@@ -99,7 +107,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </div>
               ) : (
                 <button
-                  onClick={() => onBuyWaterbots(1)}
+                  onClick={() => setNamingBot('water')}
                   disabled={gameState.player.money < WATERBOT_COST}
                   className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
                     gameState.player.money >= WATERBOT_COST
@@ -162,7 +170,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </div>
               ) : (
                 <button
-                  onClick={() => onBuyHarvestbots(1)}
+                  onClick={() => setNamingBot('harvest')}
                   disabled={gameState.player.money < HARVESTBOT_COST}
                   className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
                     gameState.player.money >= HARVESTBOT_COST
@@ -225,7 +233,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </div>
               ) : (
                 <button
-                  onClick={() => onBuySeedbots(1)}
+                  onClick={() => setNamingBot('seed')}
                   disabled={gameState.player.money < SEEDBOT_COST}
                   className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
                     gameState.player.money >= SEEDBOT_COST
@@ -288,7 +296,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </div>
               ) : (
                 <button
-                  onClick={() => onBuyTransportbots(1)}
+                  onClick={() => setNamingBot('transport')}
                   disabled={gameState.player.money < TRANSPORTBOT_COST}
                   className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
                     gameState.player.money >= TRANSPORTBOT_COST
@@ -351,7 +359,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </div>
               ) : (
                 <button
-                  onClick={() => onBuyDemolishbots(1)}
+                  onClick={() => setNamingBot('demolish')}
                   disabled={gameState.player.money < DEMOLISHBOT_COST}
                   className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
                     gameState.player.money >= DEMOLISHBOT_COST
@@ -389,6 +397,54 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
           </div>
         </div>
       </div>
+
+      {/* Bot Name Modal */}
+      {namingBot && (
+        <BotNameModal
+          botType={
+            namingBot === 'water' ? 'Water Bot' :
+            namingBot === 'harvest' ? 'Harvest Bot' :
+            namingBot === 'seed' ? 'Seed Bot' :
+            namingBot === 'transport' ? 'Transport Bot' :
+            'Demolish Bot'
+          }
+          onConfirm={(name) => {
+            if (namingBot === 'water') onBuyWaterbots(1, name);
+            else if (namingBot === 'harvest') onBuyHarvestbots(1, name);
+            else if (namingBot === 'seed') onBuySeedbots(1, name);
+            else if (namingBot === 'transport') {
+              // Show config modal for transport bots
+              setTransportBotName(name);
+              setNamingBot(null);
+              setConfiguringTransportBot(true);
+            }
+            else if (namingBot === 'demolish') onBuyDemolishbots(1, name);
+
+            // For non-transport bots, close naming modal
+            if (namingBot !== 'transport') {
+              setNamingBot(null);
+            }
+          }}
+          onCancel={() => setNamingBot(null)}
+        />
+      )}
+
+      {/* Transport Bot Config Modal */}
+      {configuringTransportBot && (
+        <TransportBotConfigModal
+          gameState={gameState}
+          botName={transportBotName}
+          onSave={(config) => {
+            onBuyTransportbots(1, transportBotName, config);
+            setConfiguringTransportBot(false);
+            setTransportBotName(undefined);
+          }}
+          onCancel={() => {
+            setConfiguringTransportBot(false);
+            setTransportBotName(undefined);
+          }}
+        />
+      )}
     </div>
   );
 }

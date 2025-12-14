@@ -1915,20 +1915,65 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
       // Bot has inventory, check if prices are favorable before selling
       if (bot.inventory.length > 0) {
+        // Use bot's configuration or defaults
+        const config = bot.config || {
+          mode: 'simple' as const,
+          globalMinPriceMultiplier: 1.2,
+          globalWaitForHighDemand: false,
+          globalWaitForEpic: false,
+          perCropSettings: [],
+          sellWhenFull: true,
+        };
+
+        // Check if inventory is full and override is enabled
+        const inventoryFull = bot.inventory.length >= bot.inventoryCapacity;
+        if (inventoryFull && config.sellWhenFull) {
+          // Skip all checks and sell immediately when full
+          // Continue to selling logic below (shouldSell will be true)
+        }
+
         // Smart selling: Check market conditions for each crop type
-        const shouldSell = bot.inventory.some(item => {
+        const shouldSell = inventoryFull && config.sellWhenFull ? true : bot.inventory.some(item => {
+          const cropType = item.crop as Exclude<import('@/types/game').CropType, null>;
           const basePrice = CROP_INFO[item.crop].sellPrice;
           const marketPrice = newState.market
-            ? getMarketPrice(item.crop as Exclude<import('@/types/game').CropType, null>, newState)
+            ? getMarketPrice(cropType, newState)
             : basePrice;
 
-          // Sell if: price is above base, OR crop is high demand/epic, OR inventory is full
-          const priceIsGood = marketPrice >= basePrice * 1.2; // 20% above base
-          const isHighDemand = newState.market?.highDemandCrops.includes(item.crop as any) || false;
-          const isEpic = newState.market?.epicPriceCrop === item.crop;
-          const inventoryFull = bot.inventory.length >= bot.inventoryCapacity;
+          const isHighDemand = newState.market?.highDemandCrops.includes(cropType) || false;
+          const isEpic = newState.market?.epicPriceCrop === cropType;
 
-          return priceIsGood || isHighDemand || isEpic || inventoryFull;
+          // Determine which config to use
+          let minMultiplier = config.globalMinPriceMultiplier;
+          let waitForHighDemand = config.globalWaitForHighDemand;
+          let waitForEpic = config.globalWaitForEpic;
+          let enabled = true;
+
+          // In advanced mode, check per-crop settings
+          if (config.mode === 'advanced') {
+            const cropConfig = config.perCropSettings.find(c => c.crop === cropType);
+            if (cropConfig) {
+              enabled = cropConfig.enabled;
+              minMultiplier = cropConfig.minPriceMultiplier;
+              waitForHighDemand = cropConfig.waitForHighDemand;
+              waitForEpic = cropConfig.waitForEpic;
+            }
+          }
+
+          // If crop is disabled in advanced mode, don't sell it
+          if (!enabled) return false;
+
+          // Check price multiplier
+          const priceMultiplier = marketPrice / basePrice;
+          const priceIsGood = priceMultiplier >= minMultiplier;
+
+          // Check high demand requirement
+          const demandMet = !waitForHighDemand || isHighDemand;
+
+          // Check epic requirement
+          const epicMet = !waitForEpic || isEpic;
+
+          return priceIsGood && demandMet && epicMet;
         });
 
         // If prices are not favorable, return items to warehouse
@@ -2752,7 +2797,7 @@ export function buySprinklers(state: GameState, amount: number): GameState {
   };
 }
 
-export function buyWaterbots(state: GameState, amount: number): GameState {
+export function buyWaterbots(state: GameState, amount: number, name?: string): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
@@ -2779,6 +2824,7 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
     const spawnY = state.player.y;
     newBots.push({
       id: botId,
+      name: name || 'Water Bot', // Use provided name or default
       waterLevel: WATERBOT_MAX_WATER, // Start with full water
       jobs: [], // Start with no jobs
       status: 'idle',
@@ -2810,7 +2856,7 @@ export function buyWaterbots(state: GameState, amount: number): GameState {
   };
 }
 
-export function buyHarvestbots(state: GameState, amount: number): GameState {
+export function buyHarvestbots(state: GameState, amount: number, name?: string): GameState {
   // Limit to 7 harvest bots total
   if (state.player.inventory.harvestbots >= 7) return state; // Already has 7 harvest bots
 
@@ -2835,6 +2881,7 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
     const spawnY = state.player.y + 1;
     newBots.push({
       id: botId,
+      name: name || 'Harvest Bot', // Use provided name or default
       inventory: [], // Start with empty inventory
       inventoryCapacity: 8, // Same as player basket capacity
       jobs: [], // Start with no jobs
@@ -2867,7 +2914,7 @@ export function buyHarvestbots(state: GameState, amount: number): GameState {
   };
 }
 
-export function buySeedbots(state: GameState, amount: number): GameState {
+export function buySeedbots(state: GameState, amount: number, name?: string): GameState {
   // Limit to 3 seed bots total
   if (state.player.inventory.seedbots >= 3) return state; // Already has 3 seed bots
 
@@ -2892,6 +2939,7 @@ export function buySeedbots(state: GameState, amount: number): GameState {
     const spawnY = state.player.y + 1;
     newBots.push({
       id: botId,
+      name: name || 'Seed Bot', // Use provided name or default
       jobs: [], // Start with no jobs configured
       status: 'idle',
       autoBuySeeds: true, // Auto-buy seeds enabled by default
@@ -2923,7 +2971,7 @@ export function buySeedbots(state: GameState, amount: number): GameState {
   };
 }
 
-export function buyTransportbots(state: GameState, amount: number): GameState {
+export function buyTransportbots(state: GameState, amount: number, name?: string, config?: import('@/types/game').TransportBotConfig): GameState {
   // Transport bots only work in the starting zone (0,0)
   const startZoneKey = '0,0';
   const startZone = state.zones[startZoneKey];
@@ -2959,6 +3007,7 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
 
     newBots.push({
       id: botId,
+      name: name || 'Transport Bot', // Use provided name or default
       inventory: [],
       inventoryCapacity: 16, // Can carry 16 crops
       status: 'idle',
@@ -2966,6 +3015,7 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
       y: spawnY,
       visualX: spawnX,
       visualY: spawnY,
+      config, // Include the sell configuration
     });
   }
 
@@ -2989,7 +3039,7 @@ export function buyTransportbots(state: GameState, amount: number): GameState {
   };
 }
 
-export function buyDemolishbots(state: GameState, amount: number): GameState {
+export function buyDemolishbots(state: GameState, amount: number, name?: string): GameState {
   // Limit to 3 demolish bots total (with fallback for undefined)
   const currentDemolishbots = state.player.inventory.demolishbots || 0;
   if (currentDemolishbots >= 3) return state;
@@ -3015,6 +3065,7 @@ export function buyDemolishbots(state: GameState, amount: number): GameState {
     const spawnY = state.player.y;
     newBots.push({
       id: botId,
+      name: name || 'Demolish Bot', // Use provided name or default
       jobs: [], // Start with no jobs
       status: 'idle',
       x: spawnX, // Spawn near player
@@ -3064,6 +3115,59 @@ export function updateSeedBotJobs(
             ? { ...bot, jobs, autoBuySeeds }
             : bot
         ),
+      },
+    },
+  };
+}
+
+/**
+ * Update a bot's name in the current zone
+ * @param state - Current game state
+ * @param botId - ID of the bot to rename
+ * @param newName - New name for the bot
+ * @param botType - Type of bot (water, harvest, seed, transport, demolish)
+ */
+export function updateBotName(
+  state: GameState,
+  botId: string,
+  newName: string,
+  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'
+): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  // Helper to update bot name in array
+  const updateBotInArray = <T extends { id: string; name: string }>(bots: T[]): T[] =>
+    bots.map((bot) => (bot.id === botId ? { ...bot, name: newName } : bot));
+
+  // Determine which bot array to update based on type
+  const updates: Partial<Zone> = {};
+  if (botType === 'water') updates.waterBots = updateBotInArray(currentZone.waterBots);
+  else if (botType === 'harvest') updates.harvestBots = updateBotInArray(currentZone.harvestBots);
+  else if (botType === 'seed') updates.seedBots = updateBotInArray(currentZone.seedBots);
+  else if (botType === 'transport') {
+    // Transport bots are only in zone 0,0
+    const startZoneKey = '0,0';
+    const startZone = state.zones[startZoneKey];
+    return {
+      ...state,
+      zones: {
+        ...state.zones,
+        [startZoneKey]: {
+          ...startZone,
+          transportBots: updateBotInArray(startZone.transportBots),
+        },
+      },
+    };
+  } else if (botType === 'demolish') updates.demolishBots = updateBotInArray(currentZone.demolishBots || []);
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        ...updates,
       },
     },
   };

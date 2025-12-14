@@ -11,8 +11,8 @@ interface ShopProps {
   onBuySeeds: (crop: CropType, amount: number) => void;
   onBuyTool: (toolName: string) => void;
   onBuySprinklers: (amount: number) => void;
-  onBuyWaterbots: (amount: number) => void;
-  onBuyHarvestbots: (amount: number) => void;
+  onBuyWaterbots: (amount: number, name?: string) => void;
+  onBuyHarvestbots: (amount: number, name?: string) => void;
   onUpgradeBag: () => void;
   onBuyBotFactory: () => void;
   onBuyWell: () => void;

@@ -20,6 +20,7 @@ import {
   buyTransportbots,
   buyDemolishbots,
   updateSeedBotJobs,
+  updateBotName,
   upgradeBag,
   buyBotFactory,
   buyWell,
@@ -159,6 +160,8 @@ export default function Game() {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
+  const [editingBotId, setEditingBotId] = useState<string | null>(null);
+  const [editingBotName, setEditingBotName] = useState<string>('');
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
@@ -4213,8 +4216,8 @@ export default function Game() {
           onBuySeeds={(crop, amount) => setGameState(prev => buySeeds(prev, crop, amount))}
           onBuyTool={toolName => setGameState(prev => buyTool(prev, toolName))}
           onBuySprinklers={amount => setGameState(prev => buySprinklers(prev, amount))}
-          onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
-          onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
+          onBuyWaterbots={(amount, name) => setGameState(prev => buyWaterbots(prev, amount, name))}
+          onBuyHarvestbots={(amount, name) => setGameState(prev => buyHarvestbots(prev, amount, name))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
           onBuyBotFactory={() => {
             setGameState(prev => buyBotFactory(prev));
@@ -4266,11 +4269,11 @@ export default function Game() {
         <BotFactory
           gameState={gameState}
           onClose={() => setShowBotFactory(false)}
-          onBuyWaterbots={amount => setGameState(prev => buyWaterbots(prev, amount))}
-          onBuyHarvestbots={amount => setGameState(prev => buyHarvestbots(prev, amount))}
-          onBuySeedbots={amount => {
+          onBuyWaterbots={(amount, name) => setGameState(prev => buyWaterbots(prev, amount, name))}
+          onBuyHarvestbots={(amount, name) => setGameState(prev => buyHarvestbots(prev, amount, name))}
+          onBuySeedbots={(amount, name) => {
             setGameState(prev => {
-              const newState = buySeedbots(prev, amount);
+              const newState = buySeedbots(prev, amount, name);
 
               // Auto-open seed bot config modal for the newly created bot
               setTimeout(() => {
@@ -4287,8 +4290,8 @@ export default function Game() {
               return newState;
             });
           }}
-          onBuyTransportbots={amount => setGameState(prev => buyTransportbots(prev, amount))}
-          onBuyDemolishbots={amount => setGameState(prev => buyDemolishbots(prev, amount))}
+          onBuyTransportbots={(amount, name, config) => setGameState(prev => buyTransportbots(prev, amount, name, config))}
+          onBuyDemolishbots={(amount, name) => setGameState(prev => buyDemolishbots(prev, amount, name))}
           onRelocate={() => {
             setGameState(prev => relocateBotFactory(prev));
             setPlacementMode('botFactory');
@@ -4630,7 +4633,41 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1.5 border border-cyan-600/20 hover:bg-cyan-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-cyan-100">Bot #{idx + 1}</span>
+                        {editingBotId === bot.id ? (
+                          <input
+                            type="text"
+                            value={editingBotName}
+                            onChange={(e) => setEditingBotName(e.target.value)}
+                            onBlur={() => {
+                              if (editingBotName.trim()) {
+                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'water'));
+                              }
+                              setEditingBotId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editingBotName.trim()) {
+                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'water'));
+                                }
+                                setEditingBotId(null);
+                              }
+                            }}
+                            maxLength={20}
+                            className="text-xs font-semibold text-cyan-100 bg-cyan-900/60 border border-cyan-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-cyan-300"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-semibold text-cyan-100 cursor-pointer hover:text-cyan-300 hover:underline"
+                            onClick={() => {
+                              setEditingBotId(bot.id);
+                              setEditingBotName(bot.name);
+                            }}
+                            title="Click to rename"
+                          >
+                            {bot.name}
+                          </span>
+                        )}
                         <span className="text-sm text-cyan-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'watering' && '💦'}
@@ -4688,7 +4725,41 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        {editingBotId === bot.id ? (
+                          <input
+                            type="text"
+                            value={editingBotName}
+                            onChange={(e) => setEditingBotName(e.target.value)}
+                            onBlur={() => {
+                              if (editingBotName.trim()) {
+                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'harvest'));
+                              }
+                              setEditingBotId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editingBotName.trim()) {
+                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'harvest'));
+                                }
+                                setEditingBotId(null);
+                              }
+                            }}
+                            maxLength={20}
+                            className="text-xs font-semibold text-orange-100 bg-orange-900/60 border border-orange-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-orange-300"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
+                            onClick={() => {
+                              setEditingBotId(bot.id);
+                              setEditingBotName(bot.name);
+                            }}
+                            title="Click to rename"
+                          >
+                            {bot.name}
+                          </span>
+                        )}
                         <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'harvesting' && '✂️'}

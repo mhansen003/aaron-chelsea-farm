@@ -1436,6 +1436,30 @@ export default function Game() {
             ctx.drawImage(dirtImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(plantedCropImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+
+          // Draw small crop icon in bottom-right corner to show what's growing
+          if (tile.crop) {
+            const iconSize = GAME_CONFIG.tileSize * 0.30; // 30% of tile size
+            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+
+            // Draw semi-transparent background circle for icon
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.beginPath();
+            ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw the crop icon
+            const cropIconImg = new Image();
+            cropIconImg.src = `/${tile.crop}.png`;
+            if (cropIconImg.complete) {
+              ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
+            } else {
+              cropIconImg.onload = () => {
+                ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
+              };
+            }
+          }
         } else if (tile.type === 'grown' && tile.crop === 'carrot' && carrotsImageRef.current) {
           // Draw grass background first, then grown carrots sprite on top
           if (grassImageRef.current) {
@@ -1593,8 +1617,25 @@ export default function Game() {
           const progressWidth = (barWidth * tile.growthStage) / 100;
           ctx.fillStyle = tile.growthStage < 50 ? '#ff9800' : '#4caf50';
           ctx.fillRect(px + 2, barY, progressWidth, barHeight);
+        }
 
-          // Note: Water droplet indicator removed - now only shown via task icon image
+        // Draw blinking water droplet for crops that need water
+        if (tile.type === 'planted' && !tile.wateredToday && waterdropletImageRef.current) {
+          const blink = Math.floor(Date.now() / 500) % 2 === 0; // Blink every 500ms
+          if (blink) {
+            const dropletSize = GAME_CONFIG.tileSize * 0.25; // 25% of tile size
+            const dropletX = px + GAME_CONFIG.tileSize / 2 - dropletSize / 2;
+            const dropletY = py + 8; // Top of the tile with small padding
+
+            // Draw semi-transparent white background circle
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(dropletX + dropletSize / 2, dropletY + dropletSize / 2, dropletSize / 2 + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw water droplet icon
+            ctx.drawImage(waterdropletImageRef.current, dropletX, dropletY, dropletSize, dropletSize);
+          }
         }
 
         // Draw blinking task-specific icon for queued tasks in the current zone

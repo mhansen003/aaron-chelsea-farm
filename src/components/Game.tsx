@@ -193,6 +193,7 @@ export default function Game() {
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [showFarmMusicSection, setShowFarmMusicSection] = useState(true);
+  const [showFarmRapSection, setShowFarmRapSection] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [isMusicPaused, setIsMusicPaused] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.5); // Default 50% volume
@@ -744,7 +745,13 @@ export default function Game() {
     { name: 'Tranquil Garden', file: '/farm5.mp3' },
   ];
 
-  // Use only calm farm songs for music rotation
+  const farmRapSongs = [
+    { name: 'Row Talk', file: '/rap-row_talk.mp3' },
+    { name: 'Yeah', file: '/rap-yeah.mp3' },
+    { name: 'Service Mode', file: '/rap-servcie_mode.mp3' },
+  ];
+
+  // Use only calm farm songs for music rotation (rap songs are manual-select only)
   const allFarmSongs = useMemo(() => farmSongs, []);
 
   // Get a random enabled song index (excluding current song)
@@ -869,6 +876,26 @@ export default function Game() {
       }
     }
   }, [isInFarmZone, isMusicMuted, allFarmSongs]);
+
+  // Handle manual rap song selection (manual only, not part of auto-rotation)
+  const handleRapSongSelect = useCallback((rapIndex: number) => {
+    if (isInFarmZone() && rapIndex >= 0 && rapIndex < farmRapSongs.length) {
+      setShowMusicDropdown(false);
+
+      // Selecting a song should unmute if currently muted
+      if (isMusicMuted) {
+        setIsMusicMuted(false);
+      }
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = farmRapSongs[rapIndex].file;
+        // Set to not loop - when rap song ends, go back to farm music rotation
+        audioRef.current.loop = false;
+        audioRef.current.play().catch(() => {});
+      }
+    }
+  }, [isInFarmZone, isMusicMuted]);
 
   // Handle music mute/unmute
   const toggleMusicMute = useCallback(() => {
@@ -4285,6 +4312,24 @@ export default function Game() {
                           {currentSongIndex === index && !isMusicMuted && '▶ '}
                           {song.name}
                         </span>
+                      </div>
+                    ))}
+
+                    {/* Farm Rap Section */}
+                    <div
+                      onClick={() => setShowFarmRapSection(!showFarmRapSection)}
+                      className="text-xs font-bold text-pink-400 mb-2 px-2 cursor-pointer hover:text-pink-300 flex items-center gap-2 mt-3 border-t border-pink-700 pt-2"
+                    >
+                      <span>{showFarmRapSection ? '▼' : '▶'}</span>
+                      <span>Farm Rap ({farmRapSongs.length}) - Manual Only</span>
+                    </div>
+                    {showFarmRapSection && farmRapSongs.map((song, index) => (
+                      <div
+                        key={`rap-${index}`}
+                        onClick={() => handleRapSongSelect(index)}
+                        className="px-3 py-2 rounded text-sm transition-colors hover:bg-pink-700 cursor-pointer"
+                      >
+                        {song.name}
                       </div>
                     ))}
                   </div>

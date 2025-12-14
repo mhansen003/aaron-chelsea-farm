@@ -1686,8 +1686,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: undefined, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
           }
         }
-        // No garage - wander randomly
-        if (Math.random() < (deltaTime / 2000)) {
+        // No garage - wander randomly (move more frequently when idle)
+        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
@@ -5571,11 +5571,12 @@ export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bo
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
 
-  // Check if fertilizer building exists in current zone
+  // Check if fertilizer building exists in current zone (or is being constructed)
   let hasFertilizerBuilding = false;
   for (let y = 0; y < currentZone.grid.length; y++) {
     for (let x = 0; x < currentZone.grid[y].length; x++) {
-      if (currentZone.grid[y][x].type === 'fertilizer') {
+      const tile = currentZone.grid[y][x];
+      if (tile.type === 'fertilizer' || (tile.isConstructing && tile.constructionTarget === 'fertilizer')) {
         hasFertilizerBuilding = true;
         break;
       }

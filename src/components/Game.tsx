@@ -194,6 +194,8 @@ export default function Game() {
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [showFarmMusicSection, setShowFarmMusicSection] = useState(true);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [isMusicPaused, setIsMusicPaused] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.5); // Default 50% volume
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -808,7 +810,7 @@ export default function Game() {
       // Create new audio for farm zone
       audioRef.current = new Audio(musicFile);
       audioRef.current.loop = false; // We'll handle song advancement manually
-      audioRef.current.volume = 0.5;
+      audioRef.current.volume = musicVolume;
 
       // When song ends, play next random enabled song
       const handleSongEnd = () => {
@@ -829,7 +831,7 @@ export default function Game() {
       musicFile = singleZoneMusic[zonetheme] || '/farm.mp3';
       audioRef.current = new Audio(musicFile);
       audioRef.current.loop = true; // Loop continuously for non-farm zones
-      audioRef.current.volume = 0.5;
+      audioRef.current.volume = musicVolume;
     }
 
     // Try to play music (only if not muted)
@@ -847,7 +849,7 @@ export default function Game() {
         document.addEventListener('keydown', startAudio, { once: true });
       });
     }
-  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomEnabledSong, isMusicMuted, allFarmSongs]);
+  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomEnabledSong, isMusicMuted, allFarmSongs, musicVolume]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
@@ -893,6 +895,28 @@ export default function Game() {
       handleSongSelect(nextIndex);
     }
   }, [isInFarmZone, currentSongIndex, getRandomEnabledSong, handleSongSelect]);
+
+  // Toggle pause/play
+  const togglePausePlay = useCallback(() => {
+    if (audioRef.current) {
+      if (isMusicPaused) {
+        audioRef.current.play().catch(() => {});
+        setIsMusicPaused(false);
+      } else {
+        audioRef.current.pause();
+        setIsMusicPaused(true);
+      }
+    }
+  }, [isMusicPaused]);
+
+  // Handle volume change
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setMusicVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  }, []);
 
   // Toggle song enabled for auto-rotation
   const toggleSongEnabled = useCallback((index: number) => {
@@ -4166,7 +4190,7 @@ export default function Game() {
 
           {/* Music Selector - Only show in farm zone */}
           {isInFarmZone() && (
-            <div className="relative flex gap-2">
+            <div className="relative">
               <button
                 onClick={() => setShowMusicDropdown(!showMusicDropdown)}
                 className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold flex items-center gap-1"
@@ -4174,22 +4198,56 @@ export default function Game() {
               >
                 {isMusicMuted ? '🔇' : '🎵'} Music
               </button>
-              <button
-                onClick={nextSong}
-                className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold"
-                title="Next song"
-              >
-                ⏭️
-              </button>
               {showMusicDropdown && (
                 <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[250px] max-h-[500px] overflow-y-auto">
                   <div className="p-2">
+                    {/* Music Controls */}
                     <button
                       onClick={toggleMusicMute}
-                      className="w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors bg-pink-800 mb-2 border-b border-pink-600"
+                      className="w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors bg-pink-800 mb-2"
                     >
                       {isMusicMuted ? '🔊 Unmute' : '🔇 Mute'}
                     </button>
+
+                    {/* Volume Slider */}
+                    <div className="px-3 py-2 bg-pink-800/50 rounded mb-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-pink-300">🔊 Volume</span>
+                        <span className="text-xs text-pink-400 ml-auto">{Math.round(musicVolume * 100)}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={musicVolume}
+                        onChange={handleVolumeChange}
+                        className="w-full h-2 bg-pink-900 rounded-lg appearance-none cursor-pointer slider"
+                        style={{
+                          background: `linear-gradient(to right, #ec4899 0%, #ec4899 ${musicVolume * 100}%, #831843 ${musicVolume * 100}%, #831843 100%)`
+                        }}
+                      />
+                    </div>
+
+                    {/* Playback Controls */}
+                    <div className="flex gap-2 mb-2">
+                      <button
+                        onClick={togglePausePlay}
+                        className="flex-1 px-3 py-2 bg-pink-800 hover:bg-pink-700 rounded text-sm font-bold transition-colors"
+                        title={isMusicPaused ? 'Play' : 'Pause'}
+                      >
+                        {isMusicPaused ? '▶️ Play' : '⏸️ Pause'}
+                      </button>
+                      <button
+                        onClick={nextSong}
+                        className="flex-1 px-3 py-2 bg-pink-800 hover:bg-pink-700 rounded text-sm font-bold transition-colors"
+                        title="Next song"
+                      >
+                        ⏭️ Next
+                      </button>
+                    </div>
+
+                    <div className="border-t border-pink-600 mb-2"></div>
 
                     {/* Farm Music Section */}
                     <div

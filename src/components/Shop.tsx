@@ -108,56 +108,66 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
   const canAffordCart = getTotalCost() <= gameState.player.money;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-amber-900 via-orange-900 to-amber-950 text-white rounded-xl max-w-6xl w-full max-h-[90vh] border-4 border-amber-600 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-orange-500/50 shadow-2xl flex flex-col">
 
         {/* Header */}
-        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-amber-500/30 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-4xl">🏪</span>
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-orange-500/30 bg-gradient-to-r from-orange-900/40 to-red-900/40">
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">🏪</div>
             <div>
-              <h2 className="text-3xl font-bold text-amber-300">Farm Shop</h2>
-              <p className="text-sm text-amber-200/70">Your Money: 💰 ${gameState.player.money}</p>
+              <h2 className="text-4xl font-black tracking-tight">FARM SHOP</h2>
+              <p className="text-orange-300 text-sm">Select items and add to cart</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/70 hover:text-white text-2xl leading-none px-3 py-1 hover:bg-white/10 rounded transition-colors"
-          >
-            ×
-          </button>
+
+          <div className="flex items-center gap-4">
+            {/* Money Display */}
+            <div className="bg-black/60 px-6 py-3 rounded-xl border-2 border-yellow-500/50">
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Balance</div>
+              <div className="text-2xl font-bold text-yellow-400">${gameState.player.money}</div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="text-3xl hover:text-red-400 transition-colors w-12 h-12 flex items-center justify-center rounded-full hover:bg-red-500/20"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex-shrink-0 bg-black/30 backdrop-blur-sm border-b border-amber-500/20 flex gap-2 p-2">
+        <div className="flex-shrink-0 border-b-2 border-orange-500/30 flex gap-0 bg-black/40">
           <button
             onClick={() => setActiveTab('buildings')}
-            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
+            className={`flex-1 px-6 py-4 font-black text-lg transition-all ${
               activeTab === 'buildings'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'bg-black/40 text-amber-200 hover:bg-black/60'
+                ? 'bg-orange-600 text-white border-b-4 border-orange-400'
+                : 'text-gray-400 hover:text-white hover:bg-orange-900/20'
             }`}
           >
-            🏗️ Buildings
+            🏗️ BUILDINGS
           </button>
           <button
             onClick={() => setActiveTab('tools')}
-            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
+            className={`flex-1 px-6 py-4 font-black text-lg transition-all ${
               activeTab === 'tools'
-                ? 'bg-cyan-600 text-white shadow-lg'
-                : 'bg-black/40 text-amber-200 hover:bg-black/60'
+                ? 'bg-orange-600 text-white border-b-4 border-orange-400'
+                : 'text-gray-400 hover:text-white hover:bg-orange-900/20'
             }`}
           >
-            🔧 Tools & Upgrades
+            🔧 TOOLS & UPGRADES
           </button>
         </div>
 
         {/* Scrollable Items Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4">
 
           {/* Buildings Tab */}
           {activeTab === 'buildings' && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {/* Bot Factory */}
               {renderBuildingCard(
                 { category: 'building', name: 'botFactory' },
@@ -406,45 +416,87 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
     cost: number,
     owned: boolean,
     placed: boolean | undefined,
-    borderColor: string
+    gradient: string
   ) {
     const inCart = itemInCart(itemType);
     const canAfford = gameState.player.money >= cost;
 
     return (
       <div
-        className={`bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border-2 ${
-          owned ? 'border-green-600' : inCart ? `${borderColor} ring-2 ring-white/30` : borderColor
-        } p-3 flex flex-col items-center transition-all hover:scale-105`}
+        className={`relative bg-gradient-to-br ${gradient} p-1 rounded-2xl hover:scale-105 transition-transform ${
+          owned ? 'opacity-60' : ''
+        }`}
       >
-        <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+        <div className="bg-slate-900 rounded-xl p-2 h-full flex flex-col">
+          {/* Building Image */}
+          <div className="relative w-full aspect-square mb-2">
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-contain drop-shadow-2xl"
+            />
+
+            {/* Status Badge */}
+            {owned ? (
+              <div className="absolute top-1 right-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg">
+                {placed ? 'PLACED' : 'READY'}
+              </div>
+            ) : inCart && (
+              <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+                CART
+              </div>
+            )}
+          </div>
+
+          {/* Building Name */}
+          <h3 className="text-sm font-black text-center mb-1 text-white leading-tight">
+            {name}
+          </h3>
+
+          {/* Description */}
+          <div className="flex-1 mb-2">
+            <div className="text-center text-xs text-gray-400">
+              {description}
+            </div>
+          </div>
+
+          {/* Price & Add Button */}
           {owned ? (
-            <span className="text-5xl">✓</span>
+            <div className="w-full py-1.5 bg-green-900/50 text-green-300 rounded-lg font-bold text-center text-xs">
+              ✓ OWNED
+            </div>
           ) : (
-            <Image src={image} alt={name} width={80} height={80} className="object-contain" />
+            <>
+              <div className="text-center mb-1">
+                <div className={`text-lg font-black ${canAfford ? 'text-yellow-400' : 'text-red-400'}`}>
+                  ${cost}
+                </div>
+              </div>
+
+              {inCart ? (
+                <button
+                  onClick={() => toggleCart(itemType)}
+                  className="w-full py-1.5 bg-red-600 hover:bg-red-500 rounded-lg font-bold text-white text-xs transition-colors"
+                >
+                  − REMOVE
+                </button>
+              ) : (
+                <button
+                  onClick={() => toggleCart(itemType)}
+                  disabled={!canAfford}
+                  className={`w-full py-1.5 rounded-lg font-bold text-xs transition-colors ${
+                    canAfford
+                      ? 'bg-orange-600 hover:bg-orange-500 text-white'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  + ADD
+                </button>
+              )}
+            </>
           )}
         </div>
-        <div className="text-sm font-bold text-center mb-1">{name}</div>
-        <div className="text-xs text-center text-purple-300 mb-2">{description}</div>
-        {owned ? (
-          <div className="w-full px-3 py-2 rounded text-xs font-bold bg-green-900/40 text-green-400 text-center">
-            {placed ? 'Placed' : 'Place It!'}
-          </div>
-        ) : (
-          <button
-            onClick={() => toggleCart(itemType)}
-            disabled={!canAfford && !inCart}
-            className={`w-full px-2 py-1 rounded text-xs font-bold ${
-              inCart
-                ? 'bg-red-600 hover:bg-red-700'
-                : canAfford
-                ? 'bg-purple-600 hover:bg-purple-700'
-                : 'bg-gray-600 cursor-not-allowed'
-            }`}
-          >
-            {inCart ? '− REMOVE' : `+ ADD $${cost}`}
-          </button>
-        )}
       </div>
     );
   }

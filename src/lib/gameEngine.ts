@@ -5289,7 +5289,7 @@ function updateHunterBots(
         const dx = targetX - visualX;
         const dy = targetY - visualY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * (hunter.supercharged ? 2 : 1);
+        const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Slow speed when escorting
         const newVisualX = visualX + (dx / dist) * moveSpeed;
         const newVisualY = visualY + (dy / dist) * moveSpeed;
 

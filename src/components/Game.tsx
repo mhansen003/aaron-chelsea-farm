@@ -2465,6 +2465,11 @@ export default function Game() {
 
   // Determine what action should be taken for a tile based on context
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
+    // PRIORITY: Uproot tool selected - can uproot planted or grown crops
+    if (gameState.player.selectedTool === 'uproot' && (tile.type === 'planted' || tile.type === 'grown')) {
+      return { action: 'uproot' as const, cursor: 'not-allowed' };
+    }
+
     // Rocks and trees can be cleared - show crosshair + pickaxe cursor
     if (!tile.cleared && (tile.type === 'rock' || tile.type === 'tree')) {
       return { action: 'clear' as const, cursor: 'crosshair' };
@@ -2537,7 +2542,7 @@ export default function Game() {
 
     // Default - no action
     return { action: null, cursor: 'default' };
-  }, []);
+  }, [gameState.player.selectedTool]);
 
   // Handle canvas mouse move for hover effects and cursor changes
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {

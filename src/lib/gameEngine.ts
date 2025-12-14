@@ -992,7 +992,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const cropType = updatedTile.crop as Exclude<import('@/types/game').CropType, null>;
             const quality = newState.player.inventory.seedQuality[cropType];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
-            const adjustedGrowTime = cropInfo.growTime / growthMultiplier;
+
+            // Apply fertilizer boost (50% faster growth = 1.5x multiplier)
+            const fertilizerMultiplier = updatedTile.fertilized ? 1.5 : 1.0;
+            const totalMultiplier = growthMultiplier * fertilizerMultiplier;
+
+            const adjustedGrowTime = cropInfo.growTime / totalMultiplier;
 
             const growthPercentage = (timeSinceWatered / adjustedGrowTime) * 100;
             const newGrowthStage = Math.min(100, growthPercentage);
@@ -4825,4 +4830,190 @@ export function buyHunterbots(state: GameState, count: number = 1): GameState {
       },
     },
   };
+}
+// Fertilizer Bot Functions
+
+/**
+ * Update fertilizer bot - find unfertilized growing crops and fertilize them
+ */
+function updateFertilizerBot(
+  zone: import('@/types/game').Zone,
+  deltaTime: number,
+  gameTime: number
+): { zone: import('@/types/game').Zone; grid: import('@/types/game').Tile[][] } {
+  let updatedGrid = zone.grid.map(row => [...row]);
+  
+  if (!zone.fertilizerBot) {
+    return { zone, grid: updatedGrid };
+  }
+
+  const bot = zone.fertilizerBot;
+  const visualX = bot.visualX ?? bot.x ?? 0;
+  const visualY = bot.visualY ?? bot.y ?? 0;
+
+  if (bot.status === 'garaged') {
+    return { zone: { ...zone, fertilizerBot: { ...bot, visualX, visualY } }, grid: updatedGrid };
+  }
+
+  // Find fertilizer building for refilling
+  let fertilizerBuildingPos: { x: number; y: number } | null = null;
+  for (let y = 0; y < updatedGrid.length; y++) {
+    for (let x = 0; x < updatedGrid[y].length; x++) {
+      if (updatedGrid[y][x].type === 'fertilizer') {
+        fertilizerBuildingPos = { x, y };
+        break;
+      }
+    }
+    if (fertilizerBuildingPos) break;
+  }
+
+  // If out of fertilizer, go refill
+  if (bot.fertilizerLevel <= 0 && fertilizerBuildingPos) {
+    const dx = fertilizerBuildingPos.x - visualX;
+    const dy = fertilizerBuildingPos.y - visualY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < 0.3) {
+      // Refill complete
+      return {
+        zone: {
+          ...zone,
+          fertilizerBot: {
+            ...bot,
+            fertilizerLevel: FERTILIZER_MAX_CAPACITY,
+            status: 'idle',
+            visualX: fertilizerBuildingPos.x,
+            visualY: fertilizerBuildingPos.y,
+          },
+        },
+        grid: updatedGrid,
+      };
+    } else {
+      // Move to building
+      const moveSpeed = deltaTime * 0.015 * (bot.supercharged ? 2 : 1);
+      return {
+        zone: {
+          ...zone,
+          fertilizerBot: {
+            ...bot,
+            status: 'refilling',
+            visualX: visualX + (dx / dist) * moveSpeed,
+            visualY: visualY + (dy / dist) * moveSpeed,
+            x: Math.round(visualX + (dx / dist) * moveSpeed),
+            y: Math.round(visualY + (dy / dist) * moveSpeed),
+          },
+        },
+        grid: updatedGrid,
+      };
+    }
+  }
+
+  // Find unfertilized growing crops based on priority
+  let targetCrop: { x: number; y: number; crop: Exclude<import('@/types/game').CropType, null> } | null = null;
+  
+  for (const cropType of bot.config.cropPriority) {
+    for (let y = 0; y < updatedGrid.length; y++) {
+      for (let x = 0; x < updatedGrid[y].length; x++) {
+        const tile = updatedGrid[y][x];
+        if (tile.crop === cropType && tile.wateredTimestamp && !tile.fertilized && tile.growthStage < 100) {
+          targetCrop = { x, y, crop: cropType };
+          break;
+        }
+      }
+      if (targetCrop) break;
+    }
+    if (targetCrop) break;
+  }
+
+  // If no target found, wander
+  if (!targetCrop) {
+    const botX = bot.x ?? 0;
+    const botY = bot.y ?? 0;
+
+    if (!bot.targetX || !bot.targetY ||
+        (Math.abs(visualX - bot.targetX) < 0.3 && Math.abs(visualY - bot.targetY) < 0.3)) {
+      const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, botX + Math.floor(Math.random() * 11) - 5));
+      const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, botY + Math.floor(Math.random() * 11) - 5));
+
+      return {
+        zone: {
+          ...zone,
+          fertilizerBot: {
+            ...bot,
+            status: 'idle',
+            targetX: newTargetX,
+            targetY: newTargetY,
+            visualX,
+            visualY,
+          },
+        },
+        grid: updatedGrid,
+      };
+    } else {
+      const dx = bot.targetX - visualX;
+      const dy = bot.targetY - visualY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const moveSpeed = deltaTime * 0.01 * (bot.supercharged ? 2 : 1);
+
+      return {
+        zone: {
+          ...zone,
+          fertilizerBot: {
+            ...bot,
+            status: 'idle',
+            visualX: visualX + (dx / dist) * moveSpeed,
+            visualY: visualY + (dy / dist) * moveSpeed,
+            x: Math.round(visualX + (dx / dist) * moveSpeed),
+            y: Math.round(visualY + (dy / dist) * moveSpeed),
+          },
+        },
+        grid: updatedGrid,
+      };
+    }
+  }
+
+  // Move to target crop and fertilize
+  const dx = targetCrop.x - visualX;
+  const dy = targetCrop.y - visualY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist < 0.3) {
+    // Fertilize the crop
+    updatedGrid[targetCrop.y][targetCrop.x] = {
+      ...updatedGrid[targetCrop.y][targetCrop.x],
+      fertilized: true,
+    };
+
+    return {
+      zone: {
+        ...zone,
+        fertilizerBot: {
+          ...bot,
+          fertilizerLevel: bot.fertilizerLevel - 1,
+          status: 'idle',
+          visualX: targetCrop.x,
+          visualY: targetCrop.y,
+          x: targetCrop.x,
+          y: targetCrop.y,
+        },
+      },
+      grid: updatedGrid,
+    };
+  } else {
+    const moveSpeed = deltaTime * 0.015 * (bot.supercharged ? 2 : 1);
+    return {
+      zone: {
+        ...zone,
+        fertilizerBot: {
+          ...bot,
+          status: 'fertilizing',
+          visualX: visualX + (dx / dist) * moveSpeed,
+          visualY: visualY + (dy / dist) * moveSpeed,
+          x: Math.round(visualX + (dx / dist) * moveSpeed),
+          y: Math.round(visualY + (dx / dist) * moveSpeed),
+        },
+      },
+      grid: updatedGrid,
+    };
+  }
 }

@@ -355,6 +355,8 @@ export interface HunterBot {
   name: string; // Bot's custom name
   status: 'idle' | 'patrolling' | 'chasing' | 'capturing' | 'escorting' | 'garaged';
   targetRabbitId?: string; // Which rabbit is being hunted
+  targetX?: number; // Wander/patrol target X
+  targetY?: number; // Wander/patrol target Y
   x?: number; // Current tile position X
   y?: number; // Current tile position Y
   visualX?: number; // Animated visual position X

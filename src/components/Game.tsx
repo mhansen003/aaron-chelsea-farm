@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import NextImage from 'next/image';
-import jsmediatags from 'jsmediatags';
+import { parseBlob } from 'music-metadata';
 import {
   createInitialState,
   updateGameState,
@@ -786,26 +786,20 @@ export default function Game() {
       for (let i = 0; i < allFarmSongs.length; i++) {
         const song = allFarmSongs[i];
         try {
-          await new Promise<void>((resolve) => {
-            jsmediatags.read(song.file, {
-              onSuccess: (tag) => {
-                const { tags } = tag;
-                if (tags.picture) {
-                  const { data, format } = tags.picture;
-                  let base64String = '';
-                  for (let j = 0; j < data.length; j++) {
-                    base64String += String.fromCharCode(data[j]);
-                  }
-                  covers[i] = `data:${format};base64,${btoa(base64String)}`;
-                }
-                resolve();
-              },
-              onError: () => {
-                // No album art found for this song
-                resolve();
-              },
-            });
-          });
+          // Fetch the MP3 file as a blob
+          const response = await fetch(song.file);
+          const blob = await response.blob();
+
+          // Parse metadata
+          const metadata = await parseBlob(blob);
+
+          // Extract album art
+          if (metadata.common.picture && metadata.common.picture.length > 0) {
+            const picture = metadata.common.picture[0];
+            const pictureBlob = new Blob([picture.data], { type: picture.format });
+            const url = URL.createObjectURL(pictureBlob);
+            covers[i] = url;
+          }
         } catch (error) {
           console.log(`No album art for ${song.name}`);
         }
@@ -815,6 +809,15 @@ export default function Game() {
     };
 
     loadAlbumCovers();
+
+    // Cleanup: revoke object URLs when component unmounts
+    return () => {
+      Object.values(albumCovers).forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
   }, [allFarmSongs]);
 
   // Zone-specific music switching - farm has playlist, others loop single track

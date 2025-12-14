@@ -63,6 +63,8 @@ import {
   CROP_INFO,
   SEEDBOT_COST,
   HUNTERBOT_COST,
+  FERTILIZERBOT_COST,
+  FERTILIZER_MAX_CAPACITY,
   getCurrentSeedCost,
   getCurrentSellPrice,
 } from '@/lib/gameEngine';

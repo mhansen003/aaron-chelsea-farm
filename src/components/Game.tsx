@@ -240,6 +240,8 @@ export default function Game() {
   const wellImageRef = useRef<HTMLImageElement | null>(null);
   const garageImageRef = useRef<HTMLImageElement | null>(null);
   const superchargerImageRef = useRef<HTMLImageElement | null>(null);
+  const fertilizerBuildingImageRef = useRef<HTMLImageElement | null>(null);
+  const fertilizerBotImageRef = useRef<HTMLImageElement | null>(null);
   const oceanImageRef = useRef<HTMLImageElement | null>(null);
   const sandImageRef = useRef<HTMLImageElement | null>(null);
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
@@ -711,6 +713,8 @@ export default function Game() {
 
   const farmRapSongs = [
     { name: 'Farm Rap 1', file: '/farm_rap1.mp3' },
+    { name: 'Farm Rap 2', file: '/farm_rap2.mp3' },
+    { name: 'Farm Rap 3', file: '/farm_rap3.mp3' },
   ];
 
   // Combined all farm songs for random selection
@@ -3890,6 +3894,24 @@ export default function Game() {
                         {song.name}
                       </button>
                     ))}
+
+                    {/* Farm Rap Section */}
+                    <div className="text-xs font-bold text-purple-400 mb-2 px-2 mt-3 border-t border-pink-600 pt-2">Farm Rap:</div>
+                    {farmRapSongs.map((song, rapIndex) => {
+                      const index = farmSongs.length + rapIndex; // Offset by farmSongs length
+                      return (
+                        <button
+                          key={`rap-${rapIndex}`}
+                          onClick={() => handleSongSelect(index)}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-purple-700 transition-colors ${
+                            currentSongIndex === index && !isMusicMuted ? 'bg-purple-600 font-bold' : ''
+                          }`}
+                        >
+                          {currentSongIndex === index && !isMusicMuted && '▶ '}
+                          {song.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}

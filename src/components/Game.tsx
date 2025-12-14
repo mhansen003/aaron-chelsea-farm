@@ -847,30 +847,7 @@ export default function Game() {
     };
   }, []);
 
-  // Update canvas cursor based on selected tool
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Create cursor emoji as data URL
-    const createEmojiCursor = (emoji: string) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return 'default';
-
-      ctx.font = '28px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, 16, 16);
-
-      return `url(${canvas.toDataURL()}) 16 16, pointer`;
-    };
-
-    const toolIcon = TOOL_ICONS[gameState.player.selectedTool];
-    canvas.style.cursor = createEmojiCursor(toolIcon);
-  }, [gameState.player.selectedTool]);
+  // NOTE: Cursor is now handled dynamically in handleCanvasMouseMove based on hovered tile
 
   // Rendering
   useEffect(() => {
@@ -2469,6 +2446,61 @@ export default function Game() {
       setCursorType('pointer');
     } else if (tile) {
       setHoveredTile({ x: tileX, y: tileY });
+
+      // Helper to create emoji cursor
+      const createEmojiCursor = (emoji: string) => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 32;
+        tempCanvas.height = 32;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (!tempCtx) return 'default';
+        tempCtx.font = '28px Arial';
+        tempCtx.textAlign = 'center';
+        tempCtx.textBaseline = 'middle';
+        tempCtx.fillText(emoji, 16, 16);
+        return `url(${tempCanvas.toDataURL()}) 16 16, pointer`;
+      };
+
+      // Get crop emoji map
+      const cropEmojis: Record<string, string> = {
+        carrot: '🥕',
+        wheat: '🌾',
+        tomato: '🍅',
+        pumpkin: '🎃',
+        watermelon: '🍉',
+        peppers: '🌶️',
+        grapes: '🍇',
+        oranges: '🍊',
+        avocado: '🥑',
+        rice: '🍚',
+        corn: '🌽'
+      };
+
+      // Show crop cursor when hovering over plantable tiles
+      if ((tile.type === 'grass' || tile.type === 'dirt') && !tile.crop && gameState.player.selectedCrop) {
+        const cropEmoji = cropEmojis[gameState.player.selectedCrop];
+        if (cropEmoji) {
+          setCursorType(createEmojiCursor(cropEmoji));
+          return;
+        }
+      }
+
+      // Show watering can when hovering over crops that need water
+      if (tile.crop && !tile.wateredToday) {
+        setCursorType(createEmojiCursor('💧'));
+        return;
+      }
+
+      // Show harvest tool when hovering over grown crops
+      if (tile.crop && tile.growthStage === CROP_INFO[tile.crop].daysToGrow) {
+        const cropEmoji = cropEmojis[tile.crop];
+        if (cropEmoji) {
+          setCursorType(createEmojiCursor(cropEmoji));
+          return;
+        }
+      }
+
+      // Default cursor based on tile action
       const { cursor } = getActionForTile(tile, gameState.player.selectedCrop);
       setCursorType(cursor);
     } else {

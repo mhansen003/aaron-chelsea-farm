@@ -2697,7 +2697,9 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
 
     if (!hasTransportBots) {
       const warehousePos = findWarehouseTile(state);
-      if (warehousePos) {
+      const exportPos = findExportTile(state);
+
+      if (warehousePos && exportPos) {
         // Go to warehouse to pick up marked items
         tasks.push({
           id: `pickup-marked-${Date.now()}`,
@@ -2709,7 +2711,20 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
           progress: 0,
           duration: TASK_DURATIONS.pickup_marked,
         });
-        return tasks; // Return immediately - picking up marked items is highest priority
+
+        // Immediately queue sell task after pickup
+        tasks.push({
+          id: `auto-sell-marked-${Date.now()}`,
+          type: 'deposit',
+          tileX: exportPos.x,
+          tileY: exportPos.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit,
+        });
+
+        return tasks; // Return immediately - picking up and selling marked items is highest priority
       }
     }
   }

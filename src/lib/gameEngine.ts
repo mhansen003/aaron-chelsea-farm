@@ -4998,6 +4998,10 @@ function updateRabbits(
         updatedRabbits.push({
           ...rabbit,
           status: 'wandering',
+          targetX: undefined,
+          targetY: undefined,
+          eatingStartTime: undefined,
+          eatingDuration: undefined,
         });
       }
     } else if (rabbit.status === 'eating') {
@@ -5075,6 +5079,8 @@ function updateRabbits(
             cropsEaten: newCropsEaten,
             targetX: undefined,
             targetY: undefined,
+            eatingStartTime: undefined,
+            eatingDuration: undefined,
           });
         }
       } else {

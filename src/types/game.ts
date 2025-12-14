@@ -315,6 +315,7 @@ export interface TransportBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
   config?: TransportBotConfig; // Sell trigger configuration
 }
 
@@ -340,6 +341,7 @@ export interface DemolishBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
 export interface Rabbit {
@@ -373,6 +375,7 @@ export interface HunterBot {
   actionDuration?: number; // How long the action takes (ms)
   idleStartTime?: number; // Game time when the bot became idle (for garage despawn timer)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
 export interface FertilizerBotConfig {
@@ -393,6 +396,7 @@ export interface FertilizerBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
   config: FertilizerBotConfig; // Priority configuration
 }
 

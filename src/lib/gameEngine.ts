@@ -4718,6 +4718,89 @@ export function superchargeBot(state: GameState, botId: string, botType: 'water'
   return state;
 }
 
+/**
+ * Upgrade a bot with hopper upgrade (increased inventory capacity)
+ */
+export function hopperUpgrade(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer'): GameState {
+  // Check if player can afford it
+  if (state.player.money < HOPPER_UPGRADE_COST) return state;
+
+  let updated = false;
+
+  // Get the current zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  if (!currentZone) return state;
+
+  // Find and upgrade the specific bot in the current zone
+  let updatedZone = { ...currentZone };
+
+  if (botType === 'water' && updatedZone.waterBots) {
+    updatedZone.waterBots = updatedZone.waterBots.map(bot => {
+      if (bot.id === botId && !bot.hopperUpgrade) {
+        updated = true;
+        return { ...bot, hopperUpgrade: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'harvest' && updatedZone.harvestBots) {
+    updatedZone.harvestBots = updatedZone.harvestBots.map(bot => {
+      if (bot.id === botId && !bot.hopperUpgrade) {
+        updated = true;
+        return { ...bot, hopperUpgrade: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'seed' && updatedZone.seedBots) {
+    updatedZone.seedBots = updatedZone.seedBots.map(bot => {
+      if (bot.id === botId && !bot.hopperUpgrade) {
+        updated = true;
+        return { ...bot, hopperUpgrade: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'transport' && updatedZone.transportBots) {
+    updatedZone.transportBots = updatedZone.transportBots.map(bot => {
+      if (bot.id === botId && !bot.hopperUpgrade) {
+        updated = true;
+        return { ...bot, hopperUpgrade: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'demolish' && updatedZone.demolishBots) {
+    updatedZone.demolishBots = updatedZone.demolishBots.map(bot => {
+      if (bot.id === botId && !bot.hopperUpgrade) {
+        updated = true;
+        return { ...bot, hopperUpgrade: true };
+      }
+      return bot;
+    });
+  } else if (botType === 'fertilizer' && updatedZone.fertilizerBot) {
+    if (updatedZone.fertilizerBot.id === botId && !updatedZone.fertilizerBot.hopperUpgrade) {
+      updated = true;
+      updatedZone.fertilizerBot = { ...updatedZone.fertilizerBot, hopperUpgrade: true };
+    }
+  }
+
+  // Only deduct money if a bot was actually upgraded
+  if (updated) {
+    return {
+      ...state,
+      zones: {
+        ...state.zones,
+        [currentZoneKey]: updatedZone,
+      },
+      player: {
+        ...state.player,
+        money: state.player.money - HOPPER_UPGRADE_COST,
+      },
+    };
+  }
+
+  return state;
+}
+
 // Handle place_well task in task execution
 function handlePlaceWellTask(state: GameState, task: Task): GameState {
   return placeWell(state, task.tileX, task.tileY);

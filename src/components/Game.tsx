@@ -5129,11 +5129,57 @@ export default function Game() {
                 }
               }
 
-              return {
+              const newState = {
                 ...prev,
                 warehouse: remainingWarehouse,
                 markedForSale: [...prev.markedForSale, ...itemsToMark],
               };
+
+              // Immediately add pickup and sell tasks to farmer's queue as highest priority
+              const currentZoneKey = `${newState.currentZone.x},${newState.currentZone.y}`;
+              const currentZone = newState.zones[currentZoneKey];
+
+              // Find warehouse and export positions
+              const warehousePos = currentZone.grid.flatMap((row, y) =>
+                row.map((tile, x) => tile.type === 'warehouse' ? { x, y } : null)
+              ).find(pos => pos !== null);
+
+              const exportPos = currentZone.grid.flatMap((row, y) =>
+                row.map((tile, x) => tile.type === 'export' ? { x, y } : null)
+              ).find(pos => pos !== null);
+
+              // Only add tasks if both warehouse and export exist
+              if (warehousePos && exportPos) {
+                const pickupTask = {
+                  id: `pickup-marked-${Date.now()}`,
+                  type: 'pickup_marked' as const,
+                  tileX: warehousePos.x,
+                  tileY: warehousePos.y,
+                  zoneX: newState.currentZone.x,
+                  zoneY: newState.currentZone.y,
+                  progress: 0,
+                  duration: 2000,
+                };
+
+                const sellTask = {
+                  id: `auto-sell-marked-${Date.now()}`,
+                  type: 'deposit' as const,
+                  tileX: exportPos.x,
+                  tileY: exportPos.y,
+                  zoneX: newState.currentZone.x,
+                  zoneY: newState.currentZone.y,
+                  progress: 0,
+                  duration: 2000,
+                };
+
+                // Add to front of queue as highest priority
+                newState.zones[currentZoneKey] = {
+                  ...currentZone,
+                  taskQueue: [pickupTask, sellTask, ...currentZone.taskQueue],
+                };
+              }
+
+              return newState;
             });
           }}
         />

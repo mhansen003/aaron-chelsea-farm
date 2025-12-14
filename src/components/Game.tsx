@@ -2776,6 +2776,7 @@ export default function Game() {
         ctx.drawImage(fertilizerBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
       } else {
         // Fallback to lime circle
+        console.log('Drawing fertilizer bot with fallback circle');
         const centerX = botPx + GAME_CONFIG.tileSize / 2;
         const centerY = botPy + GAME_CONFIG.tileSize / 2;
         ctx.fillStyle = '#84cc16';

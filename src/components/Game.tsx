@@ -193,6 +193,8 @@ export default function Game() {
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
   const [showCropDropdown, setShowCropDropdown] = useState(false);
+  const [showFarmMusicSection, setShowFarmMusicSection] = useState(true);
+  const [showFarmRapSection, setShowFarmRapSection] = useState(true);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
   const [albumCovers, setAlbumCovers] = useState<Record<number, string>>({});
@@ -931,6 +933,14 @@ export default function Game() {
     });
     setShowMusicDropdown(false);
   }, []);
+
+  // Skip to next song
+  const nextSong = useCallback(() => {
+    if (isInFarmZone()) {
+      const nextIndex = getRandomEnabledSong(currentSongIndex);
+      handleSongSelect(nextIndex);
+    }
+  }, [isInFarmZone, currentSongIndex, getRandomEnabledSong, handleSongSelect]);
 
   // Toggle song enabled for auto-rotation
   const toggleSongEnabled = useCallback((index: number) => {
@@ -3962,7 +3972,7 @@ export default function Game() {
 
           {/* Music Selector - Only show in farm zone */}
           {isInFarmZone() && (
-            <div className="relative">
+            <div className="relative flex gap-2">
               <button
                 onClick={() => setShowMusicDropdown(!showMusicDropdown)}
                 className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold flex items-center gap-1"
@@ -3970,17 +3980,32 @@ export default function Game() {
               >
                 {isMusicMuted ? '🔇' : '🎵'} Music
               </button>
+              <button
+                onClick={nextSong}
+                className="px-3 py-1 bg-pink-600 hover:bg-pink-700 rounded text-sm font-bold"
+                title="Next song"
+              >
+                ⏭️
+              </button>
               {showMusicDropdown && (
-                <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[200px]">
+                <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[250px] max-h-[500px] overflow-y-auto">
                   <div className="p-2">
-                    <div className="text-xs font-bold text-pink-400 mb-2 px-2">Farm Music:</div>
                     <button
                       onClick={toggleMusicMute}
-                      className="w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors bg-pink-800 mb-1 border-b border-pink-600"
+                      className="w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors bg-pink-800 mb-2 border-b border-pink-600"
                     >
                       {isMusicMuted ? '🔊 Unmute' : '🔇 Mute'}
                     </button>
-                    {farmSongs.map((song, index) => (
+
+                    {/* Farm Music Section */}
+                    <div
+                      onClick={() => setShowFarmMusicSection(!showFarmMusicSection)}
+                      className="text-xs font-bold text-pink-400 mb-2 px-2 cursor-pointer hover:text-pink-300 flex items-center gap-2"
+                    >
+                      <span>{showFarmMusicSection ? '▼' : '▶'}</span>
+                      <span>Farm Music ({farmSongs.length})</span>
+                    </div>
+                    {showFarmMusicSection && farmSongs.map((song, index) => (
                       <div
                         key={index}
                         className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
@@ -4012,8 +4037,16 @@ export default function Game() {
                     ))}
 
                     {/* Farm Rap Section */}
-                    <div className="text-xs font-bold text-purple-400 mb-2 px-2 mt-3 border-t border-pink-600 pt-2">Farm Rap:</div>
-                    {farmRapSongs.map((song, rapIndex) => {
+                    <div className="mt-3 border-t border-pink-600 pt-2">
+                      <div
+                        onClick={() => setShowFarmRapSection(!showFarmRapSection)}
+                        className="text-xs font-bold text-purple-400 mb-2 px-2 cursor-pointer hover:text-purple-300 flex items-center gap-2"
+                      >
+                        <span>{showFarmRapSection ? '▼' : '▶'}</span>
+                        <span>Farm Rap ({farmRapSongs.length})</span>
+                      </div>
+                    </div>
+                    {showFarmRapSection && farmRapSongs.map((song, rapIndex) => {
                       const index = farmSongs.length + rapIndex; // Offset by farmSongs length
                       return (
                         <div

@@ -2692,23 +2692,44 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
     }
   }
 
-  // Priority 1: Sell basket items (auto-sell OR if basket has marked items from pickup)
-  // Always sell if basket has items, regardless of autoSell setting - marked items should always be sold
+  // Priority 1: Sell basket items at export OR deposit to warehouse
   if (basket.length > 0) {
-    const exportPos = findExportTile(state);
-    if (exportPos) {
-      // Go to export building to sell crops (no distance restriction)
-      tasks.push({
-        id: `auto-sell-${Date.now()}`,
-        type: 'deposit',
-        tileX: exportPos.x,
-        tileY: exportPos.y,
-        zoneX: state.currentZone.x,
-        zoneY: state.currentZone.y,
-        progress: 0,
-        duration: TASK_DURATIONS.deposit,
-      });
-      return tasks; // Return immediately - selling is highest priority
+    // Check if there are transport bots - if not, farmer handles marked items and must sell
+    const hasTransportBots = zone.transportBots && zone.transportBots.length > 0;
+    const shouldSell = farmerAuto.autoSell || !hasTransportBots;
+
+    if (shouldSell) {
+      // Go to export building to sell crops
+      const exportPos = findExportTile(state);
+      if (exportPos) {
+        tasks.push({
+          id: `auto-sell-${Date.now()}`,
+          type: 'deposit',
+          tileX: exportPos.x,
+          tileY: exportPos.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit,
+        });
+        return tasks; // Return immediately - selling is highest priority
+      }
+    } else {
+      // Go to warehouse to deposit crops
+      const warehousePos = findWarehouseTile(state);
+      if (warehousePos) {
+        tasks.push({
+          id: `auto-deposit-${Date.now()}`,
+          type: 'deposit',
+          tileX: warehousePos.x,
+          tileY: warehousePos.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit,
+        });
+        return tasks; // Return immediately - depositing is highest priority
+      }
     }
   }
 

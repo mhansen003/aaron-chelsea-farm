@@ -4817,8 +4817,9 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 
 // Rabbit constants
 const RABBIT_SPAWN_INTERVAL = 45000; // Spawn a rabbit every 45 seconds
-const RABBIT_EATING_DURATION = 1500; // 1.5 seconds to eat a crop (faster)
+const RABBIT_EATING_DURATION = 10000; // 10 seconds to eat a crop
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
+const RABBIT_MIN_CROPS = 5; // Min crops before rabbit leaves
 const RABBIT_MAX_CROPS = 10; // Max crops before rabbit leaves
 const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
 const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
@@ -4852,6 +4853,9 @@ function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): impor
     y = Math.floor(Math.random() * GAME_CONFIG.gridHeight);
   }
 
+  // Random number of crops this rabbit will eat before leaving (5-10)
+  const maxCropsToEat = RABBIT_MIN_CROPS + Math.floor(Math.random() * (RABBIT_MAX_CROPS - RABBIT_MIN_CROPS + 1));
+
   const newRabbit: import('@/types/game').Rabbit = {
     id: `rabbit-${Date.now()}-${Math.random()}`,
     x,
@@ -4861,6 +4865,7 @@ function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): impor
     status: 'wandering',
     spawnTime: gameTime,
     cropsEaten: 0,
+    maxCropsToEat,
   };
 
   return {
@@ -4951,23 +4956,25 @@ function updateRabbits(
       // Eating - check if done
       const eatingTime = gameTime - (rabbit.eatingStartTime || 0);
       if (eatingTime >= (rabbit.eatingDuration || RABBIT_EATING_DURATION)) {
-        // Done eating - remove the crop but keep the seed programming
+        // Done eating - turn tile into dirt
         if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
           const tile = updatedGrid[rabbit.targetY][rabbit.targetX];
           updatedGrid[rabbit.targetY][rabbit.targetX] = {
             ...tile,
+            type: 'dirt',
             crop: null,
             growthStage: 0,
             wateredToday: false,
             wateredTimestamp: undefined,
             fertilized: false,
+            cleared: false,
           };
         }
 
         const newCropsEaten = rabbit.cropsEaten + 1;
 
-        // Check if hungry (ate 10 crops) - leave the screen
-        if (newCropsEaten >= RABBIT_MAX_CROPS) {
+        // Check if rabbit has eaten enough crops - leave the screen
+        if (newCropsEaten >= rabbit.maxCropsToEat) {
           // Determine nearest edge to leave from
           const gridWidth = updatedGrid[0]?.length || 0;
           const gridHeight = updatedGrid.length;
@@ -5139,7 +5146,7 @@ function updateHunterBots(
             const dx = garagePos.x - visualX;
             const dy = garagePos.y - visualY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1);
+            const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1);
             const newVisualX = visualX + (dx / dist) * moveSpeed;
             const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5177,7 +5184,7 @@ function updateHunterBots(
             const dx = hunter.targetX - visualX;
             const dy = hunter.targetY - visualY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Same speed as other bots when wandering
+            const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1); // Slower idle speed when wandering
             const newVisualX = visualX + (dx / dist) * moveSpeed;
             const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5289,7 +5296,7 @@ function updateHunterBots(
         const dx = targetX - visualX;
         const dy = targetY - visualY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Slow speed when escorting
+        const moveSpeed = deltaTime * 0.005 * (hunter.supercharged ? 2 : 1); // Slower speed when escorting
         const newVisualX = visualX + (dx / dist) * moveSpeed;
         const newVisualY = visualY + (dy / dist) * moveSpeed;
 

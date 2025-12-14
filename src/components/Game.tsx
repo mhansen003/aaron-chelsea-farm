@@ -79,7 +79,6 @@ import SuperchargerModal from './SuperchargerModal';
 import HopperModal from './HopperModal';
 import ZonePreviewModal from './ZonePreviewModal';
 import ZoneEarningsModal from './ZoneEarningsModal';
-import EconomyModal from './EconomyModal';
 import IncomeModal from './IncomeModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
@@ -184,7 +183,6 @@ export default function Game() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
-  const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' | null>(null);
   const [renamingBot, setRenamingBot] = useState<{ id: string; type: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'; currentName: string } | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
@@ -200,8 +198,8 @@ export default function Game() {
   const [isMusicPaused, setIsMusicPaused] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.5); // Default 50% volume
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
-  const [automationOrder, setAutomationOrder] = useState<('plant' | 'water' | 'harvest')[]>(['plant', 'water', 'harvest']); // Priority order for farmer automation
-  const [draggedAutomation, setDraggedAutomation] = useState<'plant' | 'water' | 'harvest' | null>(null);
+  // Fixed automation order: harvest > water > plant
+  const automationOrder: ('plant' | 'water' | 'harvest')[] = ['harvest', 'water', 'plant'];
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -721,27 +719,6 @@ export default function Game() {
     setIsMounted(true);
   }, []);
 
-  // Sync automationOrder with gameState
-  useEffect(() => {
-    if (gameState.player.farmerAuto.automationOrder) {
-      setAutomationOrder(gameState.player.farmerAuto.automationOrder);
-    }
-  }, [gameState.player.farmerAuto.automationOrder]);
-
-  // Update gameState when automationOrder changes
-  useEffect(() => {
-    setGameState(prev => ({
-      ...prev,
-      player: {
-        ...prev.player,
-        farmerAuto: {
-          ...prev.player.farmerAuto,
-          automationOrder,
-        },
-      },
-    }));
-  }, [automationOrder]);
-
   // Removed auto-open shop effect - shop now opens only on click or 'B' key
 
   // Background music and sound effects
@@ -985,31 +962,6 @@ export default function Game() {
     });
   }, []);
 
-  // Drag-and-drop handlers for automation priority
-  const handleAutomationDragStart = useCallback((task: 'plant' | 'water' | 'harvest') => {
-    setDraggedAutomation(task);
-  }, []);
-
-  const handleAutomationDragOver = useCallback((e: React.DragEvent, targetTask: 'plant' | 'water' | 'harvest') => {
-    e.preventDefault();
-    if (!draggedAutomation || draggedAutomation === targetTask) return;
-
-    setAutomationOrder(prev => {
-      const newOrder = [...prev];
-      const draggedIndex = newOrder.indexOf(draggedAutomation);
-      const targetIndex = newOrder.indexOf(targetTask);
-
-      // Swap positions
-      newOrder.splice(draggedIndex, 1);
-      newOrder.splice(targetIndex, 0, draggedAutomation);
-
-      return newOrder;
-    });
-  }, [draggedAutomation]);
-
-  const handleAutomationDragEnd = useCallback(() => {
-    setDraggedAutomation(null);
-  }, []);
 
   // Close music dropdown when clicking outside
   useEffect(() => {
@@ -4061,54 +4013,73 @@ export default function Game() {
         {/* Farmer Automation Controls - Bottom Aligned */}
         <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
-          <div className="text-[10px] text-purple-400 mb-2 italic">Grab ⋮⋮ to reorder priority</div>
+          <div className="text-[10px] text-purple-400 mb-2 italic">Priority: Harvest → Water → Plant</div>
           <div className="space-y-1.5">
-            {/* Draggable Automation Items */}
-            {automationOrder.map((task, index) => {
-              const isDragging = draggedAutomation === task;
+            {/* Auto Harvest */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoHarvest}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoHarvest: !prev.player.farmerAuto.autoHarvest,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Harvest</span>
+            </label>
 
-              return (
-                <div key={task}>
-                  {task === 'plant' && (
-                    <>
-                      <div
-                        className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
-                      >
-                        <div
-                          draggable
-                          onDragStart={(e) => {
-                            e.stopPropagation();
-                            handleAutomationDragStart('plant');
-                          }}
-                          onDragOver={(e) => handleAutomationDragOver(e, 'plant')}
-                          onDragEnd={handleAutomationDragEnd}
-                          className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
-                          title="Drag to reorder"
-                        >
-                          ⋮⋮
-                        </div>
-                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
-                        <label className="flex items-center gap-2 cursor-pointer flex-1">
-                          <input
-                            type="checkbox"
-                            checked={gameState.player.farmerAuto.autoPlant}
-                            onChange={() => {
-                              setGameState(prev => ({
-                                ...prev,
-                                player: {
-                                  ...prev.player,
-                                  farmerAuto: {
-                                    ...prev.player.farmerAuto,
-                                    autoPlant: !prev.player.farmerAuto.autoPlant,
-                                  },
-                                },
-                              }));
-                            }}
-                            className="w-3 h-3"
-                          />
-                          <span className="text-xs text-white">Auto Plant</span>
-                        </label>
-                      </div>
+            {/* Auto Water */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoWater}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoWater: !prev.player.farmerAuto.autoWater,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Water</span>
+            </label>
+
+            {/* Auto Plant */}
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+              <input
+                type="checkbox"
+                checked={gameState.player.farmerAuto.autoPlant}
+                onChange={() => {
+                  setGameState(prev => ({
+                    ...prev,
+                    player: {
+                      ...prev.player,
+                      farmerAuto: {
+                        ...prev.player.farmerAuto,
+                        autoPlant: !prev.player.farmerAuto.autoPlant,
+                      },
+                    },
+                  }));
+                }}
+                className="w-3 h-3"
+              />
+              <span className="text-xs text-white">Auto Plant</span>
+            </label>
                       {/* Crop Selector for Auto Plant - Dropdown */}
                       {gameState.player.farmerAuto.autoPlant && (
               <div className="ml-5 text-xs crop-dropdown-container relative">
@@ -4173,93 +4144,6 @@ export default function Game() {
                 )}
               </div>
             )}
-                    </>
-                  )}
-
-                  {task === 'water' && (
-                    <div
-                      className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
-                    >
-                      <div
-                        draggable
-                        onDragStart={(e) => {
-                          e.stopPropagation();
-                          handleAutomationDragStart('water');
-                        }}
-                        onDragOver={(e) => handleAutomationDragOver(e, 'water')}
-                        onDragEnd={handleAutomationDragEnd}
-                        className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
-                        title="Drag to reorder"
-                      >
-                        ⋮⋮
-                      </div>
-                      <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <input
-                          type="checkbox"
-                          checked={gameState.player.farmerAuto.autoWater}
-                          onChange={() => {
-                            setGameState(prev => ({
-                              ...prev,
-                              player: {
-                                ...prev.player,
-                                farmerAuto: {
-                                  ...prev.player.farmerAuto,
-                                  autoWater: !prev.player.farmerAuto.autoWater,
-                                },
-                              },
-                            }));
-                          }}
-                          className="w-3 h-3"
-                        />
-                        <span className="text-xs text-white">Auto Water</span>
-                      </label>
-                    </div>
-                  )}
-
-                  {task === 'harvest' && (
-                    <div
-                      className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
-                    >
-                      <div
-                        draggable
-                        onDragStart={(e) => {
-                          e.stopPropagation();
-                          handleAutomationDragStart('harvest');
-                        }}
-                        onDragOver={(e) => handleAutomationDragOver(e, 'harvest')}
-                        onDragEnd={handleAutomationDragEnd}
-                        className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
-                        title="Drag to reorder"
-                      >
-                        ⋮⋮
-                      </div>
-                      <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <input
-                          type="checkbox"
-                          checked={gameState.player.farmerAuto.autoHarvest}
-                          onChange={() => {
-                            setGameState(prev => ({
-                              ...prev,
-                              player: {
-                                ...prev.player,
-                                farmerAuto: {
-                                  ...prev.player.farmerAuto,
-                                  autoHarvest: !prev.player.farmerAuto.autoHarvest,
-                                },
-                              },
-                            }));
-                          }}
-                          className="w-3 h-3"
-                        />
-                        <span className="text-xs text-white">Auto Harvest</span>
-                      </label>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
 
             {/* Deposit Destination - Radio buttons */}
             <div className="border-t border-purple-700 pt-1.5 mt-1.5">
@@ -5194,7 +5078,7 @@ export default function Game() {
           onBuyTransportbots={(amount, name, config) => setGameState(prev => buyTransportbots(prev, amount, name, config))}
           onBuyDemolishbots={(amount, name) => setGameState(prev => buyDemolishbots(prev, amount, name))}
           onBuyHunterbots={(amount) => setGameState(prev => buyHunterbots(prev, amount))}
-          onBuyFertilizerbot={(name, config) => setGameState(prev => buyFertilizerbot(prev, name))}
+          onBuyFertilizerbot={(name) => setGameState(prev => buyFertilizerbot(prev, name))}
           onRelocate={() => {
             setGameState(prev => relocateBotFactory(prev));
             setPlacementMode('botFactory');
@@ -6049,7 +5933,6 @@ export default function Game() {
       )}
 
       {/* Economy Modal */}
-      {showEconomyModal && (
         <EconomyModal
           gameState={gameState}
           onClose={() => setShowEconomyModal(false)}

@@ -621,7 +621,7 @@ export function createInitialState(): GameState {
         autoWater: true,
         autoHarvest: true,
         autoSell: true,
-        automationOrder: ['plant', 'water', 'harvest'], // Default priority order
+        automationOrder: ['harvest', 'water', 'plant'], // Fixed priority order: harvest > water > plant
       },
     },
     tools: [

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST, HOPPER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -23,7 +23,6 @@ interface ShopProps {
 }
 
 type ItemType =
-  | { category: 'seed'; crop: Exclude<CropType, null> }
   | { category: 'building'; name: 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizerBuilding' }
   | { category: 'tool'; name: 'sprinkler' }
   | { category: 'upgrade'; tier: number };
@@ -33,23 +32,9 @@ interface CartItem {
   quantity: number;
 }
 
-const SEED_INFO = {
-  carrot: { name: 'Carrot Seeds', emoji: '🥕', daysToGrow: 1, image: '/carrot.png' },
-  wheat: { name: 'Wheat Seeds', emoji: '🌾', daysToGrow: 1, image: '/wheat.png' },
-  tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2, image: '/tomato.png' },
-  pumpkin: { name: 'Pumpkin Seeds', emoji: '🎃', daysToGrow: 2, image: '/pumpkin.png' },
-  watermelon: { name: 'Watermelon Seeds', emoji: '🍉', daysToGrow: 2, image: '/watermelon.png' },
-  peppers: { name: 'Pepper Seeds', emoji: '🌶️', daysToGrow: 1, image: '/pepper.png' },
-  grapes: { name: 'Grape Seeds', emoji: '🍇', daysToGrow: 2, image: '/grapes.png' },
-  oranges: { name: 'Orange Seeds', emoji: '🍊', daysToGrow: 3, image: '/orange.png' },
-  avocado: { name: 'Avocado Seeds', emoji: '🥑', daysToGrow: 3, image: '/avocado.png' },
-  rice: { name: 'Rice Seeds', emoji: '🌾', daysToGrow: 2, image: '/rice.png' },
-  corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2, image: '/corn.png' },
-};
-
 export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onBuyFertilizerBuilding, onToggleAutoBuy }: ShopProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [activeTab, setActiveTab] = useState<'seeds' | 'buildings' | 'tools'>('seeds');
+  const [activeTab, setActiveTab] = useState<'buildings' | 'tools'>('buildings');
 
   const itemInCart = (type: ItemType): boolean => {
     return cart.some(item => JSON.stringify(item.type) === JSON.stringify(type));
@@ -78,9 +63,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
   };
 
   const getItemCost = (type: ItemType): number => {
-    if (type.category === 'seed') {
-      return getCurrentSeedCost(type.crop, gameState.cropsSold);
-    } else if (type.category === 'building') {
+    if (type.category === 'building') {
       const costs = {
         botFactory: BOT_FACTORY_COST,
         well: WELL_COST,
@@ -104,9 +87,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
   const handleCheckout = () => {
     // Process all purchases
     cart.forEach(item => {
-      if (item.type.category === 'seed') {
-        onBuySeeds(item.type.crop, item.quantity);
-      } else if (item.type.category === 'building') {
+      if (item.type.category === 'building') {
         for (let i = 0; i < item.quantity; i++) {
           if (item.type.name === 'botFactory') onBuyBotFactory();
           else if (item.type.name === 'well') onBuyWell();
@@ -150,16 +131,6 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         {/* Tab Navigation */}
         <div className="flex-shrink-0 bg-black/30 backdrop-blur-sm border-b border-amber-500/20 flex gap-2 p-2">
           <button
-            onClick={() => setActiveTab('seeds')}
-            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
-              activeTab === 'seeds'
-                ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-black/40 text-amber-200 hover:bg-black/60'
-            }`}
-          >
-            🌱 Seeds
-          </button>
-          <button
             onClick={() => setActiveTab('buildings')}
             className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
               activeTab === 'buildings'
@@ -183,51 +154,6 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
 
         {/* Scrollable Items Grid */}
         <div className="flex-1 overflow-y-auto p-6">
-
-          {/* Seeds Tab */}
-          {activeTab === 'seeds' && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {(Object.keys(SEED_INFO) as Array<Exclude<CropType, null>>).map((cropType) => {
-                const seed = SEED_INFO[cropType];
-                const cost = getCurrentSeedCost(cropType, gameState.cropsSold);
-                const itemType: ItemType = { category: 'seed', crop: cropType };
-                const inCart = itemInCart(itemType);
-                const canAfford = gameState.player.money >= cost;
-
-                return (
-                  <div
-                    key={cropType}
-                    className={`bg-gradient-to-br from-green-900/50 to-lime-900/50 rounded-lg border-2 ${
-                      inCart ? 'border-green-400 ring-2 ring-green-300' : 'border-green-600'
-                    } p-2 flex flex-col items-center transition-all hover:scale-105`}
-                  >
-                    <div className="w-16 h-16 mb-1 relative flex items-center justify-center">
-                      <span className="text-4xl">{seed.emoji}</span>
-                    </div>
-                    <div className="text-xs font-bold text-center mb-1 text-green-200">
-                      {seed.name.replace(' Seeds', '')}
-                    </div>
-                    <div className="text-xs text-center text-green-300 mb-2">
-                      ${cost} • {seed.daysToGrow}d
-                    </div>
-                    <button
-                      onClick={() => toggleCart(itemType)}
-                      disabled={!canAfford && !inCart}
-                      className={`w-full px-2 py-1 rounded text-xs font-bold transition-all ${
-                        inCart
-                          ? 'bg-red-600 hover:bg-red-700 text-white'
-                          : canAfford
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-gray-600 cursor-not-allowed text-gray-400'
-                      }`}
-                    >
-                      {inCart ? '− REMOVE' : '+ ADD'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {/* Buildings Tab */}
           {activeTab === 'buildings' && (
@@ -390,10 +316,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               {cart.map((item, index) => {
                 const cost = getItemCost(item.type);
                 let name = '';
-                if (item.type.category === 'seed') {
-                  name = SEED_INFO[item.type.crop].name.replace(' Seeds', '');
-                } else if (item.type.category === 'building') {
-                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg', hopper: 'Hopper' };
+                if (item.type.category === 'building') {
+                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg' };
                   name = names[item.type.name];
                 } else if (item.type.category === 'tool') {
                   name = 'Sprinkler';
@@ -404,7 +328,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 return (
                   <div key={index} className="bg-amber-800/60 px-3 py-1 rounded flex items-center gap-2 border border-amber-600">
                     <span className="text-sm font-bold text-amber-100">{name}</span>
-                    {item.type.category === 'seed' || item.type.category === 'tool' ? (
+                    {item.type.category === 'tool' ? (
                       <>
                         <button
                           onClick={() => updateQuantity(item.type, -1)}

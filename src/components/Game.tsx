@@ -725,9 +725,14 @@ export default function Game() {
   ];
 
   const farmRapSongs = [
-    { name: 'Farm Rap 1', file: '/farm_rap1.mp3' },
-    { name: 'Farm Rap 2', file: '/farm_rap2.mp3' },
-    { name: 'Farm Rap 3', file: '/farm_rap3.mp3' },
+    { name: 'Dirt Road Hustle', file: '/farm_rap1.mp3' },
+    { name: 'Crop Top Flow', file: '/farm_rap2.mp3' },
+    { name: 'Tractor Beats', file: '/farm_rap3.mp3' },
+    { name: 'Harvest Season', file: '/farm_rap4.mp3' },
+    { name: 'Barn Burner', file: '/farm_rap5.mp3' },
+    { name: 'Field Dreams', file: '/farm_rap6.mp3' },
+    { name: 'Sunrise Grind', file: '/farm_rap7.mp3' },
+    { name: 'Plow Game Strong', file: '/farm_rap8.mp3' },
   ];
 
   // Combined all farm songs for random selection

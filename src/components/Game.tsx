@@ -796,7 +796,7 @@ export default function Game() {
           // Extract album art
           if (metadata.common.picture && metadata.common.picture.length > 0) {
             const picture = metadata.common.picture[0];
-            const pictureBlob = new Blob([picture.data], { type: picture.format });
+            const pictureBlob = new Blob([new Uint8Array(picture.data)], { type: picture.format });
             const url = URL.createObjectURL(pictureBlob);
             covers[i] = url;
           }

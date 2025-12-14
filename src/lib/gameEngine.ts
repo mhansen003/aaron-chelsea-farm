@@ -77,6 +77,28 @@ export function getBotCost(baseCost: number, owned: number): number {
   return Math.round(baseCost * Math.pow(1.5, owned));
 }
 
+/**
+ * Get actual capacity for bots with hopper upgrade
+ * Hopper upgrade increases capacity by 50%
+ */
+export function getWaterBotCapacity(hopperUpgrade?: boolean): number {
+  return hopperUpgrade ? Math.floor(WATERBOT_MAX_WATER * 1.5) : WATERBOT_MAX_WATER;
+}
+
+export function getHarvestBotCapacity(hopperUpgrade?: boolean): number {
+  const BASE_CAPACITY = 8;
+  return hopperUpgrade ? Math.floor(BASE_CAPACITY * 1.5) : BASE_CAPACITY;
+}
+
+export function getTransportBotCapacity(hopperUpgrade?: boolean): number {
+  const BASE_CAPACITY = 16;
+  return hopperUpgrade ? Math.floor(BASE_CAPACITY * 1.5) : BASE_CAPACITY;
+}
+
+export function getFertilizerBotCapacity(hopperUpgrade?: boolean): number {
+  return hopperUpgrade ? Math.floor(FERTILIZER_MAX_CAPACITY * 1.5) : FERTILIZER_MAX_CAPACITY;
+}
+
 // Task durations in milliseconds
 export const TASK_DURATIONS: Record<TaskType, number> = {
   clear: 7500, // 7.5 seconds to clear rocks/trees (25% faster)
@@ -1272,7 +1294,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               const elapsed = newGameTime - bot.actionStartTime;
               if (elapsed >= REFILL_DURATION) {
                 // Refill complete
-                return { ...bot, waterLevel: WATERBOT_MAX_WATER, status: 'refilling' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                return { ...bot, waterLevel: getWaterBotCapacity(bot.hopperUpgrade), status: 'refilling' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
               } else {
                 // Still refilling
                 return { ...bot, status: 'refilling' as const, visualX, visualY };
@@ -2973,7 +2995,7 @@ export function buyWaterbots(state: GameState, amount: number, name?: string): G
     newBots.push({
       id: botId,
       name: name || 'Water Bot', // Use provided name or default
-      waterLevel: WATERBOT_MAX_WATER, // Start with full water
+      waterLevel: getWaterBotCapacity(false), // Start with full water (no hopper upgrade yet)
       jobs: [], // Start with no jobs
       queue: [], // Start with empty queue
       status: 'idle',
@@ -3032,7 +3054,7 @@ export function buyHarvestbots(state: GameState, amount: number, name?: string):
       id: botId,
       name: name || 'Harvest Bot', // Use provided name or default
       inventory: [], // Start with empty inventory
-      inventoryCapacity: 8, // Same as player basket capacity
+      inventoryCapacity: getHarvestBotCapacity(false), // Base capacity (no hopper upgrade yet)
       jobs: [], // Start with no jobs
       queue: [], // Start with empty queue
       status: 'idle',
@@ -3160,7 +3182,7 @@ export function buyTransportbots(state: GameState, amount: number, name?: string
       id: botId,
       name: name || 'Transport Bot', // Use provided name or default
       inventory: [],
-      inventoryCapacity: 16, // Can carry 16 crops
+      inventoryCapacity: getTransportBotCapacity(false), // Base capacity (no hopper upgrade yet)
       status: 'idle',
       x: spawnX, // Spawn near warehouse
       y: spawnY,
@@ -5599,7 +5621,7 @@ export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bo
   const newBot: import('@/types/game').FertilizerBot = {
     id: `fertilizer-${Date.now()}`,
     name: name,
-    fertilizerLevel: FERTILIZER_MAX_CAPACITY,
+    fertilizerLevel: getFertilizerBotCapacity(false), // Base capacity (no hopper upgrade yet)
     status: 'idle',
     x: 1,
     y: 1,
@@ -5680,7 +5702,7 @@ function updateFertilizerBot(
           ...zone,
           fertilizerBot: {
             ...bot,
-            fertilizerLevel: FERTILIZER_MAX_CAPACITY,
+            fertilizerLevel: getFertilizerBotCapacity(bot.hopperUpgrade),
             status: 'idle',
             visualX: fertilizerBuildingPos.x,
             visualY: fertilizerBuildingPos.y,

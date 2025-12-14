@@ -124,7 +124,7 @@ function generatePriceForecast(market: MarketData, gameState: GameState): PriceS
 
     forecast.push({
       timestamp: simulatedTime,
-      day: Math.floor(simulatedTime / (24 * 60 * 60 * 1000)), // Approximate day for display
+      day: gameState.currentDay + cycle + 1, // Current day + forecast cycles ahead
       prices: simulatedPrices,
     });
   }

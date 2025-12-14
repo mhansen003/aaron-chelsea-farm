@@ -16,6 +16,7 @@ export type TileType =
   | 'well'
   | 'garage'
   | 'supercharger'
+  | 'fertilizer'
   | 'ocean'
   | 'sand'
   | 'seaweed'
@@ -61,6 +62,7 @@ export interface Tile {
   wateredTimestamp?: number; // Game time when first watered (triggers growth)
   wateredToday: boolean; // Whether this tile has been watered today
   hasSprinkler: boolean; // Whether this tile has a sprinkler placed on it
+  fertilized?: boolean; // Whether this tile has been fertilized (50% faster growth)
   archDirection?: 'north' | 'south' | 'east' | 'west'; // Direction this arch leads to
   archTargetZone?: { x: number; y: number }; // Target zone coordinates
   isConstructing?: boolean; // Whether this tile is currently under construction
@@ -106,6 +108,7 @@ export interface Player {
     transportbots: number; // How many transport bots the player owns
     demolishbots: number; // How many demolish bots the player owns
     hunterbots: number; // How many hunter bots the player owns
+    fertilizerbot: number; // How many fertilizer bots the player owns (max 1)
     botFactory: number; // How many bot factories the player owns (max 1)
     botFactoryPlaced: boolean; // Whether the bot factory has been placed
     well: number; // How many wells the player owns (max 1 per zone)
@@ -114,6 +117,8 @@ export interface Player {
     garagePlaced: boolean; // Whether a garage has been placed in current zone
     supercharger: number; // How many superchargers the player owns (max 1)
     superchargerPlaced: boolean; // Whether a supercharger has been placed
+    fertilizerBuilding: number; // How many fertilizer buildings the player owns (max 1)
+    fertilizerBuildingPlaced: boolean; // Whether fertilizer building has been placed
   };
   autoBuy: {
     carrot: boolean;
@@ -185,6 +190,7 @@ export interface Zone {
   transportBots: TransportBot[];
   demolishBots: DemolishBot[];
   hunterBots: HunterBot[];
+  fertilizerBot?: FertilizerBot; // Only one fertilizer bot allowed per zone
   rabbits: Rabbit[];
   lastRabbitSpawnTime?: number; // Game time when last rabbit spawned
   taskQueue: Task[]; // Queue of tasks for worker in this zone
@@ -357,6 +363,27 @@ export interface HunterBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+}
+
+export interface FertilizerBotConfig {
+  cropPriority: Array<Exclude<CropType, null>>; // Order of crops to prioritize for fertilizing
+}
+
+export interface FertilizerBot {
+  id: string; // Unique bot ID
+  name: string; // Bot's custom name
+  fertilizerLevel: number; // Current fertilizer amount (0-20)
+  status: 'idle' | 'fertilizing' | 'refilling' | 'traveling' | 'garaged';
+  targetX?: number; // Target tile X
+  targetY?: number; // Target tile Y
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  config: FertilizerBotConfig; // Priority configuration
 }
 
 export interface ZoneEarnings {

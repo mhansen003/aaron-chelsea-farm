@@ -52,6 +52,9 @@ export const SEEDBOT_COST = 500; // Cost to buy one seed bot
 export const TRANSPORTBOT_COST = 1000; // Cost to buy one transport bot
 export const DEMOLISHBOT_COST = 100; // Cost to buy one demolish bot
 export const HUNTERBOT_COST = 500; // Cost to buy one hunter bot
+export const FERTILIZERBOT_COST = 1500; // Cost to buy the fertilizer bot (only 1 allowed)
+export const FERTILIZER_BUILDING_COST = 400; // Cost to buy fertilizer building
+export const FERTILIZER_MAX_CAPACITY = 20; // Maximum fertilizer the bot can hold
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -578,6 +581,7 @@ export function createInitialState(): GameState {
         transportbots: 0,
         demolishbots: 0,
         hunterbots: 0,
+        fertilizerbot: 0,
         botFactory: 0,
         botFactoryPlaced: false,
         well: 0,
@@ -586,6 +590,8 @@ export function createInitialState(): GameState {
         garagePlaced: false,
         supercharger: 0,
         superchargerPlaced: false,
+        fertilizerBuilding: 0,
+        fertilizerBuildingPlaced: false,
       },
       autoBuy: {
         carrot: true,

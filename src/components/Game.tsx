@@ -106,6 +106,8 @@ const COLORS = {
   botFactory: '#ff5722',
   well: '#03a9f4',
   garage: '#424242',
+  fertilizer: '#8bc34a',
+  supercharger: '#ff6f00',
   ocean: '#1976d2',
   sand: '#f4a460',
   seaweed: '#2e7d32',

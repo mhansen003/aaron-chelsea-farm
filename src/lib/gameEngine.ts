@@ -639,6 +639,7 @@ export function createInitialState(): GameState {
     gameTime: 0,
     isPaused: false,
     warehouse: [], // Empty warehouse storage
+    markedForSale: [], // No items marked for sale initially
     cropsSold: { // Track crops sold for price progression
       carrot: 0,
       wheat: 0,
@@ -1913,102 +1914,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const warehouse: { x: number; y: number } = warehousePos;
       const exportStation: { x: number; y: number } = exportPos;
 
-      // Bot has inventory, check if prices are favorable before selling
+      // Bot has inventory, go to export and sell
       if (bot.inventory.length > 0) {
-        // Use bot's configuration or defaults
-        const config = bot.config || {
-          mode: 'simple' as const,
-          globalMinPriceMultiplier: 1.2,
-          globalWaitForHighDemand: false,
-          globalWaitForEpic: false,
-          perCropSettings: [],
-          sellWhenFull: true,
-        };
-
-        // Check if inventory is full and override is enabled
-        const inventoryFull = bot.inventory.length >= bot.inventoryCapacity;
-        if (inventoryFull && config.sellWhenFull) {
-          // Skip all checks and sell immediately when full
-          // Continue to selling logic below (shouldSell will be true)
-        }
-
-        // Smart selling: Check market conditions for each crop type
-        const shouldSell = inventoryFull && config.sellWhenFull ? true : bot.inventory.some(item => {
-          const cropType = item.crop as Exclude<import('@/types/game').CropType, null>;
-          const basePrice = CROP_INFO[item.crop].sellPrice;
-          const marketPrice = newState.market
-            ? getMarketPrice(cropType, newState)
-            : basePrice;
-
-          const isHighDemand = newState.market?.highDemandCrops.includes(cropType) || false;
-          const isEpic = newState.market?.epicPriceCrop === cropType;
-
-          // Determine which config to use
-          let minMultiplier = config.globalMinPriceMultiplier;
-          let waitForHighDemand = config.globalWaitForHighDemand;
-          let waitForEpic = config.globalWaitForEpic;
-          let enabled = true;
-
-          // In advanced mode, check per-crop settings
-          if (config.mode === 'advanced') {
-            const cropConfig = config.perCropSettings.find(c => c.crop === cropType);
-            if (cropConfig) {
-              enabled = cropConfig.enabled;
-              minMultiplier = cropConfig.minPriceMultiplier;
-              waitForHighDemand = cropConfig.waitForHighDemand;
-              waitForEpic = cropConfig.waitForEpic;
-            }
-          }
-
-          // If crop is disabled in advanced mode, don't sell it
-          if (!enabled) return false;
-
-          // Check price multiplier
-          const priceMultiplier = marketPrice / basePrice;
-          const priceIsGood = priceMultiplier >= minMultiplier;
-
-          // Check high demand requirement
-          const demandMet = !waitForHighDemand || isHighDemand;
-
-          // Check epic requirement
-          const epicMet = !waitForEpic || isEpic;
-
-          return priceIsGood && demandMet && epicMet;
-        });
-
-        // If prices are not favorable, return items to warehouse
-        if (!shouldSell) {
-          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
-          if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
-            // Unload items back to warehouse (waiting for better prices)
-            const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
-            if (bot.actionStartTime !== undefined) {
-              const elapsed = newGameTime - bot.actionStartTime;
-              if (elapsed >= ACTION_DURATION) {
-                // Return items to warehouse
-                newState = {
-                  ...newState,
-                  warehouse: [...newState.warehouse, ...bot.inventory],
-                };
-                return { ...bot, inventory: [], status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
-              } else {
-                return { ...bot, status: 'loading' as const, visualX, visualY };
-              }
-            } else {
-              return { ...bot, status: 'loading' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
-            }
-          } else {
-            // Travel back to warehouse to wait for better prices
-            let newX = botX, newY = botY;
-            if (Math.random() < (deltaTime / 400)) {
-              if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
-              else if (botY < warehouse.y) newY++; else if (botY > warehouse.y) newY--;
-            }
-            return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
-          }
-        }
-
-        // Prices are favorable, proceed with selling
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === exportStation.x && botY === exportStation.y && hasArrivedVisually) {
           // Selling at export station
@@ -2086,23 +1993,23 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return { ...bot, x: newX, y: newY, status: 'transporting' as const, targetX: exportStation.x, targetY: exportStation.y, visualX, visualY };
         }
       }
-      // Bot has empty inventory, check warehouse for items
-      else if (newState.warehouse.length > 0 && bot.inventory.length < bot.inventoryCapacity) {
+      // Bot has empty inventory, check for items marked for sale
+      else if (newState.markedForSale.length > 0 && bot.inventory.length < bot.inventoryCapacity) {
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
-          // Loading from warehouse
+          // Loading marked items from warehouse
           const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
-              // Load items from warehouse (up to capacity)
-              const itemsToLoad = newState.warehouse.slice(0, Math.min(bot.inventoryCapacity - bot.inventory.length, newState.warehouse.length));
-              const remainingItems = newState.warehouse.slice(itemsToLoad.length);
+              // Load marked items (up to capacity)
+              const itemsToLoad = newState.markedForSale.slice(0, Math.min(bot.inventoryCapacity - bot.inventory.length, newState.markedForSale.length));
+              const remainingMarked = newState.markedForSale.slice(itemsToLoad.length);
 
-              // Update warehouse
+              // Update markedForSale
               newState = {
                 ...newState,
-                warehouse: remainingItems,
+                markedForSale: remainingMarked,
               };
 
               // Load items into bot
@@ -2114,7 +2021,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, status: 'loading' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
           }
         } else {
-          // Travel to warehouse
+          // Travel to warehouse to pick up marked items
           let newX = botX, newY = botY;
           if (Math.random() < (deltaTime / 400)) { // Slightly faster than other bots
             if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;

@@ -51,7 +51,7 @@ import {
   getCurrentSeedCost,
   getCurrentSellPrice,
 } from '@/lib/gameEngine';
-import { GameState, CropType, ToolType, Tile, Zone, SaleRecord } from '@/types/game';
+import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
@@ -4344,6 +4344,29 @@ export default function Game() {
             setGameState(prev => depositToWarehouse(prev));
             setShowWarehouseModal(false);
           }}
+          onMarkForSale={(cropType, quantity) => {
+            setGameState(prev => {
+              // Move items from warehouse to markedForSale
+              const itemsToMark: BasketItem[] = [];
+              const remainingWarehouse: BasketItem[] = [];
+              let markedCount = 0;
+
+              for (const item of prev.warehouse) {
+                if (item.crop === cropType && markedCount < quantity) {
+                  itemsToMark.push(item);
+                  markedCount++;
+                } else {
+                  remainingWarehouse.push(item);
+                }
+              }
+
+              return {
+                ...prev,
+                warehouse: remainingWarehouse,
+                markedForSale: [...prev.markedForSale, ...itemsToMark],
+              };
+            });
+          }}
         />
       )}
 
@@ -4989,60 +5012,6 @@ export default function Game() {
         <EconomyModal
           gameState={gameState}
           onClose={() => setShowEconomyModal(false)}
-          onUpdateSeedBotJob={(botId, jobId, newCrop) => {
-            console.log('=== onUpdateSeedBotJob CALLED ===');
-            console.log('Received:', { botId, jobId, newCrop });
-
-            // Update the game state using the functional setState pattern
-            setGameState(prev => {
-              // Find the zone containing this bot
-              let targetZoneKey = '';
-              Object.entries(prev.zones).forEach(([zoneKey, zone]) => {
-                const foundBot = zone.seedBots?.find(b => b.id === botId);
-                if (foundBot) {
-                  targetZoneKey = zoneKey;
-                }
-              });
-
-              if (!targetZoneKey) {
-                console.warn(`Could not find bot ${botId} in any zone`);
-                return prev;
-              }
-
-              // Get the zone and bot
-              const zone = prev.zones[targetZoneKey];
-              const bot = zone.seedBots?.find(b => b.id === botId);
-
-              if (!bot) {
-                console.warn(`Could not find bot ${botId} in zone ${targetZoneKey}`);
-                return prev;
-              }
-
-              console.log('Found bot in zone:', targetZoneKey);
-              console.log('Bot jobs before update:', bot.jobs.map(j => ({ id: j.id, crop: j.cropType })));
-
-              // Update the specific job's crop type
-              const updatedJobs = bot.jobs.map(job =>
-                job.id === jobId ? { ...job, cropType: newCrop } : job
-              );
-
-              console.log('Updated jobs:', updatedJobs.map(j => ({ id: j.id, crop: j.cropType })));
-
-              // Return updated state
-              return {
-                ...prev,
-                zones: {
-                  ...prev.zones,
-                  [targetZoneKey]: {
-                    ...zone,
-                    seedBots: zone.seedBots.map(b =>
-                      b.id === botId ? { ...b, jobs: updatedJobs } : b
-                    ),
-                  },
-                },
-              };
-            });
-          }}
         />
       )}
 

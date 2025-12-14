@@ -49,6 +49,34 @@ const CROP_COLORS: Record<Exclude<CropType, null>, string> = {
   corn: '#ffb703',
 };
 
+const CROP_ICONS: Record<Exclude<CropType, null>, string> = {
+  carrot: '🥕',
+  wheat: '🌾',
+  tomato: '🍅',
+  pumpkin: '🎃',
+  watermelon: '🍉',
+  peppers: '🌶️',
+  grapes: '🍇',
+  oranges: '🍊',
+  avocado: '🥑',
+  rice: '🌾',
+  corn: '🌽',
+};
+
+const CROP_NAMES: Record<Exclude<CropType, null>, string> = {
+  carrot: 'Carrot',
+  wheat: 'Wheat',
+  tomato: 'Tomato',
+  pumpkin: 'Pumpkin',
+  watermelon: 'Watermelon',
+  peppers: 'Peppers',
+  grapes: 'Grapes',
+  oranges: 'Oranges',
+  avocado: 'Avocado',
+  rice: 'Rice',
+  corn: 'Corn',
+};
+
 function createDefaultConfig(): TransportBotConfig {
   return {
     mode: 'simple',
@@ -249,9 +277,9 @@ export default function TransportBotConfigModal({
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl">{CROP_INFO[crop].icon}</span>
+                          <span className="text-2xl">{CROP_ICONS[crop]}</span>
                           <div className="flex-1">
-                            <div className="text-xs font-semibold text-white">{CROP_INFO[crop].name}</div>
+                            <div className="text-xs font-semibold text-white">{CROP_NAMES[crop]}</div>
                             <div className="text-xs" style={{ color: CROP_COLORS[crop] }}>
                               ${marketPrice} ({multiplier.toFixed(1)}x)
                             </div>
@@ -309,9 +337,9 @@ export default function TransportBotConfigModal({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl">{CROP_INFO[crop].icon}</span>
+                        <span className="text-3xl">{CROP_ICONS[crop]}</span>
                         <div>
-                          <div className="font-semibold text-white">{CROP_INFO[crop].name}</div>
+                          <div className="font-semibold text-white">{CROP_NAMES[crop]}</div>
                           <div className="text-xs" style={{ color: CROP_COLORS[crop] }}>
                             Market: ${marketPrice} ({multiplier.toFixed(1)}x base)
                             {isHighDemand && <span className="ml-2">🔥</span>}

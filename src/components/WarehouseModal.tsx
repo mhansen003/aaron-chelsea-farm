@@ -7,6 +7,7 @@ interface WarehouseModalProps {
   gameState: GameState;
   onClose: () => void;
   onDeposit: () => void;
+  onMarkForSale: (cropType: Exclude<CropType, null>, quantity: number) => void;
 }
 
 interface CropInfo {
@@ -30,7 +31,7 @@ const CROPS: CropInfo[] = [
   { type: 'corn', emoji: '🌽', name: 'Corn', color: 'from-yellow-500 to-yellow-600' },
 ];
 
-export default function WarehouseModal({ gameState, onClose, onDeposit }: WarehouseModalProps) {
+export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkForSale }: WarehouseModalProps) {
   // Count warehouse items by crop type
   const warehouseCounts = gameState.warehouse.reduce((acc, item) => {
     acc[item.crop] = (acc[item.crop] || 0) + 1;
@@ -101,10 +102,20 @@ export default function WarehouseModal({ gameState, onClose, onDeposit }: Wareho
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-white mb-1">{crop.name}</div>
-                    <div className="flex justify-between items-center text-xs text-white/90">
+                    <div className="flex justify-between items-center text-xs text-white/90 mb-2">
                       <span>${price} ea</span>
                       {count > 0 && <span className="font-bold">${totalValue}</span>}
                     </div>
+
+                    {/* Mark for Sale Button */}
+                    {count > 0 && (
+                      <button
+                        onClick={() => onMarkForSale(crop.type, count)}
+                        className="w-full px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded transition-colors"
+                      >
+                        💰 Mark All for Sale
+                      </button>
+                    )}
                   </div>
                 );
               })}

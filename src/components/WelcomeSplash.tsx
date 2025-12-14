@@ -8,9 +8,10 @@ interface WelcomeSplashProps {
   onStartNew: () => void;
   onLoadGame: (saveCode: string) => Promise<void>;
   onContinue: () => void; // Continue from autosave
+  onShowTutorial: () => void; // Show tutorial modal
 }
 
-export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue }: WelcomeSplashProps) {
+export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue, onShowTutorial }: WelcomeSplashProps) {
   const [showLoadInput, setShowLoadInput] = useState(false);
   const [saveCode, setSaveCode] = useState('');
   const [error, setError] = useState('');
@@ -51,42 +52,42 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue }: We
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-8 md:p-12 max-w-2xl w-full shadow-2xl">
-        {/* Title */}
-        <div className="text-center mb-10">
-          <div className="inline-block mb-6">
+      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-6 md:p-10 max-w-xl w-full shadow-2xl">
+        {/* Splash Image - Large and Prominent */}
+        <div className="text-center mb-6">
+          <div className="inline-block mb-4">
             <Image
               src="/splash.png"
               alt="My Bot Farm"
-              width={300}
-              height={300}
+              width={400}
+              height={400}
               className="object-contain rounded-2xl"
               priority
             />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">
             My Bot Farm
           </h1>
-          <p className="text-slate-300 text-base md:text-lg max-w-md mx-auto leading-relaxed">
+          <p className="text-slate-400 text-sm md:text-base max-w-sm mx-auto">
             Build your farming empire, automate with bots, and grow your wealth
           </p>
         </div>
 
         {!showLoadInput ? (
-          /* Main Menu */
-          <div className="space-y-3">
+          /* Main Menu - Compact Buttons */
+          <div className="space-y-2">
             {hasAutoSave && (
               <button
                 onClick={onContinue}
-                className="w-full px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 hover:shadow-emerald-500/50 border border-emerald-500/30"
+                className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-base shadow-md transition-all duration-200 hover:shadow-emerald-500/50 border border-emerald-500/30"
               >
                 <div className="flex items-center justify-center gap-2">
+                  <span className="text-lg">▶</span>
                   <span>Continue Game</span>
-                  <span className="text-xl">▶</span>
                 </div>
                 {autoSaveTime && (
-                  <div className="text-xs font-normal opacity-80 mt-1.5">
-                    Last played: {autoSaveTime}
+                  <div className="text-xs font-normal opacity-70 mt-0.5">
+                    Last: {autoSaveTime}
                   </div>
                 )}
               </button>
@@ -94,45 +95,33 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue }: We
 
             <button
               onClick={onStartNew}
-              className="w-full px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 border border-slate-600/50"
+              className="w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-base shadow-md transition-all duration-200 border border-slate-600/50"
             >
               <div className="flex items-center justify-center gap-2">
+                <span className="text-lg">+</span>
                 <span>Start New Game</span>
-                <span className="text-xl">+</span>
               </div>
             </button>
 
             <button
               onClick={() => setShowLoadInput(true)}
-              className="w-full px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-semibold text-lg shadow-lg transition-all duration-200 border border-slate-600/50"
+              className="w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-base shadow-md transition-all duration-200 border border-slate-600/50"
             >
               <div className="flex items-center justify-center gap-2">
+                <span className="text-lg">📁</span>
                 <span>Load with Code</span>
-                <span className="text-xl">📁</span>
               </div>
             </button>
 
-            <div className="mt-8 pt-6 border-t border-slate-700">
-              <h3 className="text-slate-200 font-semibold mb-3 text-sm uppercase tracking-wide">Quick Start Guide</h3>
-              <ul className="text-slate-400 text-sm space-y-2 leading-relaxed">
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-500 flex-shrink-0">•</span>
-                  <span>Use WASD or Arrow Keys to move around</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-500 flex-shrink-0">•</span>
-                  <span>Click tiles to interact (till, plant, water, harvest)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-500 flex-shrink-0">•</span>
-                  <span>Buy seeds from the shop and export crops for money</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-500 flex-shrink-0">•</span>
-                  <span>Unlock bots to automate your farming empire</span>
-                </li>
-              </ul>
-            </div>
+            <button
+              onClick={onShowTutorial}
+              className="w-full px-4 py-2.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg font-semibold text-base shadow-md transition-all duration-200 border border-blue-600/50"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-lg">📖</span>
+                <span>Tutorial</span>
+              </div>
+            </button>
           </div>
         ) : (
           /* Load Game Input */

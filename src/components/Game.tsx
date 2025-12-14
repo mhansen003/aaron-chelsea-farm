@@ -3230,6 +3230,10 @@ export default function Game() {
   const handleContinue = () => {
     const saved = loadFromLocalStorage();
     if (saved) {
+      // Migrate old saves that don't have markedForSale
+      if (!saved.markedForSale) {
+        saved.markedForSale = [];
+      }
       setGameState(saved);
     }
     setShowWelcome(false);
@@ -3244,6 +3248,10 @@ export default function Game() {
 
   const handleLoadFromCode = async (code: string) => {
     const loaded = await loadFromSaveCode(code);
+    // Migrate old saves that don't have markedForSale
+    if (!loaded.markedForSale) {
+      loaded.markedForSale = [];
+    }
     setGameState(loaded);
     setShowWelcome(false);
     // Close all modals
@@ -3995,6 +4003,29 @@ export default function Game() {
             </div>
           </div>
         </div>
+
+        {/* Uproot Tool - Far right */}
+        <button
+          onClick={() =>
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                selectedCrop: null,
+                selectedTool: 'uproot' as ToolType
+              },
+            }))
+          }
+          className={`ml-auto px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-bold text-xl md:text-2xl flex items-center gap-1 md:gap-2 transition-all ${
+            gameState.player.selectedTool === 'uproot'
+              ? 'bg-red-700 ring-2 ring-red-400 scale-105 md:scale-110'
+              : 'bg-gray-700 hover:bg-gray-600'
+          }`}
+          title="Uproot - Remove plants and clear seed bot tiles"
+        >
+          <span>🪓</span>
+          <span className="text-xs md:text-sm hidden md:inline">Uproot</span>
+        </button>
       </div>
 
       {/* Placement Toolbar - Compact menu for placing items */}

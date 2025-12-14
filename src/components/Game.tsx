@@ -3269,6 +3269,30 @@ export default function Game() {
           </div>
         )}
 
+        {/* Farmer Basket/Inventory */}
+        <div className="bg-amber-900/30 border border-amber-600 rounded px-2 py-1.5 mb-2">
+          <div className="text-xs text-amber-300 font-bold mb-1">🧺 BASKET ({gameState.player.basket.length}/{gameState.player.basketCapacity})</div>
+          {gameState.player.basket.length > 0 ? (
+            <div className="space-y-0.5 max-h-24 overflow-y-auto">
+              {gameState.player.basket.map((item, idx) => {
+                const cropEmojis: Record<string, string> = {
+                  carrot: '🥕', wheat: '🌾', tomato: '🍅', pumpkin: '🎃',
+                  watermelon: '🍉', peppers: '🌶️', grapes: '🍇', oranges: '🍊',
+                  avocado: '🥑', rice: '🍚', corn: '🌽'
+                };
+                return (
+                  <div key={idx} className="text-xs text-white flex items-center gap-1">
+                    <span>{cropEmojis[item.crop]}</span>
+                    <span className="text-amber-200">Q:{item.quality.yield.toFixed(1)}x</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-xs text-gray-400 text-center py-1">Empty</div>
+          )}
+        </div>
+
         {/* Farmer Automation Controls */}
         <div className="bg-purple-900/30 border border-purple-600 rounded px-2 py-2 mb-2">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
@@ -3403,27 +3427,52 @@ export default function Game() {
               <span className="text-xs text-white">Auto Harvest</span>
             </label>
 
-            {/* Auto Sell */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoSell}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoSell: !prev.player.farmerAuto.autoSell,
+            {/* Deposit Destination - Radio buttons */}
+            <div className="border-t border-purple-700 pt-1.5 mt-1.5">
+              <div className="text-xs text-purple-300 mb-1">Harvest Destination:</div>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+                <input
+                  type="radio"
+                  name="depositDestination"
+                  checked={gameState.player.farmerAuto.autoSell}
+                  onChange={() => {
+                    setGameState(prev => ({
+                      ...prev,
+                      player: {
+                        ...prev.player,
+                        farmerAuto: {
+                          ...prev.player.farmerAuto,
+                          autoSell: true,
+                        },
                       },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Sell</span>
-            </label>
+                    }));
+                  }}
+                  className="w-3 h-3"
+                />
+                <span className="text-xs text-white">🚢 Auto Sell</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
+                <input
+                  type="radio"
+                  name="depositDestination"
+                  checked={!gameState.player.farmerAuto.autoSell}
+                  onChange={() => {
+                    setGameState(prev => ({
+                      ...prev,
+                      player: {
+                        ...prev.player,
+                        farmerAuto: {
+                          ...prev.player.farmerAuto,
+                          autoSell: false,
+                        },
+                      },
+                    }));
+                  }}
+                  className="w-3 h-3"
+                />
+                <span className="text-xs text-white">🏭 To Warehouse</span>
+              </label>
+            </div>
           </div>
         </div>
 

@@ -57,7 +57,7 @@ const BOT_DATA = {
   },
   transport: {
     name: 'Transport Bot',
-    image: '/transport bot.png',
+    image: '/transport-bot.png',
     color: 'purple',
     gradient: 'from-purple-500 to-indigo-600',
     maxOwned: 1,

@@ -400,7 +400,7 @@ export default function Game() {
     };
 
     const transportBotImg = new Image();
-    transportBotImg.src = '/transport bot.png';
+    transportBotImg.src = '/transport-bot.png';
     transportBotImg.onload = () => {
       transportBotImageRef.current = transportBotImg;
     };

@@ -629,11 +629,12 @@ export default function Game() {
   }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
 
   // Save game state to localStorage whenever it changes
+  // BUT: Don't save while welcome screen is showing (to preserve existing autosave)
   useEffect(() => {
-    if (typeof window !== 'undefined' && isMounted) {
+    if (typeof window !== 'undefined' && isMounted && !showWelcome) {
       saveToLocalStorage(gameState);
     }
-  }, [gameState, isMounted]);
+  }, [gameState, isMounted, showWelcome]);
 
   // Set mounted state to prevent hydration errors
   useEffect(() => {

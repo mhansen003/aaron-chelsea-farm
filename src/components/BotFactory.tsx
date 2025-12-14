@@ -132,13 +132,15 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
   const getCost = (type: BotType): number => {
     const owned = getOwned(type);
+    const inCart = cart.find(item => item.type === type)?.quantity || 0;
+
     switch (type) {
-      case 'water': return getBotCost(WATERBOT_COST, owned);
-      case 'harvest': return getBotCost(HARVESTBOT_COST, owned);
-      case 'seed': return getBotCost(SEEDBOT_COST, owned);
-      case 'transport': return getBotCost(TRANSPORTBOT_COST, owned);
-      case 'demolish': return getBotCost(DEMOLISHBOT_COST, owned);
-      case 'hunter': return getBotCost(HUNTERBOT_COST, owned);
+      case 'water': return getBotCost(WATERBOT_COST, owned + inCart);
+      case 'harvest': return getBotCost(HARVESTBOT_COST, owned + inCart);
+      case 'seed': return getBotCost(SEEDBOT_COST, owned + inCart);
+      case 'transport': return getBotCost(TRANSPORTBOT_COST, owned + inCart);
+      case 'demolish': return getBotCost(DEMOLISHBOT_COST, owned + inCart);
+      case 'hunter': return getBotCost(HUNTERBOT_COST, owned + inCart);
       case 'fertilizer': return FERTILIZERBOT_COST;
       default: return 0;
     }
@@ -168,8 +170,26 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => {
-      const costPerBot = getCost(item.type);
-      return total + (costPerBot * item.quantity);
+      const owned = getOwned(item.type);
+      let subtotal = 0;
+
+      // Calculate progressive cost for each bot in cart
+      for (let i = 0; i < item.quantity; i++) {
+        const baseCost = item.type === 'fertilizer' ? FERTILIZERBOT_COST :
+                        item.type === 'water' ? WATERBOT_COST :
+                        item.type === 'harvest' ? HARVESTBOT_COST :
+                        item.type === 'seed' ? SEEDBOT_COST :
+                        item.type === 'transport' ? TRANSPORTBOT_COST :
+                        item.type === 'demolish' ? DEMOLISHBOT_COST :
+                        HUNTERBOT_COST;
+
+        const botCost = item.type === 'fertilizer'
+          ? baseCost
+          : getBotCost(baseCost, owned + i);
+        subtotal += botCost;
+      }
+
+      return total + subtotal;
     }, 0);
   };
 
@@ -320,12 +340,28 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                         </div>
 
                         {inCart > 0 ? (
-                          <button
-                            onClick={() => removeFromCart(type)}
-                            className="w-full py-2 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50"
-                          >
-                            − REMOVE
-                          </button>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => removeFromCart(type)}
+                              className="flex-1 py-2 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50"
+                            >
+                              −
+                            </button>
+                            <div className="flex items-center justify-center px-3 bg-slate-700 rounded-lg font-bold text-sm">
+                              {inCart}
+                            </div>
+                            <button
+                              onClick={() => !isDisabled && addToCart(type)}
+                              disabled={isDisabled}
+                              className={`flex-1 py-2 rounded-lg font-bold text-xs transition-all ${
+                                !isDisabled
+                                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                                  : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                              }`}
+                            >
+                              +
+                            </button>
+                          </div>
                         ) : (
                           <button
                             onClick={() => !isDisabled && addToCart(type)}

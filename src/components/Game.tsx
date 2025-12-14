@@ -736,6 +736,8 @@ export default function Game() {
     { name: 'Field Dreams', file: '/farm_rap6.mp3' },
     { name: 'Sunrise Grind', file: '/farm_rap7.mp3' },
     { name: 'Plow Game Strong', file: '/farm_rap8.mp3' },
+    { name: 'Seed Money', file: '/farm_rap9.mp3' },
+    { name: 'Cultivate Greatness', file: '/farm_rap10.mp3' },
   ];
 
   // Combined all farm songs for random selection (memoized to prevent re-renders)

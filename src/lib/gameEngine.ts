@@ -1595,8 +1595,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
           }
         }
-        // No garage - wander randomly
-        if (Math.random() < (deltaTime / 2000)) {
+        // No garage - wander randomly at normal speed
+        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
@@ -5537,11 +5537,55 @@ function updateFertilizerBot(
     if (targetCrop) break;
   }
 
-  // If no target found, wander
+  // If no target found, go to garage or wander
   if (!targetCrop) {
     const botX = bot.x ?? 0;
     const botY = bot.y ?? 0;
+    const garagePos = findGaragePosition(updatedGrid);
 
+    // If garage exists, navigate to it
+    if (garagePos) {
+      const dx = garagePos.x - visualX;
+      const dy = garagePos.y - visualY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 0.3) {
+        // Already at garage - stay parked
+        return {
+          zone: {
+            ...zone,
+            fertilizerBot: {
+              ...bot,
+              status: 'idle',
+              visualX: garagePos.x,
+              visualY: garagePos.y,
+              x: garagePos.x,
+              y: garagePos.y,
+            },
+          },
+          grid: updatedGrid,
+        };
+      } else {
+        // Move to garage
+        const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
+        return {
+          zone: {
+            ...zone,
+            fertilizerBot: {
+              ...bot,
+              status: 'idle',
+              visualX: visualX + (dx / dist) * moveSpeed,
+              visualY: visualY + (dy / dist) * moveSpeed,
+              x: Math.round(visualX + (dx / dist) * moveSpeed),
+              y: Math.round(visualY + (dx / dist) * moveSpeed),
+            },
+          },
+          grid: updatedGrid,
+        };
+      }
+    }
+
+    // No garage - wander randomly
     if (!bot.targetX || !bot.targetY ||
         (Math.abs(visualX - bot.targetX) < 0.3 && Math.abs(visualY - bot.targetY) < 0.3)) {
       const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, botX + Math.floor(Math.random() * 11) - 5));
@@ -5565,7 +5609,7 @@ function updateFertilizerBot(
       const dx = bot.targetX - visualX;
       const dy = bot.targetY - visualY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const moveSpeed = deltaTime * 0.01 * (bot.supercharged ? 2 : 1);
+      const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
 
       return {
         zone: {

@@ -829,6 +829,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           // Pickup marked items from warehouse into farmer's basket
           const itemsToPickup = newState.markedForSale.slice(0, Math.min(newState.player.basketCapacity - newState.player.basket.length, newState.markedForSale.length));
           const remainingMarked = newState.markedForSale.slice(itemsToPickup.length);
+          console.log('🧺 PICKUP_MARKED: Picking up', itemsToPickup.length, 'items from warehouse');
+          console.log('  Items:', itemsToPickup.map(i => i.crop).join(', '));
+          console.log('  Basket before:', newState.player.basket.length);
           newState = {
             ...newState,
             player: {
@@ -837,9 +840,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             },
             markedForSale: remainingMarked,
           };
+          console.log('  Basket after:', newState.player.basket.length);
+          console.log('  Remaining marked for sale:', remainingMarked.length);
           break;
         case 'deposit':
+          console.log('📦 DEPOSIT: Depositing basket contents');
+          console.log('  Basket before:', newState.player.basket.length, 'items');
+          console.log('  Items:', newState.player.basket.map(i => i.crop).join(', '));
           newState = depositToWarehouse(newState);
+          console.log('  Basket after:', newState.player.basket.length, 'items');
           break;
       }
 

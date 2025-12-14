@@ -5134,11 +5134,19 @@ export default function Game() {
                 }
               }
 
+              console.log('🏪 MARK FOR SALE:', quantity, cropType, 'items');
+              console.log('  Warehouse before:', prev.warehouse.length);
+              console.log('  Marked for sale before:', prev.markedForSale.length);
+
               const newState = {
                 ...prev,
                 warehouse: remainingWarehouse,
                 markedForSale: [...prev.markedForSale, ...itemsToMark],
               };
+
+              console.log('  Warehouse after:', newState.warehouse.length);
+              console.log('  Marked for sale after:', newState.markedForSale.length);
+              console.log('  Creating pickup and deposit tasks...');
 
               // Immediately add pickup and sell tasks to farmer's queue as highest priority
               const currentZoneKey = `${newState.currentZone.x},${newState.currentZone.y}`;

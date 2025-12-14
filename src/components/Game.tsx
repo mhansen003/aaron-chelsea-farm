@@ -2141,7 +2141,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
@@ -2204,7 +2204,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
@@ -2291,7 +2291,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
@@ -2330,7 +2330,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
@@ -2369,7 +2369,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
@@ -2432,7 +2432,7 @@ export default function Game() {
 
         // Draw charged indicator above bot if supercharged
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedSize = GAME_CONFIG.tileSize * 0.2;
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);

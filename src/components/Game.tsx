@@ -3884,33 +3884,91 @@ export default function Game() {
       <div className="w-52 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
         <div className="text-sm font-bold text-center mb-2 text-green-400">👨‍🌾 Farmer</div>
 
-        {/* Current Task */}
-        {currentZone.currentTask ? (
-          <div className="bg-green-900/50 border border-green-600 rounded px-2 py-1.5 mb-1">
-            <div className="text-[11px] text-green-300 font-bold mb-1">CURRENT:</div>
-            <div className="text-sm flex items-center gap-1">
-              {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
-               currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
-               currentZone.currentTask.type === 'water' ? '💧 Watering' :
-               currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
-               currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
-               currentZone.currentTask.type === 'place_botFactory' ? '⚙️ Building Factory' :
-               currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
-               currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
-               '🔨 Working'}
-            </div>
-            <div className="w-full h-1.5 bg-gray-700 rounded-full mt-1.5">
-              <div
-                className="h-1.5 bg-green-500 rounded-full transition-all"
-                style={{ width: `${currentZone.currentTask.progress}%` }}
-              />
-            </div>
+        {/* Task Queue (Current + Next 2 Queued) */}
+        <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 mb-1">
+          <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE (Max 3):</div>
+          <div className="space-y-1">
+            {/* Current Task (Position 1) */}
+            {currentZone.currentTask ? (
+              <div className="bg-green-900/70 border-2 border-green-500 rounded px-2 py-1.5">
+                <div className="text-[10px] text-green-400 font-bold mb-0.5">▶ ACTIVE</div>
+                <div className="text-sm flex items-center gap-1">
+                  {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
+                   currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
+                   currentZone.currentTask.type === 'water' ? '💧 Watering' :
+                   currentZone.currentTask.type === 'harvest' ? '🌾 Harvesting' :
+                   currentZone.currentTask.type === 'place_sprinkler' ? '💦 Placing Sprinkler' :
+                   currentZone.currentTask.type === 'place_botFactory' ? '⚙️ Building Factory' :
+                   currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
+                   currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
+                   '🔨 Working'}
+                </div>
+                <div className="w-full h-1.5 bg-gray-700 rounded-full mt-1">
+                  <div
+                    className="h-1.5 bg-green-500 rounded-full transition-all"
+                    style={{ width: `${currentZone.currentTask.progress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-800/50 border border-gray-600 rounded px-2 py-1">
+                <div className="text-sm text-gray-400 text-center">Idle</div>
+              </div>
+            )}
+
+            {/* Next 2 Queued Tasks */}
+            {currentZone.taskQueue.slice(0, 2).map((task, idx) => {
+              // Helper function to get crop icon
+              const getCropIcon = (cropType: string | null | undefined) => {
+                if (cropType === 'carrot') return '🥕';
+                else if (cropType === 'wheat') return '🌾';
+                else if (cropType === 'tomato') return '🍅';
+                else if (cropType === 'pumpkin') return '🎃';
+                else if (cropType === 'watermelon') return '🍉';
+                else if (cropType === 'peppers') return '🌶️';
+                else if (cropType === 'grapes') return '🍇';
+                else if (cropType === 'oranges') return '🍊';
+                else if (cropType === 'avocado') return '🥑';
+                else if (cropType === 'rice') return '🍚';
+                else if (cropType === 'corn') return '🌽';
+                else return '🌱';
+              };
+
+              // Get work icon and crop icon
+              let workIcon = '🔨';
+              let cropIcon = '';
+
+              if (task.type === 'clear') workIcon = '⛏️';
+              else if (task.type === 'plant') {
+                workIcon = '🌱';
+                cropIcon = getCropIcon(task.cropType);
+              }
+              else if (task.type === 'water') {
+                workIcon = '💧';
+                const tile = currentZone.grid[task.tileY]?.[task.tileX];
+                cropIcon = getCropIcon(tile?.crop);
+              }
+              else if (task.type === 'harvest') {
+                workIcon = '🌾';
+                const tile = currentZone.grid[task.tileY]?.[task.tileX];
+                cropIcon = getCropIcon(tile?.crop);
+              }
+              else if (task.type === 'place_sprinkler') workIcon = '💦';
+              else if (task.type === 'place_botFactory') workIcon = '⚙️';
+              else if (task.type === 'place_well') workIcon = '🪣';
+              else if (task.type === 'deposit') workIcon = '📦';
+
+              return (
+                <div key={task.id} className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1">
+                  <div className="text-sm flex items-center gap-1">
+                    <span className="text-blue-400 font-bold">{idx + 2}.</span>
+                    <span>{workIcon}{cropIcon}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ) : (
-          <div className="bg-gray-800/50 border border-gray-600 rounded px-2 py-1.5 mb-1">
-            <div className="text-sm text-gray-400 text-center">Idle</div>
-          </div>
-        )}
+        </div>
 
         {/* Farmer Basket/Inventory */}
         <div className="bg-amber-900/30 border border-amber-600 rounded px-2 py-1.5 mb-2">
@@ -4119,74 +4177,6 @@ export default function Game() {
           </div>
         </div>
 
-        {/* Task Queue */}
-        {currentZone.taskQueue.length > 0 && (
-          <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 flex-1 flex flex-col min-h-0">
-            <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE ({currentZone.taskQueue.length}):</div>
-            <div className="space-y-1 overflow-y-auto flex-1">
-              {currentZone.taskQueue.map((task, idx) => {
-                // Helper function to get crop icon
-                const getCropIcon = (cropType: string | null | undefined) => {
-                  if (cropType === 'carrot') return '🥕';
-                  else if (cropType === 'wheat') return '🌾';
-                  else if (cropType === 'tomato') return '🍅';
-                  else if (cropType === 'pumpkin') return '🎃';
-                  else if (cropType === 'watermelon') return '🍉';
-                  else if (cropType === 'peppers') return '🌶️';
-                  else if (cropType === 'grapes') return '🍇';
-                  else if (cropType === 'oranges') return '🍊';
-                  else if (cropType === 'avocado') return '🥑';
-                  else if (cropType === 'rice') return '🍚';
-                  else if (cropType === 'corn') return '🌽';
-                  else return '🌱'; // Fallback
-                };
-
-                // Get work icon and crop icon
-                let workIcon = '🔨'; // Default
-                let cropIcon = '';
-
-                if (task.type === 'clear') {
-                  workIcon = '⛏️';
-                }
-                else if (task.type === 'plant') {
-                  workIcon = '🌱';
-                  cropIcon = getCropIcon(task.cropType);
-                }
-                else if (task.type === 'water') {
-                  workIcon = '💧';
-                  // Look up the crop on the tile being watered
-                  const tile = currentZone.grid[task.tileY]?.[task.tileX];
-                  cropIcon = getCropIcon(tile?.crop);
-                }
-                else if (task.type === 'harvest') {
-                  workIcon = '🌾';
-                  // Look up the crop on the tile being harvested
-                  const tile = currentZone.grid[task.tileY]?.[task.tileX];
-                  cropIcon = getCropIcon(tile?.crop);
-                }
-                else if (task.type === 'place_sprinkler') {
-                  workIcon = '💦';
-                }
-                else if (task.type === 'place_botFactory') {
-                  workIcon = '⚙️';
-                }
-                else if (task.type === 'place_well') {
-                  workIcon = '🪣';
-                }
-                else if (task.type === 'deposit') {
-                  workIcon = '📦';
-                }
-
-                return (
-                  <div key={task.id} className="text-sm flex items-center gap-1">
-                    <span className="text-gray-400">{idx + 1}.</span>
-                    <span>{workIcon}{cropIcon}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Main Game Area */}

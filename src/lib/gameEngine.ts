@@ -4860,7 +4860,7 @@ const RABBIT_MOVE_SPEED = 0.015; // Faster than player
 const RABBIT_MIN_CROPS = 3; // Min crops before rabbit leaves (reduced by 50%)
 const RABBIT_MAX_CROPS = 5; // Max crops before rabbit leaves (reduced by 50%)
 const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
-const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
+const HUNTER_MOVE_SPEED = 0.005; // Slower, steady chase speed
 
 /**
  * Spawn a rabbit in a zone if enough time has passed
@@ -5609,7 +5609,7 @@ function updateFertilizerBot(
       };
     } else {
       // Move to building
-      const moveSpeed = deltaTime * 0.015 * (bot.supercharged ? 2 : 1);
+      const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
       return {
         zone: {
           ...zone,
@@ -5763,7 +5763,7 @@ function updateFertilizerBot(
       grid: updatedGrid,
     };
   } else {
-    const moveSpeed = deltaTime * 0.015 * (bot.supercharged ? 2 : 1);
+    const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
     return {
       zone: {
         ...zone,

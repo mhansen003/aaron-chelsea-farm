@@ -361,6 +361,7 @@ export interface Rabbit {
   maxCropsToEat: number; // Random value (5-10) - rabbit leaves after eating this many
   lastEatenX?: number; // Last position where rabbit ate a crop (to prevent re-eating same spot)
   lastEatenY?: number;
+  noMoreCropsTime?: number; // Game time when rabbit first found no more crops (for wandering before leaving)
 }
 
 export interface HunterBot {

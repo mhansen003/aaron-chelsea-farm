@@ -5027,18 +5027,50 @@ function updateRabbits(
             status: 'approaching_crop',
             targetX: nearestCrop.x,
             targetY: nearestCrop.y,
+            noMoreCropsTime: undefined, // Clear the timer since crops are available
           });
         }
       } else {
-        // No crops found - wander randomly
-        updatedRabbits.push({
-          ...rabbit,
-          status: 'wandering',
-          targetX: undefined,
-          targetY: undefined,
-          eatingStartTime: undefined,
-          eatingDuration: undefined,
-        });
+        // No crops found - wander for a bit before leaving
+        const WANDER_BEFORE_LEAVE_TIME = 60000; // 1 minute
+        const noMoreCropsTime = rabbit.noMoreCropsTime || gameTime;
+        const shouldLeave = (gameTime - noMoreCropsTime) >= WANDER_BEFORE_LEAVE_TIME;
+
+        if (shouldLeave) {
+          // Time to leave - no crops found for 1 minute
+          const gridWidth = updatedGrid[0]?.length || 0;
+          const gridHeight = updatedGrid.length;
+          const distToLeft = rabbit.x;
+          const distToRight = gridWidth - 1 - rabbit.x;
+          const distToTop = rabbit.y;
+          const distToBottom = gridHeight - 1 - rabbit.y;
+          const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+          let exitX = rabbit.x;
+          let exitY = rabbit.y;
+          if (minDist === distToLeft) exitX = -2;
+          else if (minDist === distToRight) exitX = gridWidth + 1;
+          else if (minDist === distToTop) exitY = -2;
+          else exitY = gridHeight + 1;
+
+          updatedRabbits.push({
+            ...rabbit,
+            status: 'leaving',
+            targetX: exitX,
+            targetY: exitY,
+          });
+        } else {
+          // Continue wandering
+          updatedRabbits.push({
+            ...rabbit,
+            status: 'wandering',
+            targetX: undefined,
+            targetY: undefined,
+            eatingStartTime: undefined,
+            eatingDuration: undefined,
+            noMoreCropsTime, // Track when we first found no crops
+          });
+        }
       }
     } else if (rabbit.status === 'eating') {
       // Eating - check if done
@@ -5084,8 +5116,17 @@ function updateRabbits(
           if (hasMoreCrops) break;
         }
 
-        // Check if rabbit should leave (eaten enough OR no more crops available)
-        if (newCropsEaten >= rabbit.maxCropsToEat || (!hasMoreCrops && newCropsEaten >= 1)) {
+        // Check if rabbit should leave
+        const shouldLeaveImmediately = newCropsEaten >= rabbit.maxCropsToEat; // Eaten enough
+        const noMoreCropsAvailable = !hasMoreCrops && newCropsEaten >= 1;
+
+        // If no more crops, start wandering timer (60 seconds before leaving)
+        const WANDER_BEFORE_LEAVE_TIME = 60000; // 1 minute
+        const shouldLeaveAfterWandering = noMoreCropsAvailable &&
+          rabbit.noMoreCropsTime !== undefined &&
+          (gameTime - rabbit.noMoreCropsTime) >= WANDER_BEFORE_LEAVE_TIME;
+
+        if (shouldLeaveImmediately || shouldLeaveAfterWandering) {
           // Determine nearest edge to leave from
           const gridWidth = updatedGrid[0]?.length || 0;
           const gridHeight = updatedGrid.length;
@@ -5121,6 +5162,8 @@ function updateRabbits(
             eatingDuration: undefined,
             lastEatenX: rabbit.targetX,
             lastEatenY: rabbit.targetY,
+            // Set noMoreCropsTime if no crops available and not already set
+            noMoreCropsTime: noMoreCropsAvailable && !rabbit.noMoreCropsTime ? gameTime : (hasMoreCrops ? undefined : rabbit.noMoreCropsTime),
           });
         }
       } else {

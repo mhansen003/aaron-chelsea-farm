@@ -80,12 +80,12 @@ export function initializeMarket(gameState: GameState): MarketData {
 }
 
 /**
- * Generate price forecast for the next 10 cycles (10-minute periods)
- * Each cycle predicts prices 10 minutes into the future
+ * Generate price forecast for the next 2 seasons
+ * Each season is 10 minutes, so this forecasts 20 minutes ahead
  */
 function generatePriceForecast(market: MarketData, gameState: GameState): PriceSnapshot[] {
-  const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
-  const NUM_CYCLES = 10;
+  const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds (1 season)
+  const NUM_CYCLES = 2; // Forecast 2 seasons ahead
   const forecast: PriceSnapshot[] = [];
 
   const crops: Array<Exclude<CropType, null>> = [
@@ -212,14 +212,14 @@ export function updateMarketPrices(gameState: GameState): GameState {
 
   market.lastUpdateDay = gameState.currentDay;
 
-  // Record price snapshot for history (keep last 30)
+  // Record price snapshot for history (keep last 10 for ~2 seasons)
   const snapshot: PriceSnapshot = {
     timestamp: gameState.gameTime,
     day: gameState.currentDay,
     prices: { ...market.currentPrices },
   };
 
-  market.priceHistory = [...market.priceHistory, snapshot].slice(-30);
+  market.priceHistory = [...market.priceHistory, snapshot].slice(-10);
 
   return {
     ...gameState,

@@ -199,8 +199,8 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
         <div className="flex-shrink-0 p-6 border-b border-slate-700/50">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white">📊 Market Economy</h2>
-              <p className="text-sm text-slate-400 mt-1">Price history & forecasts by zone</p>
+              <h2 className="text-3xl font-bold text-white">📊 Goods Economy</h2>
+              <p className="text-sm text-slate-400 mt-1">Price trends & forecasts for all goods</p>
             </div>
             <button
               onClick={onClose}
@@ -377,7 +377,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
             onClick={onClose}
             className="w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold text-lg transition-all border border-slate-600"
           >
-            Close Market
+            Close
           </button>
         </div>
       </div>

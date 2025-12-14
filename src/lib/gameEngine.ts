@@ -79,7 +79,7 @@ export function getBotCost(baseCost: number, owned: number): number {
 
 // Task durations in milliseconds
 export const TASK_DURATIONS: Record<TaskType, number> = {
-  clear: 10000, // 10 seconds to clear rocks/trees
+  clear: 7500, // 7.5 seconds to clear rocks/trees (25% faster)
   plant: 2000, // 2 seconds to plant
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest

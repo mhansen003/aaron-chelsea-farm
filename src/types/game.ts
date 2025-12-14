@@ -17,6 +17,7 @@ export type TileType =
   | 'garage'
   | 'supercharger'
   | 'fertilizer'
+  | 'hopper'
   | 'ocean'
   | 'sand'
   | 'seaweed'
@@ -119,6 +120,8 @@ export interface Player {
     superchargerPlaced: boolean; // Whether a supercharger has been placed
     fertilizerBuilding: number; // How many fertilizer buildings the player owns (max 1)
     fertilizerBuildingPlaced: boolean; // Whether fertilizer building has been placed
+    hopper: number; // How many hoppers the player owns (max 1)
+    hopperPlaced: boolean; // Whether a hopper has been placed
   };
   autoBuy: {
     carrot: boolean;
@@ -221,6 +224,7 @@ export interface WaterBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
 export interface HarvestBotJob {

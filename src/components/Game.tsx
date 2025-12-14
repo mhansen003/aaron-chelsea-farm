@@ -3876,6 +3876,7 @@ export default function Game() {
   const transportBots = currentZone?.transportBots || [];
   const demolishBots = currentZone?.demolishBots || [];
   const hunterBots = currentZone?.hunterBots || [];
+  const fertilizerBot = currentZone?.fertilizerBot;
 
 
   return (
@@ -5771,6 +5772,58 @@ export default function Game() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Fertilizer Bot Section */}
+          {fertilizerBot && (
+            <div className="bg-gradient-to-br from-lime-950/40 to-green-900/20 border rounded-lg p-2 shadow-lg border-lime-500/60 hover:shadow-lime-500/30 hover:border-lime-400 transition-all">
+              <div
+                className="text-xs text-lime-300 font-bold mb-1.5 flex items-center gap-1 cursor-pointer hover:bg-lime-900/40 rounded px-1.5 py-1 transition-colors group"
+                onClick={() => setShowBotInfoModal('fertilizer')}
+              >
+                FERTILIZER
+                <span className="ml-auto bg-lime-600/30 px-1 rounded text-xs">1</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+              </div>
+              <div className="space-y-1">
+                <div className="bg-black/20 rounded p-1 border border-lime-600/20 cursor-pointer hover:bg-lime-900/20 transition-colors">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span
+                      className="text-xs font-semibold text-lime-100 cursor-pointer hover:text-lime-300 hover:underline"
+                      onClick={() => setRenamingBot({ id: fertilizerBot.id, type: 'fertilizer', currentName: fertilizerBot.name })}
+                      title="Click to rename"
+                    >
+                      {fertilizerBot.name}
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Sell ${fertilizerBot.name} for $${Math.floor(FERTILIZERBOT_COST * 0.7)}?`)) {
+                          setGameState(prev => sellBot(prev, fertilizerBot.id, 'fertilizer'));
+                        }
+                      }}
+                      className="text-red-400 hover:text-red-300 text-xs px-1"
+                      title="Sell bot"
+                    >
+                      💰
+                    </button>
+                  </div>
+                  <div className="text-[10px] font-medium text-lime-200/60 mb-1 truncate">
+                    {fertilizerBot.status === 'idle' && garagePos && fertilizerBot.x === garagePos.x && fertilizerBot.y === garagePos.y
+                      ? '🏠 Parked in garage'
+                      : fertilizerBot.status === 'fertilizing'
+                      ? `🌱 Fertilizing (${fertilizerBot.fertilizerLevel}/${FERTILIZER_MAX_CAPACITY})`
+                      : fertilizerBot.status === 'refilling'
+                      ? '⛽ Refilling fertilizer'
+                      : 'Ready'}
+                  </div>
+                  {fertilizerBot.supercharged && (
+                    <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">
+                      ⚡ SUPERCHARGED
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

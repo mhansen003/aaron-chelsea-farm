@@ -773,18 +773,21 @@ export default function Game() {
 
   // Handle music mute/unmute
   const toggleMusicMute = useCallback(() => {
-    setIsMusicMuted(prev => !prev);
-    if (audioRef.current) {
-      if (!isMusicMuted) {
-        // Muting
-        audioRef.current.pause();
-      } else {
-        // Unmuting
-        audioRef.current.play().catch(() => {});
+    setIsMusicMuted(prev => {
+      const newMutedState = !prev;
+      if (audioRef.current) {
+        if (newMutedState) {
+          // Muting
+          audioRef.current.pause();
+        } else {
+          // Unmuting
+          audioRef.current.play().catch(() => {});
+        }
       }
-    }
+      return newMutedState;
+    });
     setShowMusicDropdown(false);
-  }, [isMusicMuted]);
+  }, []);
 
   // Close music dropdown when clicking outside
   useEffect(() => {

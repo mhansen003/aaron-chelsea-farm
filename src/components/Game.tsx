@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import NextImage from 'next/image';
-import { parseBlob } from 'music-metadata';
 import {
   createInitialState,
   updateGameState,
@@ -198,7 +197,6 @@ export default function Game() {
   const [showMusicPreferenceModal, setShowMusicPreferenceModal] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
-  const [albumCovers, setAlbumCovers] = useState<Record<number, string>>({});
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -256,6 +254,7 @@ export default function Game() {
   const superchargerImageRef = useRef<HTMLImageElement | null>(null);
   const fertilizerBuildingImageRef = useRef<HTMLImageElement | null>(null);
   const fertilizerBotImageRef = useRef<HTMLImageElement | null>(null);
+  const hopperImageRef = useRef<HTMLImageElement | null>(null);
   const oceanImageRef = useRef<HTMLImageElement | null>(null);
   const sandImageRef = useRef<HTMLImageElement | null>(null);
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
@@ -521,6 +520,14 @@ export default function Game() {
     superchargerImg.src = '/supercharge.png';
     superchargerImg.onload = () => {
       superchargerImageRef.current = superchargerImg;
+    };
+
+
+    // Load hopper image
+    const hopperImg = new Image();
+    hopperImg.src = '/hopper.png';
+    hopperImg.onload = () => {
+      hopperImageRef.current = hopperImg;
     };
   }, []);
 
@@ -789,56 +796,7 @@ export default function Game() {
     return newIndex;
   }, []);
 
-  // Load album covers from MP3 files progressively in background (low priority)
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadAlbumCoversProgressively = async () => {
-      // Wait 2 seconds before starting to let game load first
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      for (let i = 0; i < allFarmSongs.length; i++) {
-        if (isCancelled) break;
-
-        const song = allFarmSongs[i];
-        try {
-          // Fetch the MP3 file as a blob
-          const response = await fetch(song.file);
-          const blob = await response.blob();
-
-          // Parse metadata
-          const metadata = await parseBlob(blob);
-
-          // Extract album art
-          if (metadata.common.picture && metadata.common.picture.length > 0) {
-            const picture = metadata.common.picture[0];
-            const pictureBlob = new Blob([new Uint8Array(picture.data)], { type: picture.format });
-            const url = URL.createObjectURL(pictureBlob);
-
-            // Update state immediately for this song
-            setAlbumCovers(prev => ({ ...prev, [i]: url }));
-          }
-        } catch (error) {
-          console.log(`No album art for ${song.name}`);
-        }
-
-        // Small delay between each song to keep UI responsive
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-    };
-
-    loadAlbumCoversProgressively();
-
-    // Cleanup: revoke object URLs when component unmounts
-    return () => {
-      isCancelled = true;
-      Object.values(albumCovers).forEach(url => {
-        if (url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-  }, [allFarmSongs]);
+  // Album art loading removed for instant performance - music streams on-demand without downloads
 
   // Show music preference modal on first load
   useEffect(() => {
@@ -1512,6 +1470,152 @@ export default function Game() {
             ctx.textBaseline = 'middle';
             ctx.fillText('⚡', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
           }
+        } else if (tile.type === 'fertilizer') {
+          // Fertilizer building - 2x2 building
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+
+          if (fertilizerBuildingImageRef.current) {
+            // Find which position this tile is in the 2x2 building
+            let offsetX = 0;
+            let offsetY = 0;
+
+            // Check if this is top-left
+            if (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+                gridRef[y]?.[x + 1]?.type === 'fertilizer' &&
+                gridRef[y + 1]?.[x]?.type === 'fertilizer' &&
+                gridRef[y + 1]?.[x + 1]?.type === 'fertilizer') {
+              offsetX = 0;
+              offsetY = 0;
+            }
+            // Check if this is top-right
+            else if (x > 0 && y + 1 < GAME_CONFIG.gridHeight &&
+                     gridRef[y]?.[x - 1]?.type === 'fertilizer' &&
+                     gridRef[y + 1]?.[x]?.type === 'fertilizer' &&
+                     gridRef[y + 1]?.[x - 1]?.type === 'fertilizer') {
+              offsetX = 512;
+              offsetY = 0;
+            }
+            // Check if this is bottom-left
+            else if (x + 1 < GAME_CONFIG.gridWidth && y > 0 &&
+                     gridRef[y]?.[x + 1]?.type === 'fertilizer' &&
+                     gridRef[y - 1]?.[x]?.type === 'fertilizer' &&
+                     gridRef[y - 1]?.[x + 1]?.type === 'fertilizer') {
+              offsetX = 0;
+              offsetY = 512;
+            }
+            // Check if this is bottom-right
+            else if (x > 0 && y > 0 &&
+                     gridRef[y]?.[x - 1]?.type === 'fertilizer' &&
+                     gridRef[y - 1]?.[x]?.type === 'fertilizer' &&
+                     gridRef[y - 1]?.[x - 1]?.type === 'fertilizer') {
+              offsetX = 512;
+              offsetY = 512;
+            }
+
+            // Draw the appropriate quadrant
+            ctx.drawImage(
+              fertilizerBuildingImageRef.current,
+              offsetX, offsetY, 512, 512,
+              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+            );
+          } else {
+            // Fallback if image not loaded - draw green circle
+            const gradient = ctx.createRadialGradient(
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              0,
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              GAME_CONFIG.tileSize / 2
+            );
+            gradient.addColorStop(0, '#84cc16');
+            gradient.addColorStop(1, '#65a30d');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+            ctx.font = `${GAME_CONFIG.tileSize * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🌱', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
+          }
+        } else if (tile.type === 'hopper') {
+          // Hopper building - 2x2 building
+          // Draw grass background
+          if (grassImageRef.current) {
+            ctx.drawImage(grassImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          } else {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          }
+
+          if (hopperImageRef.current) {
+            // Find which position this tile is in the 2x2 building
+            let offsetX = 0;
+            let offsetY = 0;
+
+            // Check if this is top-left
+            if (x + 1 < GAME_CONFIG.gridWidth && y + 1 < GAME_CONFIG.gridHeight &&
+                gridRef[y]?.[x + 1]?.type === 'hopper' &&
+                gridRef[y + 1]?.[x]?.type === 'hopper' &&
+                gridRef[y + 1]?.[x + 1]?.type === 'hopper') {
+              offsetX = 0;
+              offsetY = 0;
+            }
+            // Check if this is top-right
+            else if (x > 0 && y + 1 < GAME_CONFIG.gridHeight &&
+                     gridRef[y]?.[x - 1]?.type === 'hopper' &&
+                     gridRef[y + 1]?.[x]?.type === 'hopper' &&
+                     gridRef[y + 1]?.[x - 1]?.type === 'hopper') {
+              offsetX = 512;
+              offsetY = 0;
+            }
+            // Check if this is bottom-left
+            else if (x + 1 < GAME_CONFIG.gridWidth && y > 0 &&
+                     gridRef[y]?.[x + 1]?.type === 'hopper' &&
+                     gridRef[y - 1]?.[x]?.type === 'hopper' &&
+                     gridRef[y - 1]?.[x + 1]?.type === 'hopper') {
+              offsetX = 0;
+              offsetY = 512;
+            }
+            // Check if this is bottom-right
+            else if (x > 0 && y > 0 &&
+                     gridRef[y]?.[x - 1]?.type === 'hopper' &&
+                     gridRef[y - 1]?.[x]?.type === 'hopper' &&
+                     gridRef[y - 1]?.[x - 1]?.type === 'hopper') {
+              offsetX = 512;
+              offsetY = 512;
+            }
+
+            // Draw the appropriate quadrant
+            ctx.drawImage(
+              hopperImageRef.current,
+              offsetX, offsetY, 512, 512,
+              px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
+            );
+          } else {
+            // Fallback if image not loaded - draw cyan square
+            const gradient = ctx.createRadialGradient(
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              0,
+              px + GAME_CONFIG.tileSize / 2,
+              py + GAME_CONFIG.tileSize / 2,
+              GAME_CONFIG.tileSize / 2
+            );
+            gradient.addColorStop(0, '#22d3ee');
+            gradient.addColorStop(1, '#0891b2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(px + 2, py + 2, GAME_CONFIG.tileSize - 4, GAME_CONFIG.tileSize - 4);
+            ctx.font = `${GAME_CONFIG.tileSize * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🎒', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
+          }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
           // Draw water bot sprite
           ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -2009,7 +2113,7 @@ export default function Game() {
     }
 
     // Draw 2x2 building placement preview (bot factory, well, garage, supercharger)
-    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger') && hoveredTile) {
+    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger' || placementMode === 'fertilizer' || placementMode === 'hopper') && hoveredTile) {
       const currentGrid = getCurrentGrid(gameState);
       const tileX = hoveredTile.x;
       const tileY = hoveredTile.y;
@@ -2769,6 +2873,16 @@ export default function Game() {
       return { action: 'supercharger' as const, cursor: 'pointer' };
     }
 
+    // Fertilizer building - show pointer
+    if (tile.type === 'fertilizer') {
+      return { action: 'fertilizer' as const, cursor: 'pointer' };
+    }
+
+    // Hopper building - show pointer
+    if (tile.type === 'hopper') {
+      return { action: 'hopper' as const, cursor: 'pointer' };
+    }
+
     // Arch tile - show pointer
     if (tile.type === 'arch') {
       return { action: 'arch' as const, cursor: 'pointer' };
@@ -3131,6 +3245,24 @@ export default function Game() {
       return;
     }
 
+    if (placementMode === 'fertilizer') {
+      // Allow placing fertilizer building on grass or cleared dirt tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
+        setGameState(prev => placeFertilizerBuilding(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
+    if (placementMode === 'hopper') {
+      // Allow placing hopper on grass or cleared dirt tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
+        setGameState(prev => placeHopper(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
     // Handle arch clicks for zone purchase/travel
     if (tile.type === 'arch' && tile.archTargetZone) {
       const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
@@ -3197,6 +3329,19 @@ export default function Game() {
     // Handle supercharger tile clicks
     if (tile.type === 'supercharger') {
       setShowSuperchargerModal(true);
+      return;
+    }
+
+    // Handle fertilizer building clicks
+    if (tile.type === 'fertilizer') {
+      // For now, just show a message - could add a modal later
+      console.log('Fertilizer building clicked - refills fertilizer bot');
+      return;
+    }
+
+    // Handle hopper building clicks
+    if (tile.type === 'hopper') {
+      setShowHopperModal(true);
       return;
     }
 
@@ -4070,13 +4215,6 @@ export default function Game() {
                           className="w-4 h-4 cursor-pointer flex-shrink-0"
                           title="Include in auto-rotation"
                         />
-                        {albumCovers[index] && (
-                          <img
-                            src={albumCovers[index]}
-                            alt={song.name}
-                            className="w-8 h-8 rounded object-cover flex-shrink-0"
-                          />
-                        )}
                         <span
                           onClick={() => handleSongSelect(index)}
                           className="flex-1 cursor-pointer"
@@ -4113,13 +4251,6 @@ export default function Game() {
                             className="w-4 h-4 cursor-pointer flex-shrink-0"
                             title="Include in auto-rotation"
                           />
-                          {albumCovers[index] && (
-                            <img
-                              src={albumCovers[index]}
-                              alt={song.name}
-                              className="w-8 h-8 rounded object-cover flex-shrink-0"
-                            />
-                          )}
                           <span
                             onClick={() => handleSongSelect(index)}
                             className="flex-1 cursor-pointer"
@@ -4593,6 +4724,34 @@ export default function Game() {
             </button>
           )}
 
+          {/* Fertilizer Building Placement Button */}
+          {(gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false) && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'fertilizer' ? null : 'fertilizer')}
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+                placementMode === 'fertilizer'
+                  ? 'bg-lime-500 ring-4 ring-lime-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-lime-400/50'
+              }`}
+            >
+              🌱 Fertilizer
+            </button>
+          )}
+
+          {/* Hopper Placement Button */}
+          {(gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false) && (
+            <button
+              onClick={() => setPlacementMode(placementMode === 'hopper' ? null : 'hopper')}
+              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+                placementMode === 'hopper'
+                  ? 'bg-cyan-500 ring-4 ring-cyan-300 scale-105'
+                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-cyan-400/50'
+              }`}
+            >
+              🎒 Hopper
+            </button>
+          )}
+
           {/* Cancel/Clear Selection */}
           {placementMode && (
             <button
@@ -4612,6 +4771,8 @@ export default function Game() {
                 placementMode === 'well' ? 'Click grass tile to place well' :
                 placementMode === 'garage' ? 'Click grass tile to place garage' :
                 placementMode === 'supercharger' ? 'Click grass tile to place supercharger' :
+                placementMode === 'fertilizer' ? 'Click grass tile to place fertilizer building' :
+                placementMode === 'hopper' ? 'Click grass tile to place hopper' :
                 'Click a tile to place'
               }
             </div>

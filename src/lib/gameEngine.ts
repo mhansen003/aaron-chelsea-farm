@@ -1298,9 +1298,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               return { ...bot, status: 'idle' as const, visualX, visualY, idleStartTime: startTime };
             }
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             let newX = botX, newY = botY;
-            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+            if (Math.random() < (deltaTime / 2000)) {
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
@@ -1402,8 +1402,16 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         }
       });
 
+      // Filter out crops being eaten by rabbits
+      const cropsBeingEaten = new Set<string>();
+      zone.rabbits.forEach(rabbit => {
+        if (rabbit.status === 'eating' && rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
+          cropsBeingEaten.add(`${rabbit.targetX},${rabbit.targetY}`);
+        }
+      });
+
       const availableCrops = grownCrops.filter(crop =>
-        !claimedCrops.has(`${crop.x},${crop.y}`)
+        !claimedCrops.has(`${crop.x},${crop.y}`) && !cropsBeingEaten.has(`${crop.x},${crop.y}`)
       );
 
       const hasInventory = bot.inventory.length > 0;
@@ -2426,6 +2434,14 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
   if (!tile || tile.type !== 'grown' || !tile.crop) return state;
+
+  // Check if a rabbit is eating this crop - if so, it's gone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+  const rabbitEating = currentZone.rabbits.some(
+    rabbit => rabbit.status === 'eating' && rabbit.targetX === tileX && rabbit.targetY === tileY
+  );
+  if (rabbitEating) return state;
 
   // Check if basket is full
   if (state.player.basket && state.player.basket.length >= state.player.basketCapacity) return state;
@@ -4824,7 +4840,7 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 
 // Rabbit constants
 const RABBIT_SPAWN_INTERVAL = 90000; // Spawn a rabbit every 90 seconds (1.5 minutes)
-const RABBIT_EATING_DURATION = 13000; // 13 seconds to eat a crop (30% slower)
+const RABBIT_EATING_DURATION = 9750; // ~10 seconds to eat a crop (25% faster than 13s)
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
 const RABBIT_MIN_CROPS = 3; // Min crops before rabbit leaves (reduced by 50%)
 const RABBIT_MAX_CROPS = 5; // Max crops before rabbit leaves (reduced by 50%)

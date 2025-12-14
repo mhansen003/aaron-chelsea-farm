@@ -5071,12 +5071,12 @@ function updateRabbits(
 
         const newCropsEaten = rabbit.cropsEaten + 1;
 
-        // Check if there are any more crops available to eat
+        // Check if there are any more fully grown crops available to eat
         let hasMoreCrops = false;
         for (let y = 0; y < updatedGrid.length; y++) {
           for (let x = 0; x < updatedGrid[y].length; x++) {
             const tile = updatedGrid[y][x];
-            if (tile.crop && tile.growthStage > 50) {
+            if (tile.crop && tile.growthStage >= 100) {
               hasMoreCrops = true;
               break;
             }

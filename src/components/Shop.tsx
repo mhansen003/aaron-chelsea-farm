@@ -35,10 +35,7 @@ const SEED_INFO = {
   corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2 },
 };
 
-type ShopTab = 'seeds' | 'tools';
-
 export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onToggleAutoBuy }: ShopProps) {
-  const [activeTab, setActiveTab] = useState<ShopTab>('seeds');
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
@@ -57,97 +54,8 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           Your Money: 💰 ${gameState.player.money}
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 mb-4 md:mb-6">
-          <button
-            onClick={() => setActiveTab('seeds')}
-            className={`flex-1 px-3 md:px-4 py-2 md:py-3 rounded-lg font-bold text-sm md:text-base transition-all ${
-              activeTab === 'seeds'
-                ? 'bg-green-600 ring-2 ring-green-300'
-                : 'bg-black/40 hover:bg-black/60'
-            }`}
-          >
-            🌱 Seeds
-          </button>
-          <button
-            onClick={() => setActiveTab('tools')}
-            className={`flex-1 px-3 md:px-4 py-2 md:py-3 rounded-lg font-bold text-sm md:text-base transition-all ${
-              activeTab === 'tools'
-                ? 'bg-blue-600 ring-2 ring-blue-300'
-                : 'bg-black/40 hover:bg-black/60'
-            }`}
-          >
-            🛠️ Tools & Buildings
-          </button>
-        </div>
-
-        {/* Scrollable Content Area */}
+        {/* Tools & Buildings */}
         <div className="flex-1 overflow-y-auto mb-4">
-        {/* Seeds Tab Content */}
-        {activeTab === 'seeds' && (
-        <div className="mb-4 md:mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
-            {Object.entries(SEED_INFO).map(([cropKey, info]) => {
-              const crop = cropKey as Exclude<CropType, null>;
-              const owned = gameState.player.inventory.seeds[crop];
-              const cropInfo = CROP_INFO[crop];
-              const currentSeedCost = getCurrentSeedCost(crop, gameState.cropsSold);
-              const canBuy1 = gameState.player.money >= currentSeedCost;
-              const autoBuyEnabled = gameState.player.autoBuy[crop];
-
-              return (
-                <div
-                  key={crop}
-                  className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-amber-600 flex flex-col items-center"
-                >
-                  {/* Icon */}
-                  <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                    <Image src={`/${crop}.png`} alt={info.name} width={80} height={80} className="object-contain" />
-                  </div>
-
-                  {/* Name */}
-                  <div className="font-bold text-center mb-1 text-sm">{info.name}</div>
-
-                  {/* Stats */}
-                  <div className="text-xs text-center mb-2 space-y-1">
-                    <div className="text-green-400">{info.daysToGrow} day{info.daysToGrow > 1 ? 's' : ''}</div>
-                    <div className="text-purple-400">Sells: ${cropInfo.sellPrice}</div>
-                    <div className="text-blue-400">Owned: {owned}</div>
-                  </div>
-
-                  {/* Auto-Refill Toggle */}
-                  <button
-                    onClick={() => onToggleAutoBuy(crop)}
-                    className={`w-full px-2 py-1 rounded text-xs font-bold mb-2 transition-colors ${
-                      autoBuyEnabled
-                        ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
-                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                    }`}
-                  >
-                    {autoBuyEnabled ? '🔄 Auto-Refill ON' : '🔄 Auto-Refill OFF'}
-                  </button>
-
-                  {/* Buy Button */}
-                  <button
-                    onClick={() => onBuySeeds(crop, 1)}
-                    disabled={!canBuy1}
-                    className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                      canBuy1
-                        ? 'bg-green-600 hover:bg-green-700'
-                        : 'bg-gray-600 cursor-not-allowed'
-                    }`}
-                  >
-                    ${currentSeedCost}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
-        {/* Tools Tab Content */}
-        {activeTab === 'tools' && (
         <div>
           <div className="grid grid-cols-3 gap-4">
             {/* Basket Upgrades - Individual Tiles */}
@@ -468,7 +376,6 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
             </div>
           </div>
         </div>
-        )}
         </div>
 
         {/* Sticky Footer Button */}

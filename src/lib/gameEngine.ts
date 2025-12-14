@@ -2404,6 +2404,61 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   };
 }
 
+/**
+ * Uproot a crop - removes the plant and clears it from seed bot jobs
+ */
+export function uprootCrop(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+  const tile = grid[tileY]?.[tileX];
+
+  // Can only uproot tiles with crops (planted or grown)
+  if (!tile || (tile.type !== 'planted' && tile.type !== 'grown') || !tile.crop) return state;
+
+  // Remove the crop from the tile
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (x === tileX && y === tileY) {
+        return {
+          ...t,
+          type: 'dirt' as TileType,
+          crop: null,
+          growthStage: 0,
+          plantedDay: undefined,
+          wateredTimestamp: undefined,
+          wateredToday: false,
+          lastWorkedTime: state.gameTime,
+        };
+      }
+      return t;
+    })
+  );
+
+  const updatedState = updateCurrentGrid(state, newGrid);
+
+  // Remove this tile from all seed bot jobs in the current zone
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = updatedState.zones[currentZoneKey];
+
+  const updatedSeedBots = currentZone.seedBots.map(bot => ({
+    ...bot,
+    jobs: bot.jobs.map(job => ({
+      ...job,
+      targetTiles: job.targetTiles.filter(t => !(t.x === tileX && t.y === tileY))
+    })).filter(job => job.targetTiles.length > 0) // Remove empty jobs
+  }));
+
+  return {
+    ...updatedState,
+    zones: {
+      ...updatedState.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        seedBots: updatedSeedBots,
+      },
+    },
+  };
+}
+
 export function waterTile(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];

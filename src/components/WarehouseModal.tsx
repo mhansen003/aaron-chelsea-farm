@@ -27,7 +27,7 @@ const CROPS: CropInfo[] = [
   { type: 'grapes', emoji: '🍇', name: 'Grapes', color: 'from-purple-600 to-purple-700' },
   { type: 'oranges', emoji: '🍊', name: 'Oranges', color: 'from-orange-400 to-orange-500' },
   { type: 'avocado', emoji: '🥑', name: 'Avocado', color: 'from-green-700 to-green-800' },
-  { type: 'rice', emoji: '🍚', name: 'Rice', color: 'from-gray-100 to-gray-300' },
+  { type: 'rice', emoji: '🍚', name: 'Rice', color: 'from-gray-500 to-gray-600' },
   { type: 'corn', emoji: '🌽', name: 'Corn', color: 'from-yellow-500 to-yellow-600' },
 ];
 

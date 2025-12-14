@@ -27,7 +27,7 @@ export type TileType =
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' | 'peppers' | 'grapes' | 'oranges' | 'avocado' | 'rice' | 'corn' | null;
 
-export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe';
+export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe' | 'uproot';
 
 export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit';
 

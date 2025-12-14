@@ -72,6 +72,7 @@ import { updateMarketPrices } from '@/lib/marketEconomy';
 import SaveGameModal from './SaveGameModal';
 import WelcomeSplash from './WelcomeSplash';
 import QuickStartTutorial from './QuickStartTutorial';
+import TutorialModal from './TutorialModal';
 import {
   generateSaveCode,
   loadFromSaveCode,
@@ -115,6 +116,7 @@ const TOOL_ICONS: Record<ToolType, string> = {
   scythe: '🌾',
   watering_can: '💧',
   water_sprinkler: '💦',
+  uproot: '🪓',
 };
 
 export default function Game() {
@@ -732,7 +734,7 @@ export default function Game() {
         setCurrentSongIndex(prevIndex => {
           const nextIndex = getRandomSongIndex(prevIndex, farmSongs.length);
 
-          if (audioRef.current) {
+          if (audioRef.current && !isMusicMuted) {
             audioRef.current.src = farmSongs[nextIndex].file;
             audioRef.current.play().catch(() => {});
           }
@@ -749,18 +751,22 @@ export default function Game() {
       audioRef.current.volume = 0.5;
     }
 
-    // Try to play music
-    audioRef.current.play().catch(() => {
-      // If autoplay fails, try again on first user interaction
-      const startAudio = () => {
-        audioRef.current?.play();
-        document.removeEventListener('click', startAudio);
-        document.removeEventListener('keydown', startAudio);
-      };
-      document.addEventListener('click', startAudio, { once: true });
-      document.addEventListener('keydown', startAudio, { once: true });
-    });
-  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomSongIndex]);
+    // Try to play music (only if not muted)
+    if (!isMusicMuted) {
+      audioRef.current.play().catch(() => {
+        // If autoplay fails, try again on first user interaction
+        const startAudio = () => {
+          if (!isMusicMuted) {
+            audioRef.current?.play();
+          }
+          document.removeEventListener('click', startAudio);
+          document.removeEventListener('keydown', startAudio);
+        };
+        document.addEventListener('click', startAudio, { once: true });
+        document.addEventListener('keydown', startAudio, { once: true });
+      });
+    }
+  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomSongIndex, isMusicMuted]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
@@ -3339,7 +3345,7 @@ export default function Game() {
         <div className="bg-amber-900/30 border border-amber-600 rounded px-2 py-1.5 mb-2">
           <div className="text-xs text-amber-300 font-bold mb-1">🧺 BASKET ({gameState.player.basket.length}/{gameState.player.basketCapacity})</div>
           {gameState.player.basket.length > 0 ? (
-            <div className="space-y-0.5 max-h-24 overflow-y-auto">
+            <div className="space-y-0.5">
               {gameState.player.basket.map((item, idx) => {
                 const cropEmojis: Record<string, string> = {
                   carrot: '🥕', wheat: '🌾', tomato: '🍅', pumpkin: '🎃',
@@ -3726,7 +3732,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/carrot.png" alt="Carrot" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.carrot}</span>
+            <NextImage src="/carrot.png" alt="Carrot" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('carrot', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-orange-400 mb-1">🥕 Carrot</div>
@@ -3754,7 +3760,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/wheat.png" alt="Wheat" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.wheat}</span>
+            <NextImage src="/wheat.png" alt="Wheat" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('wheat', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-yellow-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-yellow-400 mb-1">🌾 Wheat</div>
@@ -3782,7 +3788,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/tomato.png" alt="Tomato" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.tomato}</span>
+            <NextImage src="/tomato.png" alt="Tomato" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('tomato', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-red-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-red-400 mb-1">🍅 Tomato</div>
@@ -3810,7 +3816,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/pumpkin.png" alt="Pumpkin" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.pumpkin}</span>
+            <NextImage src="/pumpkin.png" alt="Pumpkin" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-orange-400 mb-1">🎃 Pumpkin</div>
@@ -3838,7 +3844,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/watermelon.png" alt="Watermelon" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.watermelon}</span>
+            <NextImage src="/watermelon.png" alt="Watermelon" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('watermelon', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-green-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-green-400 mb-1">🍉 Watermelon</div>
@@ -3866,7 +3872,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/peppers.png" alt="Peppers" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.peppers}</span>
+            <NextImage src="/peppers.png" alt="Peppers" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('peppers', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-red-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-red-400 mb-1">🌶️ Peppers</div>
@@ -3894,7 +3900,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/grapes.png" alt="Grapes" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.grapes}</span>
+            <NextImage src="/grapes.png" alt="Grapes" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('grapes', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-purple-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-purple-400 mb-1">🍇 Grapes</div>
@@ -3922,7 +3928,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/oranges.png" alt="Oranges" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.oranges}</span>
+            <NextImage src="/oranges.png" alt="Oranges" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('oranges', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-orange-400/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-orange-300 mb-1">🍊 Oranges</div>
@@ -3950,7 +3956,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/avocado.png" alt="Avocado" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.avocado}</span>
+            <NextImage src="/avocado.png" alt="Avocado" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('avocado', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-green-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-green-400 mb-1">🥑 Avocado</div>
@@ -3978,7 +3984,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/rice.png" alt="Rice" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.rice}</span>
+            <NextImage src="/rice.png" alt="Rice" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('rice', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-gray-400/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-gray-300 mb-1">🍚 Rice</div>
@@ -4006,7 +4012,7 @@ export default function Game() {
                 : 'bg-gray-700 hover:bg-gray-600'
             }`}
           >
-            <NextImage src="/corn.png" alt="Corn" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">{gameState.player.inventory.seeds.corn}</span>
+            <NextImage src="/corn.png" alt="Corn" width={28} height={28} className="object-contain md:w-8 md:h-8" /> <span className="text-xs md:text-sm">${getCurrentSeedCost('corn', gameState.cropsSold)}</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-yellow-500/50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
             <div className="font-bold text-yellow-300 mb-1">🌽 Corn</div>
@@ -4877,7 +4883,41 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-semibold text-green-100">Bot #{idx + 1}</span>
+                        {editingBotId === bot.id ? (
+                          <input
+                            type="text"
+                            value={editingBotName}
+                            onChange={(e) => setEditingBotName(e.target.value)}
+                            onBlur={() => {
+                              if (editingBotName.trim()) {
+                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'seed'));
+                              }
+                              setEditingBotId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editingBotName.trim()) {
+                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'seed'));
+                                }
+                                setEditingBotId(null);
+                              }
+                            }}
+                            maxLength={20}
+                            className="text-xs font-semibold text-green-100 bg-green-900/60 border border-green-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-green-300"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-semibold text-green-100 cursor-pointer hover:text-green-300 hover:underline"
+                            onClick={() => {
+                              setEditingBotId(bot.id);
+                              setEditingBotName(bot.name);
+                            }}
+                            title="Click to rename"
+                          >
+                            {bot.name}
+                          </span>
+                        )}
                         <span className="text-sm text-green-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'planting' && '🌱'}
@@ -4932,7 +4972,41 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-semibold text-purple-100">Bot #{idx + 1}</span>
+                        {editingBotId === bot.id ? (
+                          <input
+                            type="text"
+                            value={editingBotName}
+                            onChange={(e) => setEditingBotName(e.target.value)}
+                            onBlur={() => {
+                              if (editingBotName.trim()) {
+                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'transport'));
+                              }
+                              setEditingBotId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editingBotName.trim()) {
+                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'transport'));
+                                }
+                                setEditingBotId(null);
+                              }
+                            }}
+                            maxLength={20}
+                            className="text-xs font-semibold text-purple-100 bg-purple-900/60 border border-purple-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-purple-300"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-semibold text-purple-100 cursor-pointer hover:text-purple-300 hover:underline"
+                            onClick={() => {
+                              setEditingBotId(bot.id);
+                              setEditingBotName(bot.name);
+                            }}
+                            title="Click to rename"
+                          >
+                            {bot.name}
+                          </span>
+                        )}
                         <span className="text-sm text-purple-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'loading' && '📥'}
@@ -4990,7 +5064,41 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-semibold text-orange-100">Bot #{idx + 1}</span>
+                        {editingBotId === bot.id ? (
+                          <input
+                            type="text"
+                            value={editingBotName}
+                            onChange={(e) => setEditingBotName(e.target.value)}
+                            onBlur={() => {
+                              if (editingBotName.trim()) {
+                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'demolish'));
+                              }
+                              setEditingBotId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                if (editingBotName.trim()) {
+                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'demolish'));
+                                }
+                                setEditingBotId(null);
+                              }
+                            }}
+                            maxLength={20}
+                            className="text-xs font-semibold text-orange-100 bg-orange-900/60 border border-orange-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-orange-300"
+                            autoFocus
+                          />
+                        ) : (
+                          <span
+                            className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
+                            onClick={() => {
+                              setEditingBotId(bot.id);
+                              setEditingBotName(bot.name);
+                            }}
+                            title="Click to rename"
+                          >
+                            {bot.name}
+                          </span>
+                        )}
                         <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'clearing' && '🔨'}

@@ -6,7 +6,7 @@ import { CropType, CropGrowthInfo } from '@/types/game';
  * Base growth times increased by 50%, exotic crops (grapes, oranges, avocado) take 125% longer
  */
 export const CROP_INFO: Record<Exclude<CropType, null>, CropGrowthInfo> & { null: CropGrowthInfo } = {
-  carrot: { daysToGrow: 1, growTime: 72000, sellPrice: 5, seedCost: 2 }, // 72 seconds (profit: 3)
+  carrot: { daysToGrow: 1, growTime: 72000, sellPrice: 5, seedCost: 0 }, // 72 seconds - FREE! (profit: 5)
   wheat: { daysToGrow: 1, growTime: 108000, sellPrice: 3, seedCost: 1 }, // 108 seconds (profit: 2)
   tomato: { daysToGrow: 2, growTime: 216000, sellPrice: 8, seedCost: 4 }, // 216 seconds (profit: 4)
   pumpkin: { daysToGrow: 2, growTime: 144000, sellPrice: 12, seedCost: 6 }, // 144 seconds (profit: 6)

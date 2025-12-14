@@ -101,6 +101,22 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
   const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
 
+  // Get current zone and check for fertilizer building
+  const currentZoneKey = `${gameState.currentZone.x},${gameState.currentZone.y}`;
+  const currentZone = gameState.zones[currentZoneKey];
+
+  const hasFertilizerBuilding = (() => {
+    for (let y = 0; y < currentZone.grid.length; y++) {
+      for (let x = 0; x < currentZone.grid[y].length; x++) {
+        const tile = currentZone.grid[y][x];
+        if (tile.type === 'fertilizer' || (tile.isConstructing && tile.constructionTarget === 'fertilizer')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  })();
+
   const getOwned = (type: BotType): number => {
     switch (type) {
       case 'water': return gameState.player.inventory.waterbots;
@@ -230,7 +246,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
         {/* Bot Grid */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {(Object.entries(BOT_DATA) as [BotType, typeof BOT_DATA[BotType]][]).map(([type, data]) => {
               const owned = getOwned(type);
               const cost = getCost(type);
@@ -238,12 +254,17 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
               const affordable = canAfford(type);
               const inCart = cart.find(item => item.type === type)?.quantity || 0;
 
+              // Check if fertilizer bot requires building
+              const needsFertilizerBuilding = type === 'fertilizer' && !hasFertilizerBuilding;
+              const isDisabled = !affordable || needsFertilizerBuilding;
+
               return (
                 <div
                   key={type}
-                  className={`relative bg-gradient-to-br ${data.gradient} p-1 rounded-2xl hover:scale-105 transition-transform ${
+                  className={`relative group bg-gradient-to-br ${data.gradient} p-1 rounded-2xl hover:scale-105 transition-transform ${
                     maxed ? 'opacity-60' : ''
                   }`}
+                  title={data.feature}
                 >
                   <div className="bg-slate-900 rounded-xl p-2 h-full flex flex-col">
                     {/* Bot Image */}
@@ -265,6 +286,12 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                           {inCart}
                         </div>
                       )}
+                    </div>
+
+                    {/* Tooltip */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-black/95 text-white text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap">
+                      {data.feature}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-black/95"></div>
                     </div>
 
                     {/* Bot Name */}
@@ -301,15 +328,15 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                           </button>
                         ) : (
                           <button
-                            onClick={() => addToCart(type)}
-                            disabled={!affordable}
+                            onClick={() => !isDisabled && addToCart(type)}
+                            disabled={isDisabled}
                             className={`w-full py-2 rounded-lg font-bold text-xs transition-all ${
-                              affordable
+                              !isDisabled
                                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
                                 : 'bg-gray-700 cursor-not-allowed text-gray-500'
                             }`}
                           >
-                            {affordable ? '+ ADD' : 'NO FUNDS'}
+                            {needsFertilizerBuilding ? 'NEED BUILDING' : (affordable ? '+ ADD' : 'NO FUNDS')}
                           </button>
                         )}
                       </>

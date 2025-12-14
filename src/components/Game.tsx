@@ -4718,41 +4718,13 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1.5 border border-cyan-600/20 hover:bg-cyan-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-1">
-                        {editingBotId === bot.id ? (
-                          <input
-                            type="text"
-                            value={editingBotName}
-                            onChange={(e) => setEditingBotName(e.target.value)}
-                            onBlur={() => {
-                              if (editingBotName.trim()) {
-                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'water'));
-                              }
-                              setEditingBotId(null);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (editingBotName.trim()) {
-                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'water'));
-                                }
-                                setEditingBotId(null);
-                              }
-                            }}
-                            maxLength={20}
-                            className="text-xs font-semibold text-cyan-100 bg-cyan-900/60 border border-cyan-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-cyan-300"
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="text-xs font-semibold text-cyan-100 cursor-pointer hover:text-cyan-300 hover:underline"
-                            onClick={() => {
-                              setEditingBotId(bot.id);
-                              setEditingBotName(bot.name);
-                            }}
-                            title="Click to rename"
-                          >
-                            {bot.name}
-                          </span>
-                        )}
+                        <span
+                          className="text-xs font-semibold text-cyan-100 cursor-pointer hover:text-cyan-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'water', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
                         <span className="text-sm text-cyan-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'watering' && '💦'}
@@ -4810,41 +4782,13 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        {editingBotId === bot.id ? (
-                          <input
-                            type="text"
-                            value={editingBotName}
-                            onChange={(e) => setEditingBotName(e.target.value)}
-                            onBlur={() => {
-                              if (editingBotName.trim()) {
-                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'harvest'));
-                              }
-                              setEditingBotId(null);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (editingBotName.trim()) {
-                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'harvest'));
-                                }
-                                setEditingBotId(null);
-                              }
-                            }}
-                            maxLength={20}
-                            className="text-xs font-semibold text-orange-100 bg-orange-900/60 border border-orange-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-orange-300"
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
-                            onClick={() => {
-                              setEditingBotId(bot.id);
-                              setEditingBotName(bot.name);
-                            }}
-                            title="Click to rename"
-                          >
-                            {bot.name}
-                          </span>
-                        )}
+                        <span
+                          className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'harvest', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
                         <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'harvesting' && '✂️'}
@@ -4894,41 +4838,13 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        {editingBotId === bot.id ? (
-                          <input
-                            type="text"
-                            value={editingBotName}
-                            onChange={(e) => setEditingBotName(e.target.value)}
-                            onBlur={() => {
-                              if (editingBotName.trim()) {
-                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'seed'));
-                              }
-                              setEditingBotId(null);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (editingBotName.trim()) {
-                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'seed'));
-                                }
-                                setEditingBotId(null);
-                              }
-                            }}
-                            maxLength={20}
-                            className="text-xs font-semibold text-green-100 bg-green-900/60 border border-green-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-green-300"
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="text-xs font-semibold text-green-100 cursor-pointer hover:text-green-300 hover:underline"
-                            onClick={() => {
-                              setEditingBotId(bot.id);
-                              setEditingBotName(bot.name);
-                            }}
-                            title="Click to rename"
-                          >
-                            {bot.name}
-                          </span>
-                        )}
+                        <span
+                          className="text-xs font-semibold text-green-100 cursor-pointer hover:text-green-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'seed', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
                         <span className="text-sm text-green-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'planting' && '🌱'}
@@ -4983,41 +4899,13 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        {editingBotId === bot.id ? (
-                          <input
-                            type="text"
-                            value={editingBotName}
-                            onChange={(e) => setEditingBotName(e.target.value)}
-                            onBlur={() => {
-                              if (editingBotName.trim()) {
-                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'transport'));
-                              }
-                              setEditingBotId(null);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (editingBotName.trim()) {
-                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'transport'));
-                                }
-                                setEditingBotId(null);
-                              }
-                            }}
-                            maxLength={20}
-                            className="text-xs font-semibold text-purple-100 bg-purple-900/60 border border-purple-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-purple-300"
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="text-xs font-semibold text-purple-100 cursor-pointer hover:text-purple-300 hover:underline"
-                            onClick={() => {
-                              setEditingBotId(bot.id);
-                              setEditingBotName(bot.name);
-                            }}
-                            title="Click to rename"
-                          >
-                            {bot.name}
-                          </span>
-                        )}
+                        <span
+                          className="text-xs font-semibold text-purple-100 cursor-pointer hover:text-purple-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'transport', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
                         <span className="text-sm text-purple-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'loading' && '📥'}
@@ -5075,41 +4963,13 @@ export default function Game() {
                   return (
                     <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
                       <div className="flex items-center justify-between mb-0.5">
-                        {editingBotId === bot.id ? (
-                          <input
-                            type="text"
-                            value={editingBotName}
-                            onChange={(e) => setEditingBotName(e.target.value)}
-                            onBlur={() => {
-                              if (editingBotName.trim()) {
-                                setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'demolish'));
-                              }
-                              setEditingBotId(null);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (editingBotName.trim()) {
-                                  setGameState(prev => updateBotName(prev, bot.id, editingBotName.trim(), 'demolish'));
-                                }
-                                setEditingBotId(null);
-                              }
-                            }}
-                            maxLength={20}
-                            className="text-xs font-semibold text-orange-100 bg-orange-900/60 border border-orange-400 rounded px-1 py-0.5 w-24 focus:outline-none focus:ring-1 focus:ring-orange-300"
-                            autoFocus
-                          />
-                        ) : (
-                          <span
-                            className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
-                            onClick={() => {
-                              setEditingBotId(bot.id);
-                              setEditingBotName(bot.name);
-                            }}
-                            title="Click to rename"
-                          >
-                            {bot.name}
-                          </span>
-                        )}
+                        <span
+                          className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'demolish', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
                         <span className="text-sm text-orange-300">
                           {bot.status === 'traveling' && '🚶'}
                           {bot.status === 'clearing' && '🔨'}

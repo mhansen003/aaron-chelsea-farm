@@ -3256,7 +3256,12 @@ export function updateBotName(
     };
   } else if (botType === 'demolish') updates.demolishBots = updateBotInArray(currentZone.demolishBots || []);
   else if (botType === 'hunter') updates.hunterBots = updateBotInArray(currentZone.hunterBots || []);
-  else if (botType === 'fertilizer') updates.fertilizerBots = updateBotInArray(currentZone.fertilizerBots || []);
+  else if (botType === 'fertilizer' && currentZone.fertilizerBot) {
+    // Fertilizer bot is singular, not an array
+    if (currentZone.fertilizerBot.id === botId) {
+      updates.fertilizerBot = { ...currentZone.fertilizerBot, name: newName };
+    }
+  }
 
   return {
     ...state,

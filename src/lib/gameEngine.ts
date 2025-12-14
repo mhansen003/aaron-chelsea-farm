@@ -2305,7 +2305,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
     // Update hunter bots (detecting and chasing rabbits)
     if (zone.hunterBots.length > 0) {
-      zone = updateHunterBots(zone, deltaTime);
+      zone = updateHunterBots(zone, deltaTime, newGameTime);
       newZones[zoneKey] = zone;
     }
 
@@ -4818,7 +4818,8 @@ function updateRabbits(
  */
 function updateHunterBots(
   zone: import('@/types/game').Zone,
-  deltaTime: number
+  deltaTime: number,
+  gameTime: number
 ): import('@/types/game').Zone {
   const updatedHunterBots: import('@/types/game').HunterBot[] = [];
   let updatedRabbits = [...zone.rabbits];
@@ -4889,7 +4890,7 @@ function updateHunterBots(
           const dx = hunter.targetX - visualX;
           const dy = hunter.targetY - visualY;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * 0.3 * (hunter.supercharged ? 2 : 1); // Slower when wandering
+          const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Same speed as other bots when wandering
           const newVisualX = visualX + (dx / dist) * moveSpeed;
           const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -4906,6 +4907,19 @@ function updateHunterBots(
     } else if (hunter.status === 'chasing') {
       // Chase the target rabbit
       const targetRabbit = updatedRabbits.find(r => r.id === hunter.targetRabbitId);
+
+      // Don't capture rabbits that have only been alive for less than 10 seconds
+      if (targetRabbit && (gameTime - targetRabbit.spawnTime) < 10000) {
+        // Rabbit too young, keep patrolling instead
+        updatedHunterBots.push({
+          ...hunter,
+          status: 'patrolling',
+          targetRabbitId: undefined,
+          visualX,
+          visualY,
+        });
+        continue;
+      }
 
       if (!targetRabbit || targetRabbit.status === 'captured') {
         // Rabbit is gone - go back to patrolling

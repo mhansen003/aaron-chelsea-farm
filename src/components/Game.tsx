@@ -185,6 +185,7 @@ export default function Game() {
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -732,6 +733,17 @@ export default function Game() {
   // Combined all farm songs for random selection
   const allFarmSongs = [...farmSongs, ...farmRapSongs];
 
+  // Get a random enabled song index (excluding current song)
+  const getRandomEnabledSong = useCallback((currentIndex: number) => {
+    const enabledIndices = Array.from(enabledSongs).filter(i => i !== currentIndex);
+    if (enabledIndices.length === 0) {
+      // If no other songs enabled, pick any song except current
+      const allIndices = Array.from({ length: allFarmSongs.length }, (_, i) => i).filter(i => i !== currentIndex);
+      return allIndices[Math.floor(Math.random() * allIndices.length)] || 0;
+    }
+    return enabledIndices[Math.floor(Math.random() * enabledIndices.length)];
+  }, [enabledSongs, allFarmSongs.length]);
+
   const singleZoneMusic: Record<string, string> = {
     beach: '/beach.mp3',
     barn: '/barn.mp3',
@@ -774,8 +786,8 @@ export default function Game() {
     }
 
     if (isFarm) {
-      // Farm zone: Pick a random song from the playlist
-      const randomIndex = getRandomSongIndex(-1, allFarmSongs.length);
+      // Farm zone: Pick a random enabled song from the playlist
+      const randomIndex = getRandomEnabledSong(-1);
       setCurrentSongIndex(randomIndex);
       musicFile = allFarmSongs[randomIndex].file;
 
@@ -784,10 +796,10 @@ export default function Game() {
       audioRef.current.loop = false; // We'll handle song advancement manually
       audioRef.current.volume = 0.5;
 
-      // When song ends, play next random song
+      // When song ends, play next random enabled song
       const handleSongEnd = () => {
         setCurrentSongIndex(prevIndex => {
-          const nextIndex = getRandomSongIndex(prevIndex, allFarmSongs.length);
+          const nextIndex = getRandomEnabledSong(prevIndex);
 
           if (audioRef.current && !isMusicMuted) {
             audioRef.current.src = allFarmSongs[nextIndex].file;
@@ -821,7 +833,7 @@ export default function Game() {
         document.addEventListener('keydown', startAudio, { once: true });
       });
     }
-  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomSongIndex, isMusicMuted]);
+  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomEnabledSong, isMusicMuted, allFarmSongs]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
@@ -858,6 +870,19 @@ export default function Game() {
       return newMutedState;
     });
     setShowMusicDropdown(false);
+  }, []);
+
+  // Toggle song enabled for auto-rotation
+  const toggleSongEnabled = useCallback((index: number) => {
+    setEnabledSongs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   }, []);
 
   // Close music dropdown when clicking outside
@@ -3895,16 +3920,27 @@ export default function Game() {
                       {isMusicMuted ? '🔊 Unmute' : '🔇 Mute'}
                     </button>
                     {farmSongs.map((song, index) => (
-                      <button
+                      <div
                         key={index}
-                        onClick={() => handleSongSelect(index)}
-                        className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-pink-700 transition-colors ${
-                          currentSongIndex === index && !isMusicMuted ? 'bg-pink-600 font-bold' : ''
+                        className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
+                          currentSongIndex === index && !isMusicMuted ? 'bg-pink-600 font-bold' : 'hover:bg-pink-700'
                         }`}
                       >
-                        {currentSongIndex === index && !isMusicMuted && '▶ '}
-                        {song.name}
-                      </button>
+                        <input
+                          type="checkbox"
+                          checked={enabledSongs.has(index)}
+                          onChange={() => toggleSongEnabled(index)}
+                          className="w-4 h-4 cursor-pointer"
+                          title="Include in auto-rotation"
+                        />
+                        <span
+                          onClick={() => handleSongSelect(index)}
+                          className="flex-1 cursor-pointer"
+                        >
+                          {currentSongIndex === index && !isMusicMuted && '▶ '}
+                          {song.name}
+                        </span>
+                      </div>
                     ))}
 
                     {/* Farm Rap Section */}
@@ -3912,16 +3948,27 @@ export default function Game() {
                     {farmRapSongs.map((song, rapIndex) => {
                       const index = farmSongs.length + rapIndex; // Offset by farmSongs length
                       return (
-                        <button
+                        <div
                           key={`rap-${rapIndex}`}
-                          onClick={() => handleSongSelect(index)}
-                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-purple-700 transition-colors ${
-                            currentSongIndex === index && !isMusicMuted ? 'bg-purple-600 font-bold' : ''
+                          className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
+                            currentSongIndex === index && !isMusicMuted ? 'bg-purple-600 font-bold' : 'hover:bg-purple-700'
                           }`}
                         >
-                          {currentSongIndex === index && !isMusicMuted && '▶ '}
-                          {song.name}
-                        </button>
+                          <input
+                            type="checkbox"
+                            checked={enabledSongs.has(index)}
+                            onChange={() => toggleSongEnabled(index)}
+                            className="w-4 h-4 cursor-pointer"
+                            title="Include in auto-rotation"
+                          />
+                          <span
+                            onClick={() => handleSongSelect(index)}
+                            className="flex-1 cursor-pointer"
+                          >
+                            {currentSongIndex === index && !isMusicMuted && '▶ '}
+                            {song.name}
+                          </span>
+                        </div>
                       );
                     })}
                   </div>

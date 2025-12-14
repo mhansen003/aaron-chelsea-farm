@@ -5256,16 +5256,49 @@ function updateHunterBots(
         // Find garage position to spawn from
         const garagePos = findGaragePosition(zone.grid);
         if (garagePos) {
-          // Spawn hunter at garage and start patrolling
-          updatedHunterBots.push({
+          // Spawn hunter at garage and start patrolling - don't continue, let it detect rabbits immediately
+          const spawnedHunter = {
             ...hunter,
-            status: 'patrolling',
+            status: 'patrolling' as const,
             x: garagePos.x,
             y: garagePos.y,
             visualX: garagePos.x,
             visualY: garagePos.y,
             idleStartTime: undefined,
-          });
+          };
+
+          // Immediately scan for nearest rabbit (same logic as below)
+          let nearestRabbit: import('@/types/game').Rabbit | null = null;
+          let nearestDistance = Infinity;
+
+          for (const rabbit of updatedRabbits) {
+            if (rabbit.status === 'captured') continue;
+
+            const rabbitX = rabbit.visualX;
+            const rabbitY = rabbit.visualY;
+            const hunterX = spawnedHunter.x;
+            const hunterY = spawnedHunter.y;
+            const distance = Math.sqrt(
+              Math.pow(rabbitX - hunterX, 2) + Math.pow(rabbitY - hunterY, 2)
+            );
+
+            if (distance <= spawnedHunter.detectionRange && distance < nearestDistance) {
+              nearestRabbit = rabbit;
+              nearestDistance = distance;
+            }
+          }
+
+          if (nearestRabbit) {
+            // Immediately start chasing
+            updatedHunterBots.push({
+              ...spawnedHunter,
+              status: 'chasing',
+              targetRabbitId: nearestRabbit.id,
+            });
+          } else {
+            // Just patrol
+            updatedHunterBots.push(spawnedHunter);
+          }
           continue;
         }
       }

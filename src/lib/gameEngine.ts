@@ -4633,13 +4633,43 @@ function updateHunterBots(
           visualY,
         });
       } else {
-        // Keep patrolling
-        updatedHunterBots.push({
-          ...hunter,
-          status: 'patrolling',
-          visualX,
-          visualY,
-        });
+        // Wander around while patrolling
+        const hunterX = hunter.x ?? 0;
+        const hunterY = hunter.y ?? 0;
+
+        // Pick a random nearby destination if we don't have one or reached it
+        if (!hunter.targetX || !hunter.targetY ||
+            (Math.abs(visualX - hunter.targetX) < 0.3 && Math.abs(visualY - hunter.targetY) < 0.3)) {
+          // Pick new random target within 5 tiles
+          const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, hunterX + Math.floor(Math.random() * 11) - 5));
+          const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, hunterY + Math.floor(Math.random() * 11) - 5));
+
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'patrolling',
+            targetX: newTargetX,
+            targetY: newTargetY,
+            visualX,
+            visualY,
+          });
+        } else {
+          // Move towards wander target
+          const dx = hunter.targetX - visualX;
+          const dy = hunter.targetY - visualY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * 0.3 * (hunter.supercharged ? 2 : 1); // Slower when wandering
+          const newVisualX = visualX + (dx / dist) * moveSpeed;
+          const newVisualY = visualY + (dy / dist) * moveSpeed;
+
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'patrolling',
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
+          });
+        }
       }
     } else if (hunter.status === 'chasing') {
       // Chase the target rabbit

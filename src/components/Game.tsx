@@ -3740,6 +3740,44 @@ export default function Game() {
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕 New Game</button>
           <button onClick={() => setShowTutorialModal(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold" title="Open Tutorial">❓ Help</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
+          <button
+            onClick={() => {
+              setGameState(prev => {
+                const zoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+                const zone = prev.zones[zoneKey];
+
+                // Spawn rabbit at random edge
+                const edge = Math.floor(Math.random() * 4);
+                let x: number, y: number;
+                if (edge === 0) { x = Math.floor(Math.random() * 16); y = 0; }
+                else if (edge === 1) { x = Math.floor(Math.random() * 16); y = 11; }
+                else if (edge === 2) { x = 15; y = Math.floor(Math.random() * 12); }
+                else { x = 0; y = Math.floor(Math.random() * 12); }
+
+                const newRabbit = {
+                  id: `rabbit-${Date.now()}-${Math.random()}`,
+                  x, y, visualX: x, visualY: y,
+                  status: 'wandering' as const,
+                  spawnTime: prev.gameTime,
+                };
+
+                return {
+                  ...prev,
+                  zones: {
+                    ...prev.zones,
+                    [zoneKey]: {
+                      ...zone,
+                      rabbits: [...zone.rabbits, newRabbit],
+                    },
+                  },
+                };
+              });
+            }}
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-bold"
+            title="Debug: Spawn Rabbit"
+          >
+            🐰
+          </button>
 
           {/* Music Selector - Only show in farm zone */}
           {isInFarmZone() && (
@@ -3782,13 +3820,14 @@ export default function Game() {
 
         {/* Right: Stats Icons */}
         <div className="flex items-center gap-4">
-          {/* Economy Info - TEMPORARILY DISABLED: Market button causes crash due to module bundling issue */}
+          {/* Goods Economy Button */}
           {gameState.market && (
             <div
-              className="flex items-center gap-2 px-2 py-1 rounded border border-blue-500 opacity-60"
-              title="Market economy (temporarily disabled)"
+              className="flex items-center gap-2 px-2 py-1 rounded border border-blue-500 cursor-pointer hover:bg-blue-700 transition-colors"
+              onClick={() => setShowEconomyModal(true)}
+              title="Click to view Goods Economy - Price trends & forecasts"
             >
-              <span>📈</span>
+              <span>📊</span>
               <div className="flex flex-col">
                 <span className="text-xs font-bold capitalize">{gameState.market.currentSeason}</span>
                 <span className="text-xs text-gray-300">Day {gameState.currentDay}</span>

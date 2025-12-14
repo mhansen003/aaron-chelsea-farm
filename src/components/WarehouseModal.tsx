@@ -74,8 +74,13 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               <div className="text-slate-400">
                 <span className="text-white font-semibold">{gameState.warehouse.length}</span> items stored
               </div>
+              {gameState.markedForSale.length > 0 && (
+                <div className="text-slate-400">
+                  <span className="text-yellow-400 font-semibold">{gameState.markedForSale.length}</span> marked for sale
+                </div>
+              )}
               <div className="text-slate-400">
-                Total value: <span className="text-green-400 font-semibold">${warehouseValue}</span>
+                Total value: <span className="text-green-400 font-semibold">${warehouseValue + markedValue}</span>
               </div>
             </div>
           </div>
@@ -95,10 +100,12 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {CROPS.map((crop) => {
                 const count = warehouseCounts[crop.type] || 0;
+                const markedCount = markedForSaleCounts[crop.type] || 0;
+                const totalCount = count + markedCount;
                 const price = getMarketPrice(crop.type, gameState);
                 const basePrice = CROP_INFO[crop.type].sellPrice;
                 const priceIncrease = ((price - basePrice) / basePrice) * 100;
-                const totalValue = count * price;
+                const totalValue = totalCount * price;
                 const isEpic = gameState.market?.epicPriceCrop === crop.type;
                 const isHighDemand = gameState.market?.highDemandCrops.includes(crop.type);
                 const isGoodPrice = priceIncrease >= 50; // 50% or more above base
@@ -107,11 +114,11 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
                   <div
                     key={crop.type}
                     className={`bg-gradient-to-br ${crop.color} rounded-xl p-4 border-2 ${
-                      count > 0 ? 'border-white/20 shadow-lg' : 'border-transparent opacity-50'
+                      totalCount > 0 ? 'border-white/20 shadow-lg' : 'border-transparent opacity-50'
                     } transition-all relative`}
                   >
                     {/* Market Indicators */}
-                    {count > 0 && (
+                    {totalCount > 0 && (
                       <div className="absolute top-2 left-2 flex gap-1">
                         {isEpic && (
                           <div className="bg-purple-600 px-1.5 py-0.5 rounded text-xs font-bold border border-purple-300">
@@ -134,18 +141,26 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-4xl">{crop.emoji}</span>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-white">{count}</div>
-                        <div className="text-xs text-white/80">units</div>
+                        <div className="text-2xl font-bold text-white">{totalCount}</div>
+                        <div className="text-xs text-white/80">
+                          {markedCount > 0 ? (
+                            <span>
+                              {count} stored + <span className="text-yellow-300">{markedCount} marked</span>
+                            </span>
+                          ) : (
+                            'units'
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="text-sm font-semibold text-white mb-1">{crop.name}</div>
                     <div className="flex justify-between items-center text-xs text-white/90 mb-2">
                       <span>${price} ea</span>
-                      {count > 0 && <span className="font-bold">${totalValue}</span>}
+                      {totalCount > 0 && <span className="font-bold">${totalValue}</span>}
                     </div>
 
                     {/* Price Indicator */}
-                    {count > 0 && priceIncrease !== 0 && (
+                    {totalCount > 0 && priceIncrease !== 0 && (
                       <div className={`text-xs mb-2 font-semibold ${
                         priceIncrease > 0 ? 'text-green-200' : 'text-red-200'
                       }`}>
@@ -153,7 +168,7 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
                       </div>
                     )}
 
-                    {/* Mark for Sale Button */}
+                    {/* Mark for Sale Button - only show if there are items in storage (not already marked) */}
                     {count > 0 && (
                       <button
                         onClick={() => onMarkForSale(crop.type, count)}
@@ -165,6 +180,13 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
                       >
                         {isEpic || isHighDemand || isGoodPrice ? '⭐ Sell Now!' : '💰 Mark for Sale'}
                       </button>
+                    )}
+
+                    {/* Show status for marked items */}
+                    {markedCount > 0 && count === 0 && (
+                      <div className="w-full px-2 py-1.5 text-yellow-300 text-xs font-bold rounded bg-yellow-900/30 border border-yellow-500/30 text-center">
+                        🚚 Pickup in progress...
+                      </div>
                     )}
                   </div>
                 );

@@ -2269,6 +2269,27 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, demolishBots: updatedDemolishBots, grid: updatedGrid };
   });
 
+  // Update rabbits and hunter bots for all zones
+  Object.keys(newZones).forEach(zoneKey => {
+    let zone = newZones[zoneKey];
+
+    // Spawn rabbits in owned zones
+    if (zone.owned) {
+      zone = spawnRabbit(zone, newGameTime);
+    }
+
+    // Update rabbits (movement, eating crops)
+    const rabbitUpdate = updateRabbits(zone, newGameTime, deltaTime);
+    zone = rabbitUpdate.zone;
+    newZones[zoneKey] = { ...zone, grid: rabbitUpdate.grid };
+
+    // Update hunter bots (detecting and chasing rabbits)
+    if (zone.hunterBots.length > 0) {
+      zone = updateHunterBots(zone, deltaTime);
+      newZones[zoneKey] = zone;
+    }
+  });
+
   // Check and auto-refill seeds if enabled
   newState = checkAndAutoRefill(newState);
 
@@ -2637,15 +2658,16 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
           zoneX: state.currentZone.x,
           zoneY: state.currentZone.y,
           progress: 0,
-          duration: TASK_DURATIONS.deposit, // Use same duration as deposit
+          duration: TASK_DURATIONS.pickup_marked,
         });
         return tasks; // Return immediately - picking up marked items is highest priority
       }
     }
   }
 
-  // Priority 1: Auto Sell (if basket has items, go to export building to sell)
-  if (farmerAuto.autoSell && basket.length > 0) {
+  // Priority 1: Sell basket items (auto-sell OR if basket has marked items from pickup)
+  // Always sell if basket has items, regardless of autoSell setting - marked items should always be sold
+  if (basket.length > 0) {
     const exportPos = findExportTile(state);
     if (exportPos) {
       // Go to export building to sell crops (no distance restriction)
@@ -4241,3 +4263,387 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
  */
 // REMOVED: migrateBuildingsTo2x2 function was corrupting properly-placed buildings
 // It was deleting building tiles during load, causing the cascade corruption bug
+
+// Rabbit constants
+const RABBIT_SPAWN_INTERVAL = 45000; // Spawn a rabbit every 45 seconds
+const RABBIT_EATING_DURATION = 3000; // 3 seconds to eat a crop
+const RABBIT_MOVE_SPEED = 0.015; // Faster than player
+const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
+const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
+
+/**
+ * Spawn a rabbit in a zone if enough time has passed
+ */
+function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): import('@/types/game').Zone {
+  const lastSpawn = zone.lastRabbitSpawnTime || 0;
+
+  // Don't spawn if not enough time has passed or if there are already 3+ rabbits
+  if (gameTime - lastSpawn < RABBIT_SPAWN_INTERVAL || zone.rabbits.length >= 3) {
+    return zone;
+  }
+
+  // Random spawn position at the edge of the map
+  const edge = Math.floor(Math.random() * 4); // 0=north, 1=south, 2=east, 3=west
+  let x: number, y: number;
+
+  if (edge === 0) { // North
+    x = Math.floor(Math.random() * GAME_CONFIG.gridWidth);
+    y = 0;
+  } else if (edge === 1) { // South
+    x = Math.floor(Math.random() * GAME_CONFIG.gridWidth);
+    y = GAME_CONFIG.gridHeight - 1;
+  } else if (edge === 2) { // East
+    x = GAME_CONFIG.gridWidth - 1;
+    y = Math.floor(Math.random() * GAME_CONFIG.gridHeight);
+  } else { // West
+    x = 0;
+    y = Math.floor(Math.random() * GAME_CONFIG.gridHeight);
+  }
+
+  const newRabbit: import('@/types/game').Rabbit = {
+    id: `rabbit-${Date.now()}-${Math.random()}`,
+    x,
+    y,
+    visualX: x,
+    visualY: y,
+    status: 'wandering',
+    spawnTime: gameTime,
+  };
+
+  return {
+    ...zone,
+    rabbits: [...zone.rabbits, newRabbit],
+    lastRabbitSpawnTime: gameTime,
+  };
+}
+
+/**
+ * Update rabbit AI - find crops, move towards them, eat them
+ */
+function updateRabbits(
+  zone: import('@/types/game').Zone,
+  gameTime: number,
+  deltaTime: number
+): { zone: import('@/types/game').Zone; grid: import('@/types/game').Tile[][] } {
+  let updatedGrid = zone.grid.map(row => [...row]);
+  const updatedRabbits: import('@/types/game').Rabbit[] = [];
+
+  for (const rabbit of zone.rabbits) {
+    // Remove captured rabbits
+    if (rabbit.status === 'captured') {
+      continue;
+    }
+
+    // Find nearest crop (growing or ready to harvest)
+    if (rabbit.status === 'wandering' || rabbit.status === 'approaching_crop') {
+      let nearestCrop: { x: number; y: number; distance: number } | null = null;
+
+      for (let y = 0; y < updatedGrid.length; y++) {
+        for (let x = 0; x < updatedGrid[y].length; x++) {
+          const tile = updatedGrid[y][x];
+          if (tile.crop && tile.growthStage > 50) { // Only go for crops that are at least 50% grown
+            const distance = Math.abs(rabbit.x - x) + Math.abs(rabbit.y - y);
+            if (!nearestCrop || distance < nearestCrop.distance) {
+              nearestCrop = { x, y, distance };
+            }
+          }
+        }
+      }
+
+      if (nearestCrop) {
+        // Move towards the crop
+        const dx = nearestCrop.x - rabbit.visualX;
+        const dy = nearestCrop.y - rabbit.visualY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 0.2) {
+          // Reached the crop - start eating
+          updatedRabbits.push({
+            ...rabbit,
+            x: nearestCrop.x,
+            y: nearestCrop.y,
+            visualX: nearestCrop.x,
+            visualY: nearestCrop.y,
+            status: 'eating',
+            targetX: nearestCrop.x,
+            targetY: nearestCrop.y,
+            eatingStartTime: gameTime,
+            eatingDuration: RABBIT_EATING_DURATION,
+          });
+        } else {
+          // Move towards crop
+          const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
+          const newVisualX = rabbit.visualX + (dx / dist) * moveSpeed;
+          const newVisualY = rabbit.visualY + (dy / dist) * moveSpeed;
+
+          updatedRabbits.push({
+            ...rabbit,
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
+            status: 'approaching_crop',
+            targetX: nearestCrop.x,
+            targetY: nearestCrop.y,
+          });
+        }
+      } else {
+        // No crops found - wander randomly
+        updatedRabbits.push({
+          ...rabbit,
+          status: 'wandering',
+        });
+      }
+    } else if (rabbit.status === 'eating') {
+      // Eating - check if done
+      const eatingTime = gameTime - (rabbit.eatingStartTime || 0);
+      if (eatingTime >= (rabbit.eatingDuration || RABBIT_EATING_DURATION)) {
+        // Done eating - remove the crop but keep the seed programming
+        if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
+          const tile = updatedGrid[rabbit.targetY][rabbit.targetX];
+          updatedGrid[rabbit.targetY][rabbit.targetX] = {
+            ...tile,
+            crop: null,
+            growthStage: 0,
+            wateredToday: false,
+            wateredTimestamp: undefined,
+          };
+        }
+        // Rabbit wanders off after eating
+        updatedRabbits.push({
+          ...rabbit,
+          status: 'wandering',
+          targetX: undefined,
+          targetY: undefined,
+        });
+      } else {
+        // Still eating
+        updatedRabbits.push(rabbit);
+      }
+    } else if (rabbit.status === 'fleeing') {
+      // Fleeing from hunter - move towards edge
+      updatedRabbits.push(rabbit);
+    }
+  }
+
+  return {
+    zone: { ...zone, rabbits: updatedRabbits },
+    grid: updatedGrid,
+  };
+}
+
+/**
+ * Update hunter bots - detect rabbits, chase them, capture them
+ */
+function updateHunterBots(
+  zone: import('@/types/game').Zone,
+  deltaTime: number
+): import('@/types/game').Zone {
+  const updatedHunterBots: import('@/types/game').HunterBot[] = [];
+  let updatedRabbits = [...zone.rabbits];
+
+  for (const hunter of zone.hunterBots) {
+    // Initialize visual position if not set
+    const visualX = hunter.visualX ?? hunter.x ?? 0;
+    const visualY = hunter.visualY ?? hunter.y ?? 0;
+
+    if (hunter.status === 'garaged') {
+      updatedHunterBots.push({ ...hunter, visualX, visualY });
+      continue;
+    }
+
+    // Find nearest rabbit if not already chasing one
+    if (hunter.status === 'patrolling' || hunter.status === 'idle') {
+      let nearestRabbit: import('@/types/game').Rabbit | null = null;
+      let nearestDistance = Infinity;
+
+      for (const rabbit of updatedRabbits) {
+        if (rabbit.status === 'captured') continue;
+
+        const rabbitX = rabbit.visualX;
+        const rabbitY = rabbit.visualY;
+        const hunterX = hunter.x ?? 0;
+        const hunterY = hunter.y ?? 0;
+        const distance = Math.sqrt(
+          Math.pow(rabbitX - hunterX, 2) + Math.pow(rabbitY - hunterY, 2)
+        );
+
+        if (distance <= hunter.detectionRange && distance < nearestDistance) {
+          nearestRabbit = rabbit;
+          nearestDistance = distance;
+        }
+      }
+
+      if (nearestRabbit) {
+        // Start chasing this rabbit
+        updatedHunterBots.push({
+          ...hunter,
+          status: 'chasing',
+          targetRabbitId: nearestRabbit.id,
+          visualX,
+          visualY,
+        });
+      } else {
+        // Keep patrolling
+        updatedHunterBots.push({
+          ...hunter,
+          status: 'patrolling',
+          visualX,
+          visualY,
+        });
+      }
+    } else if (hunter.status === 'chasing') {
+      // Chase the target rabbit
+      const targetRabbit = updatedRabbits.find(r => r.id === hunter.targetRabbitId);
+
+      if (!targetRabbit || targetRabbit.status === 'captured') {
+        // Rabbit is gone - go back to patrolling
+        updatedHunterBots.push({
+          ...hunter,
+          status: 'patrolling',
+          targetRabbitId: undefined,
+          visualX,
+          visualY,
+        });
+      } else {
+        // Move towards rabbit
+        const dx = targetRabbit.visualX - visualX;
+        const dy = targetRabbit.visualY - visualY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 0.5) {
+          // Caught the rabbit!
+          updatedRabbits = updatedRabbits.map(r =>
+            r.id === targetRabbit.id ? { ...r, status: 'captured' as const } : r
+          );
+
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'escorting',
+            visualX: targetRabbit.visualX,
+            visualY: targetRabbit.visualY,
+            x: Math.round(targetRabbit.visualX),
+            y: Math.round(targetRabbit.visualY),
+          });
+        } else {
+          // Keep chasing
+          const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * (hunter.supercharged ? 2 : 1);
+          const newVisualX = visualX + (dx / dist) * moveSpeed;
+          const newVisualY = visualY + (dy / dist) * moveSpeed;
+
+          updatedHunterBots.push({
+            ...hunter,
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
+          });
+        }
+      }
+    } else if (hunter.status === 'escorting') {
+      // Escort rabbit off screen (move to nearest edge)
+      const hunterX = hunter.x ?? 0;
+      const hunterY = hunter.y ?? 0;
+
+      // Find nearest edge
+      const distToNorth = hunterY;
+      const distToSouth = GAME_CONFIG.gridHeight - 1 - hunterY;
+      const distToEast = GAME_CONFIG.gridWidth - 1 - hunterX;
+      const distToWest = hunterX;
+      const minDist = Math.min(distToNorth, distToSouth, distToEast, distToWest);
+
+      if (minDist < 0.5) {
+        // Reached edge - remove rabbit and go back to patrolling
+        updatedRabbits = updatedRabbits.filter(r => r.id !== hunter.targetRabbitId);
+
+        updatedHunterBots.push({
+          ...hunter,
+          status: 'patrolling',
+          targetRabbitId: undefined,
+          visualX,
+          visualY,
+        });
+      } else {
+        // Move towards nearest edge
+        let targetX = hunterX;
+        let targetY = hunterY;
+
+        if (minDist === distToNorth) targetY = 0;
+        else if (minDist === distToSouth) targetY = GAME_CONFIG.gridHeight - 1;
+        else if (minDist === distToEast) targetX = GAME_CONFIG.gridWidth - 1;
+        else targetX = 0;
+
+        const dx = targetX - visualX;
+        const dy = targetY - visualY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * (hunter.supercharged ? 2 : 1);
+        const newVisualX = visualX + (dx / dist) * moveSpeed;
+        const newVisualY = visualY + (dy / dist) * moveSpeed;
+
+        updatedHunterBots.push({
+          ...hunter,
+          visualX: newVisualX,
+          visualY: newVisualY,
+          x: Math.round(newVisualX),
+          y: Math.round(newVisualY),
+        });
+      }
+    } else {
+      updatedHunterBots.push({ ...hunter, visualX, visualY });
+    }
+  }
+
+  return {
+    ...zone,
+    hunterBots: updatedHunterBots,
+    rabbits: updatedRabbits,
+  };
+}
+
+/**
+ * Purchase a hunter bot
+ */
+export function buyHunterbots(state: GameState, count: number = 1): GameState {
+  const totalCost = Array.from({ length: count }, (_, i) =>
+    getBotCost(HUNTERBOT_COST, state.player.inventory.hunterbots + i)
+  ).reduce((sum, cost) => sum + cost, 0);
+
+  if (state.player.money < totalCost) {
+    return state;
+  }
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  // Create new hunter bots
+  const newHunterBots: import('@/types/game').HunterBot[] = Array.from({ length: count }, (_, i) => ({
+    id: `hunter-${Date.now()}-${i}`,
+    name: `Hunter ${state.player.inventory.hunterbots + i + 1}`,
+    status: 'patrolling',
+    x: 1,
+    y: 1,
+    visualX: 1,
+    visualY: 1,
+    detectionRange: HUNTER_DETECTION_RANGE,
+    supercharged: false,
+  }));
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - totalCost,
+      inventory: {
+        ...state.player.inventory,
+        hunterbots: state.player.inventory.hunterbots + count,
+      },
+    },
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        hunterBots: [...currentZone.hunterBots, ...newHunterBots],
+      },
+    },
+  };
+}

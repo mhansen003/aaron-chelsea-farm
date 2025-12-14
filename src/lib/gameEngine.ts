@@ -1083,7 +1083,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return {
               ...tile,
               lastWorkedTime: newGameTime,
-              overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
+              overgrowthTime: newGameTime + (1200000 + Math.random() * 1200000), // 20-40 minutes random (25% less frequent)
             };
           }
 

@@ -200,6 +200,8 @@ export default function Game() {
   const [isMusicPaused, setIsMusicPaused] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.5); // Default 50% volume
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
+  const [automationOrder, setAutomationOrder] = useState<('plant' | 'water' | 'harvest')[]>(['plant', 'water', 'harvest']); // Priority order for farmer automation
+  const [draggedAutomation, setDraggedAutomation] = useState<'plant' | 'water' | 'harvest' | null>(null);
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -960,6 +962,32 @@ export default function Game() {
       }
       return newSet;
     });
+  }, []);
+
+  // Drag-and-drop handlers for automation priority
+  const handleAutomationDragStart = useCallback((task: 'plant' | 'water' | 'harvest') => {
+    setDraggedAutomation(task);
+  }, []);
+
+  const handleAutomationDragOver = useCallback((e: React.DragEvent, targetTask: 'plant' | 'water' | 'harvest') => {
+    e.preventDefault();
+    if (!draggedAutomation || draggedAutomation === targetTask) return;
+
+    setAutomationOrder(prev => {
+      const newOrder = [...prev];
+      const draggedIndex = newOrder.indexOf(draggedAutomation);
+      const targetIndex = newOrder.indexOf(targetTask);
+
+      // Swap positions
+      newOrder.splice(draggedIndex, 1);
+      newOrder.splice(targetIndex, 0, draggedAutomation);
+
+      return newOrder;
+    });
+  }, [draggedAutomation]);
+
+  const handleAutomationDragEnd = useCallback(() => {
+    setDraggedAutomation(null);
   }, []);
 
   // Close music dropdown when clicking outside
@@ -3884,9 +3912,11 @@ export default function Game() {
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Left Sidebar - Farmer Status */}
-      <div className="w-52 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
+      <div className="w-52 bg-black/70 p-2 rounded-lg text-white flex flex-col max-h-full overflow-y-auto">
         <div className="text-sm font-bold text-center mb-2 text-green-400">👨‍🌾 Farmer</div>
 
+        {/* Top Section: Queue and Basket */}
+        <div className="flex flex-col gap-2 mb-2">
         {/* Task Queue (Current + Next 2 Queued) */}
         <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 mb-1">
           <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE (Max 3):</div>
@@ -3996,34 +4026,52 @@ export default function Game() {
             <div className="text-xs text-gray-400 text-center py-1">Empty</div>
           )}
         </div>
+        </div>
 
-        {/* Farmer Automation Controls */}
-        <div className="bg-purple-900/30 border border-purple-600 rounded px-2 py-2 mb-2">
+        {/* Farmer Automation Controls - Bottom Aligned */}
+        <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
+          <div className="text-[10px] text-purple-400 mb-2 italic">Drag to reorder priority ↕️</div>
           <div className="space-y-1.5">
-            {/* Auto Plant */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoPlant}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoPlant: !prev.player.farmerAuto.autoPlant,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Plant</span>
-            </label>
-            {/* Crop Selector for Auto Plant - Dropdown */}
-            {gameState.player.farmerAuto.autoPlant && (
+            {/* Draggable Automation Items */}
+            {automationOrder.map((task, index) => {
+              const isDragging = draggedAutomation === task;
+
+              return (
+                <div key={task}>
+                  {task === 'plant' && (
+                    <>
+                      <div
+                        draggable
+                        onDragStart={() => handleAutomationDragStart('plant')}
+                        onDragOver={(e) => handleAutomationDragOver(e, 'plant')}
+                        onDragEnd={handleAutomationDragEnd}
+                        className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                      >
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
+                          <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                          <input
+                            type="checkbox"
+                            checked={gameState.player.farmerAuto.autoPlant}
+                            onChange={() => {
+                              setGameState(prev => ({
+                                ...prev,
+                                player: {
+                                  ...prev.player,
+                                  farmerAuto: {
+                                    ...prev.player.farmerAuto,
+                                    autoPlant: !prev.player.farmerAuto.autoPlant,
+                                  },
+                                },
+                              }));
+                            }}
+                            className="w-3 h-3"
+                          />
+                          <span className="text-xs text-white">Auto Plant</span>
+                        </label>
+                      </div>
+                      {/* Crop Selector for Auto Plant - Dropdown */}
+                      {gameState.player.farmerAuto.autoPlant && (
               <div className="ml-5 text-xs crop-dropdown-container relative">
                 <label className="text-gray-400 mb-1 block">Crop rotation:</label>
                 <button
@@ -4086,50 +4134,75 @@ export default function Game() {
                 )}
               </div>
             )}
+                    </>
+                  )}
 
-            {/* Auto Water */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoWater}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoWater: !prev.player.farmerAuto.autoWater,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Water</span>
-            </label>
+                  {task === 'water' && (
+                    <div
+                      draggable
+                      onDragStart={() => handleAutomationDragStart('water')}
+                      onDragOver={(e) => handleAutomationDragOver(e, 'water')}
+                      onDragEnd={handleAutomationDragEnd}
+                      className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                    >
+                      <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
+                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                        <input
+                          type="checkbox"
+                          checked={gameState.player.farmerAuto.autoWater}
+                          onChange={() => {
+                            setGameState(prev => ({
+                              ...prev,
+                              player: {
+                                ...prev.player,
+                                farmerAuto: {
+                                  ...prev.player.farmerAuto,
+                                  autoWater: !prev.player.farmerAuto.autoWater,
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-3 h-3"
+                        />
+                        <span className="text-xs text-white">Auto Water</span>
+                      </label>
+                    </div>
+                  )}
 
-            {/* Auto Harvest */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoHarvest}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoHarvest: !prev.player.farmerAuto.autoHarvest,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Harvest</span>
-            </label>
+                  {task === 'harvest' && (
+                    <div
+                      draggable
+                      onDragStart={() => handleAutomationDragStart('harvest')}
+                      onDragOver={(e) => handleAutomationDragOver(e, 'harvest')}
+                      onDragEnd={handleAutomationDragEnd}
+                      className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                    >
+                      <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
+                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                        <input
+                          type="checkbox"
+                          checked={gameState.player.farmerAuto.autoHarvest}
+                          onChange={() => {
+                            setGameState(prev => ({
+                              ...prev,
+                              player: {
+                                ...prev.player,
+                                farmerAuto: {
+                                  ...prev.player.farmerAuto,
+                                  autoHarvest: !prev.player.farmerAuto.autoHarvest,
+                                },
+                              },
+                            }));
+                          }}
+                          className="w-3 h-3"
+                        />
+                        <span className="text-xs text-white">Auto Harvest</span>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Deposit Destination - Radio buttons */}
             <div className="border-t border-purple-700 pt-1.5 mt-1.5">
@@ -5001,6 +5074,10 @@ export default function Game() {
           }}
           onBuyFertilizerBuilding={() => {
             setGameState(prev => buyFertilizerBuilding(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
+          onBuyHopper={() => {
+            setGameState(prev => buyHopper(prev));
             setShowBuildingPurchaseTip(true);
           }}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}

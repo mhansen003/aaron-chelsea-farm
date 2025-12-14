@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST, HOPPER_COST } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -19,11 +19,12 @@ interface ShopProps {
   onBuyGarage: () => void;
   onBuySupercharger: () => void;
   onBuyFertilizerBuilding: () => void;
+  onBuyHopper: () => void;
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
 type ItemType =
-  | { category: 'building'; name: 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizerBuilding' }
+  | { category: 'building'; name: 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizerBuilding' | 'hopper' }
   | { category: 'tool'; name: 'sprinkler' }
   | { category: 'upgrade'; tier: number };
 
@@ -32,7 +33,7 @@ interface CartItem {
   quantity: number;
 }
 
-export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onBuyFertilizerBuilding, onToggleAutoBuy }: ShopProps) {
+export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onBuyFertilizerBuilding, onBuyHopper, onToggleAutoBuy }: ShopProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState<'buildings' | 'tools'>('buildings');
 
@@ -70,6 +71,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
         garage: GARAGE_COST,
         supercharger: SUPERCHARGER_COST,
         fertilizerBuilding: FERTILIZER_BUILDING_COST,
+        hopper: HOPPER_COST,
       };
       return costs[type.name];
     } else if (type.category === 'tool') {
@@ -94,6 +96,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           else if (item.type.name === 'garage') onBuyGarage();
           else if (item.type.name === 'supercharger') onBuySupercharger();
           else if (item.type.name === 'fertilizerBuilding') onBuyFertilizerBuilding();
+          else if (item.type.name === 'hopper') onBuyHopper();
         }
       } else if (item.type.category === 'tool') {
         onBuySprinklers(item.quantity);
@@ -227,6 +230,18 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 gameState.player.inventory.fertilizerBuildingPlaced,
                 'border-lime-500'
               )}
+
+              {/* Hopper */}
+              {renderBuildingCard(
+                { category: 'building', name: 'hopper' },
+                'Hopper',
+                '/hopper.png',
+                'Bot upgrades',
+                HOPPER_COST,
+                (gameState.player.inventory.hopper ?? 0) >= 1,
+                gameState.player.inventory.hopperPlaced,
+                'border-cyan-500'
+              )}
             </div>
           )}
 
@@ -327,7 +342,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 const cost = getItemCost(item.type);
                 let name = '';
                 if (item.type.category === 'building') {
-                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg' };
+                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg', hopper: 'Hopper' };
                   name = names[item.type.name];
                 } else if (item.type.category === 'tool') {
                   name = 'Sprinkler';

@@ -1913,8 +1913,57 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const warehouse: { x: number; y: number } = warehousePos;
       const exportStation: { x: number; y: number } = exportPos;
 
-      // Bot has inventory, go to export to sell
+      // Bot has inventory, check if prices are favorable before selling
       if (bot.inventory.length > 0) {
+        // Smart selling: Check market conditions for each crop type
+        const shouldSell = bot.inventory.some(item => {
+          const basePrice = CROP_INFO[item.crop].sellPrice;
+          const marketPrice = newState.market
+            ? getMarketPrice(item.crop as Exclude<import('@/types/game').CropType, null>, newState)
+            : basePrice;
+
+          // Sell if: price is above base, OR crop is high demand/epic, OR inventory is full
+          const priceIsGood = marketPrice >= basePrice * 1.2; // 20% above base
+          const isHighDemand = newState.market?.highDemandCrops.includes(item.crop as any) || false;
+          const isEpic = newState.market?.epicPriceCrop === item.crop;
+          const inventoryFull = bot.inventory.length >= bot.inventoryCapacity;
+
+          return priceIsGood || isHighDemand || isEpic || inventoryFull;
+        });
+
+        // If prices are not favorable, return items to warehouse
+        if (!shouldSell) {
+          const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+          if (botX === warehouse.x && botY === warehouse.y && hasArrivedVisually) {
+            // Unload items back to warehouse (waiting for better prices)
+            const ACTION_DURATION = getAdjustedDuration(1500, bot.supercharged);
+            if (bot.actionStartTime !== undefined) {
+              const elapsed = newGameTime - bot.actionStartTime;
+              if (elapsed >= ACTION_DURATION) {
+                // Return items to warehouse
+                newState = {
+                  ...newState,
+                  warehouse: [...newState.warehouse, ...bot.inventory],
+                };
+                return { ...bot, inventory: [], status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+              } else {
+                return { ...bot, status: 'loading' as const, visualX, visualY };
+              }
+            } else {
+              return { ...bot, status: 'loading' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
+            }
+          } else {
+            // Travel back to warehouse to wait for better prices
+            let newX = botX, newY = botY;
+            if (Math.random() < (deltaTime / 400)) {
+              if (botX < warehouse.x) newX++; else if (botX > warehouse.x) newX--;
+              else if (botY < warehouse.y) newY++; else if (botY > warehouse.y) newY--;
+            }
+            return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: warehouse.x, targetY: warehouse.y, visualX, visualY };
+          }
+        }
+
+        // Prices are favorable, proceed with selling
         const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
         if (botX === exportStation.x && botY === exportStation.y && hasArrivedVisually) {
           // Selling at export station
@@ -1922,10 +1971,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= ACTION_DURATION) {
-              // Calculate total money from selling (rounded to nearest dollar)
+              // Calculate total money from selling using market prices
               const totalMoney = Math.round(bot.inventory.reduce((sum, item) => {
-                const cropInfo = CROP_INFO[item.crop];
-                return sum + (cropInfo.sellPrice * item.quality.yield);
+                const marketPrice = newState.market
+                  ? getMarketPrice(item.crop as Exclude<import('@/types/game').CropType, null>, newState)
+                  : CROP_INFO[item.crop].sellPrice;
+                return sum + (marketPrice * item.quality.yield);
               }, 0));
 
               // Create sales records for this transport bot sale
@@ -1937,11 +1988,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               const salesRecords: import('@/types/game').SaleRecord[] = [];
               Object.entries(cropCounts).forEach(([crop, quantity]) => {
                 const cropType = crop as Exclude<import('@/types/game').CropType, null>;
-                const cropInfo = CROP_INFO[cropType];
                 const avgQuality = bot.inventory
                   .filter(item => item.crop === crop)
                   .reduce((sum, item) => sum + item.quality.yield, 0) / quantity;
-                const pricePerUnit = Math.floor(cropInfo.sellPrice * avgQuality);
+                // Use market price instead of base price
+                const marketPrice = newState.market
+                  ? getMarketPrice(cropType, newState)
+                  : CROP_INFO[cropType].sellPrice;
+                const pricePerUnit = Math.floor(marketPrice * avgQuality);
                 const revenue = pricePerUnit * quantity;
 
                 salesRecords.push({

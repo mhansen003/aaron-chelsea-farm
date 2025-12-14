@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { GameState, TransportBotConfig, FertilizerBotConfig } from '@/types/game';
+import { GameState, TransportBotConfig } from '@/types/game';
 import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, HUNTERBOT_COST, FERTILIZERBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
 import BotNameModal from './BotNameModal';
 import TransportBotConfigModal from './TransportBotConfigModal';
-import FertilizerBotConfigModal from './FertilizerBotConfigModal';
 
 interface BotFactoryProps {
   gameState: GameState;
@@ -17,7 +16,7 @@ interface BotFactoryProps {
   onBuyTransportbots: (amount: number, name?: string, config?: TransportBotConfig) => void;
   onBuyDemolishbots: (amount: number, name?: string) => void;
   onBuyHunterbots: (amount: number, name?: string) => void;
-  onBuyFertilizerbot: (name?: string, config?: FertilizerBotConfig) => void;
+  onBuyFertilizerbot: (name?: string) => void;
   onRelocate: () => void;
 }
 
@@ -101,8 +100,6 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
   const [namingBot, setNamingBot] = useState<BotType | null>(null);
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
   const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
-  const [configuringFertilizerBot, setConfiguringFertilizerBot] = useState(false);
-  const [fertilizerBotName, setFertilizerBotName] = useState<string | undefined>(undefined);
 
   const getOwned = (type: BotType): number => {
     switch (type) {
@@ -439,9 +436,9 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
               processNextBot();
             }
             else if (namingBot === 'fertilizer') {
-              setFertilizerBotName(name);
+              onBuyFertilizerbot(name);
               setNamingBot(null);
-              setConfiguringFertilizerBot(true);
+              processNextBot();
             }
           }}
           onCancel={() => {
@@ -474,25 +471,6 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
         />
       )}
 
-      {/* Fertilizer Bot Config Modal */}
-      {configuringFertilizerBot && (
-        <FertilizerBotConfigModal
-          botName={fertilizerBotName}
-          onSave={(config) => {
-            onBuyFertilizerbot(fertilizerBotName, config);
-            setConfiguringFertilizerBot(false);
-            setFertilizerBotName(undefined);
-            processNextBot();
-          }}
-          onCancel={() => {
-            setConfiguringFertilizerBot(false);
-            setFertilizerBotName(undefined);
-            setCart([]);
-            setCheckoutQueue([]);
-            setCurrentBotIndex(0);
-          }}
-        />
-      )}
     </div>
   );
 }

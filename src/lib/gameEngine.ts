@@ -616,8 +616,8 @@ export function createInitialState(): GameState {
         corn: true,
       },
       farmerAuto: {
-        autoPlant: true,
-        autoPlantCrops: ['carrot'], // Start with just carrot selected
+        autoPlant: false, // Farmer cannot auto-plant, only Seed Bots can plant
+        autoPlantCrops: [], // No crops selected by default
         autoWater: true,
         autoHarvest: true,
         autoSell: true,
@@ -4956,7 +4956,9 @@ function updateRabbits(
       for (let y = 0; y < updatedGrid.length; y++) {
         for (let x = 0; x < updatedGrid[y].length; x++) {
           const tile = updatedGrid[y][x];
-          if (tile.crop && tile.growthStage > 50) { // Only go for crops that are at least 50% grown
+          // Skip the last eaten position to prevent looping on same spot
+          const isLastEatenSpot = rabbit.lastEatenX === x && rabbit.lastEatenY === y;
+          if (tile.crop && tile.growthStage > 50 && !isLastEatenSpot) { // Only go for crops that are at least 50% grown
             const distance = Math.abs(rabbit.x - x) + Math.abs(rabbit.y - y);
             if (!nearestCrop || distance < nearestCrop.distance) {
               nearestCrop = { x, y, distance };
@@ -5101,7 +5103,7 @@ function updateRabbits(
             targetY: exitY,
           });
         } else {
-          // Continue wandering for more crops
+          // Continue wandering for more crops - track last eaten position to avoid re-eating same spot
           updatedRabbits.push({
             ...rabbit,
             status: 'wandering',
@@ -5110,6 +5112,8 @@ function updateRabbits(
             targetY: undefined,
             eatingStartTime: undefined,
             eatingDuration: undefined,
+            lastEatenX: rabbit.targetX,
+            lastEatenY: rabbit.targetY,
           });
         }
       } else {

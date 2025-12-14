@@ -1594,17 +1594,17 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             // Already at garage - stay parked
             return { ...bot, status: 'idle' as const, visualX, visualY };
           } else {
-            // Travel to garage
+            // Travel to garage (slow idle speed)
             let newX = botX, newY = botY;
-            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+            if (Math.random() < (deltaTime / 2000)) {
               if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
               else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
             }
             return { ...bot, x: newX, y: newY, status: 'idle' as const, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
           }
         }
-        // No garage - wander randomly at normal speed
-        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+        // No garage - wander randomly (slow idle speed)
+        if (Math.random() < (deltaTime / 2000)) {
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
@@ -4957,6 +4957,7 @@ function updateRabbits(
 
         if (dist < 0.2) {
           // Reached the crop - start eating
+          console.log('[Rabbit] START EATING at', nearestCrop, 'gameTime:', gameTime, 'duration:', RABBIT_EATING_DURATION);
           updatedRabbits.push({
             ...rabbit,
             x: nearestCrop.x,
@@ -4996,7 +4997,15 @@ function updateRabbits(
     } else if (rabbit.status === 'eating') {
       // Eating - check if done
       const eatingTime = gameTime - (rabbit.eatingStartTime || 0);
+      console.log('[Rabbit Eating]', {
+        rabbitId: rabbit.id,
+        eatingTime,
+        requiredDuration: rabbit.eatingDuration || RABBIT_EATING_DURATION,
+        progress: (eatingTime / (rabbit.eatingDuration || RABBIT_EATING_DURATION) * 100).toFixed(1) + '%',
+        targetPos: `(${rabbit.targetX}, ${rabbit.targetY})`,
+      });
       if (eatingTime >= (rabbit.eatingDuration || RABBIT_EATING_DURATION)) {
+        console.log('[Rabbit] EATING COMPLETE - removing crop');
         // Done eating - completely remove the crop
         if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
           const tile = updatedGrid[rabbit.targetY][rabbit.targetX];

@@ -356,7 +356,8 @@ export interface Rabbit {
   spawnTime: number; // Game time when rabbit spawned
   eatingStartTime?: number; // Game time when rabbit started eating
   eatingDuration?: number; // How long eating takes (ms)
-  cropsEaten: number; // How many crops eaten (max 10)
+  cropsEaten: number; // How many crops eaten
+  maxCropsToEat: number; // Random value (5-10) - rabbit leaves after eating this many
 }
 
 export interface HunterBot {

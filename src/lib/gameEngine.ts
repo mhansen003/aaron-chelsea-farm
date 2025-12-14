@@ -5372,16 +5372,12 @@ export function buyHunterbots(state: GameState, count: number = 1): GameState {
  * Buy fertilizer bot (only 1 allowed per player)
  */
 export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bot'): GameState {
-  console.log('buyFertilizerbot called with name:', name);
-
   // Check if player already has a fertilizer bot
   if (state.player.inventory.fertilizerbot > 0) {
-    console.log('Cannot buy: already have a fertilizer bot');
     return state;
   }
 
   if (state.player.money < FERTILIZERBOT_COST) {
-    console.log('Cannot buy: insufficient funds. Cost:', FERTILIZERBOT_COST, 'Money:', state.player.money);
     return state;
   }
 
@@ -5402,11 +5398,8 @@ export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bo
 
   if (!hasFertilizerBuilding) {
     // Need fertilizer building first
-    console.log('Cannot buy: no fertilizer building in current zone');
     return state;
   }
-
-  console.log('Creating fertilizer bot in zone:', currentZoneKey);
 
   // Default crop priority: high profit crops first
   const defaultCropPriority: Array<Exclude<import('@/types/game').CropType, null>> = [
@@ -5429,8 +5422,6 @@ export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bo
       cropPriority: defaultCropPriority,
     },
   };
-
-  console.log('Fertilizer bot created successfully:', newBot);
 
   return {
     ...state,

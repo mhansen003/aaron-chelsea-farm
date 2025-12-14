@@ -20,6 +20,10 @@ import {
   buyTransportbots,
   buyDemolishbots,
   buyHunterbots,
+  buyFertilizerbot,
+  buyFertilizerBuilding,
+  placeFertilizerBuilding,
+  relocateFertilizerBuilding,
   updateSeedBotJobs,
   updateBotName,
   sellBot,
@@ -705,6 +709,13 @@ export default function Game() {
     { name: 'Tranquil Garden', file: '/farm5.mp3' },
   ];
 
+  const farmRapSongs = [
+    { name: 'Farm Rap 1', file: '/farm_rap1.mp3' },
+  ];
+
+  // Combined all farm songs for random selection
+  const allFarmSongs = [...farmSongs, ...farmRapSongs];
+
   const singleZoneMusic: Record<string, string> = {
     beach: '/beach.mp3',
     barn: '/barn.mp3',
@@ -748,9 +759,9 @@ export default function Game() {
 
     if (isFarm) {
       // Farm zone: Pick a random song from the playlist
-      const randomIndex = getRandomSongIndex(-1, farmSongs.length);
+      const randomIndex = getRandomSongIndex(-1, allFarmSongs.length);
       setCurrentSongIndex(randomIndex);
-      musicFile = farmSongs[randomIndex].file;
+      musicFile = allFarmSongs[randomIndex].file;
 
       // Create new audio for farm zone
       audioRef.current = new Audio(musicFile);
@@ -760,10 +771,10 @@ export default function Game() {
       // When song ends, play next random song
       const handleSongEnd = () => {
         setCurrentSongIndex(prevIndex => {
-          const nextIndex = getRandomSongIndex(prevIndex, farmSongs.length);
+          const nextIndex = getRandomSongIndex(prevIndex, allFarmSongs.length);
 
           if (audioRef.current && !isMusicMuted) {
-            audioRef.current.src = farmSongs[nextIndex].file;
+            audioRef.current.src = allFarmSongs[nextIndex].file;
             audioRef.current.play().catch(() => {});
           }
 
@@ -798,7 +809,7 @@ export default function Game() {
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
-    if (isInFarmZone() && index >= 0 && index < farmSongs.length) {
+    if (isInFarmZone() && index >= 0 && index < allFarmSongs.length) {
       setCurrentSongIndex(index);
       setShowMusicDropdown(false);
 
@@ -809,11 +820,11 @@ export default function Game() {
 
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = farmSongs[index].file;
+        audioRef.current.src = allFarmSongs[index].file;
         audioRef.current.play().catch(() => {});
       }
     }
-  }, [isInFarmZone, isMusicMuted]);
+  }, [isInFarmZone, isMusicMuted, allFarmSongs]);
 
   // Handle music mute/unmute
   const toggleMusicMute = useCallback(() => {
@@ -4501,6 +4512,10 @@ export default function Game() {
             setGameState(prev => buySupercharger(prev));
             setShowBuildingPurchaseTip(true);
           }}
+          onBuyFertilizerBuilding={() => {
+            setGameState(prev => buyFertilizerBuilding(prev));
+            setShowBuildingPurchaseTip(true);
+          }}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
@@ -4558,6 +4573,7 @@ export default function Game() {
           onBuyTransportbots={(amount, name, config) => setGameState(prev => buyTransportbots(prev, amount, name, config))}
           onBuyDemolishbots={(amount, name) => setGameState(prev => buyDemolishbots(prev, amount, name))}
           onBuyHunterbots={(amount) => setGameState(prev => buyHunterbots(prev, amount))}
+          onBuyFertilizerbot={(name, config) => setGameState(prev => buyFertilizerbot(prev, name))}
           onRelocate={() => {
             setGameState(prev => relocateBotFactory(prev));
             setPlacementMode('botFactory');

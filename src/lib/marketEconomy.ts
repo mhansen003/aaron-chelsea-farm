@@ -80,12 +80,12 @@ export function initializeMarket(gameState: GameState): MarketData {
 }
 
 /**
- * Generate price forecast for the next 2 seasons
- * Each season is 10 minutes, so this forecasts 20 minutes ahead
+ * Generate price forecast for the next 10 cycles
+ * Each cycle is a price update (typically daily), forecasting ~10 days ahead
  */
 function generatePriceForecast(market: MarketData, gameState: GameState): PriceSnapshot[] {
   const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds (1 season)
-  const NUM_CYCLES = 2; // Forecast 2 seasons ahead
+  const NUM_CYCLES = 10; // Forecast 10 cycles ahead for balanced chart
   const forecast: PriceSnapshot[] = [];
 
   const crops: Array<Exclude<CropType, null>> = [

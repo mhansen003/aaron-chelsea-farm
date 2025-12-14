@@ -90,16 +90,26 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
     // Calculate bar width based on number of data points
     const barWidth = Math.max(2, width / allData.length - 2);
 
-    // Draw historical bars (solid)
-    ctx.fillStyle = color;
+    // Draw historical bars (solid) - except the last one which is "current"
     market.priceHistory.forEach((snapshot, index) => {
       const x = (index / (allData.length - 1)) * width - barWidth / 2;
       const price = snapshot.prices[crop];
       const barHeight = ((price - minPrice) / priceRange) * (height - 10);
       const y = height - barHeight - 5;
 
+      // Last bar is the "current" price - make it yellow/gold
+      if (index === market.priceHistory.length - 1) {
+        ctx.fillStyle = '#eab308'; // Yellow for current
+        ctx.shadowColor = '#eab308';
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.fillStyle = color;
+        ctx.shadowBlur = 0;
+      }
+
       ctx.fillRect(x, y, barWidth, barHeight);
     });
+    ctx.shadowBlur = 0;
 
     // Draw forecast bars (with dotted/dashed pattern)
     if (market.priceForecast.length > 0) {

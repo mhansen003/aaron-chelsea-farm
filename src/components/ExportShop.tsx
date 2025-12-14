@@ -229,13 +229,15 @@ export default function ExportShop({ gameState, onClose }: ExportShopProps) {
                   {/* Mini Combined History + Forecast Chart */}
                   {(history.length > 0 || forecast.length > 0) && (
                     <div className="mb-2">
-                      <div className="text-xs text-slate-400 mb-1">
-                        {selectedCrop === crop ? 'History + Forecast' : 'Quick View'}
+                      <div className="text-xs text-slate-400 mb-1 flex justify-between">
+                        <span>Past ━━</span>
+                        <span className="text-yellow-400">Now</span>
+                        <span>Future ┉┉</span>
                       </div>
                       <div className="flex items-end gap-0.5 h-12 bg-slate-900/50 rounded p-1">
-                        {/* Historical prices */}
+                        {/* Historical prices (50% - last 10) */}
                         {history.slice(-10).map((point, idx) => {
-                          const allPrices = [...history.map(h => h.price), ...forecast.map(f => f.price)];
+                          const allPrices = [...history.map(h => h.price), ...forecast.map(f => f.price), currentPrice];
                           const maxPrice = Math.max(...allPrices);
                           const heightPercent = (point.price / maxPrice) * 100;
                           return (
@@ -248,14 +250,16 @@ export default function ExportShop({ gameState, onClose }: ExportShopProps) {
                           );
                         })}
 
-                        {/* Divider */}
-                        {forecast.length > 0 && (
-                          <div className="w-0.5 bg-blue-400 self-stretch opacity-50" />
-                        )}
+                        {/* Current price (different color) */}
+                        <div
+                          className="flex-1 bg-gradient-to-t from-yellow-600 to-yellow-400 rounded-t relative group shadow-lg shadow-yellow-500/50"
+                          style={{ height: `${(currentPrice / Math.max(...[...history.map(h => h.price), ...forecast.map(f => f.price), currentPrice])) * 100}%`, minHeight: '2px' }}
+                          title={`Current: $${currentPrice}`}
+                        />
 
-                        {/* Forecasted prices */}
-                        {forecast.slice(0, 5).map((point, idx) => {
-                          const allPrices = [...history.map(h => h.price), ...forecast.map(f => f.price)];
+                        {/* Forecasted prices (50% - next 10) */}
+                        {forecast.slice(0, 10).map((point, idx) => {
+                          const allPrices = [...history.map(h => h.price), ...forecast.map(f => f.price), currentPrice];
                           const maxPrice = Math.max(...allPrices);
                           const heightPercent = (point.price / maxPrice) * 100;
                           return (

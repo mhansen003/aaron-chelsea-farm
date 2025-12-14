@@ -3266,7 +3266,7 @@ export function updateBotName(
 export function sellBot(
   state: GameState,
   botId: string,
-  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'
+  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'
 ): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -3278,6 +3278,8 @@ export function sellBot(
     seed: SEEDBOT_COST,
     transport: TRANSPORTBOT_COST,
     demolish: DEMOLISHBOT_COST,
+    hunter: HUNTERBOT_COST,
+    fertilizer: FERTILIZERBOT_COST,
   };
   const refundAmount = Math.floor(baseCosts[botType] * 0.75);
 
@@ -3308,6 +3310,12 @@ export function sellBot(
   } else if (botType === 'demolish') {
     zoneUpdates.demolishBots = removeBotFromArray(currentZone.demolishBots || []);
     inventoryUpdates.demolishbots = (state.player.inventory.demolishbots || 0) - 1;
+  } else if (botType === 'hunter') {
+    zoneUpdates.hunterBots = removeBotFromArray(currentZone.hunterBots || []);
+    inventoryUpdates.hunterbots = (state.player.inventory.hunterbots || 0) - 1;
+  } else if (botType === 'fertilizer') {
+    // Fertilizer bot handling if needed
+    inventoryUpdates.fertilizerbot = 0;
   }
 
   // Update the zone with the bot removed

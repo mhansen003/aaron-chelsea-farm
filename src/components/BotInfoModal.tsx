@@ -1,6 +1,6 @@
 import React from 'react';
 
-type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish';
+type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer';
 
 interface BotInfo {
   name: string;
@@ -69,6 +69,28 @@ const botInfoData: Record<BotType, BotInfo> = {
     gradient: 'from-orange-900 via-red-800 to-orange-900',
     borderColor: 'border-orange-500',
     textColor: 'text-orange-300'
+  },
+  hunter: {
+    name: 'Hunter Bot',
+    icon: '🏹',
+    image: '/hunter.png',
+    description: 'Rapid-response defense specialists that protect crops from rabbits',
+    history: 'Created during the Great Rabbit Invasion when wild rabbits threatened entire harvests, these ultra-fast bots became the farm\'s first line of defense.',
+    story: `The Hunter Bots were developed in emergency response to crop losses. With advanced sensors and incredible speed, they detect approaching rabbits and safely escort them away from the farm. The fastest Hunter Bot, nicknamed "Lightning," once caught 47 rabbits in a single day, setting a record that still stands today.`,
+    gradient: 'from-amber-900 via-yellow-800 to-amber-900',
+    borderColor: 'border-amber-400',
+    textColor: 'text-amber-300'
+  },
+  fertilizer: {
+    name: 'Fertilizer Bot',
+    icon: '🌱',
+    image: '/fertilizer-bot.png',
+    description: 'Growth acceleration specialist that boosts crop development by 50%',
+    history: 'The pinnacle of agricultural automation, this revolutionary bot was the first to crack the code of accelerated organic growth.',
+    story: `The Fertilizer Bot represents years of research into sustainable farming enhancement. Using a proprietary blend of nutrients and smart application algorithms, it can make crops grow 50% faster. There's only one per farm because each unit is custom-calibrated to the local soil conditions and crop varieties.`,
+    gradient: 'from-lime-900 via-green-800 to-lime-900',
+    borderColor: 'border-lime-400',
+    textColor: 'text-lime-300'
   }
 };
 

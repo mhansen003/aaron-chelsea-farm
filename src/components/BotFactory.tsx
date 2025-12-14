@@ -96,7 +96,7 @@ const BOT_DATA = {
 
 export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onBuyHunterbots, onBuyFertilizerbot, onRelocate }: BotFactoryProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [checkoutStep, setCheckoutStep] = useState<'shopping' | 'naming' | 'config'>('shopping');
+  const [checkoutQueue, setCheckoutQueue] = useState<BotType[]>([]);
   const [currentBotIndex, setCurrentBotIndex] = useState(0);
   const [namingBot, setNamingBot] = useState<BotType | null>(null);
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
@@ -164,9 +164,32 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
   const startCheckout = () => {
     if (cart.length === 0) return;
+
+    // Create a queue of all bots to purchase (expanding quantity)
+    const queue: BotType[] = [];
+    cart.forEach(item => {
+      for (let i = 0; i < item.quantity; i++) {
+        queue.push(item.type);
+      }
+    });
+
+    setCheckoutQueue(queue);
     setCurrentBotIndex(0);
-    setCheckoutStep('naming');
-    setNamingBot(cart[0].type);
+    setNamingBot(queue[0]);
+  };
+
+  const processNextBot = () => {
+    const nextIndex = currentBotIndex + 1;
+    if (nextIndex < checkoutQueue.length) {
+      setCurrentBotIndex(nextIndex);
+      setNamingBot(checkoutQueue[nextIndex]);
+    } else {
+      // All bots processed, close factory
+      setCart([]);
+      setCheckoutQueue([]);
+      setCurrentBotIndex(0);
+      onClose();
+    }
   };
 
   const canAfford = (type: BotType) => {
@@ -209,8 +232,8 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
         </div>
 
         {/* Bot Grid */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {(Object.entries(BOT_DATA) as [BotType, typeof BOT_DATA[BotType]][]).map(([type, data]) => {
               const owned = getOwned(type);
               const cost = getCost(type);
@@ -225,9 +248,9 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                     maxed ? 'opacity-60' : ''
                   }`}
                 >
-                  <div className="bg-slate-900 rounded-xl p-4 h-full flex flex-col">
+                  <div className="bg-slate-900 rounded-xl p-2 h-full flex flex-col">
                     {/* Bot Image */}
-                    <div className="relative w-full aspect-square mb-3">
+                    <div className="relative w-full aspect-square mb-2">
                       <Image
                         src={data.image}
                         alt={data.name}
@@ -237,58 +260,61 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
                       {/* Status Badge */}
                       {maxed ? (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                        <div className="absolute top-1 right-1 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg">
                           MAX
                         </div>
                       ) : inCart > 0 && (
-                        <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
-                          {inCart} in cart
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-lg animate-pulse">
+                          {inCart}
                         </div>
                       )}
                     </div>
 
                     {/* Bot Name */}
-                    <h3 className="text-xl font-black text-center mb-2 text-white">
+                    <h3 className="text-sm font-black text-center mb-1 text-white leading-tight">
                       {data.name}
                     </h3>
 
                     {/* Stats */}
-                    <div className="flex-1 space-y-1 mb-3">
-                      <div className="flex items-center justify-center gap-2 text-xs">
-                        <span className="bg-white/10 px-2 py-1 rounded">{data.feature}</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-2 text-xs">
-                        <span className="bg-white/10 px-2 py-1 rounded">{data.capacity}</span>
-                      </div>
-                      <div className="text-center text-xs text-gray-400 mt-2">
-                        Owned: {owned}/{data.maxOwned}
+                    <div className="flex-1 space-y-0.5 mb-2">
+                      <div className="text-center text-xs text-gray-400">
+                        {owned}/{data.maxOwned}
                       </div>
                     </div>
 
                     {/* Price & Add Button */}
                     {maxed ? (
-                      <div className="w-full py-3 bg-green-900/50 text-green-300 rounded-lg font-bold text-center text-sm">
-                        ✓ MAXED OUT
+                      <div className="w-full py-1.5 bg-green-900/50 text-green-300 rounded-lg font-bold text-center text-xs">
+                        ✓ MAX
                       </div>
                     ) : (
                       <>
-                        <div className="text-center mb-2">
-                          <div className={`text-2xl font-black ${affordable ? 'text-yellow-400' : 'text-red-400'}`}>
+                        <div className="text-center mb-1">
+                          <div className={`text-lg font-black ${affordable ? 'text-yellow-400' : 'text-red-400'}`}>
                             ${cost}
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => addToCart(type)}
-                          disabled={!affordable}
-                          className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
-                            affordable
-                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
-                              : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                          }`}
-                        >
-                          {affordable ? '+ ADD TO CART' : 'INSUFFICIENT FUNDS'}
-                        </button>
+                        {inCart > 0 ? (
+                          <button
+                            onClick={() => removeFromCart(type)}
+                            className="w-full py-2 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50"
+                          >
+                            − REMOVE
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => addToCart(type)}
+                            disabled={!affordable}
+                            className={`w-full py-2 rounded-lg font-bold text-xs transition-all ${
+                              affordable
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                                : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                            }`}
+                          >
+                            {affordable ? '+ ADD' : 'NO FUNDS'}
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -365,6 +391,13 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
               >
                 📍 Relocate
               </button>
+
+              <button
+                onClick={onClose}
+                className="px-6 py-4 bg-gray-600 hover:bg-gray-700 rounded-xl font-bold transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -375,30 +408,47 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
         <BotNameModal
           botType={namingBot}
           onConfirm={(name) => {
-            if (namingBot === 'water') onBuyWaterbots(1, name);
-            else if (namingBot === 'harvest') onBuyHarvestbots(1, name);
-            else if (namingBot === 'seed') onBuySeedbots(1, name);
+            if (namingBot === 'water') {
+              onBuyWaterbots(1, name);
+              setNamingBot(null);
+              processNextBot();
+            }
+            else if (namingBot === 'harvest') {
+              onBuyHarvestbots(1, name);
+              setNamingBot(null);
+              processNextBot();
+            }
+            else if (namingBot === 'seed') {
+              onBuySeedbots(1, name);
+              setNamingBot(null);
+              processNextBot();
+            }
             else if (namingBot === 'transport') {
               setTransportBotName(name);
               setNamingBot(null);
               setConfiguringTransportBot(true);
             }
-            else if (namingBot === 'demolish') onBuyDemolishbots(1, name);
-            else if (namingBot === 'hunter') onBuyHunterbots(1, name);
+            else if (namingBot === 'demolish') {
+              onBuyDemolishbots(1, name);
+              setNamingBot(null);
+              processNextBot();
+            }
+            else if (namingBot === 'hunter') {
+              onBuyHunterbots(1, name);
+              setNamingBot(null);
+              processNextBot();
+            }
             else if (namingBot === 'fertilizer') {
               setFertilizerBotName(name);
               setNamingBot(null);
               setConfiguringFertilizerBot(true);
             }
-
-            if (namingBot !== 'transport' && namingBot !== 'fertilizer') {
-              setNamingBot(null);
-              setCart([]);
-            }
           }}
           onCancel={() => {
             setNamingBot(null);
             setCart([]);
+            setCheckoutQueue([]);
+            setCurrentBotIndex(0);
           }}
         />
       )}
@@ -412,12 +462,14 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             onBuyTransportbots(1, transportBotName, config);
             setConfiguringTransportBot(false);
             setTransportBotName(undefined);
-            setCart([]);
+            processNextBot();
           }}
           onCancel={() => {
             setConfiguringTransportBot(false);
             setTransportBotName(undefined);
             setCart([]);
+            setCheckoutQueue([]);
+            setCurrentBotIndex(0);
           }}
         />
       )}
@@ -430,12 +482,14 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             onBuyFertilizerbot(fertilizerBotName, config);
             setConfiguringFertilizerBot(false);
             setFertilizerBotName(undefined);
-            setCart([]);
+            processNextBot();
           }}
           onCancel={() => {
             setConfiguringFertilizerBot(false);
             setFertilizerBotName(undefined);
             setCart([]);
+            setCheckoutQueue([]);
+            setCurrentBotIndex(0);
           }}
         />
       )}

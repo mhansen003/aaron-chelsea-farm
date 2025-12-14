@@ -2794,6 +2794,61 @@ export default function Game() {
       }
     });
 
+    // Draw fertilizer bot using visual position for smooth movement
+    if (rabbitZone.fertilizerBot && rabbitZone.fertilizerBot.status !== 'garaged') {
+      const bot = rabbitZone.fertilizerBot;
+      const visualX = bot.visualX ?? bot.x ?? 0;
+      const visualY = bot.visualY ?? bot.y ?? 0;
+      const botPx = visualX * GAME_CONFIG.tileSize;
+      const botPy = visualY * GAME_CONFIG.tileSize;
+
+      if (fertilizerBotImageRef.current) {
+        ctx.drawImage(fertilizerBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+      } else {
+        // Fallback to lime circle
+        const centerX = botPx + GAME_CONFIG.tileSize / 2;
+        const centerY = botPy + GAME_CONFIG.tileSize / 2;
+        ctx.fillStyle = '#84cc16';
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw charged indicator on bot if supercharged
+      if (bot.supercharged && chargedImageRef.current) {
+        const chargedSize = GAME_CONFIG.tileSize * 0.35;
+        const gap = 2;
+        const totalWidth = chargedSize * 2 + gap;
+        const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+
+        // Left bolt
+        const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+        ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+        // Right bolt
+        const rightX = leftX + chargedSize + gap;
+        ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
+      }
+
+      // Draw hopper indicator if bot has hopper upgrade
+      if (bot.hopperUpgrade) {
+        ctx.fillStyle = '#22d3ee';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎒', botPx + GAME_CONFIG.tileSize / 2, botPy - 8);
+      }
+
+      // Draw status indicator
+      if (bot.status === 'fertilizing') {
+        ctx.fillStyle = '#84cc16';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🌱', botPx + GAME_CONFIG.tileSize / 2, botPy + GAME_CONFIG.tileSize + 8);
+      }
+    }
+
   }, [gameState, hoveredTile, placementMode]);
 
   // Play water splash sound effect

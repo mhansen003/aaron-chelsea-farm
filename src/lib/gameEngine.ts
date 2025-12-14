@@ -4972,20 +4972,37 @@ function updateRabbits(
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < 0.2) {
-          // Reached the crop - start eating
-          console.log('[Rabbit] START EATING at', nearestCrop, 'gameTime:', gameTime, 'duration:', RABBIT_EATING_DURATION);
-          updatedRabbits.push({
-            ...rabbit,
-            x: nearestCrop.x,
-            y: nearestCrop.y,
-            visualX: nearestCrop.x,
-            visualY: nearestCrop.y,
-            status: 'eating',
-            targetX: nearestCrop.x,
-            targetY: nearestCrop.y,
-            eatingStartTime: gameTime,
-            eatingDuration: RABBIT_EATING_DURATION,
-          });
+          // Reached the crop - verify it still exists before eating
+          const targetTile = updatedGrid[nearestCrop.y][nearestCrop.x];
+          console.log('[Rabbit] Reached crop at', nearestCrop, 'tile has crop:', !!targetTile.crop, 'growthStage:', targetTile.growthStage);
+
+          // Double-check the crop still exists before starting to eat
+          if (targetTile.crop && targetTile.growthStage > 50) {
+            console.log('[Rabbit] START EATING at', nearestCrop, 'crop:', targetTile.crop, 'gameTime:', gameTime);
+            updatedRabbits.push({
+              ...rabbit,
+              x: nearestCrop.x,
+              y: nearestCrop.y,
+              visualX: nearestCrop.x,
+              visualY: nearestCrop.y,
+              status: 'eating',
+              targetX: nearestCrop.x,
+              targetY: nearestCrop.y,
+              eatingStartTime: gameTime,
+              eatingDuration: RABBIT_EATING_DURATION,
+            });
+          } else {
+            // Crop disappeared - go back to wandering
+            console.log('[Rabbit] Crop disappeared at', nearestCrop, 'returning to wandering');
+            updatedRabbits.push({
+              ...rabbit,
+              status: 'wandering',
+              targetX: undefined,
+              targetY: undefined,
+              eatingStartTime: undefined,
+              eatingDuration: undefined,
+            });
+          }
         } else {
           // Move towards crop
           const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
@@ -5025,10 +5042,11 @@ function updateRabbits(
         targetPos: `(${rabbit.targetX}, ${rabbit.targetY})`,
       });
       if (eatingTime >= (rabbit.eatingDuration || RABBIT_EATING_DURATION)) {
-        console.log('[Rabbit] EATING COMPLETE - removing crop');
+        console.log('[Rabbit] EATING COMPLETE - removing crop at', rabbit.targetX, rabbit.targetY);
         // Done eating - completely remove the crop
         if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
           const tile = updatedGrid[rabbit.targetY][rabbit.targetX];
+          console.log('[Rabbit] Before clear - tile at (',rabbit.targetX,',',rabbit.targetY,') has crop:', tile.crop, 'type:', tile.type);
           updatedGrid[rabbit.targetY][rabbit.targetX] = {
             ...tile,
             type: 'grass',
@@ -5039,6 +5057,7 @@ function updateRabbits(
             fertilized: false,
             cleared: true,
           };
+          console.log('[Rabbit] After clear - tile now has crop:', updatedGrid[rabbit.targetY][rabbit.targetX].crop);
         }
 
         const newCropsEaten = rabbit.cropsEaten + 1;

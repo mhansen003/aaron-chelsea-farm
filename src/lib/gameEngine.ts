@@ -797,6 +797,19 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'place_well':
           newState = placeWell(newState, task.tileX, task.tileY);
           break;
+        case 'pickup_marked':
+          // Pickup marked items from warehouse into farmer's basket
+          const itemsToPickup = newState.markedForSale.slice(0, Math.min(newState.player.basketCapacity - newState.player.basket.length, newState.markedForSale.length));
+          const remainingMarked = newState.markedForSale.slice(itemsToPickup.length);
+          newState = {
+            ...newState,
+            player: {
+              ...newState.player,
+              basket: [...newState.player.basket, ...itemsToPickup],
+            },
+            markedForSale: remainingMarked,
+          };
+          break;
         case 'deposit':
           newState = depositToWarehouse(newState);
           break;
@@ -2601,6 +2614,30 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   const tasks: Task[] = [];
   const { farmerAuto, basket, basketCapacity, inventory } = state.player;
   const grid = zone.grid;
+
+  // Priority 0: Pickup marked items when no transport bots (farmer fallback)
+  if (state.markedForSale.length > 0 && basket.length < basketCapacity) {
+    // Check if there are any transport bots
+    const hasTransportBots = zone.transportBots && zone.transportBots.length > 0;
+
+    if (!hasTransportBots) {
+      const warehousePos = findWarehouseTile(state);
+      if (warehousePos) {
+        // Go to warehouse to pick up marked items
+        tasks.push({
+          id: `pickup-marked-${Date.now()}`,
+          type: 'pickup_marked',
+          tileX: warehousePos.x,
+          tileY: warehousePos.y,
+          zoneX: state.currentZone.x,
+          zoneY: state.currentZone.y,
+          progress: 0,
+          duration: TASK_DURATIONS.deposit, // Use same duration as deposit
+        });
+        return tasks; // Return immediately - picking up marked items is highest priority
+      }
+    }
+  }
 
   // Priority 1: Auto Sell (if basket has items, go to export building to sell)
   if (farmerAuto.autoSell && basket.length > 0) {

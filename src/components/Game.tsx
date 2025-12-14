@@ -66,6 +66,7 @@ import EconomyModal from './EconomyModal';
 import IncomeModal from './IncomeModal';
 import NoSeedsModal from './NoSeedsModal';
 import SeedBotConfigModal from './SeedBotConfigModal';
+import BotNameModal from './BotNameModal';
 import { BotInfoModal } from './BotInfoModal';
 import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
@@ -164,8 +165,7 @@ export default function Game() {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
   const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
-  const [editingBotId, setEditingBotId] = useState<string | null>(null);
-  const [editingBotName, setEditingBotName] = useState<string>('');
+  const [renamingBot, setRenamingBot] = useState<{ id: string; type: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'; currentName: string } | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);

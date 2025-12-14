@@ -2269,6 +2269,28 @@ export default function Game() {
             ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)'; // Amber border
             ctx.lineWidth = 1;
             ctx.strokeRect(px + 1, py + 1, GAME_CONFIG.tileSize - 2, GAME_CONFIG.tileSize - 2);
+
+            // Draw crop icon in bottom-right corner to show what will be planted
+            const iconSize = GAME_CONFIG.tileSize * 0.30; // 30% of tile size
+            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+
+            // Draw semi-transparent background circle for icon
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.beginPath();
+            ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw the crop icon
+            const cropIconImg = new Image();
+            cropIconImg.src = `/${job.cropType}.png`;
+            if (cropIconImg.complete) {
+              ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
+            } else {
+              cropIconImg.onload = () => {
+                ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
+              };
+            }
           });
         });
       });

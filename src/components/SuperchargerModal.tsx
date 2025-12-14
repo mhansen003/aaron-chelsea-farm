@@ -51,8 +51,8 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
         className={`relative border-2 ${config.color} ${isSupercharged ? 'ring-2 ring-yellow-400' : ''} rounded-lg p-3 hover:shadow-lg transition-all`}
       >
         {isSupercharged && (
-          <div className="absolute -top-2 -right-2 bg-yellow-400 text-black rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shadow-lg">
-            ⚡
+          <div className="absolute -top-2 -right-2 w-8 h-8">
+            <Image src="/charged.png" alt="Supercharged" width={32} height={32} className="drop-shadow-lg" />
           </div>
         )}
 
@@ -104,7 +104,8 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
         <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center z-10">
           <div>
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              ⚡ Supercharger Station
+              <Image src="/charged.png" alt="Supercharger" width={32} height={32} className="inline-block" />
+              Supercharger Station
             </h2>
             <p className="text-sm text-gray-400 mt-1">Upgrade bots for 200% speed boost</p>
           </div>

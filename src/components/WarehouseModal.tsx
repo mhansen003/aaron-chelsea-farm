@@ -2,6 +2,7 @@
 
 import { GameState, CropType } from '@/types/game';
 import { getMarketPrice } from '@/lib/marketEconomy';
+import { CROP_INFO } from '@/lib/gameEngine';
 
 interface WarehouseModalProps {
   gameState: GameState;
@@ -85,15 +86,41 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               {CROPS.map((crop) => {
                 const count = warehouseCounts[crop.type] || 0;
                 const price = getMarketPrice(crop.type, gameState);
+                const basePrice = CROP_INFO[crop.type].sellPrice;
+                const priceIncrease = ((price - basePrice) / basePrice) * 100;
                 const totalValue = count * price;
+                const isEpic = gameState.market?.epicPriceCrop === crop.type;
+                const isHighDemand = gameState.market?.highDemandCrops.includes(crop.type);
+                const isGoodPrice = priceIncrease >= 50; // 50% or more above base
 
                 return (
                   <div
                     key={crop.type}
                     className={`bg-gradient-to-br ${crop.color} rounded-xl p-4 border-2 ${
                       count > 0 ? 'border-white/20 shadow-lg' : 'border-transparent opacity-50'
-                    } transition-all`}
+                    } transition-all relative`}
                   >
+                    {/* Market Indicators */}
+                    {count > 0 && (
+                      <div className="absolute top-2 left-2 flex gap-1">
+                        {isEpic && (
+                          <div className="bg-purple-600 px-1.5 py-0.5 rounded text-xs font-bold border border-purple-300">
+                            ⚡ 5x
+                          </div>
+                        )}
+                        {!isEpic && isHighDemand && (
+                          <div className="bg-yellow-600 px-1.5 py-0.5 rounded text-xs font-bold border border-yellow-300">
+                            🔥 HOT
+                          </div>
+                        )}
+                        {!isEpic && !isHighDemand && isGoodPrice && (
+                          <div className="bg-green-600 px-1.5 py-0.5 rounded text-xs font-bold border border-green-300">
+                            💰 SELL
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-4xl">{crop.emoji}</span>
                       <div className="text-right">
@@ -107,13 +134,26 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
                       {count > 0 && <span className="font-bold">${totalValue}</span>}
                     </div>
 
+                    {/* Price Indicator */}
+                    {count > 0 && priceIncrease !== 0 && (
+                      <div className={`text-xs mb-2 font-semibold ${
+                        priceIncrease > 0 ? 'text-green-200' : 'text-red-200'
+                      }`}>
+                        {priceIncrease > 0 ? '▲' : '▼'} {Math.abs(priceIncrease).toFixed(0)}% vs base
+                      </div>
+                    )}
+
                     {/* Mark for Sale Button */}
                     {count > 0 && (
                       <button
                         onClick={() => onMarkForSale(crop.type, count)}
-                        className="w-full px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded transition-colors"
+                        className={`w-full px-2 py-1.5 text-white text-xs font-bold rounded transition-colors ${
+                          isEpic || isHighDemand || isGoodPrice
+                            ? 'bg-yellow-600 hover:bg-yellow-700 animate-pulse'
+                            : 'bg-emerald-600 hover:bg-emerald-700'
+                        }`}
                       >
-                        💰 Mark All for Sale
+                        {isEpic || isHighDemand || isGoodPrice ? '⭐ Sell Now!' : '💰 Mark for Sale'}
                       </button>
                     )}
                   </div>

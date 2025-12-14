@@ -1002,9 +1002,7 @@ export default function Game() {
       if (deltaTime < 1000) {
         setGameState(prev => {
           const updated = updateGameState(prev, deltaTime);
-          // TEMPORARY: Market price updates disabled due to module bundling issue
-          // TODO: Move updateMarketPrices to gameEngine.ts
-          return updated; // updateMarketPrices(updated);
+          return updateMarketPrices(updated);
         });
       }
 
@@ -4262,7 +4260,7 @@ export default function Game() {
                 {isMusicMuted ? '🔇' : '🎵'} Music
               </button>
               {showMusicDropdown && (
-                <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[250px] max-h-[500px] overflow-y-auto">
+                <div className="absolute top-full mt-1 left-0 bg-black/95 border-2 border-pink-500 rounded-lg shadow-xl z-50 min-w-[250px]">
                   <div className="p-2">
                     {/* Music Controls */}
                     <button

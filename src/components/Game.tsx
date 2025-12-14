@@ -2762,14 +2762,17 @@ export default function Game() {
     });
 
     // Draw fertilizer bot using visual position for smooth movement
+    console.log('Fertilizer bot check:', rabbitZone.fertilizerBot ? `exists with status ${rabbitZone.fertilizerBot.status}` : 'does not exist');
     if (rabbitZone.fertilizerBot && rabbitZone.fertilizerBot.status !== 'garaged') {
       const bot = rabbitZone.fertilizerBot;
       const visualX = bot.visualX ?? bot.x ?? 0;
       const visualY = bot.visualY ?? bot.y ?? 0;
       const botPx = visualX * GAME_CONFIG.tileSize;
       const botPy = visualY * GAME_CONFIG.tileSize;
+      console.log('Rendering fertilizer bot at position:', visualX, visualY, 'pixels:', botPx, botPy);
 
       if (fertilizerBotImageRef.current) {
+        console.log('Drawing fertilizer bot with image');
         ctx.drawImage(fertilizerBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
       } else {
         // Fallback to lime circle

@@ -4216,7 +4216,7 @@ export default function Game() {
                 else if (edge === 2) { x = 15; y = Math.floor(Math.random() * 12); }
                 else { x = 0; y = Math.floor(Math.random() * 12); }
 
-                const maxCropsToEat = 5 + Math.floor(Math.random() * 6); // Random 5-10
+                const maxCropsToEat = 3 + Math.floor(Math.random() * 3); // Random 3-5
                 const newRabbit = {
                   id: `rabbit-${Date.now()}-${Math.random()}`,
                   x, y, visualX: x, visualY: y,

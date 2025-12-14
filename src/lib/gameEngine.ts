@@ -4816,11 +4816,11 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 // It was deleting building tiles during load, causing the cascade corruption bug
 
 // Rabbit constants
-const RABBIT_SPAWN_INTERVAL = 45000; // Spawn a rabbit every 45 seconds
-const RABBIT_EATING_DURATION = 10000; // 10 seconds to eat a crop
+const RABBIT_SPAWN_INTERVAL = 90000; // Spawn a rabbit every 90 seconds (1.5 minutes)
+const RABBIT_EATING_DURATION = 13000; // 13 seconds to eat a crop (30% slower)
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
-const RABBIT_MIN_CROPS = 5; // Min crops before rabbit leaves
-const RABBIT_MAX_CROPS = 10; // Max crops before rabbit leaves
+const RABBIT_MIN_CROPS = 3; // Min crops before rabbit leaves (reduced by 50%)
+const RABBIT_MAX_CROPS = 5; // Max crops before rabbit leaves (reduced by 50%)
 const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
 const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
 

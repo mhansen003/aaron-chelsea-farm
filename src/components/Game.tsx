@@ -3190,7 +3190,7 @@ export default function Game() {
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Left Sidebar - Farmer Status */}
-      <div className="w-44 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
+      <div className="w-52 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-2 max-h-full overflow-y-auto">
         <div className="text-sm font-bold text-center mb-2 text-green-400">👨‍🌾 Farmer</div>
 
         {/* Current Task */}

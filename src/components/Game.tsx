@@ -406,6 +406,18 @@ export default function Game() {
       rabbitImageRef.current = rabbitImg;
     };
 
+    const fertilizerBuildingImg = new Image();
+    fertilizerBuildingImg.src = '/fertilizer-building.png';
+    fertilizerBuildingImg.onload = () => {
+      fertilizerBuildingImageRef.current = fertilizerBuildingImg;
+    };
+
+    const fertilizerBotImg = new Image();
+    fertilizerBotImg.src = '/fertilizer-bot.png';
+    fertilizerBotImg.onload = () => {
+      fertilizerBotImageRef.current = fertilizerBotImg;
+    };
+
     const chargedImg = new Image();
     chargedImg.src = '/charged.png';
     chargedImg.onload = () => {

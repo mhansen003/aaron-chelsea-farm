@@ -97,7 +97,7 @@ import {
   clearAutosave,
 } from '@/lib/saveSystem';
 
-const COLORS = {
+const COLORS: Record<string, string> = {
   grass: '#7cb342',
   dirt: '#8d6e63',
   rock: '#616161',

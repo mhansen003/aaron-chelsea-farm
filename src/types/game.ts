@@ -43,6 +43,13 @@ export interface Task {
   duration: number; // milliseconds
 }
 
+export interface QueuedTile {
+  x: number;
+  y: number;
+  action: 'water' | 'harvest' | 'plant' | 'clear'; // What action to perform
+  cropType?: CropType; // For plant actions
+}
+
 export interface Tile {
   type: TileType;
   x: number;
@@ -88,6 +95,7 @@ export interface Player {
   basket: BasketItem[]; // Max 8 items
   basketCapacity: number; // Max basket size (upgradeable)
   bagUpgrades: number; // Number of bag upgrades purchased (0-3)
+  queue: QueuedTile[]; // Up to 3 tiles queued for farmer actions
   inventory: {
     seeds: Record<Exclude<CropType, null>, number> & { null: number };
     seedQuality: Record<Exclude<CropType, null>, SeedQuality> & { null: SeedQuality };
@@ -194,6 +202,7 @@ export interface WaterBot {
   name: string; // Bot's custom name
   waterLevel: number; // Current water (0-10)
   jobs: WaterBotJob[]; // Up to 3 jobs (60 total tiles)
+  queue: QueuedTile[]; // Up to 3 tiles queued for watering
   status: 'idle' | 'watering' | 'refilling' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
@@ -220,6 +229,7 @@ export interface HarvestBot {
   inventory: BasketItem[]; // Crops currently held (max 8)
   inventoryCapacity: number; // Max inventory size (8)
   jobs: HarvestBotJob[]; // Up to 3 jobs (60 total tiles)
+  queue: QueuedTile[]; // Up to 3 tiles queued for harvesting
   status: 'idle' | 'harvesting' | 'depositing' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
@@ -246,6 +256,7 @@ export interface SeedBot {
   id: string; // Unique bot ID
   name: string; // Bot's custom name
   jobs: SeedBotJob[]; // Up to 3 jobs (60 total tiles)
+  queue: QueuedTile[]; // Up to 3 tiles queued for planting
   status: 'idle' | 'planting' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X
@@ -305,6 +316,7 @@ export interface DemolishBot {
   id: string; // Unique bot ID
   name: string; // Bot's custom name
   jobs: DemolishBotJob[]; // Up to 3 jobs (60 total tiles)
+  queue: QueuedTile[]; // Up to 3 tiles queued for clearing
   status: 'idle' | 'clearing' | 'traveling' | 'garaged';
   currentJobId?: string; // Which job is currently being worked on
   targetX?: number; // Target tile X

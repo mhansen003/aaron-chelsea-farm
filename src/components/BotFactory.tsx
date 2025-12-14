@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GameState, TransportBotConfig } from '@/types/game';
-import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, getBotCost } from '@/lib/gameEngine';
+import { WATERBOT_COST, HARVESTBOT_COST, SEEDBOT_COST, TRANSPORTBOT_COST, DEMOLISHBOT_COST, HUNTERBOT_COST, getBotCost } from '@/lib/gameEngine';
 import Image from 'next/image';
 import BotNameModal from './BotNameModal';
 import TransportBotConfigModal from './TransportBotConfigModal';
@@ -15,12 +15,13 @@ interface BotFactoryProps {
   onBuySeedbots: (amount: number, name?: string) => void;
   onBuyTransportbots: (amount: number, name?: string, config?: TransportBotConfig) => void;
   onBuyDemolishbots: (amount: number, name?: string) => void;
+  onBuyHunterbots: (amount: number, name?: string) => void;
   onRelocate: () => void;
 }
 
-type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null;
+type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | null;
 
-export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onRelocate }: BotFactoryProps) {
+export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onBuyHunterbots, onRelocate }: BotFactoryProps) {
   const [namingBot, setNamingBot] = useState<BotType>(null);
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
   const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
@@ -30,6 +31,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
   const seedbotCost = getBotCost(SEEDBOT_COST, gameState.player.inventory.seedbots);
   const transportbotCost = getBotCost(TRANSPORTBOT_COST, gameState.player.inventory.transportbots || 0);
   const demolishbotCost = getBotCost(DEMOLISHBOT_COST, gameState.player.inventory.demolishbots || 0);
+  const hunterbotCost = getBotCost(HUNTERBOT_COST, gameState.player.inventory.hunterbots || 0);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
@@ -371,6 +373,69 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                 </button>
               )}
             </div>
+
+            {/* Hunter Bot */}
+            <div className={`bg-gradient-to-br from-amber-900/40 to-yellow-950/40 p-5 rounded-xl border-3 shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-transform duration-200 ${
+              gameState.player.inventory.hunterbots >= 3
+                ? 'border-green-500 shadow-green-500/30'
+                : 'border-amber-500/50'
+            }`}>
+              <div className="flex gap-4 mb-4">
+                {/* Bot Image */}
+                <div className="relative w-24 h-24 flex-shrink-0">
+                  <Image
+                    src="/hunter.png"
+                    alt="Hunter Bot"
+                    width={96}
+                    height={96}
+                    className="object-contain"
+                  />
+                  {gameState.player.inventory.hunterbots >= 3 && (
+                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      MAX
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-amber-300 mb-2">Hunter Bot</h3>
+                  <p className="text-sm text-gray-300 leading-tight">
+                    The Hunter Bot is your rapid-response defense specialist. Equipped with advanced sensors and incredible speed, it detects and captures rabbits that try to eat your crops, escorting them safely off your farm.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="bg-black/40 rounded-lg p-3 mb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-400">FLEET STATUS</span>
+                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.hunterbots}/3</span>
+                </div>
+                <div className="text-xs text-green-400">
+                  ✓ Detects rabbits • ✓ Ultra-fast movement • ✓ Protects crops
+                </div>
+              </div>
+
+              {/* Buy Button */}
+              {gameState.player.inventory.hunterbots >= 3 ? (
+                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
+                  ✓ MAXIMUM FLEET CAPACITY
+                </div>
+              ) : (
+                <button
+                  onClick={() => setNamingBot('hunter')}
+                  disabled={gameState.player.money < HUNTERBOT_COST}
+                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
+                    gameState.player.money >= HUNTERBOT_COST
+                      ? 'bg-amber-600 hover:bg-amber-700 hover:shadow-lg hover:shadow-amber-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                  }`}
+                >
+                  {gameState.player.money >= hunterbotCost ? `Purchase for $${hunterbotCost}` : `Insufficient Funds ($${hunterbotCost})`}
+                </button>
+              )}
+            </div>
           </div>
           </div>
         </div>
@@ -406,7 +471,8 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             namingBot === 'harvest' ? 'Harvest Bot' :
             namingBot === 'seed' ? 'Seed Bot' :
             namingBot === 'transport' ? 'Transport Bot' :
-            'Demolish Bot'
+            namingBot === 'demolish' ? 'Demolish Bot' :
+            'Hunter Bot'
           }
           onConfirm={(name) => {
             if (namingBot === 'water') onBuyWaterbots(1, name);
@@ -419,6 +485,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
               setConfiguringTransportBot(true);
             }
             else if (namingBot === 'demolish') onBuyDemolishbots(1, name);
+            else if (namingBot === 'hunter') onBuyHunterbots(1, name);
 
             // For non-transport bots, close naming modal
             if (namingBot !== 'transport') {

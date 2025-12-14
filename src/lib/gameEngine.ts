@@ -541,6 +541,7 @@ export function createInitialState(): GameState {
       basket: [], // Empty basket to start
       basketCapacity: 8, // Default basket size
       bagUpgrades: 0, // No upgrades purchased yet
+      queue: [], // Start with empty task queue
       inventory: {
         seeds: {
           carrot: 5,
@@ -2864,6 +2865,7 @@ export function buyWaterbots(state: GameState, amount: number, name?: string): G
       name: name || 'Water Bot', // Use provided name or default
       waterLevel: WATERBOT_MAX_WATER, // Start with full water
       jobs: [], // Start with no jobs
+      queue: [], // Start with empty queue
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,
@@ -2922,6 +2924,7 @@ export function buyHarvestbots(state: GameState, amount: number, name?: string):
       inventory: [], // Start with empty inventory
       inventoryCapacity: 8, // Same as player basket capacity
       jobs: [], // Start with no jobs
+      queue: [], // Start with empty queue
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,
@@ -2978,6 +2981,7 @@ export function buySeedbots(state: GameState, amount: number, name?: string): Ga
       id: botId,
       name: name || 'Seed Bot', // Use provided name or default
       jobs: [], // Start with no jobs configured
+      queue: [], // Start with empty queue
       status: 'idle',
       autoBuySeeds: true, // Auto-buy seeds enabled by default
       x: spawnX, // Spawn near player
@@ -3104,6 +3108,7 @@ export function buyDemolishbots(state: GameState, amount: number, name?: string)
       id: botId,
       name: name || 'Demolish Bot', // Use provided name or default
       jobs: [], // Start with no jobs
+      queue: [], // Start with empty queue
       status: 'idle',
       x: spawnX, // Spawn near player
       y: spawnY,
@@ -3275,6 +3280,144 @@ export function sellBot(
       [targetZoneKey]: {
         ...targetZone,
         ...zoneUpdates,
+      },
+    },
+  };
+}
+
+/**
+ * Queue Management Helper Functions
+ */
+
+// Check if a tile is already queued by player or any bot in current zone
+export function isTileQueued(state: GameState, x: number, y: number): boolean {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  // Check player queue
+  if (state.player.queue.some(tile => tile.x === x && tile.y === y)) {
+    return true;
+  }
+
+  // Check all bot queues in current zone
+  const allBots = [
+    ...(currentZone.waterBots || []),
+    ...(currentZone.harvestBots || []),
+    ...(currentZone.seedBots || []),
+    ...(currentZone.demolishBots || []),
+  ];
+
+  return allBots.some(bot => bot.queue.some(tile => tile.x === x && tile.y === y));
+}
+
+// Add tile to player queue (max 3)
+export function addToPlayerQueue(
+  state: GameState,
+  x: number,
+  y: number,
+  action: 'water' | 'harvest' | 'plant' | 'clear',
+  cropType?: CropType
+): GameState {
+  // Don't add if already queued
+  if (isTileQueued(state, x, y)) return state;
+
+  // Don't add if queue is full
+  if (state.player.queue.length >= 3) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      queue: [...state.player.queue, { x, y, action, cropType }],
+    },
+  };
+}
+
+// Remove tile from player queue
+export function removeFromPlayerQueue(state: GameState, x: number, y: number): GameState {
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      queue: state.player.queue.filter(tile => !(tile.x === x && tile.y === y)),
+    },
+  };
+}
+
+// Add tile to bot queue (max 3)
+export function addToBotQueue(
+  state: GameState,
+  botId: string,
+  botType: 'water' | 'harvest' | 'seed' | 'demolish',
+  x: number,
+  y: number,
+  action: 'water' | 'harvest' | 'plant' | 'clear',
+  cropType?: CropType
+): GameState {
+  // Don't add if already queued
+  if (isTileQueued(state, x, y)) return state;
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  const updateBotQueue = <T extends { id: string; queue: import('@/types/game').QueuedTile[] }>(bots: T[]): T[] =>
+    bots.map(bot => {
+      if (bot.id === botId && bot.queue.length < 3) {
+        return { ...bot, queue: [...bot.queue, { x, y, action, cropType }] };
+      }
+      return bot;
+    });
+
+  const updates: Partial<Zone> = {};
+  if (botType === 'water') updates.waterBots = updateBotQueue(currentZone.waterBots);
+  else if (botType === 'harvest') updates.harvestBots = updateBotQueue(currentZone.harvestBots);
+  else if (botType === 'seed') updates.seedBots = updateBotQueue(currentZone.seedBots);
+  else if (botType === 'demolish') updates.demolishBots = updateBotQueue(currentZone.demolishBots || []);
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        ...updates,
+      },
+    },
+  };
+}
+
+// Remove tile from bot queue
+export function removeFromBotQueue(
+  state: GameState,
+  botId: string,
+  botType: 'water' | 'harvest' | 'seed' | 'demolish',
+  x: number,
+  y: number
+): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  const updateBotQueue = <T extends { id: string; queue: import('@/types/game').QueuedTile[] }>(bots: T[]): T[] =>
+    bots.map(bot => {
+      if (bot.id === botId) {
+        return { ...bot, queue: bot.queue.filter(tile => !(tile.x === x && tile.y === y)) };
+      }
+      return bot;
+    });
+
+  const updates: Partial<Zone> = {};
+  if (botType === 'water') updates.waterBots = updateBotQueue(currentZone.waterBots);
+  else if (botType === 'harvest') updates.harvestBots = updateBotQueue(currentZone.harvestBots);
+  else if (botType === 'seed') updates.seedBots = updateBotQueue(currentZone.seedBots);
+  else if (botType === 'demolish') updates.demolishBots = updateBotQueue(currentZone.demolishBots || []);
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        ...updates,
       },
     },
   };

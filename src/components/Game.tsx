@@ -19,6 +19,7 @@ import {
   buySeedbots,
   buyTransportbots,
   buyDemolishbots,
+  buyHunterbots,
   updateSeedBotJobs,
   updateBotName,
   sellBot,
@@ -4358,6 +4359,7 @@ export default function Game() {
           }}
           onBuyTransportbots={(amount, name, config) => setGameState(prev => buyTransportbots(prev, amount, name, config))}
           onBuyDemolishbots={(amount, name) => setGameState(prev => buyDemolishbots(prev, amount, name))}
+          onBuyHunterbots={(amount) => setGameState(prev => buyHunterbots(prev, amount))}
           onRelocate={() => {
             setGameState(prev => relocateBotFactory(prev));
             setPlacementMode('botFactory');

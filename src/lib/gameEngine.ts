@@ -3255,6 +3255,8 @@ export function updateBotName(
       },
     };
   } else if (botType === 'demolish') updates.demolishBots = updateBotInArray(currentZone.demolishBots || []);
+  else if (botType === 'hunter') updates.hunterBots = updateBotInArray(currentZone.hunterBots || []);
+  else if (botType === 'fertilizer') updates.fertilizerBots = updateBotInArray(currentZone.fertilizerBots || []);
 
   return {
     ...state,

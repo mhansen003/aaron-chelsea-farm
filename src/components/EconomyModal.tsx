@@ -87,48 +87,45 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
 
     const historyLength = market.priceHistory.length;
 
-    // Draw historical line (solid)
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.setLineDash([]);
-    ctx.beginPath();
+    // Calculate bar width based on number of data points
+    const barWidth = Math.max(2, width / allData.length - 2);
 
+    // Draw historical bars (solid)
+    ctx.fillStyle = color;
     market.priceHistory.forEach((snapshot, index) => {
-      const x = (index / (allData.length - 1)) * width;
+      const x = (index / (allData.length - 1)) * width - barWidth / 2;
       const price = snapshot.prices[crop];
-      const y = height - ((price - minPrice) / priceRange) * (height - 10) - 5;
+      const barHeight = ((price - minPrice) / priceRange) * (height - 10);
+      const y = height - barHeight - 5;
 
-      if (index === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      ctx.fillRect(x, y, barWidth, barHeight);
     });
-    ctx.stroke();
 
-    // Draw forecast line (dashed)
+    // Draw forecast bars (with dotted/dashed pattern)
     if (market.priceForecast.length > 0) {
-      ctx.strokeStyle = color;
-      ctx.globalAlpha = 0.6;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
+      ctx.globalAlpha = 0.7;
 
       market.priceForecast.forEach((snapshot, forecastIndex) => {
         const index = historyLength + forecastIndex;
-        const x = (index / (allData.length - 1)) * width;
+        const x = (index / (allData.length - 1)) * width - barWidth / 2;
         const price = snapshot.prices[crop];
-        const y = height - ((price - minPrice) / priceRange) * (height - 10) - 5;
+        const barHeight = ((price - minPrice) / priceRange) * (height - 10);
+        const y = height - barHeight - 5;
 
-        if (forecastIndex === 0) {
-          // Connect to last historical point
-          const lastPrice = market.priceHistory[historyLength - 1].prices[crop];
-          const lastX = ((historyLength - 1) / (allData.length - 1)) * width;
-          const lastY = height - ((lastPrice - minPrice) / priceRange) * (height - 10) - 5;
-          ctx.moveTo(lastX, lastY);
+        // Draw dashed/dotted bar by drawing small segments
+        const dashHeight = 3;
+        const gapHeight = 2;
+        let currentY = y + barHeight;
+
+        ctx.fillStyle = color;
+        while (currentY > y) {
+          const segmentHeight = Math.min(dashHeight, currentY - y);
+          ctx.fillRect(x, currentY - segmentHeight, barWidth, segmentHeight);
+          currentY -= (segmentHeight + gapHeight);
         }
-        ctx.lineTo(x, y);
       });
-      ctx.stroke();
+
       ctx.globalAlpha = 1.0;
-      ctx.setLineDash([]);
     }
 
     // Draw current price indicator (vertical line at end of history)

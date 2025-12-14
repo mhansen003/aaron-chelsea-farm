@@ -4276,7 +4276,6 @@ export default function Game() {
         <ExportShop
           gameState={gameState}
           onClose={() => setShowExportModal(false)}
-          onSellToVendor={sellToVendor}
         />
       )}
 

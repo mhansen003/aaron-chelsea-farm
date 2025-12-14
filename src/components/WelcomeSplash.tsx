@@ -52,15 +52,15 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue, onSh
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-6 md:p-10 max-w-2xl w-full shadow-2xl">
+      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-3xl p-6 md:p-10 max-w-6xl w-full shadow-2xl">
         {/* Splash Image - Large and Prominent */}
         <div className="text-center mb-4">
           <div className="inline-block mb-3">
             <Image
               src="/splash.png"
               alt="My Bot Farm"
-              width={600}
-              height={600}
+              width={1200}
+              height={1200}
               className="object-contain rounded-2xl"
               priority
             />
@@ -74,48 +74,43 @@ export default function WelcomeSplash({ onStartNew, onLoadGame, onContinue, onSh
         </div>
 
         {!showLoadInput ? (
-          /* Main Menu - Compact Buttons */
-          <div className="space-y-1.5">
+          /* Main Menu - Horizontal Buttons */
+          <div className="flex flex-wrap gap-2 justify-center">
             {hasAutoSave && (
               <button
                 onClick={onContinue}
-                className="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 hover:shadow-emerald-500/50 border border-emerald-500/30"
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 hover:shadow-emerald-500/50 border border-emerald-500/30"
               >
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-base">▶</span>
-                  <span>Continue Game</span>
+                  <span>Continue</span>
                 </div>
-                {autoSaveTime && (
-                  <div className="text-xs font-normal opacity-70 mt-0.5">
-                    Last: {autoSaveTime}
-                  </div>
-                )}
               </button>
             )}
 
             <button
               onClick={onStartNew}
-              className="w-full px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-slate-600/50"
+              className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-slate-600/50"
             >
               <div className="flex items-center justify-center gap-2">
                 <span className="text-base">+</span>
-                <span>Start New Game</span>
+                <span>New Game</span>
               </div>
             </button>
 
             <button
               onClick={() => setShowLoadInput(true)}
-              className="w-full px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-slate-600/50"
+              className="px-4 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-slate-600/50"
             >
               <div className="flex items-center justify-center gap-2">
                 <span className="text-base">📁</span>
-                <span>Load with Code</span>
+                <span>Load</span>
               </div>
             </button>
 
             <button
               onClick={onShowTutorial}
-              className="w-full px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-blue-600/50"
+              className="px-4 py-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg font-semibold text-sm shadow-md transition-all duration-200 border border-blue-600/50"
             >
               <div className="flex items-center justify-center gap-2">
                 <span className="text-base">📖</span>

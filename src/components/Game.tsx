@@ -48,6 +48,9 @@ import {
   getZoneKey,
   recordZoneEarnings,
   findGaragePosition,
+  isTileQueued,
+  addToPlayerQueue,
+  removeFromPlayerQueue,
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
@@ -2375,9 +2378,9 @@ export default function Game() {
     });
 
     // Draw rabbits using visual position for smooth movement
-    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
-    const currentZone = gameState.zones[currentZoneKey];
-    currentZone.rabbits?.forEach(rabbit => {
+    const rabbitZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const rabbitZone = gameState.zones[rabbitZoneKey];
+    rabbitZone.rabbits?.forEach(rabbit => {
       if (rabbit.status !== 'captured') {
         const visualX = rabbit.visualX;
         const visualY = rabbit.visualY;
@@ -2408,7 +2411,7 @@ export default function Game() {
     });
 
     // Draw hunter bots using visual position for smooth movement
-    currentZone.hunterBots?.forEach(bot => {
+    rabbitZone.hunterBots?.forEach(bot => {
       if (bot.status !== 'garaged') {
         const visualX = bot.visualX ?? bot.x ?? 0;
         const visualY = bot.visualY ?? bot.y ?? 0;

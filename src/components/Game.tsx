@@ -5872,10 +5872,26 @@ export default function Game() {
                     {fertilizerBot.status === 'idle' && garagePos && fertilizerBot.x === garagePos.x && fertilizerBot.y === garagePos.y
                       ? '🏠 Parked in garage'
                       : fertilizerBot.status === 'fertilizing'
-                      ? `🌱 Fertilizing (${fertilizerBot.fertilizerLevel}/${FERTILIZER_MAX_CAPACITY})`
+                      ? '🌱 Fertilizing crops'
                       : fertilizerBot.status === 'refilling'
                       ? '⛽ Refilling fertilizer'
                       : 'Ready'}
+                  </div>
+                  {/* Fertilizer level bar */}
+                  <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        fertilizerBot.fertilizerLevel > 5
+                          ? 'bg-lime-400'
+                          : fertilizerBot.fertilizerLevel > 0
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                      }`}
+                      style={{ width: `${(fertilizerBot.fertilizerLevel / FERTILIZER_MAX_CAPACITY) * 100}%` }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-lime-300/80 text-center mt-0.5 font-medium">
+                    Fertilizer: {fertilizerBot.fertilizerLevel}/{FERTILIZER_MAX_CAPACITY}
                   </div>
                   {fertilizerBot.supercharged && (
                     <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">

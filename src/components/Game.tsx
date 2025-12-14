@@ -58,6 +58,7 @@ import {
   GAME_CONFIG,
   CROP_INFO,
   SEEDBOT_COST,
+  HUNTERBOT_COST,
   getCurrentSeedCost,
   getCurrentSellPrice,
 } from '@/lib/gameEngine';
@@ -175,8 +176,8 @@ export default function Game() {
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [showEconomyModal, setShowEconomyModal] = useState(false);
-  const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | null>(null);
-  const [renamingBot, setRenamingBot] = useState<{ id: string; type: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'; currentName: string } | null>(null);
+  const [showBotInfoModal, setShowBotInfoModal] = useState<'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' | null>(null);
+  const [renamingBot, setRenamingBot] = useState<{ id: string; type: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'; currentName: string } | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
@@ -5311,7 +5312,7 @@ export default function Game() {
             <div className="bg-gradient-to-br from-amber-950/40 to-yellow-900/20 border rounded-lg p-2 shadow-lg border-amber-500/60 hover:shadow-amber-500/30 hover:border-amber-400 transition-all">
               <div
                 className="text-xs text-amber-300 font-bold mb-1.5 flex items-center gap-1 cursor-pointer hover:bg-amber-900/40 rounded px-1.5 py-1 transition-colors group"
-                onClick={() => setShowBotInfo({ type: 'hunter', bots: hunterBots || [] })}
+                onClick={() => setShowBotInfoModal('hunter')}
               >
                 HUNTER
                 <span className="ml-auto bg-amber-600/30 px-1 rounded text-xs">{hunterBots?.length ?? 0}</span>

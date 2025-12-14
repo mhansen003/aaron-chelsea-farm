@@ -5102,6 +5102,28 @@ function updateHunterBots(
     const visualY = hunter.visualY ?? hunter.y ?? 0;
 
     if (hunter.status === 'garaged') {
+      // Check if there are any rabbits in the zone
+      const hasRabbits = updatedRabbits.some(r => r.status !== 'captured');
+
+      if (hasRabbits) {
+        // Find garage position to spawn from
+        const garagePos = findGaragePosition(zone.grid);
+        if (garagePos) {
+          // Spawn hunter at garage and start patrolling
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'patrolling',
+            x: garagePos.x,
+            y: garagePos.y,
+            visualX: garagePos.x,
+            visualY: garagePos.y,
+            idleStartTime: undefined,
+          });
+          continue;
+        }
+      }
+
+      // No rabbits or no garage - stay garaged
       updatedHunterBots.push({ ...hunter, visualX, visualY });
       continue;
     }

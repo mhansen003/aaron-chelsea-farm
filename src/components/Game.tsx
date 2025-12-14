@@ -788,12 +788,17 @@ export default function Game() {
     return newIndex;
   }, []);
 
-  // Load album covers from MP3 files
+  // Load album covers from MP3 files progressively in background (low priority)
   useEffect(() => {
-    const loadAlbumCovers = async () => {
-      const covers: Record<number, string> = {};
+    let isCancelled = false;
+
+    const loadAlbumCoversProgressively = async () => {
+      // Wait 2 seconds before starting to let game load first
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       for (let i = 0; i < allFarmSongs.length; i++) {
+        if (isCancelled) break;
+
         const song = allFarmSongs[i];
         try {
           // Fetch the MP3 file as a blob
@@ -808,20 +813,24 @@ export default function Game() {
             const picture = metadata.common.picture[0];
             const pictureBlob = new Blob([new Uint8Array(picture.data)], { type: picture.format });
             const url = URL.createObjectURL(pictureBlob);
-            covers[i] = url;
+
+            // Update state immediately for this song
+            setAlbumCovers(prev => ({ ...prev, [i]: url }));
           }
         } catch (error) {
           console.log(`No album art for ${song.name}`);
         }
-      }
 
-      setAlbumCovers(covers);
+        // Small delay between each song to keep UI responsive
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
     };
 
-    loadAlbumCovers();
+    loadAlbumCoversProgressively();
 
     // Cleanup: revoke object URLs when component unmounts
     return () => {
+      isCancelled = true;
       Object.values(albumCovers).forEach(url => {
         if (url.startsWith('blob:')) {
           URL.revokeObjectURL(url);

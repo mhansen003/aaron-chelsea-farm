@@ -67,6 +67,10 @@ import {
   FERTILIZER_MAX_CAPACITY,
   getCurrentSeedCost,
   getCurrentSellPrice,
+  getWaterBotCapacity,
+  getHarvestBotCapacity,
+  getTransportBotCapacity,
+  getFertilizerBotCapacity,
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem } from '@/types/game';
 import Shop from './Shop';
@@ -5505,7 +5509,8 @@ export default function Game() {
               </div>
               <div className="space-y-1.5">
                 {waterBots?.map((bot, idx) => {
-                  const waterPercent = (bot.waterLevel / 10) * 100;
+                  const actualCapacity = getWaterBotCapacity(bot.hopperUpgrade);
+                  const waterPercent = (bot.waterLevel / actualCapacity) * 100;
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
                     isParked ? '🏠 Parked in garage' :
@@ -5537,7 +5542,7 @@ export default function Game() {
                           style={{ width: `${waterPercent}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-cyan-300/80 text-center mt-0.5 font-medium">Water: {bot.waterLevel}/10</div>
+                      <div className="text-[10px] text-cyan-300/80 text-center mt-0.5 font-medium">Water: {bot.waterLevel}/{actualCapacity}</div>
                     </div>
                   );
                 })}
@@ -5896,21 +5901,28 @@ export default function Game() {
                       : 'Ready'}
                   </div>
                   {/* Fertilizer level bar */}
-                  <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className={`h-full transition-all ${
-                        fertilizerBot.fertilizerLevel > 5
-                          ? 'bg-lime-400'
-                          : fertilizerBot.fertilizerLevel > 0
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                      }`}
-                      style={{ width: `${(fertilizerBot.fertilizerLevel / FERTILIZER_MAX_CAPACITY) * 100}%` }}
-                    />
-                  </div>
-                  <div className="text-[10px] text-lime-300/80 text-center mt-0.5 font-medium">
-                    Fertilizer: {fertilizerBot.fertilizerLevel}/{FERTILIZER_MAX_CAPACITY}
-                  </div>
+                  {(() => {
+                    const actualCapacity = getFertilizerBotCapacity(fertilizerBot.hopperUpgrade);
+                    return (
+                      <>
+                        <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
+                              fertilizerBot.fertilizerLevel > 5
+                                ? 'bg-lime-400'
+                                : fertilizerBot.fertilizerLevel > 0
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }`}
+                            style={{ width: `${(fertilizerBot.fertilizerLevel / actualCapacity) * 100}%` }}
+                          />
+                        </div>
+                        <div className="text-[10px] text-lime-300/80 text-center mt-0.5 font-medium">
+                          Fertilizer: {fertilizerBot.fertilizerLevel}/{actualCapacity}
+                        </div>
+                      </>
+                    );
+                  })()}
                   {fertilizerBot.supercharged && (
                     <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">
                       ⚡ SUPERCHARGED

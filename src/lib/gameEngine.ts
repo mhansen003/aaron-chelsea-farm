@@ -107,7 +107,7 @@ export const TASK_DURATIONS: Record<TaskType, number> = {
   harvest: 2000, // 2 seconds to harvest
   uproot: 2000, // 2 seconds to uproot a crop
   place_sprinkler: 3000, // 3 seconds to place sprinkler
-  fertilize: 15000, // 15 seconds to fertilize a crop
+  fertilize: 7500, // 7.5 seconds to fertilize a crop (50% faster)
   place_botFactory: 100, // Instant - construction time handles the delay
   place_well: 100, // Instant - construction time handles the delay
   place_garage: 100, // Instant - construction time handles the delay
@@ -4834,7 +4834,7 @@ export function hopperUpgrade(state: GameState, botId: string, botType: 'water' 
     updatedZone.harvestBots = updatedZone.harvestBots.map(bot => {
       if (bot.id === botId && !bot.hopperUpgrade) {
         updated = true;
-        return { ...bot, hopperUpgrade: true };
+        return { ...bot, hopperUpgrade: true, inventoryCapacity: getHarvestBotCapacity(true) };
       }
       return bot;
     });
@@ -4850,7 +4850,7 @@ export function hopperUpgrade(state: GameState, botId: string, botType: 'water' 
     updatedZone.transportBots = updatedZone.transportBots.map(bot => {
       if (bot.id === botId && !bot.hopperUpgrade) {
         updated = true;
-        return { ...bot, hopperUpgrade: true };
+        return { ...bot, hopperUpgrade: true, inventoryCapacity: getTransportBotCapacity(true) };
       }
       return bot;
     });

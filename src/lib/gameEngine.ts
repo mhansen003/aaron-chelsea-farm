@@ -110,6 +110,7 @@ export const CONSTRUCTION_DURATIONS = {
   well: 100, // Near-instant construction (100ms)
   garage: 100, // Near-instant construction (100ms)
   supercharger: 100, // Near-instant construction (100ms)
+  fertilizer: 100, // Near-instant construction (100ms)
 };
 
 // Helper functions for supercharged bot speed calculations
@@ -812,6 +813,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'place_well':
           newState = placeWell(newState, task.tileX, task.tileY);
+          break;
+        case 'place_fertilizer':
+          newState = placeFertilizerBuilding(newState, task.tileX, task.tileY);
           break;
         case 'pickup_marked':
           // Pickup marked items from warehouse into farmer's basket
@@ -2304,6 +2308,13 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       zone = updateHunterBots(zone, deltaTime);
       newZones[zoneKey] = zone;
     }
+
+    // Update fertilizer bot (find crops, fertilize, refill)
+    if (zone.fertilizerBot) {
+      const fertilizerUpdate = updateFertilizerBot(zone, deltaTime, newGameTime);
+      zone = fertilizerUpdate.zone;
+      newZones[zoneKey] = { ...zone, grid: fertilizerUpdate.grid };
+    }
   });
 
   // Check and auto-refill seeds if enabled
@@ -3589,6 +3600,135 @@ export function relocateBotFactory(state: GameState): GameState {
   });
 
   // Keep botFactoryPlaced=true so placement knows it's a relocation
+  return {
+    ...state,
+    zones: newZones,
+  };
+}
+
+// Fertilizer Building Functions
+
+export function buyFertilizerBuilding(state: GameState): GameState {
+  // Only allow buying if they don't already have one
+  if (state.player.money < FERTILIZER_BUILDING_COST || state.player.inventory.fertilizerBuilding >= 1) {
+    return state;
+  }
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - FERTILIZER_BUILDING_COST,
+      inventory: {
+        ...state.player.inventory,
+        fertilizerBuilding: 1,
+      },
+    },
+  };
+}
+
+export function placeFertilizerBuilding(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.fertilizerBuilding <= 0) {
+    return state;
+  }
+
+  // Check if this is a relocation (building already placed elsewhere)
+  const isRelocation = state.player.inventory.fertilizerBuildingPlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'fertilizer' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'fertilizer' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.fertilizer,
+          };
+        }
+      }
+      return t;
+    })
+  );
+
+  const updatedState = updateCurrentGrid(state, newGrid);
+
+  return {
+    ...updatedState,
+    player: {
+      ...updatedState.player,
+      inventory: {
+        ...updatedState.player.inventory,
+        fertilizerBuildingPlaced: true,
+      },
+    },
+  };
+}
+
+export function relocateFertilizerBuilding(state: GameState): GameState {
+  // Only allow relocating if the building is currently placed
+  if (!state.player.inventory.fertilizerBuildingPlaced) {
+    return state;
+  }
+
+  // Find and remove the fertilizer building from all zones
+  const newZones = { ...state.zones };
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    const newGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Remove completed fertilizer buildings
+        if (tile.type === 'fertilizer') {
+          return {
+            ...tile,
+            type: 'grass' as const,
+            variant: getRandomGrassVariant(),
+          };
+        }
+        // Remove construction sites
+        if (tile.isConstructing && tile.constructionTarget === 'fertilizer') {
+          return {
+            ...tile,
+            isConstructing: false,
+            constructionTarget: undefined,
+            constructionStartTime: undefined,
+            constructionDuration: undefined,
+          };
+        }
+        return tile;
+      })
+    );
+    newZones[zoneKey] = { ...zone, grid: newGrid };
+  });
+
+  // Keep fertilizerBuildingPlaced=true so placement knows it's a relocation
   return {
     ...state,
     zones: newZones,
@@ -4897,6 +5037,82 @@ export function buyHunterbots(state: GameState, count: number = 1): GameState {
     },
   };
 }
+
+/**
+ * Buy fertilizer bot (only 1 allowed per player)
+ */
+export function buyFertilizerbot(state: GameState, name: string = 'Fertilizer Bot'): GameState {
+  // Check if player already has a fertilizer bot
+  if (state.player.inventory.fertilizerbot > 0) {
+    return state;
+  }
+
+  if (state.player.money < FERTILIZERBOT_COST) {
+    return state;
+  }
+
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  // Check if fertilizer building exists in current zone
+  let hasFertilizerBuilding = false;
+  for (let y = 0; y < currentZone.grid.length; y++) {
+    for (let x = 0; x < currentZone.grid[y].length; x++) {
+      if (currentZone.grid[y][x].type === 'fertilizer') {
+        hasFertilizerBuilding = true;
+        break;
+      }
+    }
+    if (hasFertilizerBuilding) break;
+  }
+
+  if (!hasFertilizerBuilding) {
+    // Need fertilizer building first
+    return state;
+  }
+
+  // Default crop priority: high profit crops first
+  const defaultCropPriority: Array<Exclude<import('@/types/game').CropType, null>> = [
+    'avocado', 'oranges', 'grapes', 'watermelon', 'pumpkin', 'corn',
+    'tomato', 'rice', 'peppers', 'carrot', 'wheat'
+  ];
+
+  // Create new fertilizer bot
+  const newBot: import('@/types/game').FertilizerBot = {
+    id: `fertilizer-${Date.now()}`,
+    name: name,
+    fertilizerLevel: FERTILIZER_MAX_CAPACITY,
+    status: 'idle',
+    x: 1,
+    y: 1,
+    visualX: 1,
+    visualY: 1,
+    supercharged: false,
+    config: {
+      cropPriority: defaultCropPriority,
+    },
+  };
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - FERTILIZERBOT_COST,
+      inventory: {
+        ...state.player.inventory,
+        fertilizerbot: 1,
+      },
+    },
+    zones: {
+      ...state.zones,
+      [currentZoneKey]: {
+        ...currentZone,
+        fertilizerBot: newBot,
+      },
+    },
+  };
+}
+
 // Fertilizer Bot Functions
 
 /**

@@ -4956,25 +4956,38 @@ function updateRabbits(
       // Eating - check if done
       const eatingTime = gameTime - (rabbit.eatingStartTime || 0);
       if (eatingTime >= (rabbit.eatingDuration || RABBIT_EATING_DURATION)) {
-        // Done eating - turn tile into dirt
+        // Done eating - completely remove the crop
         if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
           const tile = updatedGrid[rabbit.targetY][rabbit.targetX];
           updatedGrid[rabbit.targetY][rabbit.targetX] = {
             ...tile,
-            type: 'dirt',
+            type: 'grass',
             crop: null,
             growthStage: 0,
             wateredToday: false,
             wateredTimestamp: undefined,
             fertilized: false,
-            cleared: false,
+            cleared: true,
           };
         }
 
         const newCropsEaten = rabbit.cropsEaten + 1;
 
-        // Check if rabbit has eaten enough crops - leave the screen
-        if (newCropsEaten >= rabbit.maxCropsToEat) {
+        // Check if there are any more crops available to eat
+        let hasMoreCrops = false;
+        for (let y = 0; y < updatedGrid.length; y++) {
+          for (let x = 0; x < updatedGrid[y].length; x++) {
+            const tile = updatedGrid[y][x];
+            if (tile.crop && tile.growthStage > 50) {
+              hasMoreCrops = true;
+              break;
+            }
+          }
+          if (hasMoreCrops) break;
+        }
+
+        // Check if rabbit should leave (eaten enough OR no more crops available)
+        if (newCropsEaten >= rabbit.maxCropsToEat || (!hasMoreCrops && newCropsEaten >= 1)) {
           // Determine nearest edge to leave from
           const gridWidth = updatedGrid[0]?.length || 0;
           const gridHeight = updatedGrid.length;

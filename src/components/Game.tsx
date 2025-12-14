@@ -3533,6 +3533,7 @@ export default function Game() {
   const seedBots = currentZone?.seedBots || [];
   const transportBots = currentZone?.transportBots || [];
   const demolishBots = currentZone?.demolishBots || [];
+  const hunterBots = currentZone?.hunterBots || [];
 
 
   return (
@@ -5292,6 +5293,62 @@ export default function Game() {
                             {Math.floor(clearingProgress)}%
                           </div>
                         </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Hunter Bots Section */}
+          {(hunterBots?.length ?? 0) > 0 && (
+            <div className="bg-gradient-to-br from-amber-950/40 to-yellow-900/20 border rounded-lg p-2 shadow-lg border-amber-500/60 hover:shadow-amber-500/30 hover:border-amber-400 transition-all">
+              <div
+                className="text-xs text-amber-300 font-bold mb-1.5 flex items-center gap-1 cursor-pointer hover:bg-amber-900/40 rounded px-1.5 py-1 transition-colors group"
+                onClick={() => setShowBotInfo({ type: 'hunter', bots: hunterBots || [] })}
+              >
+                HUNTER
+                <span className="ml-auto bg-amber-600/30 px-1 rounded text-xs">{hunterBots?.length ?? 0}</span>
+                <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
+              </div>
+              <div className="space-y-1">
+                {hunterBots?.map((bot, idx) => {
+                  const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
+                  const statusText =
+                    isParked ? '🏠 Parked in garage' :
+                    bot.status === 'chasing' ? '🏃 Chasing rabbit!' :
+                    bot.status === 'capturing' ? '🎯 Capturing' :
+                    bot.status === 'escorting' ? '🚪 Escorting out' :
+                    bot.status === 'patrolling' ? '👁️ Patrolling' :
+                    'Ready';
+                  return (
+                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-amber-600/20 cursor-pointer hover:bg-amber-900/20 transition-colors">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span
+                          className="text-xs font-semibold text-amber-100 cursor-pointer hover:text-amber-300 hover:underline"
+                          onClick={() => setRenamingBot({ id: bot.id, type: 'hunter', currentName: bot.name })}
+                          title="Click to rename"
+                        >
+                          {bot.name}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Sell ${bot.name} for $${Math.floor(HUNTERBOT_COST * 0.7)}?`)) {
+                              setGameState(prev => sellBot(prev, bot.id, 'hunter'));
+                            }
+                          }}
+                          className="text-red-400 hover:text-red-300 text-xs px-1"
+                          title="Sell bot"
+                        >
+                          💰
+                        </button>
+                      </div>
+                      <div className="text-[10px] font-medium text-amber-200/60 mb-1 truncate">{statusText}</div>
+                      {bot.supercharged && (
+                        <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">
+                          ⚡ SUPERCHARGED
+                        </div>
                       )}
                     </div>
                   );

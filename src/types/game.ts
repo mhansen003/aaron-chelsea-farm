@@ -30,7 +30,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe' | 'uproot';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit' | 'pickup_marked';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'place_fertilizer' | 'deposit' | 'pickup_marked';
 
 export interface Task {
   id: string;

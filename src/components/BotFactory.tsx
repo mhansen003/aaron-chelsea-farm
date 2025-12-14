@@ -21,517 +21,351 @@ interface BotFactoryProps {
   onRelocate: () => void;
 }
 
-type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' | null;
+type BotType = 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer';
+
+interface CartItem {
+  type: BotType;
+  quantity: number;
+}
+
+const BOT_DATA = {
+  water: {
+    name: 'Water Bot',
+    image: '/water bot.png',
+    color: 'cyan',
+    gradient: 'from-cyan-500 to-blue-600',
+    maxOwned: 3,
+    feature: 'Auto-waters crops',
+    capacity: '12-gallon tank',
+  },
+  harvest: {
+    name: 'Harvest Bot',
+    image: '/harvest bot.png',
+    color: 'amber',
+    gradient: 'from-amber-500 to-orange-600',
+    maxOwned: 7,
+    feature: 'Auto-harvests',
+    capacity: '8-slot inventory',
+  },
+  seed: {
+    name: 'Seed Bot',
+    image: '/plant seeds.png',
+    color: 'green',
+    gradient: 'from-green-500 to-emerald-600',
+    maxOwned: 3,
+    feature: 'Auto-plants seeds',
+    capacity: '3 job slots',
+  },
+  transport: {
+    name: 'Transport Bot',
+    image: '/transport bot.png',
+    color: 'purple',
+    gradient: 'from-purple-500 to-indigo-600',
+    maxOwned: 1,
+    feature: 'Auto-transports',
+    capacity: 'Large cargo',
+  },
+  demolish: {
+    name: 'Demolish Bot',
+    image: '/demolish-bot.png',
+    color: 'orange',
+    gradient: 'from-orange-500 to-red-600',
+    maxOwned: 3,
+    feature: 'Clears obstacles',
+    capacity: 'Heavy-duty',
+  },
+  hunter: {
+    name: 'Hunter Bot',
+    image: '/hunter.png',
+    color: 'yellow',
+    gradient: 'from-yellow-500 to-amber-600',
+    maxOwned: 3,
+    feature: 'Catches rabbits',
+    capacity: 'Ultra-fast',
+  },
+  fertilizer: {
+    name: 'Fertilizer Bot',
+    image: '/fertilizer-bot.png',
+    color: 'lime',
+    gradient: 'from-lime-500 to-green-600',
+    maxOwned: 1,
+    feature: '+50% growth',
+    capacity: 'Smart priority',
+  },
+};
 
 export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHarvestbots, onBuySeedbots, onBuyTransportbots, onBuyDemolishbots, onBuyHunterbots, onBuyFertilizerbot, onRelocate }: BotFactoryProps) {
-  const [namingBot, setNamingBot] = useState<BotType>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [checkoutStep, setCheckoutStep] = useState<'shopping' | 'naming' | 'config'>('shopping');
+  const [currentBotIndex, setCurrentBotIndex] = useState(0);
+  const [namingBot, setNamingBot] = useState<BotType | null>(null);
   const [configuringTransportBot, setConfiguringTransportBot] = useState(false);
   const [transportBotName, setTransportBotName] = useState<string | undefined>(undefined);
   const [configuringFertilizerBot, setConfiguringFertilizerBot] = useState(false);
   const [fertilizerBotName, setFertilizerBotName] = useState<string | undefined>(undefined);
-  // Calculate progressive costs based on how many bots are owned
-  const waterbotCost = getBotCost(WATERBOT_COST, gameState.player.inventory.waterbots);
-  const harvestbotCost = getBotCost(HARVESTBOT_COST, gameState.player.inventory.harvestbots);
-  const seedbotCost = getBotCost(SEEDBOT_COST, gameState.player.inventory.seedbots);
-  const transportbotCost = getBotCost(TRANSPORTBOT_COST, gameState.player.inventory.transportbots || 0);
-  const demolishbotCost = getBotCost(DEMOLISHBOT_COST, gameState.player.inventory.demolishbots || 0);
-  const hunterbotCost = getBotCost(HUNTERBOT_COST, gameState.player.inventory.hunterbots || 0);
-  const fertilizerbotCost = FERTILIZERBOT_COST; // Fixed cost, only 1 allowed
+
+  const getOwned = (type: BotType): number => {
+    switch (type) {
+      case 'water': return gameState.player.inventory.waterbots;
+      case 'harvest': return gameState.player.inventory.harvestbots;
+      case 'seed': return gameState.player.inventory.seedbots;
+      case 'transport': return gameState.player.inventory.transportbots || 0;
+      case 'demolish': return gameState.player.inventory.demolishbots || 0;
+      case 'hunter': return gameState.player.inventory.hunterbots || 0;
+      case 'fertilizer': return gameState.player.inventory.fertilizerbot || 0;
+      default: return 0;
+    }
+  };
+
+  const getCost = (type: BotType): number => {
+    const owned = getOwned(type);
+    switch (type) {
+      case 'water': return getBotCost(WATERBOT_COST, owned);
+      case 'harvest': return getBotCost(HARVESTBOT_COST, owned);
+      case 'seed': return getBotCost(SEEDBOT_COST, owned);
+      case 'transport': return getBotCost(TRANSPORTBOT_COST, owned);
+      case 'demolish': return getBotCost(DEMOLISHBOT_COST, owned);
+      case 'hunter': return getBotCost(HUNTERBOT_COST, owned);
+      case 'fertilizer': return FERTILIZERBOT_COST;
+      default: return 0;
+    }
+  };
+
+  const addToCart = (type: BotType) => {
+    const existingItem = cart.find(item => item.type === type);
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.type === type ? { ...item, quantity: item.quantity + 1 } : item
+      ));
+    } else {
+      setCart([...cart, { type, quantity: 1 }]);
+    }
+  };
+
+  const removeFromCart = (type: BotType) => {
+    const existingItem = cart.find(item => item.type === type);
+    if (existingItem && existingItem.quantity > 1) {
+      setCart(cart.map(item =>
+        item.type === type ? { ...item, quantity: item.quantity - 1 } : item
+      ));
+    } else {
+      setCart(cart.filter(item => item.type !== type));
+    }
+  };
+
+  const getCartTotal = () => {
+    return cart.reduce((total, item) => {
+      const costPerBot = getCost(item.type);
+      return total + (costPerBot * item.quantity);
+    }, 0);
+  };
+
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const startCheckout = () => {
+    if (cart.length === 0) return;
+    setCurrentBotIndex(0);
+    setCheckoutStep('naming');
+    setNamingBot(cart[0].type);
+  };
+
+  const canAfford = (type: BotType) => {
+    return gameState.player.money >= getCost(type);
+  };
+
+  const isMaxed = (type: BotType) => {
+    return getOwned(type) >= BOT_DATA[type].maxOwned;
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-orange-900 to-orange-950 text-white rounded-xl max-w-5xl w-full max-h-[95vh] border-2 md:border-4 border-orange-600 shadow-2xl flex flex-col">
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-orange-500/50 shadow-2xl flex flex-col">
+
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-4 md:p-6 border-b border-orange-700/50">
-          <h2 className="text-2xl md:text-4xl font-bold">🏭 Bot Factory</h2>
-          <button
-            onClick={onClose}
-            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="mb-4 text-lg md:text-xl font-bold bg-black/40 px-4 md:px-6 py-2 md:py-3 rounded-lg border-2 border-yellow-600/50">
-            💰 Available Funds: ${gameState.player.money}
-          </div>
-
-          <div>
-          <p className="text-gray-300 text-sm md:text-base mb-4 md:mb-6 leading-relaxed">
-            Welcome to the Bot Factory! Each bot is a specialized farming assistant designed to automate specific tasks on your farm. Choose wisely and build your automated farming empire!
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-            {/* Water Bot */}
-            <div className={`bg-gradient-to-br from-cyan-900/40 to-blue-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.waterbots >= 3
-                ? 'border-green-500 shadow-lg shadow-green-500/30'
-                : 'border-cyan-500/50 shadow-lg shadow-cyan-500/20'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/water bot.png"
-                    alt="Water Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.waterbots >= 3 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-cyan-300 mb-2">Water Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Water Bot is your tireless hydration specialist. Equipped with advanced moisture sensors and a 12-gallon tank, it autonomously waters your crops to ensure optimal growth.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-cyan-400">Owned: {gameState.player.inventory.waterbots}/3</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Auto-waters crops • ✓ 12-gallon capacity • ✓ Self-refilling
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.waterbots >= 3 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('water')}
-                  disabled={gameState.player.money < WATERBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= WATERBOT_COST
-                      ? 'bg-cyan-600 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= waterbotCost ? `Purchase for $${waterbotCost}` : `Insufficient Funds ($${waterbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Harvest Bot */}
-            <div className={`bg-gradient-to-br from-amber-900/40 to-yellow-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.harvestbots >= 7
-                ? 'border-green-500 shadow-lg shadow-green-500/30'
-                : 'border-amber-500/50 shadow-lg shadow-amber-500/20'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/harvest bot.png"
-                    alt="Harvest Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.harvestbots >= 7 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-amber-300 mb-2">Harvest Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Harvest Bot is a precision harvesting machine. With gentle mechanical arms and crop-detection AI, it collects mature crops and deposits them directly to your warehouse.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.harvestbots}/7</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Auto-harvests crops • ✓ 8-slot inventory • ✓ Auto-deposits
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.harvestbots >= 7 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('harvest')}
-                  disabled={gameState.player.money < HARVESTBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= HARVESTBOT_COST
-                      ? 'bg-amber-600 hover:bg-amber-700 hover:shadow-lg hover:shadow-amber-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= harvestbotCost ? `Purchase for $${harvestbotCost}` : `Insufficient Funds ($${harvestbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Seed Bot */}
-            <div className={`bg-gradient-to-br from-green-900/40 to-emerald-950/40 p-5 rounded-xl border-3 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.seedbots >= 3
-                ? 'border-yellow-500 shadow-lg shadow-yellow-500/30'
-                : 'border-green-500/50 shadow-lg shadow-green-500/20'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/plant seeds.png"
-                    alt="Seed Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.seedbots >= 3 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-green-300 mb-2">Seed Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Seed Bot is your intelligent planting assistant. Program up to 3 jobs with custom crop selections, and it will autonomously plant seeds across your farm zones.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-green-400">Owned: {gameState.player.inventory.seedbots}/3</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Auto-plants seeds • ✓ 3 job slots • ✓ Auto-buy seeds option
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.seedbots >= 3 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('seed')}
-                  disabled={gameState.player.money < SEEDBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= SEEDBOT_COST
-                      ? 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= seedbotCost ? `Purchase for $${seedbotCost}` : `Insufficient Funds ($${seedbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Transport Bot */}
-            <div className={`bg-gradient-to-br from-purple-900/40 to-indigo-950/40 p-5 rounded-xl border-3 shadow-lg shadow-purple-500/20 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.transportbots >= 1
-                ? 'border-green-500 shadow-green-500/30'
-                : 'border-purple-500/50'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/transport bot.png"
-                    alt="Transport Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.transportbots >= 1 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-purple-300 mb-2">Transport Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Transport Bot is your logistics specialist. It automatically transports crops from your warehouse to the export station and handles all sales transactions.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-purple-400">Owned: {gameState.player.inventory.transportbots}/1</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Auto-transports • ✓ Auto-sells • ✓ Large cargo capacity
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.transportbots >= 1 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('transport')}
-                  disabled={gameState.player.money < TRANSPORTBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= TRANSPORTBOT_COST
-                      ? 'bg-purple-600 hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= transportbotCost ? `Purchase for $${transportbotCost}` : `Insufficient Funds ($${transportbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Demolish Bot */}
-            <div className={`bg-gradient-to-br from-orange-900/40 to-red-950/40 p-5 rounded-xl border-3 shadow-lg shadow-orange-500/20 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.demolishbots >= 3
-                ? 'border-green-500 shadow-green-500/30'
-                : 'border-orange-500/50'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/demolish-bot.png"
-                    alt="Demolish Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.demolishbots >= 3 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-orange-300 mb-2">Demolish Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Demolish Bot is your heavy-duty clearing specialist. Equipped with powerful tools, it autonomously removes rocks and forests, keeping your farm clean and ready for expansion.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-orange-400">Owned: {gameState.player.inventory.demolishbots}/3</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Auto-clears rocks • ✓ Auto-clears forests • ✓ Fast clearing
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.demolishbots >= 3 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('demolish')}
-                  disabled={gameState.player.money < DEMOLISHBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= DEMOLISHBOT_COST
-                      ? 'bg-orange-600 hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= demolishbotCost ? `Purchase for $${demolishbotCost}` : `Insufficient Funds ($${demolishbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Hunter Bot */}
-            <div className={`bg-gradient-to-br from-amber-900/40 to-yellow-950/40 p-5 rounded-xl border-3 shadow-lg shadow-amber-500/20 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.hunterbots >= 3
-                ? 'border-green-500 shadow-green-500/30'
-                : 'border-amber-500/50'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/hunter.png"
-                    alt="Hunter Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.hunterbots >= 3 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      MAX
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-amber-300 mb-2">Hunter Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Hunter Bot is your rapid-response defense specialist. Equipped with advanced sensors and incredible speed, it detects and captures rabbits that try to eat your crops, escorting them safely off your farm.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">FLEET STATUS</span>
-                  <span className="text-sm font-bold text-amber-400">Owned: {gameState.player.inventory.hunterbots}/3</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ Detects rabbits • ✓ Ultra-fast movement • ✓ Protects crops
-                </div>
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.hunterbots >= 3 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ MAXIMUM FLEET CAPACITY
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('hunter')}
-                  disabled={gameState.player.money < HUNTERBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= HUNTERBOT_COST
-                      ? 'bg-amber-600 hover:bg-amber-700 hover:shadow-lg hover:shadow-amber-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= hunterbotCost ? `Purchase for $${hunterbotCost}` : `Insufficient Funds ($${hunterbotCost})`}
-                </button>
-              )}
-            </div>
-
-            {/* Fertilizer Bot */}
-            <div className={`bg-gradient-to-br from-green-900/40 to-emerald-950/40 p-5 rounded-xl border-3 shadow-lg shadow-green-500/20 hover:scale-[1.02] transition-transform duration-200 ${
-              gameState.player.inventory.fertilizerbot >= 1
-                ? 'border-green-500 shadow-green-500/30'
-                : 'border-green-500/50'
-            }`}>
-              <div className="flex gap-4 mb-4">
-                {/* Bot Image */}
-                <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
-                    src="/fertilizer-bot.png"
-                    alt="Fertilizer Bot"
-                    width={96}
-                    height={96}
-                    className="object-contain"
-                  />
-                  {gameState.player.inventory.fertilizerbot >= 1 && (
-                    <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      OWNED
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-green-300 mb-2">Fertilizer Bot</h3>
-                  <p className="text-sm text-gray-300 leading-tight">
-                    The Fertilizer Bot boosts your crop growth by 50%! It intelligently fertilizes watered crops based on your custom priority list, refills from the Fertilizer Building, and works tirelessly to maximize your harvests.
-                  </p>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="bg-black/40 rounded-lg p-3 mb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs text-gray-400">SPECIAL UNIT</span>
-                  <span className="text-sm font-bold text-green-400">Owned: {gameState.player.inventory.fertilizerbot}/1</span>
-                </div>
-                <div className="text-xs text-green-400">
-                  ✓ 50% faster growth • ✓ Smart prioritization • ✓ Auto-refill
-                </div>
-                {gameState.player.inventory.fertilizerbot === 0 && (
-                  <div className="text-xs text-yellow-400 mt-2">
-                    ⚠ Requires Fertilizer Building to be placed first
-                  </div>
-                )}
-              </div>
-
-              {/* Buy Button */}
-              {gameState.player.inventory.fertilizerbot >= 1 ? (
-                <div className="w-full px-4 py-3 rounded-lg font-bold text-base bg-green-900/40 text-green-400 text-center border-2 border-green-500/50">
-                  ✓ FERTILIZER BOT OWNED
-                </div>
-              ) : (
-                <button
-                  onClick={() => setNamingBot('fertilizer')}
-                  disabled={gameState.player.money < FERTILIZERBOT_COST}
-                  className={`w-full px-4 py-3 rounded-lg font-bold text-base transition-all ${
-                    gameState.player.money >= FERTILIZERBOT_COST
-                      ? 'bg-green-600 hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/50'
-                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  {gameState.player.money >= fertilizerbotCost ? `Purchase for $${fertilizerbotCost}` : `Insufficient Funds ($${fertilizerbotCost})`}
-                </button>
-              )}
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-orange-500/30 bg-gradient-to-r from-orange-900/40 to-red-900/40">
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">🏭</div>
+            <div>
+              <h2 className="text-4xl font-black tracking-tight">BOT FACTORY</h2>
+              <p className="text-orange-300 text-sm">Select bots and add to cart</p>
             </div>
           </div>
-          </div>
-        </div>
 
-        {/* Sticky Footer with CTAs */}
-        <div className="flex-shrink-0 border-t border-orange-700/50 p-4 md:p-6 bg-orange-950/50">
-          <div className="flex gap-4">
-            <button
-              onClick={() => {
-                onRelocate();
-                onClose();
-              }}
-              className="flex-1 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
-            >
-              🔄 Relocate Factory
-            </button>
+          <div className="flex items-center gap-4">
+            {/* Money Display */}
+            <div className="bg-black/60 px-6 py-3 rounded-xl border-2 border-yellow-500/50">
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Balance</div>
+              <div className="text-2xl font-bold text-yellow-400">${gameState.player.money}</div>
+            </div>
 
+            {/* Close Button */}
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg shadow-lg transition-colors"
+              className="text-3xl hover:text-red-400 transition-colors w-12 h-12 flex items-center justify-center rounded-full hover:bg-red-500/20"
             >
-              Close
+              ✕
             </button>
+          </div>
+        </div>
+
+        {/* Bot Grid */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {(Object.entries(BOT_DATA) as [BotType, typeof BOT_DATA[BotType]][]).map(([type, data]) => {
+              const owned = getOwned(type);
+              const cost = getCost(type);
+              const maxed = isMaxed(type);
+              const affordable = canAfford(type);
+              const inCart = cart.find(item => item.type === type)?.quantity || 0;
+
+              return (
+                <div
+                  key={type}
+                  className={`relative bg-gradient-to-br ${data.gradient} p-1 rounded-2xl hover:scale-105 transition-transform ${
+                    maxed ? 'opacity-60' : ''
+                  }`}
+                >
+                  <div className="bg-slate-900 rounded-xl p-4 h-full flex flex-col">
+                    {/* Bot Image */}
+                    <div className="relative w-full aspect-square mb-3">
+                      <Image
+                        src={data.image}
+                        alt={data.name}
+                        fill
+                        className="object-contain drop-shadow-2xl"
+                      />
+
+                      {/* Status Badge */}
+                      {maxed ? (
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                          MAX
+                        </div>
+                      ) : inCart > 0 && (
+                        <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                          {inCart} in cart
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bot Name */}
+                    <h3 className="text-xl font-black text-center mb-2 text-white">
+                      {data.name}
+                    </h3>
+
+                    {/* Stats */}
+                    <div className="flex-1 space-y-1 mb-3">
+                      <div className="flex items-center justify-center gap-2 text-xs">
+                        <span className="bg-white/10 px-2 py-1 rounded">{data.feature}</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 text-xs">
+                        <span className="bg-white/10 px-2 py-1 rounded">{data.capacity}</span>
+                      </div>
+                      <div className="text-center text-xs text-gray-400 mt-2">
+                        Owned: {owned}/{data.maxOwned}
+                      </div>
+                    </div>
+
+                    {/* Price & Add Button */}
+                    {maxed ? (
+                      <div className="w-full py-3 bg-green-900/50 text-green-300 rounded-lg font-bold text-center text-sm">
+                        ✓ MAXED OUT
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-center mb-2">
+                          <div className={`text-2xl font-black ${affordable ? 'text-yellow-400' : 'text-red-400'}`}>
+                            ${cost}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => addToCart(type)}
+                          disabled={!affordable}
+                          className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                            affordable
+                              ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                              : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                          }`}
+                        >
+                          {affordable ? '+ ADD TO CART' : 'INSUFFICIENT FUNDS'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Shopping Cart Footer */}
+        <div className="flex-shrink-0 border-t-2 border-orange-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
+          <div className="flex items-center justify-between gap-4">
+            {/* Cart Summary */}
+            <div className="flex-1">
+              {cart.length === 0 ? (
+                <div className="text-gray-500 text-sm">🛒 Cart is empty - add bots above!</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {cart.map(item => (
+                    <div
+                      key={item.type}
+                      className="flex items-center gap-2 bg-slate-700 px-3 py-2 rounded-lg"
+                    >
+                      <div className="w-8 h-8 relative">
+                        <Image
+                          src={BOT_DATA[item.type].image}
+                          alt={BOT_DATA[item.type].name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="font-bold text-sm">{item.quantity}x</span>
+                      <button
+                        onClick={() => removeFromCart(item.type)}
+                        className="text-red-400 hover:text-red-300 text-lg leading-none"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Total & Checkout */}
+            <div className="flex items-center gap-4">
+              {cart.length > 0 && (
+                <>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-400 uppercase">Total ({cartItemCount} {cartItemCount === 1 ? 'bot' : 'bots'})</div>
+                    <div className="text-3xl font-black text-yellow-400">${getCartTotal()}</div>
+                  </div>
+
+                  <button
+                    onClick={startCheckout}
+                    disabled={getCartTotal() > gameState.player.money}
+                    className={`px-8 py-4 rounded-xl font-black text-xl transition-all ${
+                      getCartTotal() <= gameState.player.money
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                        : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                    }`}
+                  >
+                    🛒 CHECKOUT
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => {
+                  onRelocate();
+                  onClose();
+                }}
+                className="px-6 py-4 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold transition-colors"
+              >
+                📍 Relocate
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -539,21 +373,12 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
       {/* Bot Name Modal */}
       {namingBot && (
         <BotNameModal
-          botType={
-            namingBot === 'water' ? 'Water Bot' :
-            namingBot === 'harvest' ? 'Harvest Bot' :
-            namingBot === 'seed' ? 'Seed Bot' :
-            namingBot === 'transport' ? 'Transport Bot' :
-            namingBot === 'demolish' ? 'Demolish Bot' :
-            namingBot === 'hunter' ? 'Hunter Bot' :
-            'Fertilizer Bot'
-          }
+          botType={namingBot}
           onConfirm={(name) => {
             if (namingBot === 'water') onBuyWaterbots(1, name);
             else if (namingBot === 'harvest') onBuyHarvestbots(1, name);
             else if (namingBot === 'seed') onBuySeedbots(1, name);
             else if (namingBot === 'transport') {
-              // Show config modal for transport bots
               setTransportBotName(name);
               setNamingBot(null);
               setConfiguringTransportBot(true);
@@ -561,18 +386,20 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             else if (namingBot === 'demolish') onBuyDemolishbots(1, name);
             else if (namingBot === 'hunter') onBuyHunterbots(1, name);
             else if (namingBot === 'fertilizer') {
-              // Show config modal for fertilizer bot
               setFertilizerBotName(name);
               setNamingBot(null);
               setConfiguringFertilizerBot(true);
             }
 
-            // For non-config bots, close naming modal
             if (namingBot !== 'transport' && namingBot !== 'fertilizer') {
               setNamingBot(null);
+              setCart([]);
             }
           }}
-          onCancel={() => setNamingBot(null)}
+          onCancel={() => {
+            setNamingBot(null);
+            setCart([]);
+          }}
         />
       )}
 
@@ -585,10 +412,12 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             onBuyTransportbots(1, transportBotName, config);
             setConfiguringTransportBot(false);
             setTransportBotName(undefined);
+            setCart([]);
           }}
           onCancel={() => {
             setConfiguringTransportBot(false);
             setTransportBotName(undefined);
+            setCart([]);
           }}
         />
       )}
@@ -601,10 +430,12 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
             onBuyFertilizerbot(fertilizerBotName, config);
             setConfiguringFertilizerBot(false);
             setFertilizerBotName(undefined);
+            setCart([]);
           }}
           onCancel={() => {
             setConfiguringFertilizerBot(false);
             setFertilizerBotName(undefined);
+            setCart([]);
           }}
         />
       )}

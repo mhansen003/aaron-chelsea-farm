@@ -87,6 +87,7 @@ export const TASK_DURATIONS: Record<TaskType, number> = {
   place_well: 100, // Instant - construction time handles the delay
   place_garage: 100, // Instant - construction time handles the delay
   place_supercharger: 100, // Instant - construction time handles the delay
+  place_fertilizer: 100, // Instant - construction time handles the delay
   deposit: 3000, // 3 seconds to deposit crops at warehouse
   pickup_marked: 2000, // 2 seconds to pick up marked items
 };

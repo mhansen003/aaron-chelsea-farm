@@ -2399,6 +2399,27 @@ export default function Game() {
       }
     });
 
+    // Fertilizer bot
+    if (fertilizerBot && fertilizerBot.actionStartTime !== undefined && fertilizerBot.actionDuration && fertilizerBot.x !== undefined && fertilizerBot.y !== undefined) {
+      const elapsed = gameState.gameTime - fertilizerBot.actionStartTime;
+      const progress = Math.min(1, elapsed / fertilizerBot.actionDuration);
+      const px = fertilizerBot.x * GAME_CONFIG.tileSize;
+      const py = fertilizerBot.y * GAME_CONFIG.tileSize;
+
+      // Background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+
+      // Progress fill
+      ctx.fillStyle = '#84cc16'; // Lime green for fertilizing
+      ctx.fillRect(px + 5, py + GAME_CONFIG.tileSize - 15, (GAME_CONFIG.tileSize - 10) * progress, 10);
+
+      // Border
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+    }
+
     // Draw player using visual position for smooth movement
     const visualX = gameState.player.visualX ?? gameState.player.x;
     const visualY = gameState.player.visualY ?? gameState.player.y;

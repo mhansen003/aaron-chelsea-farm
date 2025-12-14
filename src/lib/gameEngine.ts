@@ -2448,6 +2448,9 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   const tile = grid[tileY]?.[tileX];
   if (!tile || tile.type !== 'grown' || !tile.crop) return state;
 
+  // Crops must be watered before harvest
+  if (!tile.wateredTimestamp) return state;
+
   // Check if a rabbit is eating this crop - if so, it's gone
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -2473,6 +2476,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           plantedDay: undefined,
           wateredTimestamp: undefined, // Clear old timestamp to prevent reuse on next crop
           wateredToday: false, // Reset watering status
+          fertilized: false, // Clear fertilizer - must be reapplied for next crop
           lastWorkedTime: state.gameTime,
           overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
         };
@@ -2538,6 +2542,7 @@ export function uprootCrop(state: GameState, tileX: number, tileY: number): Game
           plantedDay: undefined,
           wateredTimestamp: undefined,
           wateredToday: false,
+          fertilized: false, // Clear fertilizer when uprooting
           lastWorkedTime: state.gameTime,
         };
       }
@@ -4960,7 +4965,7 @@ function updateRabbits(
           const tile = updatedGrid[y][x];
           // Skip the last eaten position to prevent looping on same spot
           const isLastEatenSpot = rabbit.lastEatenX === x && rabbit.lastEatenY === y;
-          if (tile.crop && tile.growthStage > 50 && !isLastEatenSpot) { // Only go for crops that are at least 50% grown
+          if (tile.crop && tile.growthStage >= 100 && !isLastEatenSpot) { // Only eat fully grown crops
             const distance = Math.abs(rabbit.x - x) + Math.abs(rabbit.y - y);
             if (!nearestCrop || distance < nearestCrop.distance) {
               nearestCrop = { x, y, distance };
@@ -4980,8 +4985,8 @@ function updateRabbits(
           const targetTile = updatedGrid[nearestCrop.y][nearestCrop.x];
           console.log('[Rabbit] Reached crop at', nearestCrop, 'tile has crop:', !!targetTile.crop, 'growthStage:', targetTile.growthStage);
 
-          // Double-check the crop still exists before starting to eat
-          if (targetTile.crop && targetTile.growthStage > 50) {
+          // Double-check the crop is fully grown before starting to eat
+          if (targetTile.crop && targetTile.growthStage >= 100) {
             console.log('[Rabbit] START EATING at', nearestCrop, 'crop:', targetTile.crop, 'gameTime:', gameTime);
             updatedRabbits.push({
               ...rabbit,

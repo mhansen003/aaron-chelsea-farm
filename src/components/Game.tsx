@@ -201,6 +201,7 @@ export default function Game() {
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const musicVolumeRef = useRef<number>(0.5); // Track current volume for audio creation
   const waterSplashRef = useRef<HTMLAudioElement | null>(null);
   const grassImageRef = useRef<HTMLImageElement | null>(null);
   const grassImageRef2 = useRef<HTMLImageElement | null>(null);
@@ -817,7 +818,7 @@ export default function Game() {
       // Create new audio for farm zone
       audioRef.current = new Audio(musicFile);
       audioRef.current.loop = false; // We'll handle song advancement manually
-      audioRef.current.volume = musicVolume;
+      audioRef.current.volume = musicVolumeRef.current;
 
       // When song ends, play next random enabled song
       const handleSongEnd = () => {
@@ -838,7 +839,7 @@ export default function Game() {
       musicFile = singleZoneMusic[zonetheme] || '/farm.mp3';
       audioRef.current = new Audio(musicFile);
       audioRef.current.loop = true; // Loop continuously for non-farm zones
-      audioRef.current.volume = musicVolume;
+      audioRef.current.volume = musicVolumeRef.current;
     }
 
     // Try to play music (only if not muted)
@@ -856,7 +857,7 @@ export default function Game() {
         document.addEventListener('keydown', startAudio, { once: true });
       });
     }
-  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomEnabledSong, isMusicMuted, allFarmSongs, musicVolume]);
+  }, [gameState.currentZone.x, gameState.currentZone.y, getRandomEnabledSong, isMusicMuted, allFarmSongs]);
 
   // Handle manual song selection (farm zone only)
   const handleSongSelect = useCallback((index: number) => {
@@ -940,6 +941,7 @@ export default function Game() {
   const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setMusicVolume(newVolume);
+    musicVolumeRef.current = newVolume; // Update ref for zone changes
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
     }
@@ -2726,14 +2728,14 @@ export default function Game() {
 
           // Draw progress bar
           if (rabbit.eatingStartTime !== undefined && rabbit.eatingDuration !== undefined) {
-            const eatingProgress = Math.min(1, (Date.now() - rabbit.eatingStartTime) / rabbit.eatingDuration);
+            const eatingProgress = Math.min(1, (gameState.gameTime - rabbit.eatingStartTime) / rabbit.eatingDuration);
             const barWidth = GAME_CONFIG.tileSize - 4;
-            const barHeight = 4;
+            const barHeight = 6;
             const barX = rabbitPx + 2;
             const barY = rabbitPy + GAME_CONFIG.tileSize + 2;
 
             // Background
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             ctx.fillRect(barX, barY, barWidth, barHeight);
 
             // Progress

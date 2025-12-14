@@ -214,6 +214,8 @@ export default function Game() {
   const seedBotImageRef = useRef<HTMLImageElement | null>(null);
   const transportBotImageRef = useRef<HTMLImageElement | null>(null);
   const demolishBotImageRef = useRef<HTMLImageElement | null>(null);
+  const hunterBotImageRef = useRef<HTMLImageElement | null>(null);
+  const rabbitImageRef = useRef<HTMLImageElement | null>(null);
   const chargedImageRef = useRef<HTMLImageElement | null>(null);
   const archFarmImageRef = useRef<HTMLImageElement | null>(null);
   const archBeachImageRef = useRef<HTMLImageElement | null>(null);
@@ -379,6 +381,18 @@ export default function Game() {
     demolishBotImg.src = '/demolish-bot.png';
     demolishBotImg.onload = () => {
       demolishBotImageRef.current = demolishBotImg;
+    };
+
+    const hunterBotImg = new Image();
+    hunterBotImg.src = '/hunter.png';
+    hunterBotImg.onload = () => {
+      hunterBotImageRef.current = hunterBotImg;
+    };
+
+    const rabbitImg = new Image();
+    rabbitImg.src = '/rabbit.png';
+    rabbitImg.onload = () => {
+      rabbitImageRef.current = rabbitImg;
     };
 
     const chargedImg = new Image();
@@ -2356,6 +2370,78 @@ export default function Game() {
           const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
           const chargedY = botPy - chargedSize * 0.8;
           ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+        }
+      }
+    });
+
+    // Draw rabbits using visual position for smooth movement
+    const currentZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const currentZone = gameState.zones[currentZoneKey];
+    currentZone.rabbits?.forEach(rabbit => {
+      if (rabbit.status !== 'captured') {
+        const visualX = rabbit.visualX;
+        const visualY = rabbit.visualY;
+        const rabbitPx = visualX * GAME_CONFIG.tileSize;
+        const rabbitPy = visualY * GAME_CONFIG.tileSize;
+
+        if (rabbitImageRef.current) {
+          ctx.drawImage(rabbitImageRef.current, rabbitPx, rabbitPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to white circle
+          const centerX = rabbitPx + GAME_CONFIG.tileSize / 2;
+          const centerY = rabbitPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw status indicator
+        if (rabbit.status === 'eating') {
+          ctx.fillStyle = '#ff0000';
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🍴', rabbitPx + GAME_CONFIG.tileSize / 2, rabbitPy - 8);
+        }
+      }
+    });
+
+    // Draw hunter bots using visual position for smooth movement
+    currentZone.hunterBots?.forEach(bot => {
+      if (bot.status !== 'garaged') {
+        const visualX = bot.visualX ?? bot.x ?? 0;
+        const visualY = bot.visualY ?? bot.y ?? 0;
+        const botPx = visualX * GAME_CONFIG.tileSize;
+        const botPy = visualY * GAME_CONFIG.tileSize;
+
+        if (hunterBotImageRef.current) {
+          ctx.drawImage(hunterBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else {
+          // Fallback to amber circle
+          const centerX = botPx + GAME_CONFIG.tileSize / 2;
+          const centerY = botPy + GAME_CONFIG.tileSize / 2;
+          ctx.fillStyle = '#ffbf00';
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, GAME_CONFIG.tileSize / 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Draw charged indicator above bot if supercharged
+        if (bot.supercharged && chargedImageRef.current) {
+          const chargedSize = GAME_CONFIG.tileSize * 0.6;
+          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy - chargedSize * 0.8;
+          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+        }
+
+        // Draw status indicator
+        if (bot.status === 'chasing' && bot.targetRabbitId) {
+          ctx.fillStyle = '#ff0000';
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('🎯', botPx + GAME_CONFIG.tileSize / 2, botPy - 8);
         }
       }
     });

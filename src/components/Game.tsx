@@ -2141,12 +2141,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw glowing red indicator on right side if out of water
@@ -2204,12 +2212,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw crop icon indicator if carrying crops
@@ -2291,12 +2307,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw job indicator if bot has jobs configured
@@ -2330,12 +2354,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw inventory indicator if bot has items
@@ -2369,12 +2401,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
       }
     });
@@ -2403,11 +2443,29 @@ export default function Game() {
 
         // Draw status indicator
         if (rabbit.status === 'eating') {
+          // Draw eating emoji
           ctx.fillStyle = '#ff0000';
           ctx.font = 'bold 14px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText('🍴', rabbitPx + GAME_CONFIG.tileSize / 2, rabbitPy - 8);
+
+          // Draw progress bar
+          if (rabbit.eatingStartTime !== undefined && rabbit.eatingDuration !== undefined) {
+            const eatingProgress = Math.min(1, (Date.now() - rabbit.eatingStartTime) / rabbit.eatingDuration);
+            const barWidth = GAME_CONFIG.tileSize - 4;
+            const barHeight = 4;
+            const barX = rabbitPx + 2;
+            const barY = rabbitPy + GAME_CONFIG.tileSize + 2;
+
+            // Background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            // Progress
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(barX, barY, barWidth * eatingProgress, barHeight);
+          }
         }
       }
     });
@@ -2432,12 +2490,20 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator above bot if supercharged
+        // Draw charged indicator above bot if supercharged (2 bolts side by side)
         if (bot.supercharged && chargedImageRef.current) {
-          const chargedSize = GAME_CONFIG.tileSize * 0.2;
-          const chargedX = botPx + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedSize = GAME_CONFIG.tileSize * 0.35;
+          const gap = 4; // Gap between the two bolts
+          const totalWidth = chargedSize * 2 + gap;
           const chargedY = botPy - chargedSize * 0.8;
-          ctx.drawImage(chargedImageRef.current, chargedX, chargedY, chargedSize, chargedSize);
+
+          // Left bolt
+          const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
+          ctx.drawImage(chargedImageRef.current, leftX, chargedY, chargedSize, chargedSize);
+
+          // Right bolt
+          const rightX = leftX + chargedSize + gap;
+          ctx.drawImage(chargedImageRef.current, rightX, chargedY, chargedSize, chargedSize);
         }
 
         // Draw status indicator
@@ -2467,7 +2533,7 @@ export default function Game() {
   const getActionForTile = useCallback((tile: Tile, selectedCrop: CropType | null) => {
     // PRIORITY: Uproot tool selected - can uproot planted or grown crops
     if (gameState.player.selectedTool === 'uproot' && (tile.type === 'planted' || tile.type === 'grown')) {
-      return { action: 'uproot' as const, cursor: 'not-allowed' };
+      return { action: 'uproot' as const, cursor: 'crosshair' };
     }
 
     // Rocks and trees can be cleared - show crosshair + pickaxe cursor
@@ -2967,14 +3033,6 @@ export default function Game() {
       return;
     }
 
-    // Check if uproot tool is selected - uproot planted/grown crops
-    if (gameState.player.selectedTool === 'uproot') {
-      if (tile.type === 'planted' || tile.type === 'grown') {
-        setGameState(prev => uprootCrop(prev, tileX, tileY));
-        return;
-      }
-    }
-
     // Get context-aware action for this tile
     const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
@@ -2991,6 +3049,10 @@ export default function Game() {
 
       case 'harvest':
         setGameState(prev => addTask(prev, 'harvest', tileX, tileY));
+        break;
+
+      case 'uproot':
+        setGameState(prev => addTask(prev, 'uproot', tileX, tileY));
         break;
 
       case 'plant':

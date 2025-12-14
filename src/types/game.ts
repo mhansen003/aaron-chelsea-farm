@@ -30,7 +30,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe' | 'uproot';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit' | 'pickup_marked';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'deposit' | 'pickup_marked';
 
 export interface Task {
   id: string;
@@ -47,7 +47,7 @@ export interface Task {
 export interface QueuedTile {
   x: number;
   y: number;
-  action: 'water' | 'harvest' | 'plant' | 'clear'; // What action to perform
+  action: 'water' | 'harvest' | 'plant' | 'clear' | 'uproot'; // What action to perform
   cropType?: CropType; // For plant actions
 }
 
@@ -344,10 +344,11 @@ export interface Rabbit {
   visualY: number; // Animated visual position Y
   targetX?: number; // Target tile X (where it's heading to eat a crop)
   targetY?: number; // Target tile Y
-  status: 'wandering' | 'approaching_crop' | 'eating' | 'fleeing' | 'captured';
+  status: 'wandering' | 'approaching_crop' | 'eating' | 'fleeing' | 'captured' | 'leaving';
   spawnTime: number; // Game time when rabbit spawned
   eatingStartTime?: number; // Game time when rabbit started eating
   eatingDuration?: number; // How long eating takes (ms)
+  cropsEaten: number; // How many crops eaten (max 10)
 }
 
 export interface HunterBot {

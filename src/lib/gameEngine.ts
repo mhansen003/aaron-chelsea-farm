@@ -81,6 +81,7 @@ export const TASK_DURATIONS: Record<TaskType, number> = {
   plant: 2000, // 2 seconds to plant
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
+  uproot: 2000, // 2 seconds to uproot a crop
   place_sprinkler: 3000, // 3 seconds to place sprinkler
   place_botFactory: 100, // Instant - construction time handles the delay
   place_well: 100, // Instant - construction time handles the delay
@@ -799,6 +800,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               break; // Don't clear current task, keep the deposit task
             }
           }
+          break;
+        case 'uproot':
+          newState = uprootCrop(newState, task.tileX, task.tileY);
           break;
         case 'place_sprinkler':
           newState = placeSprinkler(newState, task.tileX, task.tileY);
@@ -4420,8 +4424,9 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 
 // Rabbit constants
 const RABBIT_SPAWN_INTERVAL = 45000; // Spawn a rabbit every 45 seconds
-const RABBIT_EATING_DURATION = 3000; // 3 seconds to eat a crop
+const RABBIT_EATING_DURATION = 1500; // 1.5 seconds to eat a crop (faster)
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
+const RABBIT_MAX_CROPS = 10; // Max crops before rabbit leaves
 const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
 const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
 
@@ -4431,8 +4436,8 @@ const HUNTER_MOVE_SPEED = 0.025; // Even faster than rabbit
 function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): import('@/types/game').Zone {
   const lastSpawn = zone.lastRabbitSpawnTime || 0;
 
-  // Don't spawn if not enough time has passed or if there are already 3+ rabbits
-  if (gameTime - lastSpawn < RABBIT_SPAWN_INTERVAL || zone.rabbits.length >= 3) {
+  // Only allow 1 rabbit at a time
+  if (gameTime - lastSpawn < RABBIT_SPAWN_INTERVAL || zone.rabbits.length >= 1) {
     return zone;
   }
 
@@ -4462,6 +4467,7 @@ function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): impor
     visualY: y,
     status: 'wandering',
     spawnTime: gameTime,
+    cropsEaten: 0,
   };
 
   return {
@@ -4561,18 +4567,78 @@ function updateRabbits(
             growthStage: 0,
             wateredToday: false,
             wateredTimestamp: undefined,
+            fertilized: false,
           };
         }
-        // Rabbit wanders off after eating
-        updatedRabbits.push({
-          ...rabbit,
-          status: 'wandering',
-          targetX: undefined,
-          targetY: undefined,
-        });
+
+        const newCropsEaten = rabbit.cropsEaten + 1;
+
+        // Check if hungry (ate 10 crops) - leave the screen
+        if (newCropsEaten >= RABBIT_MAX_CROPS) {
+          // Determine nearest edge to leave from
+          const gridWidth = updatedGrid[0]?.length || 0;
+          const gridHeight = updatedGrid.length;
+          const distToLeft = rabbit.x;
+          const distToRight = gridWidth - 1 - rabbit.x;
+          const distToTop = rabbit.y;
+          const distToBottom = gridHeight - 1 - rabbit.y;
+          const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+          let exitX = rabbit.x;
+          let exitY = rabbit.y;
+          if (minDist === distToLeft) exitX = -2;
+          else if (minDist === distToRight) exitX = gridWidth + 1;
+          else if (minDist === distToTop) exitY = -2;
+          else exitY = gridHeight + 1;
+
+          updatedRabbits.push({
+            ...rabbit,
+            status: 'leaving',
+            cropsEaten: newCropsEaten,
+            targetX: exitX,
+            targetY: exitY,
+          });
+        } else {
+          // Continue wandering for more crops
+          updatedRabbits.push({
+            ...rabbit,
+            status: 'wandering',
+            cropsEaten: newCropsEaten,
+            targetX: undefined,
+            targetY: undefined,
+          });
+        }
       } else {
         // Still eating
         updatedRabbits.push(rabbit);
+      }
+    } else if (rabbit.status === 'leaving') {
+      // Moving towards edge to exit
+      if (rabbit.targetX !== undefined && rabbit.targetY !== undefined) {
+        const dx = rabbit.targetX - rabbit.visualX;
+        const dy = rabbit.targetY - rabbit.visualY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 0.5) {
+          // Reached edge - remove rabbit (don't add to updatedRabbits)
+          continue;
+        } else {
+          // Move towards exit
+          const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
+          const newVisualX = rabbit.visualX + (dx / dist) * moveSpeed;
+          const newVisualY = rabbit.visualY + (dy / dist) * moveSpeed;
+
+          updatedRabbits.push({
+            ...rabbit,
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
+          });
+        }
+      } else {
+        // No target set - shouldn't happen, but just remove
+        continue;
       }
     } else if (rabbit.status === 'fleeing') {
       // Fleeing from hunter - move towards edge

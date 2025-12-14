@@ -2501,6 +2501,54 @@ export default function Game() {
         }
       }
 
+      // Show pickaxe when hovering over rocks or trees that need clearing
+      if (tile.type === 'rock' || tile.type === 'tree') {
+        setCursorType(createEmojiCursor('⛏️'));
+        return;
+      }
+
+      // Show shop icon when hovering over shop
+      if (tile.type === 'shop') {
+        setCursorType(createEmojiCursor('🏪'));
+        return;
+      }
+
+      // Show export icon when hovering over export building
+      if (tile.type === 'export') {
+        setCursorType(createEmojiCursor('🚢'));
+        return;
+      }
+
+      // Show warehouse icon when hovering over warehouse
+      if (tile.type === 'warehouse') {
+        setCursorType(createEmojiCursor('🏭'));
+        return;
+      }
+
+      // Show factory icon when hovering over bot factory
+      if (tile.type === 'botFactory') {
+        setCursorType(createEmojiCursor('⚙️'));
+        return;
+      }
+
+      // Show well icon when hovering over well
+      if (tile.type === 'well') {
+        setCursorType(createEmojiCursor('🪣'));
+        return;
+      }
+
+      // Show garage icon when hovering over garage
+      if (tile.type === 'garage') {
+        setCursorType(createEmojiCursor('🚗'));
+        return;
+      }
+
+      // Show sprinkler icon when hovering over sprinkler
+      if (tile.hasSprinkler) {
+        setCursorType(createEmojiCursor('💦'));
+        return;
+      }
+
       // Default cursor based on tile action
       const { cursor } = getActionForTile(tile, gameState.player.selectedCrop);
       setCursorType(cursor);

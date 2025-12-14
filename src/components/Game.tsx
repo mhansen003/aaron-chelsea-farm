@@ -201,7 +201,6 @@ export default function Game() {
   // Fixed automation order: harvest > water > plant
   const automationOrder: ('plant' | 'water' | 'harvest')[] = ['harvest', 'water', 'plant'];
   const lastTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const musicVolumeRef = useRef<number>(0.5); // Track current volume for audio creation
   const waterSplashRef = useRef<HTMLAudioElement | null>(null);
@@ -993,9 +992,10 @@ export default function Game() {
     }
   }, [showCropDropdown]);
 
-  // Game loop
+  // Game loop - uses setInterval so it continues on inactive tabs
   useEffect(() => {
-    const gameLoop = (timestamp: number) => {
+    const gameLoop = () => {
+      const timestamp = performance.now();
       const deltaTime = timestamp - lastTimeRef.current;
       lastTimeRef.current = timestamp;
 
@@ -1005,16 +1005,13 @@ export default function Game() {
           return updateMarketPrices(updated);
         });
       }
-
-      animationFrameRef.current = requestAnimationFrame(gameLoop);
     };
 
-    animationFrameRef.current = requestAnimationFrame(gameLoop);
+    // Run game loop at ~60 FPS (16.67ms per frame)
+    const intervalId = setInterval(gameLoop, 16);
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      clearInterval(intervalId);
     };
   }, []);
 

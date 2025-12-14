@@ -21,6 +21,7 @@ import {
   buyDemolishbots,
   updateSeedBotJobs,
   updateBotName,
+  uprootCrop,
   upgradeBag,
   buyBotFactory,
   buyWell,
@@ -69,7 +70,8 @@ import { BotInfoModal } from './BotInfoModal';
 import { WellModal } from './WellModal';
 import { updateMarketPrices } from '@/lib/marketEconomy';
 import SaveGameModal from './SaveGameModal';
-import TutorialModal from './TutorialModal';
+import WelcomeSplash from './WelcomeSplash';
+import QuickStartTutorial from './QuickStartTutorial';
 import {
   generateSaveCode,
   loadFromSaveCode,
@@ -2811,6 +2813,14 @@ export default function Game() {
       return;
     }
 
+    // Check if uproot tool is selected - uproot planted/grown crops
+    if (gameState.player.selectedTool === 'uproot') {
+      if (tile.type === 'planted' || tile.type === 'grown') {
+        setGameState(prev => uprootCrop(prev, tileX, tileY));
+        return;
+      }
+    }
+
     // Get context-aware action for this tile
     const { action } = getActionForTile(tile, gameState.player.selectedCrop);
 
@@ -3261,6 +3271,10 @@ export default function Game() {
     setShowBotFactory(false);
     setShowWarehouseModal(false);
     setShowGarageModal(false);
+  };
+
+  const handleShowTutorial = () => {
+    setShowTutorialModal(true);
   };
 
   // Save Game Handler
@@ -5011,14 +5025,20 @@ export default function Game() {
 
 
 
-      {/* Welcome Screen with Tutorial */}
+      {/* Welcome Screen */}
       {showWelcome && (
-        <TutorialModal
-          onClose={() => setShowWelcome(false)}
+        <WelcomeSplash
           onStartNew={handleStartNew}
           onLoadGame={handleLoadFromCode}
           onContinue={handleContinue}
-          isInitialWelcome={true}
+          onShowTutorial={handleShowTutorial}
+        />
+      )}
+
+      {/* Quick Start Tutorial Modal */}
+      {showTutorialModal && (
+        <QuickStartTutorial
+          onClose={() => setShowTutorialModal(false)}
         />
       )}
 

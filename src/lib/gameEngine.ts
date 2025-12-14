@@ -1007,8 +1007,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const quality = newState.player.inventory.seedQuality[cropType];
             const growthMultiplier = quality ? quality.growthSpeed : 1.0;
 
-            // Apply fertilizer boost (50% faster growth = 1.5x multiplier)
-            const fertilizerMultiplier = updatedTile.fertilized ? 1.5 : 1.0;
+            // Apply fertilizer boost (100% faster growth = 2x multiplier)
+            const fertilizerMultiplier = updatedTile.fertilized ? 2.0 : 1.0;
             const totalMultiplier = growthMultiplier * fertilizerMultiplier;
 
             const adjustedGrowTime = cropInfo.growTime / totalMultiplier;

@@ -735,8 +735,8 @@ export default function Game() {
     { name: 'Plow Game Strong', file: '/farm_rap8.mp3' },
   ];
 
-  // Combined all farm songs for random selection
-  const allFarmSongs = [...farmSongs, ...farmRapSongs];
+  // Combined all farm songs for random selection (memoized to prevent re-renders)
+  const allFarmSongs = useMemo(() => [...farmSongs, ...farmRapSongs], []);
 
   // Get a random enabled song index (excluding current song)
   const getRandomEnabledSong = useCallback((currentIndex: number) => {

@@ -823,9 +823,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'place_fertilizer':
           newState = placeFertilizerBuilding(newState, task.tileX, task.tileY);
           break;
-        case 'place_hopper':
-          newState = placeHopper(newState, task.tileX, task.tileY);
-          break;
         case 'pickup_marked':
           // Pickup marked items from warehouse into farmer's basket
           const itemsToPickup = newState.markedForSale.slice(0, Math.min(newState.player.basketCapacity - newState.player.basket.length, newState.markedForSale.length));

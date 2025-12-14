@@ -253,6 +253,7 @@ export interface HarvestBot {
   actionDuration?: number; // How long the action takes (ms)
   lastHarvestedIndex?: number; // Round-robin index for even crop distribution
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
 export interface SeedBotJob {
@@ -279,6 +280,7 @@ export interface SeedBot {
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+  hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
 export interface CropSellConfig {
@@ -369,6 +371,7 @@ export interface HunterBot {
   detectionRange: number; // How far the hunter can detect rabbits (tiles)
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
+  idleStartTime?: number; // Game time when the bot became idle (for garage despawn timer)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)
 }
 

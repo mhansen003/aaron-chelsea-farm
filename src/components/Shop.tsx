@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { GameState, CropType } from '@/types/game';
-import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST, getCurrentSeedCost } from '@/lib/gameEngine';
+import { CROP_INFO, SPRINKLER_COST, WATERBOT_COST, HARVESTBOT_COST, BAG_UPGRADE_COSTS, MAX_BAG_UPGRADES, BOT_FACTORY_COST, WELL_COST, GARAGE_COST, SUPERCHARGER_COST, FERTILIZER_BUILDING_COST, HOPPER_COST, getCurrentSeedCost } from '@/lib/gameEngine';
 
 interface ShopProps {
   gameState: GameState;
@@ -22,428 +22,507 @@ interface ShopProps {
   onToggleAutoBuy: (crop: Exclude<CropType, null>) => void;
 }
 
+type ItemType =
+  | { category: 'seed'; crop: Exclude<CropType, null> }
+  | { category: 'building'; name: 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizerBuilding' }
+  | { category: 'tool'; name: 'sprinkler' }
+  | { category: 'upgrade'; tier: number };
+
+interface CartItem {
+  type: ItemType;
+  quantity: number;
+}
+
 const SEED_INFO = {
-  carrot: { name: 'Carrot Seeds', emoji: '🥕', daysToGrow: 1 },
-  wheat: { name: 'Wheat Seeds', emoji: '🌾', daysToGrow: 1 },
-  tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2 },
-  pumpkin: { name: 'Pumpkin Seeds', emoji: '🎃', daysToGrow: 2 },
-  watermelon: { name: 'Watermelon Seeds', emoji: '🍉', daysToGrow: 2 },
-  peppers: { name: 'Pepper Seeds', emoji: '🌶️', daysToGrow: 1 },
-  grapes: { name: 'Grape Seeds', emoji: '🍇', daysToGrow: 2 },
-  oranges: { name: 'Orange Seeds', emoji: '🍊', daysToGrow: 3 },
-  avocado: { name: 'Avocado Seeds', emoji: '🥑', daysToGrow: 3 },
-  rice: { name: 'Rice Seeds', emoji: '🌾', daysToGrow: 2 },
-  corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2 },
+  carrot: { name: 'Carrot Seeds', emoji: '🥕', daysToGrow: 1, image: '/carrot.png' },
+  wheat: { name: 'Wheat Seeds', emoji: '🌾', daysToGrow: 1, image: '/wheat.png' },
+  tomato: { name: 'Tomato Seeds', emoji: '🍅', daysToGrow: 2, image: '/tomato.png' },
+  pumpkin: { name: 'Pumpkin Seeds', emoji: '🎃', daysToGrow: 2, image: '/pumpkin.png' },
+  watermelon: { name: 'Watermelon Seeds', emoji: '🍉', daysToGrow: 2, image: '/watermelon.png' },
+  peppers: { name: 'Pepper Seeds', emoji: '🌶️', daysToGrow: 1, image: '/pepper.png' },
+  grapes: { name: 'Grape Seeds', emoji: '🍇', daysToGrow: 2, image: '/grapes.png' },
+  oranges: { name: 'Orange Seeds', emoji: '🍊', daysToGrow: 3, image: '/orange.png' },
+  avocado: { name: 'Avocado Seeds', emoji: '🥑', daysToGrow: 3, image: '/avocado.png' },
+  rice: { name: 'Rice Seeds', emoji: '🌾', daysToGrow: 2, image: '/rice.png' },
+  corn: { name: 'Corn Seeds', emoji: '🌽', daysToGrow: 2, image: '/corn.png' },
 };
 
 export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuySprinklers, onBuyWaterbots, onBuyHarvestbots, onUpgradeBag, onBuyBotFactory, onBuyWell, onBuyGarage, onBuySupercharger, onBuyFertilizerBuilding, onToggleAutoBuy }: ShopProps) {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [activeTab, setActiveTab] = useState<'seeds' | 'buildings' | 'tools'>('seeds');
+
+  const itemInCart = (type: ItemType): boolean => {
+    return cart.some(item => JSON.stringify(item.type) === JSON.stringify(type));
+  };
+
+  const toggleCart = (type: ItemType) => {
+    const itemKey = JSON.stringify(type);
+    const existingIndex = cart.findIndex(item => JSON.stringify(item.type) === itemKey);
+
+    if (existingIndex >= 0) {
+      setCart(cart.filter((_, i) => i !== existingIndex));
+    } else {
+      setCart([...cart, { type, quantity: 1 }]);
+    }
+  };
+
+  const updateQuantity = (type: ItemType, delta: number) => {
+    const itemKey = JSON.stringify(type);
+    setCart(cart.map(item => {
+      if (JSON.stringify(item.type) === itemKey) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }));
+  };
+
+  const getItemCost = (type: ItemType): number => {
+    if (type.category === 'seed') {
+      return getCurrentSeedCost(type.crop, gameState.cropsSold);
+    } else if (type.category === 'building') {
+      const costs = {
+        botFactory: BOT_FACTORY_COST,
+        well: WELL_COST,
+        garage: GARAGE_COST,
+        supercharger: SUPERCHARGER_COST,
+        fertilizerBuilding: FERTILIZER_BUILDING_COST,
+      };
+      return costs[type.name];
+    } else if (type.category === 'tool') {
+      return SPRINKLER_COST;
+    } else if (type.category === 'upgrade') {
+      return BAG_UPGRADE_COSTS[type.tier];
+    }
+    return 0;
+  };
+
+  const getTotalCost = (): number => {
+    return cart.reduce((sum, item) => sum + (getItemCost(item.type) * item.quantity), 0);
+  };
+
+  const handleCheckout = () => {
+    // Process all purchases
+    cart.forEach(item => {
+      if (item.type.category === 'seed') {
+        onBuySeeds(item.type.crop, item.quantity);
+      } else if (item.type.category === 'building') {
+        for (let i = 0; i < item.quantity; i++) {
+          if (item.type.name === 'botFactory') onBuyBotFactory();
+          else if (item.type.name === 'well') onBuyWell();
+          else if (item.type.name === 'garage') onBuyGarage();
+          else if (item.type.name === 'supercharger') onBuySupercharger();
+          else if (item.type.name === 'fertilizerBuilding') onBuyFertilizerBuilding();
+        }
+      } else if (item.type.category === 'tool') {
+        onBuySprinklers(item.quantity);
+      } else if (item.type.category === 'upgrade') {
+        onUpgradeBag();
+      }
+    });
+    setCart([]);
+    onClose();
+  };
+
+  const canAffordCart = getTotalCost() <= gameState.player.money;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-amber-900 to-amber-950 text-white p-4 md:p-8 rounded-xl max-w-4xl w-full max-h-[95vh] border-2 md:border-4 border-amber-600 flex flex-col">
-        <div className="flex justify-between items-center mb-4 md:mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">🏪 Farm Shop</h2>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-amber-900 via-orange-900 to-amber-950 text-white rounded-xl max-w-6xl w-full max-h-[90vh] border-4 border-amber-600 shadow-2xl flex flex-col">
+
+        {/* Header */}
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-amber-500/30 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">🏪</span>
+            <div>
+              <h2 className="text-3xl font-bold text-amber-300">Farm Shop</h2>
+              <p className="text-sm text-amber-200/70">Your Money: 💰 ${gameState.player.money}</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="text-4xl md:text-2xl hover:text-red-400 transition-colors flex-shrink-0 w-10 h-10 flex items-center justify-center"
+            className="text-white/70 hover:text-white text-2xl leading-none px-3 py-1 hover:bg-white/10 rounded transition-colors"
           >
-            ✕
+            ×
           </button>
         </div>
 
-        <div className="mb-3 md:mb-4 text-lg md:text-xl font-bold bg-black/30 px-3 md:px-4 py-2 rounded">
-          Your Money: 💰 ${gameState.player.money}
+        {/* Tab Navigation */}
+        <div className="flex-shrink-0 bg-black/30 backdrop-blur-sm border-b border-amber-500/20 flex gap-2 p-2">
+          <button
+            onClick={() => setActiveTab('seeds')}
+            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
+              activeTab === 'seeds'
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'bg-black/40 text-amber-200 hover:bg-black/60'
+            }`}
+          >
+            🌱 Seeds
+          </button>
+          <button
+            onClick={() => setActiveTab('buildings')}
+            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
+              activeTab === 'buildings'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'bg-black/40 text-amber-200 hover:bg-black/60'
+            }`}
+          >
+            🏗️ Buildings
+          </button>
+          <button
+            onClick={() => setActiveTab('tools')}
+            className={`flex-1 px-4 py-2 rounded font-bold transition-all ${
+              activeTab === 'tools'
+                ? 'bg-cyan-600 text-white shadow-lg'
+                : 'bg-black/40 text-amber-200 hover:bg-black/60'
+            }`}
+          >
+            🔧 Tools & Upgrades
+          </button>
         </div>
 
-        {/* Tools & Buildings */}
-        <div className="flex-1 overflow-y-auto mb-4">
-        <div>
-          <div className="grid grid-cols-3 gap-4">
-            {/* Basket Upgrades - Individual Tiles */}
-            {[0, 1, 2].map((tier) => {
-              const currentUpgrades = gameState.player.bagUpgrades || 0;
-              const isOwned = currentUpgrades > tier;
-              const isCurrent = currentUpgrades === tier;
-              const isLocked = currentUpgrades < tier;
-              const canAfford = gameState.player.money >= BAG_UPGRADE_COSTS[tier];
+        {/* Scrollable Items Grid */}
+        <div className="flex-1 overflow-y-auto p-6">
 
-              return (
-                <div
-                  key={tier}
-                  className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-                    isOwned
-                      ? 'border-green-600'
-                      : isCurrent
-                      ? 'border-blue-500 ring-2 ring-blue-300'
-                      : 'border-gray-600 opacity-50'
-                  }`}
-                >
-                  {/* Icon */}
-                  <div className="text-5xl mb-2">
-                    {isOwned ? '✓' : isLocked ? '🔒' : '🎒'}
-                  </div>
+          {/* Seeds Tab */}
+          {activeTab === 'seeds' && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              {(Object.keys(SEED_INFO) as Array<Exclude<CropType, null>>).map((cropType) => {
+                const seed = SEED_INFO[cropType];
+                const cost = getCurrentSeedCost(cropType, gameState.cropsSold);
+                const itemType: ItemType = { category: 'seed', crop: cropType };
+                const inCart = itemInCart(itemType);
+                const canAfford = gameState.player.money >= cost;
 
-                  {/* Name */}
-                  <div className="font-bold text-center mb-1 text-sm">
-                    Basket Tier {tier + 1}
-                  </div>
-
-                  {/* Stats */}
-                  <div className="text-xs text-center mb-2 space-y-1">
-                    <div className="text-green-400">+4 capacity</div>
-                    <div className="text-blue-400">
-                      {isOwned ? 'Owned' : isLocked ? 'Locked' : 'Available'}
+                return (
+                  <div
+                    key={cropType}
+                    className={`bg-gradient-to-br from-green-900/50 to-lime-900/50 rounded-lg border-2 ${
+                      inCart ? 'border-green-400 ring-2 ring-green-300' : 'border-green-600'
+                    } p-2 flex flex-col items-center transition-all hover:scale-105`}
+                  >
+                    <div className="w-16 h-16 mb-1 relative flex items-center justify-center">
+                      <span className="text-4xl">{seed.emoji}</span>
                     </div>
-                  </div>
-
-                  {/* Buy Button */}
-                  {isOwned ? (
-                    <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                      Owned
+                    <div className="text-xs font-bold text-center mb-1 text-green-200">
+                      {seed.name.replace(' Seeds', '')}
                     </div>
-                  ) : isCurrent ? (
+                    <div className="text-xs text-center text-green-300 mb-2">
+                      ${cost} • {seed.daysToGrow}d
+                    </div>
                     <button
-                      onClick={() => onUpgradeBag()}
-                      disabled={!canAfford}
-                      className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                        canAfford
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : 'bg-gray-600 cursor-not-allowed'
+                      onClick={() => toggleCart(itemType)}
+                      disabled={!canAfford && !inCart}
+                      className={`w-full px-2 py-1 rounded text-xs font-bold transition-all ${
+                        inCart
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : canAfford
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-gray-600 cursor-not-allowed text-gray-400'
                       }`}
                     >
-                      ${BAG_UPGRADE_COSTS[tier]}
+                      {inCart ? '− REMOVE' : '+ ADD'}
                     </button>
-                  ) : (
-                    <div className="w-full px-3 py-2 rounded font-bold text-sm bg-gray-800/40 text-gray-500 text-center">
-                      Locked
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Buildings Tab */}
+          {activeTab === 'buildings' && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {/* Bot Factory */}
+              {renderBuildingCard(
+                { category: 'building', name: 'botFactory' },
+                'Bot Factory',
+                '/mechanic.png',
+                'Build bots',
+                BOT_FACTORY_COST,
+                gameState.player.inventory.botFactory >= 1,
+                gameState.player.inventory.botFactoryPlaced,
+                'border-purple-500'
+              )}
+
+              {/* Well */}
+              {renderBuildingCard(
+                { category: 'building', name: 'well' },
+                'Water Well',
+                '/well.png',
+                'Bot refill',
+                WELL_COST,
+                gameState.player.inventory.well >= 1,
+                gameState.player.inventory.wellPlaced,
+                'border-blue-500'
+              )}
+
+              {/* Garage */}
+              {renderBuildingCard(
+                { category: 'building', name: 'garage' },
+                'Garage',
+                '/garage.png',
+                'Bot parking',
+                GARAGE_COST,
+                (gameState.player.inventory.garage ?? 0) >= 1,
+                gameState.player.inventory.garagePlaced,
+                'border-orange-500'
+              )}
+
+              {/* Supercharger */}
+              {renderBuildingCard(
+                { category: 'building', name: 'supercharger' },
+                'Supercharger',
+                '/supercharge.png',
+                '+200% speed',
+                SUPERCHARGER_COST,
+                (gameState.player.inventory.supercharger ?? 0) >= 1,
+                gameState.player.inventory.superchargerPlaced,
+                'border-purple-400'
+              )}
+
+              {/* Fertilizer Building */}
+              {renderBuildingCard(
+                { category: 'building', name: 'fertilizerBuilding' },
+                'Fertilizer Building',
+                '/fertilizer-building.png',
+                'Refill bot',
+                FERTILIZER_BUILDING_COST,
+                (gameState.player.inventory.fertilizerBuilding ?? 0) >= 1,
+                gameState.player.inventory.fertilizerBuildingPlaced,
+                'border-lime-500'
+              )}
+            </div>
+          )}
+
+          {/* Tools Tab */}
+          {activeTab === 'tools' && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {/* Basket Upgrades */}
+              {[0, 1, 2].map((tier) => {
+                const currentUpgrades = gameState.player.bagUpgrades || 0;
+                const isOwned = currentUpgrades > tier;
+                const isCurrent = currentUpgrades === tier;
+                const isLocked = currentUpgrades < tier;
+                const itemType: ItemType = { category: 'upgrade', tier };
+                const inCart = itemInCart(itemType);
+                const canAfford = gameState.player.money >= BAG_UPGRADE_COSTS[tier];
+
+                return (
+                  <div
+                    key={tier}
+                    className={`bg-gradient-to-br from-amber-900/50 to-orange-900/50 rounded-lg border-2 ${
+                      isOwned
+                        ? 'border-green-600'
+                        : inCart
+                        ? 'border-blue-400 ring-2 ring-blue-300'
+                        : isCurrent
+                        ? 'border-blue-500'
+                        : 'border-gray-600 opacity-50'
+                    } p-3 flex flex-col items-center`}
+                  >
+                    <div className="text-5xl mb-2">
+                      {isOwned ? '✓' : isLocked ? '🔒' : '🎒'}
                     </div>
-                  )}
+                    <div className="text-sm font-bold text-center mb-1">
+                      Basket Tier {tier + 1}
+                    </div>
+                    <div className="text-xs text-center text-green-400 mb-2">
+                      +4 capacity
+                    </div>
+                    {isOwned ? (
+                      <div className="w-full px-3 py-2 rounded text-xs font-bold bg-green-900/40 text-green-400 text-center">
+                        Owned
+                      </div>
+                    ) : isCurrent ? (
+                      <button
+                        onClick={() => toggleCart(itemType)}
+                        disabled={!canAfford && !inCart}
+                        className={`w-full px-2 py-1 rounded text-xs font-bold ${
+                          inCart
+                            ? 'bg-red-600 hover:bg-red-700'
+                            : canAfford
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'bg-gray-600 cursor-not-allowed'
+                        }`}
+                      >
+                        {inCart ? '− REMOVE' : `+ ADD $${BAG_UPGRADE_COSTS[tier]}`}
+                      </button>
+                    ) : (
+                      <div className="w-full px-3 py-2 rounded text-xs font-bold bg-gray-800/40 text-gray-500 text-center">
+                        Locked
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Sprinklers */}
+              <div className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 rounded-lg border-2 border-cyan-600 p-3 flex flex-col items-center">
+                <div className="w-20 h-20 mb-2 relative">
+                  <Image src="/sprinkler.png" alt="Sprinkler" width={80} height={80} className="object-contain" />
                 </div>
-              );
-            })}
-
-            {/* Bot Factory */}
-            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              gameState.player.inventory.botFactory >= 1
-                ? 'border-green-600'
-                : 'border-amber-600'
-            }`}>
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {gameState.player.inventory.botFactory >= 1 ? (
-                  <span className="text-5xl">✓</span>
-                ) : (
-                  <Image src="/mechanic.png" alt="Bot Factory" width={80} height={80} className="object-contain" />
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Bot Factory</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-purple-400">Premium Building</div>
-                <div className="text-blue-400">
-                  {gameState.player.inventory.botFactoryPlaced ? (
-                    <span className="text-green-400">Installed</span>
-                  ) : gameState.player.inventory.botFactory >= 1 ? (
-                    <span className="text-yellow-400">Ready!</span>
-                  ) : (
-                    'Not Owned'
-                  )}
-                </div>
-              </div>
-
-              {/* Buy/Action Button */}
-              {gameState.player.inventory.botFactory < 1 ? (
+                <div className="text-sm font-bold text-center mb-1">Sprinklers</div>
+                <div className="text-xs text-center text-cyan-300 mb-1">Auto-waters 5×5</div>
+                <div className="text-xs text-blue-400 mb-2">Owned: {gameState.player.inventory.sprinklers}</div>
                 <button
-                  onClick={() => onBuyBotFactory()}
-                  disabled={gameState.player.money < BOT_FACTORY_COST}
-                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= BOT_FACTORY_COST
-                      ? 'bg-purple-600 hover:bg-purple-700'
+                  onClick={() => toggleCart({ category: 'tool', name: 'sprinkler' })}
+                  disabled={gameState.player.money < SPRINKLER_COST && !itemInCart({ category: 'tool', name: 'sprinkler' })}
+                  className={`w-full px-2 py-1 rounded text-xs font-bold ${
+                    itemInCart({ category: 'tool', name: 'sprinkler' })
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : gameState.player.money >= SPRINKLER_COST
+                      ? 'bg-cyan-600 hover:bg-cyan-700'
                       : 'bg-gray-600 cursor-not-allowed'
                   }`}
                 >
-                  ${BOT_FACTORY_COST}
+                  {itemInCart({ category: 'tool', name: 'sprinkler' }) ? '− REMOVE' : `+ ADD $${SPRINKLER_COST}`}
                 </button>
-              ) : gameState.player.inventory.botFactoryPlaced ? (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                  Owned
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
-                  Place It!
-                </div>
-              )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Cart Footer */}
+        {cart.length > 0 && (
+          <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t-2 border-amber-500 p-4 space-y-3">
+            {/* Cart Items */}
+            <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+              {cart.map((item, index) => {
+                const cost = getItemCost(item.type);
+                let name = '';
+                if (item.type.category === 'seed') {
+                  name = SEED_INFO[item.type.crop].name.replace(' Seeds', '');
+                } else if (item.type.category === 'building') {
+                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg', hopper: 'Hopper' };
+                  name = names[item.type.name];
+                } else if (item.type.category === 'tool') {
+                  name = 'Sprinkler';
+                } else if (item.type.category === 'upgrade') {
+                  name = `Basket T${item.type.tier + 1}`;
+                }
+
+                return (
+                  <div key={index} className="bg-amber-800/60 px-3 py-1 rounded flex items-center gap-2 border border-amber-600">
+                    <span className="text-sm font-bold text-amber-100">{name}</span>
+                    {item.type.category === 'seed' || item.type.category === 'tool' ? (
+                      <>
+                        <button
+                          onClick={() => updateQuantity(item.type, -1)}
+                          className="w-5 h-5 bg-red-600 hover:bg-red-700 rounded text-xs font-bold"
+                        >
+                          −
+                        </button>
+                        <span className="text-xs text-amber-200">×{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.type, 1)}
+                          className="w-5 h-5 bg-green-600 hover:bg-green-700 rounded text-xs font-bold"
+                        >
+                          +
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-amber-300">${cost}</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Sprinkler Items - Buy individual sprinklers */}
-            <div className="bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 border-cyan-600 flex flex-col items-center">
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                <Image src="/sprinkler.png" alt="Sprinkler" width={80} height={80} className="object-contain" />
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Sprinklers</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-cyan-400">Auto-waters 5×5 area</div>
-                <div className="text-blue-400">Owned: {gameState.player.inventory.sprinklers}</div>
-              </div>
-
-              {/* Buy Button */}
+            {/* Checkout Row */}
+            <div className="flex gap-3 items-center">
               <button
-                onClick={() => onBuySprinklers(1)}
-                disabled={gameState.player.money < SPRINKLER_COST}
-                className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                  gameState.player.money >= SPRINKLER_COST
-                    ? 'bg-cyan-600 hover:bg-cyan-700'
-                    : 'bg-gray-600 cursor-not-allowed'
+                onClick={() => setCart([])}
+                className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-white"
+              >
+                Cancel
+              </button>
+              <div className="flex-1 text-right">
+                <div className="text-2xl font-bold text-amber-300">
+                  Total: ${getTotalCost()}
+                </div>
+                {!canAffordCart && (
+                  <div className="text-xs text-red-400">Not enough money!</div>
+                )}
+              </div>
+              <button
+                onClick={handleCheckout}
+                disabled={!canAffordCart}
+                className={`px-8 py-3 rounded-lg font-bold text-lg ${
+                  canAffordCart
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg'
+                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                ${SPRINKLER_COST}
+                Checkout ({cart.length})
               </button>
             </div>
-
-            {/* Well - Water source for bots */}
-            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              gameState.player.inventory.well >= 1
-                ? 'border-green-600'
-                : 'border-amber-600'
-            }`}>
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {gameState.player.inventory.well >= 1 ? (
-                  <span className="text-5xl">✓</span>
-                ) : (
-                  <Image src="/well.png" alt="Water Well" width={80} height={80} className="object-contain" />
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Water Well</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-blue-400">Refills water bots</div>
-                <div className="text-blue-400">
-                  {gameState.player.inventory.wellPlaced ? (
-                    <span className="text-green-400">Installed</span>
-                  ) : gameState.player.inventory.well >= 1 ? (
-                    <span className="text-yellow-400">Ready!</span>
-                  ) : (
-                    '1 per zone max'
-                  )}
-                </div>
-              </div>
-
-              {/* Buy/Action Button */}
-              {gameState.player.inventory.well < 1 ? (
-                <button
-                  onClick={() => onBuyWell()}
-                  disabled={gameState.player.money < WELL_COST}
-                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= WELL_COST
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  ${WELL_COST}
-                </button>
-              ) : gameState.player.inventory.wellPlaced ? (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                  Owned
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
-                  Place It!
-                </div>
-              )}
-            </div>
-
-            {/* Garage - Parking for idle bots */}
-            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              (gameState.player.inventory.garage ?? 0) >= 1
-                ? 'border-green-600'
-                : 'border-amber-600'
-            }`}>
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {(gameState.player.inventory.garage ?? 0) >= 1 ? (
-                  <span className="text-5xl">✓</span>
-                ) : (
-                  <Image src="/garage.png" alt="Garage" width={80} height={80} className="object-contain" />
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Garage</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-orange-400">Parking for idle bots</div>
-                <div className="text-blue-400">
-                  {gameState.player.inventory.garagePlaced ? (
-                    <span className="text-green-400">Built</span>
-                  ) : (gameState.player.inventory.garage ?? 0) >= 1 ? (
-                    <span className="text-yellow-400">Ready!</span>
-                  ) : (
-                    'Bots share garage'
-                  )}
-                </div>
-              </div>
-
-              {/* Buy/Action Button */}
-              {(gameState.player.inventory.garage ?? 0) < 1 ? (
-                <button
-                  onClick={() => onBuyGarage()}
-                  disabled={gameState.player.money < GARAGE_COST}
-                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= GARAGE_COST
-                      ? 'bg-orange-600 hover:bg-orange-700'
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  ${GARAGE_COST}
-                </button>
-              ) : gameState.player.inventory.garagePlaced ? (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                  Owned
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
-                  Place It!
-                </div>
-              )}
-            </div>
-
-            {/* Supercharger - Upgrades bots */}
-            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              (gameState.player.inventory.supercharger ?? 0) >= 1
-                ? 'border-green-600'
-                : 'border-amber-600'
-            }`}>
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {(gameState.player.inventory.supercharger ?? 0) >= 1 ? (
-                  <span className="text-5xl">✓</span>
-                ) : (
-                  <Image src="/supercharge.png" alt="Supercharger" width={80} height={80} className="object-contain" />
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Supercharger</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-purple-400">Upgrades bots 200%</div>
-                <div className="text-blue-400">
-                  {gameState.player.inventory.superchargerPlaced ? (
-                    <span className="text-green-400">Built</span>
-                  ) : (gameState.player.inventory.supercharger ?? 0) >= 1 ? (
-                    <span className="text-yellow-400">Ready!</span>
-                  ) : (
-                    'Max 1 building'
-                  )}
-                </div>
-              </div>
-
-              {/* Buy/Action Button */}
-              {(gameState.player.inventory.supercharger ?? 0) < 1 ? (
-                <button
-                  onClick={() => onBuySupercharger()}
-                  disabled={gameState.player.money < SUPERCHARGER_COST}
-                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= SUPERCHARGER_COST
-                      ? 'bg-purple-600 hover:bg-purple-700'
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  ${SUPERCHARGER_COST}
-                </button>
-              ) : gameState.player.inventory.superchargerPlaced ? (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                  Owned
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
-                  Place It!
-                </div>
-              )}
-            </div>
-
-            {/* Fertilizer Building - Refills fertilizer bot */}
-            <div className={`bg-gradient-to-br from-amber-900/80 to-amber-950/80 p-3 rounded-lg border-2 flex flex-col items-center ${
-              (gameState.player.inventory.fertilizerBuilding ?? 0) >= 1
-                ? 'border-green-600'
-                : 'border-amber-600'
-            }`}>
-              {/* Icon */}
-              <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
-                {(gameState.player.inventory.fertilizerBuilding ?? 0) >= 1 ? (
-                  <span className="text-5xl">✓</span>
-                ) : (
-                  <Image src="/fertilizer-building.png" alt="Fertilizer Building" width={80} height={80} className="object-contain" />
-                )}
-              </div>
-
-              {/* Name */}
-              <div className="font-bold text-center mb-1 text-sm">Fertilizer Building</div>
-
-              {/* Stats */}
-              <div className="text-xs text-center mb-2 space-y-1">
-                <div className="text-green-400">Refills fertilizer bot</div>
-                <div className="text-blue-400">
-                  {gameState.player.inventory.fertilizerBuildingPlaced ? (
-                    <span className="text-green-400">Built</span>
-                  ) : (gameState.player.inventory.fertilizerBuilding ?? 0) >= 1 ? (
-                    <span className="text-yellow-400">Ready!</span>
-                  ) : (
-                    'Max 1 building'
-                  )}
-                </div>
-              </div>
-
-              {/* Buy/Action Button */}
-              {(gameState.player.inventory.fertilizerBuilding ?? 0) < 1 ? (
-                <button
-                  onClick={() => onBuyFertilizerBuilding()}
-                  disabled={gameState.player.money < FERTILIZER_BUILDING_COST}
-                  className={`w-full px-3 py-2 rounded font-bold text-sm ${
-                    gameState.player.money >= FERTILIZER_BUILDING_COST
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-gray-600 cursor-not-allowed'
-                  }`}
-                >
-                  ${FERTILIZER_BUILDING_COST}
-                </button>
-              ) : gameState.player.inventory.fertilizerBuildingPlaced ? (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-green-900/40 text-green-400 text-center">
-                  Owned
-                </div>
-              ) : (
-                <div className="w-full px-3 py-2 rounded font-bold text-sm bg-yellow-900/40 text-yellow-400 text-center">
-                  Place It!
-                </div>
-              )}
-            </div>
           </div>
-        </div>
-        </div>
+        )}
 
-        {/* Sticky Footer Button */}
-        <button
-          onClick={onClose}
-          className="w-full px-4 md:px-6 py-2 md:py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-base md:text-lg flex-shrink-0"
-        >
-          Close Shop
-        </button>
+        {/* Close Button (when cart empty) */}
+        {cart.length === 0 && (
+          <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-amber-500/30 p-4">
+            <button
+              onClick={onClose}
+              className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
+            >
+              Close Shop
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
+
+  function renderBuildingCard(
+    itemType: ItemType,
+    name: string,
+    image: string,
+    description: string,
+    cost: number,
+    owned: boolean,
+    placed: boolean | undefined,
+    borderColor: string
+  ) {
+    const inCart = itemInCart(itemType);
+    const canAfford = gameState.player.money >= cost;
+
+    return (
+      <div
+        className={`bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border-2 ${
+          owned ? 'border-green-600' : inCart ? `${borderColor} ring-2 ring-white/30` : borderColor
+        } p-3 flex flex-col items-center transition-all hover:scale-105`}
+      >
+        <div className="w-20 h-20 mb-2 relative flex items-center justify-center">
+          {owned ? (
+            <span className="text-5xl">✓</span>
+          ) : (
+            <Image src={image} alt={name} width={80} height={80} className="object-contain" />
+          )}
+        </div>
+        <div className="text-sm font-bold text-center mb-1">{name}</div>
+        <div className="text-xs text-center text-purple-300 mb-2">{description}</div>
+        {owned ? (
+          <div className="w-full px-3 py-2 rounded text-xs font-bold bg-green-900/40 text-green-400 text-center">
+            {placed ? 'Placed' : 'Place It!'}
+          </div>
+        ) : (
+          <button
+            onClick={() => toggleCart(itemType)}
+            disabled={!canAfford && !inCart}
+            className={`w-full px-2 py-1 rounded text-xs font-bold ${
+              inCart
+                ? 'bg-red-600 hover:bg-red-700'
+                : canAfford
+                ? 'bg-purple-600 hover:bg-purple-700'
+                : 'bg-gray-600 cursor-not-allowed'
+            }`}
+          >
+            {inCart ? '− REMOVE' : `+ ADD $${cost}`}
+          </button>
+        )}
+      </div>
+    );
+  }
 }
 

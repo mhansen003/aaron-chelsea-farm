@@ -193,8 +193,6 @@ export default function Game() {
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [showFarmMusicSection, setShowFarmMusicSection] = useState(true);
-  const [showFarmRapSection, setShowFarmRapSection] = useState(true);
-  const [showMusicPreferenceModal, setShowMusicPreferenceModal] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
   const lastTimeRef = useRef<number>(0);
@@ -744,22 +742,8 @@ export default function Game() {
     { name: 'Tranquil Garden', file: '/farm5.mp3' },
   ];
 
-  const farmRapSongs = [
-    { name: 'Dirt Road Hustle', file: '/farm_rap1.mp3' },
-    { name: 'Crop Top Flow', file: '/farm_rap2.mp3' },
-    { name: 'Tractor Beats', file: '/farm_rap3.mp3' },
-    { name: 'Harvest Season', file: '/farm_rap4.mp3' },
-    { name: 'Barn Burner', file: '/farm_rap5.mp3' },
-    { name: 'Field Dreams', file: '/farm_rap6.mp3' },
-    { name: 'Sunrise Grind', file: '/farm_rap7.mp3' },
-    { name: 'Plow Game Strong', file: '/farm_rap8.mp3' },
-    { name: 'Seed Money', file: '/farm_rap9.mp3' },
-    { name: 'Cultivate Greatness', file: '/farm_rap10.mp3' },
-    { name: 'Country Flex', file: '/farm_rap11.mp3' },
-  ];
-
-  // Combined all farm songs for random selection (memoized to prevent re-renders)
-  const allFarmSongs = useMemo(() => [...farmSongs, ...farmRapSongs], []);
+  // Use only calm farm songs for music rotation
+  const allFarmSongs = useMemo(() => farmSongs, []);
 
   // Get a random enabled song index (excluding current song)
   const getRandomEnabledSong = useCallback((currentIndex: number) => {
@@ -797,47 +781,6 @@ export default function Game() {
   }, []);
 
   // Album art loading removed for instant performance - music streams on-demand without downloads
-
-  // Show music preference modal on first load
-  useEffect(() => {
-    const musicPreference = localStorage.getItem('musicPreference');
-    if (!musicPreference) {
-      // Wait 1 second after load to show modal
-      const timer = setTimeout(() => {
-        setShowMusicPreferenceModal(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else {
-      // Apply saved preference
-      applyMusicPreference(musicPreference);
-    }
-  }, []);
-
-  // Apply music preference
-  const applyMusicPreference = useCallback((preference: string) => {
-    const farmSongsCount = 6;
-    const totalSongs = allFarmSongs.length;
-
-    if (preference === 'relaxing') {
-      // Enable only farm songs (0-5)
-      setEnabledSongs(new Set([0, 1, 2, 3, 4, 5]));
-    } else if (preference === 'upbeat') {
-      // Enable only rap songs (6-16)
-      const rapIndices = Array.from({ length: totalSongs - farmSongsCount }, (_, i) => i + farmSongsCount);
-      setEnabledSongs(new Set(rapIndices));
-    } else {
-      // Enable all songs
-      const allIndices = Array.from({ length: totalSongs }, (_, i) => i);
-      setEnabledSongs(new Set(allIndices));
-    }
-  }, [allFarmSongs.length]);
-
-  // Handle music preference selection
-  const handleMusicPreference = useCallback((preference: string) => {
-    localStorage.setItem('musicPreference', preference);
-    applyMusicPreference(preference);
-    setShowMusicPreferenceModal(false);
-  }, [applyMusicPreference]);
 
   // Zone-specific music switching - farm has playlist, others loop single track
   useEffect(() => {
@@ -4279,43 +4222,6 @@ export default function Game() {
                         </span>
                       </div>
                     ))}
-
-                    {/* Farm Rap Section */}
-                    <div className="mt-3 border-t border-pink-600 pt-2">
-                      <div
-                        onClick={() => setShowFarmRapSection(!showFarmRapSection)}
-                        className="text-xs font-bold text-purple-400 mb-2 px-2 cursor-pointer hover:text-purple-300 flex items-center gap-2"
-                      >
-                        <span>{showFarmRapSection ? '▼' : '▶'}</span>
-                        <span>Farm Rap ({farmRapSongs.length})</span>
-                      </div>
-                    </div>
-                    {showFarmRapSection && farmRapSongs.map((song, rapIndex) => {
-                      const index = farmSongs.length + rapIndex; // Offset by farmSongs length
-                      return (
-                        <div
-                          key={`rap-${rapIndex}`}
-                          className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
-                            currentSongIndex === index && !isMusicMuted ? 'bg-purple-600 font-bold' : 'hover:bg-purple-700'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={enabledSongs.has(index)}
-                            onChange={() => toggleSongEnabled(index)}
-                            className="w-4 h-4 cursor-pointer flex-shrink-0"
-                            title="Include in auto-rotation"
-                          />
-                          <span
-                            onClick={() => handleSongSelect(index)}
-                            className="flex-1 cursor-pointer"
-                          >
-                            {currentSongIndex === index && !isMusicMuted && '▶ '}
-                            {song.name}
-                          </span>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               )}
@@ -5760,47 +5666,6 @@ export default function Game() {
           onContinue={handleContinue}
           onShowTutorial={handleShowTutorial}
         />
-      )}
-
-      {/* Music Preference Modal */}
-      {showMusicPreferenceModal && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 rounded-2xl max-w-lg w-full border border-slate-600/50 shadow-2xl">
-            <h2 className="text-3xl font-bold text-center mb-2 text-white">🎵 Music Preference</h2>
-            <p className="text-center text-slate-300 mb-6">Choose your farming soundtrack!</p>
-
-            <div className="space-y-4">
-              <button
-                onClick={() => handleMusicPreference('relaxing')}
-                className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-green-500/50 border border-green-500/30"
-              >
-                <div className="text-2xl mb-1">🌿</div>
-                <div>Relaxing Farm Music</div>
-                <div className="text-sm text-green-200 mt-1">6 calm, peaceful tracks</div>
-              </button>
-
-              <button
-                onClick={() => handleMusicPreference('upbeat')}
-                className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-purple-500/50 border border-purple-500/30"
-              >
-                <div className="text-2xl mb-1">🔥</div>
-                <div>Upbeat Farm Rap</div>
-                <div className="text-sm text-purple-200 mt-1">11 energetic rap tracks</div>
-              </button>
-
-              <button
-                onClick={() => handleMusicPreference('both')}
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-blue-500/50 border border-blue-500/30"
-              >
-                <div className="text-2xl mb-1">🎧</div>
-                <div>Mix of Both</div>
-                <div className="text-sm text-blue-200 mt-1">All 17 tracks in rotation</div>
-              </button>
-            </div>
-
-            <p className="text-center text-slate-400 text-sm mt-6">You can change this later in the music menu</p>
-          </div>
-        </div>
       )}
 
       {/* Quick Start Tutorial Modal */}

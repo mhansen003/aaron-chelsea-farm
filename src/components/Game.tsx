@@ -4052,7 +4052,7 @@ export default function Game() {
         {/* Farmer Automation Controls - Bottom Aligned */}
         <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
-          <div className="text-[10px] text-purple-400 mb-2 italic">Drag to reorder priority ↕️</div>
+          <div className="text-[10px] text-purple-400 mb-2 italic">Grab ⋮⋮ to reorder priority</div>
           <div className="space-y-1.5">
             {/* Draggable Automation Items */}
             {automationOrder.map((task, index) => {
@@ -4063,14 +4063,23 @@ export default function Game() {
                   {task === 'plant' && (
                     <>
                       <div
-                        draggable
-                        onDragStart={() => handleAutomationDragStart('plant')}
-                        onDragOver={(e) => handleAutomationDragOver(e, 'plant')}
-                        onDragEnd={handleAutomationDragEnd}
-                        className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                        className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
                       >
-                        <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
-                          <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                        <div
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            handleAutomationDragStart('plant');
+                          }}
+                          onDragOver={(e) => handleAutomationDragOver(e, 'plant')}
+                          onDragEnd={handleAutomationDragEnd}
+                          className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
+                          title="Drag to reorder"
+                        >
+                          ⋮⋮
+                        </div>
+                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
                           <input
                             type="checkbox"
                             checked={gameState.player.farmerAuto.autoPlant}
@@ -4160,14 +4169,23 @@ export default function Game() {
 
                   {task === 'water' && (
                     <div
-                      draggable
-                      onDragStart={() => handleAutomationDragStart('water')}
-                      onDragOver={(e) => handleAutomationDragOver(e, 'water')}
-                      onDragEnd={handleAutomationDragEnd}
-                      className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                      className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
                     >
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
-                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                      <div
+                        draggable
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          handleAutomationDragStart('water');
+                        }}
+                        onDragOver={(e) => handleAutomationDragOver(e, 'water')}
+                        onDragEnd={handleAutomationDragEnd}
+                        className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
+                        title="Drag to reorder"
+                      >
+                        ⋮⋮
+                      </div>
+                      <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                      <label className="flex items-center gap-2 cursor-pointer flex-1">
                         <input
                           type="checkbox"
                           checked={gameState.player.farmerAuto.autoWater}
@@ -4192,14 +4210,23 @@ export default function Game() {
 
                   {task === 'harvest' && (
                     <div
-                      draggable
-                      onDragStart={() => handleAutomationDragStart('harvest')}
-                      onDragOver={(e) => handleAutomationDragOver(e, 'harvest')}
-                      onDragEnd={handleAutomationDragEnd}
-                      className={`cursor-move transition-all ${isDragging ? 'opacity-50' : ''}`}
+                      className={`flex items-center gap-1 hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30 transition-all ${isDragging ? 'opacity-50 bg-purple-700/40' : ''}`}
                     >
-                      <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded border-2 border-purple-600/30">
-                        <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                      <div
+                        draggable
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          handleAutomationDragStart('harvest');
+                        }}
+                        onDragOver={(e) => handleAutomationDragOver(e, 'harvest')}
+                        onDragEnd={handleAutomationDragEnd}
+                        className="cursor-grab active:cursor-grabbing text-purple-400 hover:text-purple-300 px-1"
+                        title="Drag to reorder"
+                      >
+                        ⋮⋮
+                      </div>
+                      <span className="text-[10px] text-purple-400 font-bold">{index + 1}.</span>
+                      <label className="flex items-center gap-2 cursor-pointer flex-1">
                         <input
                           type="checkbox"
                           checked={gameState.player.farmerAuto.autoHarvest}

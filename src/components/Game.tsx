@@ -782,12 +782,15 @@ export default function Game() {
       setCurrentSongIndex(index);
       setShowMusicDropdown(false);
 
+      // Selecting a song should unmute if currently muted
+      if (isMusicMuted) {
+        setIsMusicMuted(false);
+      }
+
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = farmSongs[index].file;
-        if (!isMusicMuted) {
-          audioRef.current.play().catch(() => {});
-        }
+        audioRef.current.play().catch(() => {});
       }
     }
   }, [isInFarmZone, isMusicMuted]);

@@ -63,6 +63,8 @@ export const WELL_COST = 100; // Cost to buy a well
 export const GARAGE_COST = 175; // Cost to buy a garage
 export const SUPERCHARGER_COST = 5000; // Cost to buy a supercharger
 export const SUPERCHARGE_BOT_COST = 500; // Cost to supercharge a single bot
+export const HOPPER_COST = 3000; // Cost to buy a hopper upgrade building
+export const HOPPER_UPGRADE_COST = 400; // Cost to upgrade a single bot with larger hopper
 export const BASE_ZONE_PRICE = 500; // Base to first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
@@ -112,6 +114,7 @@ export const CONSTRUCTION_DURATIONS = {
   garage: 100, // Near-instant construction (100ms)
   supercharger: 100, // Near-instant construction (100ms)
   fertilizer: 100, // Near-instant construction (100ms)
+  hopper: 100, // Near-instant construction (100ms)
 };
 
 // Helper functions for supercharged bot speed calculations
@@ -595,6 +598,8 @@ export function createInitialState(): GameState {
         superchargerPlaced: false,
         fertilizerBuilding: 0,
         fertilizerBuildingPlaced: false,
+        hopper: 0,
+        hopperPlaced: false,
       },
       autoBuy: {
         carrot: true,
@@ -817,6 +822,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'place_fertilizer':
           newState = placeFertilizerBuilding(newState, task.tileX, task.tileY);
+          break;
+        case 'place_hopper':
+          newState = placeHopper(newState, task.tileX, task.tileY);
           break;
         case 'pickup_marked':
           // Pickup marked items from warehouse into farmer's basket
@@ -3221,7 +3229,7 @@ export function updateBotName(
   state: GameState,
   botId: string,
   newName: string,
-  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'
+  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'
 ): GameState {
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
   const currentZone = state.zones[currentZoneKey];
@@ -4453,6 +4461,141 @@ export function placeSupercharger(state: GameState, tileX: number, tileY: number
   };
 }
 
+// Hopper Building Functions
+
+export function buyHopper(state: GameState): GameState {
+  // Check if player can afford it
+  if (state.player.money < HOPPER_COST) return state;
+
+  // Check if player already has a hopper
+  if (state.player.inventory.hopper >= 1) return state;
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money - HOPPER_COST,
+      inventory: {
+        ...state.player.inventory,
+        hopper: 1,
+      },
+    },
+  };
+}
+
+export function placeHopper(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || state.player.inventory.hopper <= 0) {
+    return state;
+  }
+
+  // Check if this is a relocation (building already placed elsewhere)
+  const isRelocation = state.player.inventory.hopperPlaced;
+
+  // If relocating, place instantly. If first time, go through construction.
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
+        if (isRelocation) {
+          // Instant placement for relocation
+          return {
+            ...t,
+            type: 'hopper' as const,
+          };
+        } else {
+          // Construction phase for first-time placement
+          return {
+            ...t,
+            isConstructing: true,
+            constructionTarget: 'hopper' as const,
+            constructionStartTime: state.gameTime,
+            constructionDuration: CONSTRUCTION_DURATIONS.hopper,
+          };
+        }
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+    player: {
+      ...state.player,
+      inventory: {
+        ...state.player.inventory,
+        hopperPlaced: true,
+      },
+    },
+  };
+}
+
+export function relocateHopper(state: GameState): GameState {
+  // Only allow relocating if the building is currently placed
+  if (!state.player.inventory.hopperPlaced) {
+    return state;
+  }
+
+  // Find and remove the hopper from all zones
+  const newZones = { ...state.zones };
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    const newGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Remove completed hoppers
+        if (tile.type === 'hopper') {
+          return {
+            ...tile,
+            type: 'grass' as const,
+            variant: getRandomGrassVariant(),
+          };
+        }
+        // Remove construction sites
+        if (tile.isConstructing && tile.constructionTarget === 'hopper') {
+          return {
+            ...tile,
+            isConstructing: false,
+            constructionTarget: undefined,
+            constructionStartTime: undefined,
+            constructionDuration: undefined,
+          };
+        }
+        return tile;
+      })
+    );
+    newZones[zoneKey] = { ...zone, grid: newGrid };
+  });
+
+  // Keep hopperPlaced=true so placement knows it's a relocation
+  return {
+    ...state,
+    zones: newZones,
+  };
+}
+
 /**
  * Checks all tiles in all zones for completed constructions and converts them to final buildings
  */
@@ -4875,42 +5018,98 @@ function updateHunterBots(
           visualY,
         });
       } else {
-        // Wander around while patrolling
+        // No rabbits nearby - check for garage
+        const garagePos = findGaragePosition(zone.grid);
         const hunterX = hunter.x ?? 0;
         const hunterY = hunter.y ?? 0;
 
-        // Pick a random nearby destination if we don't have one or reached it
-        if (!hunter.targetX || !hunter.targetY ||
-            (Math.abs(visualX - hunter.targetX) < 0.3 && Math.abs(visualY - hunter.targetY) < 0.3)) {
-          // Pick new random target within 5 tiles
-          const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, hunterX + Math.floor(Math.random() * 11) - 5));
-          const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, hunterY + Math.floor(Math.random() * 11) - 5));
+        if (garagePos) {
+          // Garage exists - navigate to it and park
+          if (Math.abs(visualX - garagePos.x) < 0.5 && Math.abs(visualY - garagePos.y) < 0.5) {
+            // Already at garage - check if should despawn
+            const GARAGE_DESPAWN_TIME = 5000; // 5 seconds
+            const idleTime = hunter.idleStartTime ? gameTime - hunter.idleStartTime : 0;
 
-          updatedHunterBots.push({
-            ...hunter,
-            status: 'patrolling',
-            targetX: newTargetX,
-            targetY: newTargetY,
-            visualX,
-            visualY,
-          });
+            if (idleTime >= GARAGE_DESPAWN_TIME) {
+              // Despawn - set to garaged status and clear position
+              updatedHunterBots.push({
+                ...hunter,
+                status: 'garaged',
+                x: undefined,
+                y: undefined,
+                visualX: undefined,
+                visualY: undefined,
+                targetX: undefined,
+                targetY: undefined,
+                idleStartTime: undefined,
+              });
+            } else {
+              // Track idle time at garage
+              const startTime = hunter.idleStartTime || gameTime;
+              updatedHunterBots.push({
+                ...hunter,
+                status: 'idle',
+                visualX,
+                visualY,
+                idleStartTime: startTime,
+              });
+            }
+          } else {
+            // Travel to garage
+            const dx = garagePos.x - visualX;
+            const dy = garagePos.y - visualY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1);
+            const newVisualX = visualX + (dx / dist) * moveSpeed;
+            const newVisualY = visualY + (dy / dist) * moveSpeed;
+
+            updatedHunterBots.push({
+              ...hunter,
+              status: 'patrolling',
+              visualX: newVisualX,
+              visualY: newVisualY,
+              x: Math.round(newVisualX),
+              y: Math.round(newVisualY),
+              targetX: garagePos.x,
+              targetY: garagePos.y,
+              idleStartTime: undefined,
+            });
+          }
         } else {
-          // Move towards wander target
-          const dx = hunter.targetX - visualX;
-          const dy = hunter.targetY - visualY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Same speed as other bots when wandering
-          const newVisualX = visualX + (dx / dist) * moveSpeed;
-          const newVisualY = visualY + (dy / dist) * moveSpeed;
+          // No garage - wander around while patrolling
+          // Pick a random nearby destination if we don't have one or reached it
+          if (!hunter.targetX || !hunter.targetY ||
+              (Math.abs(visualX - hunter.targetX) < 0.3 && Math.abs(visualY - hunter.targetY) < 0.3)) {
+            // Pick new random target within 5 tiles
+            const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, hunterX + Math.floor(Math.random() * 11) - 5));
+            const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, hunterY + Math.floor(Math.random() * 11) - 5));
 
-          updatedHunterBots.push({
-            ...hunter,
-            status: 'patrolling',
-            visualX: newVisualX,
-            visualY: newVisualY,
-            x: Math.round(newVisualX),
-            y: Math.round(newVisualY),
-          });
+            updatedHunterBots.push({
+              ...hunter,
+              status: 'patrolling',
+              targetX: newTargetX,
+              targetY: newTargetY,
+              visualX,
+              visualY,
+            });
+          } else {
+            // Move towards wander target
+            const dx = hunter.targetX - visualX;
+            const dy = hunter.targetY - visualY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const moveSpeed = deltaTime * 0.01 * (hunter.supercharged ? 2 : 1); // Same speed as other bots when wandering
+            const newVisualX = visualX + (dx / dist) * moveSpeed;
+            const newVisualY = visualY + (dy / dist) * moveSpeed;
+
+            updatedHunterBots.push({
+              ...hunter,
+              status: 'patrolling',
+              visualX: newVisualX,
+              visualY: newVisualY,
+              x: Math.round(newVisualX),
+              y: Math.round(newVisualY),
+            });
+          }
         }
       }
     } else if (hunter.status === 'chasing') {

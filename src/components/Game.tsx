@@ -21,6 +21,7 @@ import {
   buyDemolishbots,
   updateSeedBotJobs,
   updateBotName,
+  sellBot,
   uprootCrop,
   upgradeBag,
   buyBotFactory,
@@ -5108,6 +5109,23 @@ export default function Game() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Bot Rename/Sell Modal */}
+      {renamingBot && (
+        <BotNameModal
+          botType={renamingBot.type}
+          currentName={renamingBot.currentName}
+          onConfirm={(newName) => {
+            setGameState(prev => updateBotName(prev, renamingBot.id, newName, renamingBot.type));
+            setRenamingBot(null);
+          }}
+          onCancel={() => setRenamingBot(null)}
+          onSell={() => {
+            setGameState(prev => sellBot(prev, renamingBot.id, renamingBot.type));
+            setRenamingBot(null);
+          }}
+        />
       )}
     </div>
   );

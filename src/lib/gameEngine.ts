@@ -51,6 +51,7 @@ export const HARVESTBOT_COST = 400; // Cost to buy one harvest bot
 export const SEEDBOT_COST = 500; // Cost to buy one seed bot
 export const TRANSPORTBOT_COST = 1000; // Cost to buy one transport bot
 export const DEMOLISHBOT_COST = 100; // Cost to buy one demolish bot
+export const HUNTERBOT_COST = 500; // Cost to buy one hunter bot
 export const BAG_UPGRADE_COSTS = [150, 300, 500]; // Costs for basket upgrades (tier 1, 2, 3)
 export const BAG_UPGRADE_CAPACITY = 4; // Capacity increase per upgrade
 export const MAX_BAG_UPGRADES = 3; // Maximum number of upgrades
@@ -486,6 +487,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     seedBots: [],
     transportBots: [],
     demolishBots: [],
+    hunterBots: [],
+    rabbits: [],
     taskQueue: [],
     currentTask: null,
   };
@@ -573,6 +576,7 @@ export function createInitialState(): GameState {
         seedbots: 0,
         transportbots: 0,
         demolishbots: 0,
+        hunterbots: 0,
         botFactory: 0,
         botFactoryPlaced: false,
         well: 0,
@@ -3179,6 +3183,76 @@ export function updateBotName(
       [currentZoneKey]: {
         ...currentZone,
         ...updates,
+      },
+    },
+  };
+}
+
+export function sellBot(
+  state: GameState,
+  botId: string,
+  botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'
+): GameState {
+  const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
+  const currentZone = state.zones[currentZoneKey];
+
+  // Calculate refund amount (75% of base cost)
+  const baseCosts = {
+    water: WATERBOT_COST,
+    harvest: HARVESTBOT_COST,
+    seed: SEEDBOT_COST,
+    transport: TRANSPORTBOT_COST,
+    demolish: DEMOLISHBOT_COST,
+  };
+  const refundAmount = Math.floor(baseCosts[botType] * 0.75);
+
+  // Helper to remove bot from array
+  const removeBotFromArray = <T extends { id: string }>(bots: T[]): T[] =>
+    bots.filter((bot) => bot.id !== botId);
+
+  // Determine which bot array to update and inventory to decrease
+  let zoneUpdates: Partial<Zone> = {};
+  let inventoryUpdates: Partial<GameState['player']['inventory']> = {};
+  let targetZoneKey = currentZoneKey;
+
+  if (botType === 'water') {
+    zoneUpdates.waterBots = removeBotFromArray(currentZone.waterBots);
+    inventoryUpdates.waterbots = state.player.inventory.waterbots - 1;
+  } else if (botType === 'harvest') {
+    zoneUpdates.harvestBots = removeBotFromArray(currentZone.harvestBots);
+    inventoryUpdates.harvestbots = state.player.inventory.harvestbots - 1;
+  } else if (botType === 'seed') {
+    zoneUpdates.seedBots = removeBotFromArray(currentZone.seedBots);
+    inventoryUpdates.seedbots = state.player.inventory.seedbots - 1;
+  } else if (botType === 'transport') {
+    // Transport bots are only in zone 0,0
+    targetZoneKey = '0,0';
+    const startZone = state.zones[targetZoneKey];
+    zoneUpdates.transportBots = removeBotFromArray(startZone.transportBots);
+    inventoryUpdates.transportbots = (state.player.inventory.transportbots || 0) - 1;
+  } else if (botType === 'demolish') {
+    zoneUpdates.demolishBots = removeBotFromArray(currentZone.demolishBots || []);
+    inventoryUpdates.demolishbots = (state.player.inventory.demolishbots || 0) - 1;
+  }
+
+  // Update the zone with the bot removed
+  const targetZone = targetZoneKey === currentZoneKey ? currentZone : state.zones[targetZoneKey];
+
+  return {
+    ...state,
+    player: {
+      ...state.player,
+      money: state.player.money + refundAmount,
+      inventory: {
+        ...state.player.inventory,
+        ...inventoryUpdates,
+      },
+    },
+    zones: {
+      ...state.zones,
+      [targetZoneKey]: {
+        ...targetZone,
+        ...zoneUpdates,
       },
     },
   };

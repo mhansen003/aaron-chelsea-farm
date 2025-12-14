@@ -39,14 +39,24 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
     return acc;
   }, {} as Record<string, number>);
 
+  // Count marked for sale items by crop type
+  const markedForSaleCounts = gameState.markedForSale.reduce((acc, item) => {
+    acc[item.crop] = (acc[item.crop] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   // Count basket items by crop type
   const basketCounts = gameState.player.basket.reduce((acc, item) => {
     acc[item.crop] = (acc[item.crop] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  // Calculate total value of warehouse
+  // Calculate total value of warehouse (including marked items)
   const warehouseValue = gameState.warehouse.reduce((total, item) => {
+    return total + getMarketPrice(item.crop as Exclude<CropType, null>, gameState);
+  }, 0);
+
+  const markedValue = gameState.markedForSale.reduce((total, item) => {
     return total + getMarketPrice(item.crop as Exclude<CropType, null>, gameState);
   }, 0);
 

@@ -97,6 +97,7 @@ export interface Player {
     seedbots: number; // How many seed bots the player owns
     transportbots: number; // How many transport bots the player owns
     demolishbots: number; // How many demolish bots the player owns
+    hunterbots: number; // How many hunter bots the player owns
     botFactory: number; // How many bot factories the player owns (max 1)
     botFactoryPlaced: boolean; // Whether the bot factory has been placed
     well: number; // How many wells the player owns (max 1 per zone)
@@ -175,6 +176,9 @@ export interface Zone {
   seedBots: SeedBot[];
   transportBots: TransportBot[];
   demolishBots: DemolishBot[];
+  hunterBots: HunterBot[];
+  rabbits: Rabbit[];
+  lastRabbitSpawnTime?: number; // Game time when last rabbit spawned
   taskQueue: Task[]; // Queue of tasks for worker in this zone
   currentTask: Task | null; // Task currently being executed in this zone
 }
@@ -309,6 +313,35 @@ export interface DemolishBot {
   y?: number; // Current tile position Y
   visualX?: number; // Animated visual position X
   visualY?: number; // Animated visual position Y
+  actionStartTime?: number; // Game time when current action started
+  actionDuration?: number; // How long the action takes (ms)
+  supercharged?: boolean; // Whether bot has been supercharged (200% speed)
+}
+
+export interface Rabbit {
+  id: string; // Unique rabbit ID
+  x: number; // Current tile position X
+  y: number; // Current tile position Y
+  visualX: number; // Animated visual position X
+  visualY: number; // Animated visual position Y
+  targetX?: number; // Target tile X (where it's heading to eat a crop)
+  targetY?: number; // Target tile Y
+  status: 'wandering' | 'approaching_crop' | 'eating' | 'fleeing' | 'captured';
+  spawnTime: number; // Game time when rabbit spawned
+  eatingStartTime?: number; // Game time when rabbit started eating
+  eatingDuration?: number; // How long eating takes (ms)
+}
+
+export interface HunterBot {
+  id: string; // Unique bot ID
+  name: string; // Bot's custom name
+  status: 'idle' | 'patrolling' | 'chasing' | 'capturing' | 'escorting' | 'garaged';
+  targetRabbitId?: string; // Which rabbit is being hunted
+  x?: number; // Current tile position X
+  y?: number; // Current tile position Y
+  visualX?: number; // Animated visual position X
+  visualY?: number; // Animated visual position Y
+  detectionRange: number; // How far the hunter can detect rabbits (tiles)
   actionStartTime?: number; // Game time when current action started
   actionDuration?: number; // How long the action takes (ms)
   supercharged?: boolean; // Whether bot has been supercharged (200% speed)

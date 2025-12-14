@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import NextImage from 'next/image';
+import jsmediatags from 'jsmediatags';
 import {
   createInitialState,
   updateGameState,
@@ -187,6 +188,7 @@ export default function Game() {
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
+  const [albumCovers, setAlbumCovers] = useState<Record<number, string>>({});
   const lastTimeRef = useRef<number>(0);
   const animationFrameRef = useRef<number | undefined>(undefined);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -773,6 +775,45 @@ export default function Game() {
     }
     return newIndex;
   }, []);
+
+  // Load album covers from MP3 files
+  useEffect(() => {
+    const loadAlbumCovers = async () => {
+      const covers: Record<number, string> = {};
+
+      for (let i = 0; i < allFarmSongs.length; i++) {
+        const song = allFarmSongs[i];
+        try {
+          await new Promise<void>((resolve) => {
+            jsmediatags.read(song.file, {
+              onSuccess: (tag) => {
+                const { tags } = tag;
+                if (tags.picture) {
+                  const { data, format } = tags.picture;
+                  let base64String = '';
+                  for (let j = 0; j < data.length; j++) {
+                    base64String += String.fromCharCode(data[j]);
+                  }
+                  covers[i] = `data:${format};base64,${btoa(base64String)}`;
+                }
+                resolve();
+              },
+              onError: () => {
+                // No album art found for this song
+                resolve();
+              },
+            });
+          });
+        } catch (error) {
+          console.log(`No album art for ${song.name}`);
+        }
+      }
+
+      setAlbumCovers(covers);
+    };
+
+    loadAlbumCovers();
+  }, [allFarmSongs]);
 
   // Zone-specific music switching - farm has playlist, others loop single track
   useEffect(() => {
@@ -3937,9 +3978,16 @@ export default function Game() {
                           type="checkbox"
                           checked={enabledSongs.has(index)}
                           onChange={() => toggleSongEnabled(index)}
-                          className="w-4 h-4 cursor-pointer"
+                          className="w-4 h-4 cursor-pointer flex-shrink-0"
                           title="Include in auto-rotation"
                         />
+                        {albumCovers[index] && (
+                          <img
+                            src={albumCovers[index]}
+                            alt={song.name}
+                            className="w-8 h-8 rounded object-cover flex-shrink-0"
+                          />
+                        )}
                         <span
                           onClick={() => handleSongSelect(index)}
                           className="flex-1 cursor-pointer"
@@ -3965,9 +4013,16 @@ export default function Game() {
                             type="checkbox"
                             checked={enabledSongs.has(index)}
                             onChange={() => toggleSongEnabled(index)}
-                            className="w-4 h-4 cursor-pointer"
+                            className="w-4 h-4 cursor-pointer flex-shrink-0"
                             title="Include in auto-rotation"
                           />
+                          {albumCovers[index] && (
+                            <img
+                              src={albumCovers[index]}
+                              alt={song.name}
+                              className="w-8 h-8 rounded object-cover flex-shrink-0"
+                            />
+                          )}
                           <span
                             onClick={() => handleSongSelect(index)}
                             className="flex-1 cursor-pointer"

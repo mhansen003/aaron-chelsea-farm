@@ -73,7 +73,7 @@ import {
   getFertilizerBotCapacity,
   updateTransportBotConfig,
 } from '@/lib/gameEngine';
-import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem } from '@/types/game';
+import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem, Task } from '@/types/game';
 import Shop from './Shop';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
@@ -3041,6 +3041,25 @@ export default function Game() {
     const mouseX = (e.clientX - rect.left - offsetX) * scaleX;
     const mouseY = (e.clientY - rect.top - offsetY) * scaleY;
 
+    // Check if hovering over a rabbit (before tile checks)
+    const rabbitZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const rabbitZone = gameState.zones[rabbitZoneKey];
+    const hoveredRabbit = rabbitZone.rabbits?.find(rabbit => {
+      if (rabbit.status === 'captured') return false;
+      const rabbitPx = rabbit.visualX * GAME_CONFIG.tileSize;
+      const rabbitPy = rabbit.visualY * GAME_CONFIG.tileSize;
+      // Check if mouse is within rabbit's tile bounds
+      return mouseX >= rabbitPx && mouseX <= rabbitPx + GAME_CONFIG.tileSize &&
+             mouseY >= rabbitPy && mouseY <= rabbitPy + GAME_CONFIG.tileSize;
+    });
+
+    if (hoveredRabbit) {
+      // Show hand cursor when hovering over rabbit
+      setCursorType('pointer');
+      setHoveredTile(null);
+      return;
+    }
+
     const tileX = Math.floor(mouseX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(mouseY / GAME_CONFIG.tileSize);
 
@@ -3254,6 +3273,62 @@ export default function Game() {
 
     const clickX = (e.clientX - rect.left - offsetX) * scaleX;
     const clickY = (e.clientY - rect.top - offsetY) * scaleY;
+
+    // Check if user clicked on a rabbit
+    const rabbitZoneKey = getZoneKey(gameState.currentZone.x, gameState.currentZone.y);
+    const rabbitZone = gameState.zones[rabbitZoneKey];
+    const clickedRabbit = rabbitZone.rabbits?.find(rabbit => {
+      if (rabbit.status === 'captured') return false;
+      const rabbitPx = rabbit.visualX * GAME_CONFIG.tileSize;
+      const rabbitPy = rabbit.visualY * GAME_CONFIG.tileSize;
+      // Check if click is within rabbit's tile bounds
+      return clickX >= rabbitPx && clickX <= rabbitPx + GAME_CONFIG.tileSize &&
+             clickY >= rabbitPy && clickY <= rabbitPy + GAME_CONFIG.tileSize;
+    });
+
+    if (clickedRabbit) {
+      // User clicked a rabbit - add high priority task to scare it away
+      const scareTask: Task = {
+        id: `task-${Date.now()}-${Math.random()}`,
+        type: 'scare_rabbit',
+        tileX: Math.floor(clickedRabbit.visualX),
+        tileY: Math.floor(clickedRabbit.visualY),
+        zoneX: gameState.currentZone.x,
+        zoneY: gameState.currentZone.y,
+        rabbitId: clickedRabbit.id,
+        progress: 0,
+        duration: 2000, // 2 seconds to scare rabbit
+      };
+
+      // Add task as current task (highest priority) and move farmer to rabbit
+      setGameState(prev => {
+        const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+        const zone = prev.zones[currentZoneKey];
+
+        // If there's a current task, push it back to queue
+        const newQueue = zone.currentTask
+          ? [zone.currentTask, ...zone.taskQueue]
+          : zone.taskQueue;
+
+        return {
+          ...prev,
+          player: {
+            ...prev.player,
+            x: scareTask.tileX,
+            y: scareTask.tileY,
+          },
+          zones: {
+            ...prev.zones,
+            [currentZoneKey]: {
+              ...zone,
+              currentTask: scareTask,
+              taskQueue: newQueue,
+            },
+          },
+        };
+      });
+      return; // Don't process tile click
+    }
 
     const tileX = Math.floor(clickX / GAME_CONFIG.tileSize);
     const tileY = Math.floor(clickY / GAME_CONFIG.tileSize);
@@ -3940,6 +4015,7 @@ export default function Game() {
                    currentZone.currentTask.type === 'place_botFactory' ? '⚙️ Building Factory' :
                    currentZone.currentTask.type === 'place_well' ? '🪣 Digging Well' :
                    currentZone.currentTask.type === 'deposit' ? '📦 Depositing' :
+                   currentZone.currentTask.type === 'scare_rabbit' ? '👋 Scaring Rabbit' :
                    '🔨 Working'}
                 </div>
                 <div className="w-full h-1.5 bg-gray-700 rounded-full mt-1">
@@ -3996,6 +4072,7 @@ export default function Game() {
               else if (task.type === 'place_botFactory') workIcon = '⚙️';
               else if (task.type === 'place_well') workIcon = '🪣';
               else if (task.type === 'deposit') workIcon = '📦';
+              else if (task.type === 'scare_rabbit') workIcon = '🐰';
 
               return (
                 <div key={task.id} className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1">
@@ -4035,7 +4112,7 @@ export default function Game() {
         </div>
 
         {/* Farmer Automation Controls - Bottom Aligned */}
-        <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2">
+        <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2 min-h-[280px]">
           <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
           <div className="text-[10px] text-purple-400 mb-2 italic">Priority: Harvest → Water → Plant</div>
           <div className="space-y-1.5">

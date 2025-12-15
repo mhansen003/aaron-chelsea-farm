@@ -638,8 +638,8 @@ export function createInitialState(): GameState {
         corn: true,
       },
       farmerAuto: {
-        autoPlant: false, // Farmer cannot auto-plant, only Seed Bots can plant
-        autoPlantCrops: [], // No crops selected by default
+        autoPlant: true, // Farmer auto-plants by default
+        autoPlantCrops: ['carrot'], // Default to planting carrots
         autoWater: true,
         autoHarvest: true,
         autoSell: true,
@@ -871,6 +871,52 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           console.log('  Items:', newState.player.basket.map(i => i.crop).join(', '));
           newState = depositToWarehouse(newState);
           console.log('  Basket after:', newState.player.basket.length, 'items');
+          break;
+        case 'scare_rabbit':
+          // Scare the rabbit away - make it flee to the nearest edge
+          if (task.rabbitId) {
+            const zoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
+            const zone = newState.zones[zoneKey];
+            const rabbit = zone.rabbits.find(r => r.id === task.rabbitId);
+
+            if (rabbit) {
+              // Find nearest edge for rabbit to escape to
+              const gridWidth = GAME_CONFIG.gridWidth;
+              const gridHeight = GAME_CONFIG.gridHeight;
+              const distToLeft = rabbit.x;
+              const distToRight = gridWidth - 1 - rabbit.x;
+              const distToTop = rabbit.y;
+              const distToBottom = gridHeight - 1 - rabbit.y;
+              const minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+              let exitX = rabbit.x;
+              let exitY = rabbit.y;
+              if (minDist === distToLeft) exitX = -2;
+              else if (minDist === distToRight) exitX = gridWidth + 1;
+              else if (minDist === distToTop) exitY = -2;
+              else exitY = gridHeight + 1;
+
+              // Update rabbit to fleeing status
+              const updatedRabbits = zone.rabbits.map(r =>
+                r.id === task.rabbitId
+                  ? { ...r, status: 'leaving' as const, targetX: exitX, targetY: exitY }
+                  : r
+              );
+
+              newState = {
+                ...newState,
+                zones: {
+                  ...newState.zones,
+                  [zoneKey]: {
+                    ...zone,
+                    rabbits: updatedRabbits,
+                  },
+                },
+              };
+
+              console.log('🐰 SCARED RABBIT: Rabbit fleeing to edge at', exitX, exitY);
+            }
+          }
           break;
       }
 
@@ -2769,8 +2815,8 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
     }
   }
 
-  // Priority 1: Sell basket items at export OR deposit to warehouse
-  if (basket.length > 0) {
+  // Priority 1: Sell basket items at export OR deposit to warehouse (only when basket is full)
+  if (basket.length >= basketCapacity) {
     // Check if there are transport bots - if not, farmer handles marked items and must sell
     const hasTransportBots = zone.transportBots && zone.transportBots.length > 0;
     const shouldSell = farmerAuto.autoSell || !hasTransportBots;
@@ -4930,7 +4976,7 @@ function handlePlaceWellTask(state: GameState, task: Task): GameState {
 // It was deleting building tiles during load, causing the cascade corruption bug
 
 // Rabbit constants
-const RABBIT_SPAWN_INTERVAL = 90000; // Spawn a rabbit every 90 seconds (1.5 minutes)
+const RABBIT_SPAWN_INTERVAL = 360000; // Spawn a rabbit every 360 seconds (6 minutes)
 const RABBIT_EATING_DURATION = 9750; // ~10 seconds to eat a crop (25% faster than 13s)
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
 const RABBIT_MIN_CROPS = 3; // Min crops before rabbit leaves (reduced by 50%)

@@ -31,7 +31,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe' | 'uproot';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'place_fertilizer' | 'deposit' | 'pickup_marked' | 'fertilize';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'place_fertilizer' | 'deposit' | 'pickup_marked' | 'fertilize' | 'scare_rabbit';
 
 export interface Task {
   id: string;
@@ -41,6 +41,7 @@ export interface Task {
   zoneX: number;
   zoneY: number;
   cropType?: CropType; // For planting tasks
+  rabbitId?: string; // For scare_rabbit tasks
   progress: number; // 0-100
   duration: number; // milliseconds
 }

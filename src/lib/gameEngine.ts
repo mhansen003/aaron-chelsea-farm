@@ -781,14 +781,16 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'harvest':
           // Check if basket is full BEFORE harvesting - if so, don't harvest and trigger deposit instead
           if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
-            const warehousePos = findWarehouseTile(newState);
-            if (warehousePos) {
-              // Create deposit task at warehouse location
+            const shouldSell = newState.player.farmerAuto.autoSell;
+            const depositPos = shouldSell ? findExportTile(newState) : findWarehouseTile(newState);
+
+            if (depositPos) {
+              // Create deposit task at export (sell) or warehouse (deposit) based on setting
               const depositTask: Task = {
                 id: `${Date.now()}-${Math.random()}`,
                 type: 'deposit',
-                tileX: warehousePos.x,
-                tileY: warehousePos.y,
+                tileX: depositPos.x,
+                tileY: depositPos.y,
                 zoneX: newState.currentZone.x,
                 zoneY: newState.currentZone.y,
                 progress: 0,
@@ -798,9 +800,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               // Re-queue this harvest task and make deposit current
               currentZone.taskQueue = [task, ...currentZone.taskQueue];
               currentZone.currentTask = depositTask;
-              // Set player position to warehouse so they walk there
-              newState.player.x = warehousePos.x;
-              newState.player.y = warehousePos.y;
+              // Set player position to destination so they walk there
+              newState.player.x = depositPos.x;
+              newState.player.y = depositPos.y;
               break; // Don't execute harvest, deposit first
             }
           }
@@ -809,14 +811,16 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
           // Check if basket became full AFTER this harvest
           if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
-            const warehousePos = findWarehouseTile(newState);
-            if (warehousePos) {
-              // Create deposit task at warehouse location
+            const shouldSell = newState.player.farmerAuto.autoSell;
+            const depositPos = shouldSell ? findExportTile(newState) : findWarehouseTile(newState);
+
+            if (depositPos) {
+              // Create deposit task at export (sell) or warehouse (deposit) based on setting
               const depositTask: Task = {
                 id: `${Date.now()}-${Math.random()}`,
                 type: 'deposit',
-                tileX: warehousePos.x,
-                tileY: warehousePos.y,
+                tileX: depositPos.x,
+                tileY: depositPos.y,
                 zoneX: newState.currentZone.x,
                 zoneY: newState.currentZone.y,
                 progress: 0,
@@ -826,9 +830,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               // Make deposit the next task (will be picked up after current task clears)
               // But we need to insert it BEFORE clearing currentTask, so do it now
               currentZone.currentTask = depositTask;
-              // Set player position to warehouse so they walk there
-              newState.player.x = warehousePos.x;
-              newState.player.y = warehousePos.y;
+              // Set player position to destination so they walk there
+              newState.player.x = depositPos.x;
+              newState.player.y = depositPos.y;
               break; // Don't clear current task, keep the deposit task
             }
           }

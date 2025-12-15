@@ -1,21 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { GameState, CropType } from '@/types/game';
+import { GameState, CropType, TransportBotConfig, CropInventoryConfig } from '@/types/game';
 import { CROP_INFO } from '@/lib/cropConstants';
 import { getMarketPrice, getEpicSeasonalEvent } from '@/lib/marketEconomy';
-
-interface CropInventoryConfig {
-  crop: Exclude<CropType, null>;
-  maxInventory: number; // Sell when inventory >= this number (0 = disabled)
-  sellOnHighDemand: boolean; // Auto-sell when crop is high demand
-  sellOnEpic: boolean; // Auto-sell when crop is epic
-}
-
-interface TransportBotConfig {
-  sellMode: 'everything' | 'market-based';
-  perCropSettings: CropInventoryConfig[];
-}
 
 interface TransportBotConfigModalProps {
   gameState: GameState;

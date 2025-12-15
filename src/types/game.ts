@@ -285,21 +285,16 @@ export interface SeedBot {
   hopperUpgrade?: boolean; // Whether bot has hopper upgrade (increased capacity)
 }
 
-export interface CropSellConfig {
+export interface CropInventoryConfig {
   crop: Exclude<CropType, null>;
-  enabled: boolean; // Whether to sell this crop at all
-  minPriceMultiplier: number; // Minimum price as multiple of base (e.g., 1.2 = 120% of base)
-  waitForHighDemand: boolean; // Only sell when in high demand
-  waitForEpic: boolean; // Only sell when epic pricing
+  maxInventory: number; // Sell when inventory >= this number (0 = disabled)
+  sellOnHighDemand: boolean; // Auto-sell when crop is high demand
+  sellOnEpic: boolean; // Auto-sell when crop is epic
 }
 
 export interface TransportBotConfig {
-  mode: 'simple' | 'advanced'; // Simple = global settings, Advanced = per-crop
-  globalMinPriceMultiplier: number; // Default for all crops (e.g., 1.2)
-  globalWaitForHighDemand: boolean; // Apply to all crops
-  globalWaitForEpic: boolean; // Apply to all crops
-  perCropSettings: CropSellConfig[]; // Individual crop overrides (used in advanced mode)
-  sellWhenFull: boolean; // Override all settings when inventory is full
+  sellMode: 'everything' | 'market-based';
+  perCropSettings: CropInventoryConfig[];
 }
 
 export interface TransportBot {

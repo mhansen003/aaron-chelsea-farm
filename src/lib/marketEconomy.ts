@@ -148,7 +148,7 @@ function generatePriceForecast(market: MarketData, gameState: GameState): PriceS
 
 /**
  * Update market prices and forecasts
- * Updates once per day and regenerates forecasts every 10-minute cycle
+ * Updates once per day and shifts forecast forward, realizing predictions
  */
 export function updateMarketPrices(gameState: GameState): GameState {
   if (!gameState.market) {
@@ -166,10 +166,59 @@ export function updateMarketPrices(gameState: GameState): GameState {
   market.currentSeason = getSeason(gameState.gameTime);
   market.highDemandCrops = getSeasonalDemandCrops(market.currentSeason);
 
-  // Regenerate forecast every cycle (10 minutes)
+  // Update forecast every cycle (10 minutes) - shift and add one new prediction
   const timeSinceLastForecast = gameState.gameTime - market.lastForecastTime;
   if (timeSinceLastForecast >= CYCLE_DURATION) {
-    market.priceForecast = generatePriceForecast(market, gameState);
+    // Check if we have an existing forecast
+    if (market.priceForecast && market.priceForecast.length > 0) {
+      // Remove the first forecast (it's now the present)
+      const updatedForecast = market.priceForecast.slice(1);
+
+      // Generate ONE new forecast point for the far future
+      const lastForecast = updatedForecast[updatedForecast.length - 1] || market.priceForecast[market.priceForecast.length - 1];
+      const newTime = lastForecast.timestamp + CYCLE_DURATION;
+      const newDay = lastForecast.day + 1;
+
+      const crops: Array<Exclude<CropType, null>> = [
+        'carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon',
+        'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
+      ];
+
+      const newSeason = getSeason(newTime);
+      const newHighDemand = getSeasonalDemandCrops(newSeason);
+      const newPrices: Record<Exclude<CropType, null>, number> = {} as any;
+
+      crops.forEach((crop, cropIndex) => {
+        const basePrice = CROP_INFO[crop].sellPrice;
+        const seed = Math.floor(newTime / CYCLE_DURATION) + cropIndex * 1000;
+        const randomValue = seededRandom(seed);
+
+        // Get last multiplier from last forecast
+        const lastPrice = lastForecast.prices[crop];
+        const lastMultiplier = lastPrice / basePrice;
+
+        const fluctuation = (randomValue - 0.5) * 0.2;
+        let newMultiplier = lastMultiplier + fluctuation;
+        newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
+
+        const isHighDemand = newHighDemand.includes(crop);
+        const seasonalBoost = isHighDemand ? 0.75 : 0;
+
+        newPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost));
+      });
+
+      updatedForecast.push({
+        timestamp: newTime,
+        day: newDay,
+        prices: newPrices,
+      });
+
+      market.priceForecast = updatedForecast;
+    } else {
+      // No existing forecast, generate full new forecast
+      market.priceForecast = generatePriceForecast(market, gameState);
+    }
+
     market.lastForecastTime = gameState.gameTime;
   }
 
@@ -201,31 +250,40 @@ export function updateMarketPrices(gameState: GameState): GameState {
     market.epicPriceEndTime = gameState.gameTime + EPIC_DURATION;
   }
 
-  // Update each crop's price multiplier with daily fluctuation (deterministic)
+  // Check if we have a forecast for the current/next time - if so, use it!
+  const nextForecast = market.priceForecast.length > 0 ? market.priceForecast[0] : null;
+
+  // Realize forecasted prices OR generate new prices if no forecast exists
   crops.forEach((crop, cropIndex) => {
     const basePrice = CROP_INFO[crop].sellPrice;
-
-    // Use deterministic seed based on current day and crop
-    const seed = gameState.currentDay + cropIndex * 1000;
-    const randomValue = seededRandom(seed);
-
-    // Daily price fluctuation: ±15% change (deterministic)
-    const fluctuation = (randomValue - 0.5) * 0.3; // -15% to +15%
-    let newMultiplier = market.priceMultipliers[crop] + fluctuation;
-
-    // Keep multipliers in reasonable range (0.7x to 1.5x base price)
-    newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
-
-    // Seasonal demand boost: Fixed +75% for high demand crops (predictable)
-    const isHighDemand = market.highDemandCrops.includes(crop);
-    const seasonalBoost = isHighDemand ? 0.75 : 0;
 
     // Epic price boost: 5x multiplier for epic crop
     const isEpicPrice = market.epicPriceCrop === crop;
     const epicBoost = isEpicPrice ? 4.0 : 0; // +400% (total 5x)
 
-    market.priceMultipliers[crop] = newMultiplier;
-    market.currentPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));
+    if (nextForecast && nextForecast.prices[crop]) {
+      // Use the forecasted price! This makes forecasts come true
+      const forecastedPrice = nextForecast.prices[crop];
+      market.currentPrices[crop] = Math.round(forecastedPrice * (1 + (epicBoost > 0 ? epicBoost : 0)));
+
+      // Update multiplier to match realized price
+      const totalMultiplier = forecastedPrice / basePrice;
+      market.priceMultipliers[crop] = totalMultiplier;
+    } else {
+      // No forecast available - generate price (fallback)
+      const seed = gameState.currentDay + cropIndex * 1000;
+      const randomValue = seededRandom(seed);
+
+      const fluctuation = (randomValue - 0.5) * 0.3; // -15% to +15%
+      let newMultiplier = market.priceMultipliers[crop] + fluctuation;
+      newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
+
+      const isHighDemand = market.highDemandCrops.includes(crop);
+      const seasonalBoost = isHighDemand ? 0.75 : 0;
+
+      market.priceMultipliers[crop] = newMultiplier;
+      market.currentPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));
+    }
   });
 
   market.lastUpdateDay = gameState.currentDay;

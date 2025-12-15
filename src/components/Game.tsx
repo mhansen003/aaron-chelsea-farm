@@ -4523,8 +4523,8 @@ export default function Game() {
             <div className="font-bold text-orange-400 mb-1">🥕 Carrot</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.carrot.daysToGrow} day{CROP_INFO.carrot.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('carrot', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('carrot', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('carrot', gameState.cropsSold) - getCurrentSeedCost('carrot', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('carrot', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.carrot ?? getCurrentSellPrice('carrot', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${(gameState.market?.currentPrices?.carrot ?? getCurrentSellPrice('carrot', gameState.cropsSold)) - getCurrentSeedCost('carrot', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4551,8 +4551,8 @@ export default function Game() {
             <div className="font-bold text-yellow-400 mb-1">🌾 Wheat</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.wheat.daysToGrow} day{CROP_INFO.wheat.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('wheat', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('wheat', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('wheat', gameState.cropsSold) - getCurrentSeedCost('wheat', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('wheat', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.wheat ?? getCurrentSellPrice('wheat', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${(gameState.market?.currentPrices?.wheat ?? getCurrentSellPrice('wheat', gameState.cropsSold)) - getCurrentSeedCost('wheat', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4579,8 +4579,8 @@ export default function Game() {
             <div className="font-bold text-red-400 mb-1">🍅 Tomato</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.tomato.daysToGrow} day{CROP_INFO.tomato.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('tomato', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('tomato', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('tomato', gameState.cropsSold) - getCurrentSeedCost('tomato', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('tomato', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.tomato ?? getCurrentSellPrice('tomato', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.tomato ?? getCurrentSellPrice('tomato', gameState.cropsSold) - getCurrentSeedCost('tomato', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4607,8 +4607,8 @@ export default function Game() {
             <div className="font-bold text-orange-400 mb-1">🎃 Pumpkin</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.pumpkin.daysToGrow} day{CROP_INFO.pumpkin.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('pumpkin', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('pumpkin', gameState.cropsSold) - getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.pumpkin ?? getCurrentSellPrice('pumpkin', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.pumpkin ?? getCurrentSellPrice('pumpkin', gameState.cropsSold) - getCurrentSeedCost('pumpkin', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4635,8 +4635,8 @@ export default function Game() {
             <div className="font-bold text-green-400 mb-1">🍉 Watermelon</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.watermelon.daysToGrow} day{CROP_INFO.watermelon.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('watermelon', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('watermelon', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('watermelon', gameState.cropsSold) - getCurrentSeedCost('watermelon', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('watermelon', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.watermelon ?? getCurrentSellPrice('watermelon', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.watermelon ?? getCurrentSellPrice('watermelon', gameState.cropsSold) - getCurrentSeedCost('watermelon', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4663,8 +4663,8 @@ export default function Game() {
             <div className="font-bold text-red-400 mb-1">🌶️ Peppers</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.peppers.daysToGrow} day{CROP_INFO.peppers.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('peppers', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('peppers', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('peppers', gameState.cropsSold) - getCurrentSeedCost('peppers', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('peppers', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.peppers ?? getCurrentSellPrice('peppers', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.peppers ?? getCurrentSellPrice('peppers', gameState.cropsSold) - getCurrentSeedCost('peppers', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4691,8 +4691,8 @@ export default function Game() {
             <div className="font-bold text-purple-400 mb-1">🍇 Grapes</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.grapes.daysToGrow} day{CROP_INFO.grapes.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('grapes', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('grapes', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('grapes', gameState.cropsSold) - getCurrentSeedCost('grapes', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('grapes', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.grapes ?? getCurrentSellPrice('grapes', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.grapes ?? getCurrentSellPrice('grapes', gameState.cropsSold) - getCurrentSeedCost('grapes', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4719,8 +4719,8 @@ export default function Game() {
             <div className="font-bold text-orange-300 mb-1">🍊 Oranges</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.oranges.daysToGrow} day{CROP_INFO.oranges.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('oranges', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('oranges', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('oranges', gameState.cropsSold) - getCurrentSeedCost('oranges', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('oranges', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.oranges ?? getCurrentSellPrice('oranges', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.oranges ?? getCurrentSellPrice('oranges', gameState.cropsSold) - getCurrentSeedCost('oranges', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4747,8 +4747,8 @@ export default function Game() {
             <div className="font-bold text-green-400 mb-1">🥑 Avocado</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.avocado.daysToGrow} day{CROP_INFO.avocado.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('avocado', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('avocado', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('avocado', gameState.cropsSold) - getCurrentSeedCost('avocado', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('avocado', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.avocado ?? getCurrentSellPrice('avocado', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.avocado ?? getCurrentSellPrice('avocado', gameState.cropsSold) - getCurrentSeedCost('avocado', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4775,8 +4775,8 @@ export default function Game() {
             <div className="font-bold text-gray-300 mb-1">🍚 Rice</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.rice.daysToGrow} day{CROP_INFO.rice.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('rice', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('rice', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('rice', gameState.cropsSold) - getCurrentSeedCost('rice', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('rice', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.rice ?? getCurrentSellPrice('rice', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.rice ?? getCurrentSellPrice('rice', gameState.cropsSold) - getCurrentSeedCost('rice', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>
@@ -4803,8 +4803,8 @@ export default function Game() {
             <div className="font-bold text-yellow-300 mb-1">🌽 Corn</div>
             <div className="space-y-0.5">
               <div>⏱️ Grows in <span className="text-green-400 font-semibold">{CROP_INFO.corn.daysToGrow} day{CROP_INFO.corn.daysToGrow !== 1 ? 's' : ''}</span></div>
-              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('corn', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${getCurrentSellPrice('corn', gameState.cropsSold)}</span></div>
-              <div>📈 Profit: <span className="text-yellow-400 font-bold">${getCurrentSellPrice('corn', gameState.cropsSold) - getCurrentSeedCost('corn', gameState.cropsSold)}</span></div>
+              <div>💰 Cost: <span className="text-red-400 font-semibold">${getCurrentSeedCost('corn', gameState.cropsSold)}</span> | Sells: <span className="text-green-400 font-semibold">${gameState.market?.currentPrices?.corn ?? getCurrentSellPrice('corn', gameState.cropsSold)}</span></div>
+              <div>📈 Profit: <span className="text-yellow-400 font-bold">${gameState.market?.currentPrices?.corn ?? getCurrentSellPrice('corn', gameState.cropsSold) - getCurrentSeedCost('corn', gameState.cropsSold)}</span></div>
             </div>
           </div>
         </div>

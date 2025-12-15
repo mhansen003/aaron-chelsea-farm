@@ -2515,10 +2515,30 @@ export function plantSeed(
 export function harvestCrop(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
   const tile = grid[tileY]?.[tileX];
-  if (!tile || tile.type !== 'grown' || !tile.crop) return state;
 
-  // Crops must be watered before harvest
-  if (!tile.wateredTimestamp) return state;
+  // Check if tile exists and has a harvestable crop
+  if (!tile) {
+    console.log('🌾 HARVEST FAILED: No tile at', tileX, tileY);
+    return state;
+  }
+
+  if (!tile.crop) {
+    console.log('🌾 HARVEST FAILED: No crop on tile', tileX, tileY);
+    return state;
+  }
+
+  // Allow harvesting both 'grown' and 'planted' tiles if they have max growth
+  const canHarvest = tile.type === 'grown' || (tile.type === 'planted' && tile.growthStage >= 100);
+  if (!canHarvest) {
+    console.log('🌾 HARVEST FAILED: Crop not ready', tileX, tileY, 'type:', tile.type, 'growth:', tile.growthStage);
+    return state;
+  }
+
+  // Crops must be watered before harvest (but don't fail silently - this shouldn't happen)
+  if (!tile.wateredTimestamp) {
+    console.warn('🌾 HARVEST WARNING: Crop was not watered but is grown?', tileX, tileY, tile);
+    // Allow harvest anyway to prevent stuck state
+  }
 
   // Check if a rabbit is eating this crop - if so, it's gone
   const currentZoneKey = getZoneKey(state.currentZone.x, state.currentZone.y);
@@ -2526,10 +2546,16 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
   const rabbitEating = currentZone.rabbits.some(
     rabbit => rabbit.status === 'eating' && rabbit.targetX === tileX && rabbit.targetY === tileY
   );
-  if (rabbitEating) return state;
+  if (rabbitEating) {
+    console.log('🐰 HARVEST FAILED: Rabbit eating crop at', tileX, tileY);
+    return state;
+  }
 
   // Check if basket is full
-  if (state.player.basket && state.player.basket.length >= state.player.basketCapacity) return state;
+  if (state.player.basket && state.player.basket.length >= state.player.basketCapacity) {
+    console.log('🧺 HARVEST FAILED: Basket full', state.player.basket.length, '/', state.player.basketCapacity);
+    return state;
+  }
 
   const cropType = tile.crop;
   const quality = state.player.inventory.seedQuality[cropType];
@@ -2565,6 +2591,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
 
   // Add harvested crop to basket
   const newBasket = [...state.player.basket, { crop: cropType, quality: improvedQuality }];
+  console.log('✅ HARVEST SUCCESS:', cropType, 'at', tileX, tileY, '| Basket:', newBasket.length, '/', state.player.basketCapacity);
 
   const updatedState = updateCurrentGrid(state, newGrid);
 

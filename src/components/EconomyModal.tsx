@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { GameState, CropType } from '@/types/game';
-import { getMarketPrice } from '@/lib/marketEconomy';
+import { getMarketPrice, getSeasonTimeRemaining, getNextSeasonForecast, getEpicSeasonalEvent } from '@/lib/marketEconomy';
 
 interface EconomyModalProps {
   gameState: GameState;
@@ -294,8 +294,23 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
               const price = getMarketPrice(crop, gameState);
               const info = CROP_INFO[crop];
               const color = CROP_COLORS[crop];
-              const isHighDemand = market.highDemandCrops.includes(crop);
-              const isEpic = market.epicPriceCrop === crop;
+
+              // Check if season is ending soon (< 2 minutes remaining)
+              const timeRemaining = getSeasonTimeRemaining(gameState.gameTime);
+              const seasonEndingSoon = timeRemaining < (2 * 60 * 1000); // < 2 minutes
+
+              // Show upcoming high demand if season is ending soon, otherwise current
+              const upcomingSeasonInfo = getNextSeasonForecast(gameState.gameTime);
+              const relevantHighDemand = seasonEndingSoon ? upcomingSeasonInfo.crops : market.highDemandCrops;
+
+              const isHighDemand = relevantHighDemand.includes(crop);
+              const isUpcoming = seasonEndingSoon && upcomingSeasonInfo.crops.includes(crop);
+
+              // Check for epic seasonal events
+              const currentEpicEvent = getEpicSeasonalEvent(gameState.gameTime);
+              const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
+              const isRandomEpic = market.epicPriceCrop === crop;
+              const isEpic = isRandomEpic || isSeasonalEpic;
 
               // Calculate price change from forecast
               let priceChange = 0;
@@ -318,14 +333,19 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   }`}
                 >
                   {/* Epic or High Demand Badge */}
-                  {isEpic && (
+                  {isSeasonalEpic && (
+                    <div className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                      ⚡ EPIC 3X
+                    </div>
+                  )}
+                  {isRandomEpic && !isSeasonalEpic && (
                     <div className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
                       ⚡ EPIC 5X
                     </div>
                   )}
                   {isHighDemand && !isEpic && (
                     <div className="absolute -top-2 -right-2 bg-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      🔥 HIGH DEMAND
+                      {isUpcoming ? '🔥 UPCOMING' : '🔥 HIGH DEMAND'}
                     </div>
                   )}
 

@@ -27,7 +27,7 @@ export function getSeasonTimeRemaining(gameTime: number): number {
 
 /**
  * Get crops that are in high demand for the current season
- * High demand adds +50-100% to sell price
+ * High demand adds +75% to sell price
  */
 export function getSeasonalDemandCrops(season: Season): Array<Exclude<CropType, null>> {
   const demandMap: Record<Season, Array<Exclude<CropType, null>>> = {
@@ -37,6 +37,41 @@ export function getSeasonalDemandCrops(season: Season): Array<Exclude<CropType, 
     winter: ['avocado', 'oranges', 'rice'], // Winter staples
   };
   return demandMap[season];
+}
+
+/**
+ * Epic seasonal events occur every 5th season (every 50 minutes)
+ * During epic seasons, specific crops sell for 3x normal price
+ */
+export function getEpicSeasonalEvent(gameTime: number): {
+  isEpicSeason: boolean;
+  epicCrops: Array<Exclude<CropType, null>>;
+  seasonName: string;
+} | null {
+  const SEASON_DURATION = 10 * 60 * 1000; // 10 minutes
+  const EPIC_CYCLE = SEASON_DURATION * 5; // Every 5 seasons (50 minutes)
+
+  const cycleNumber = Math.floor(gameTime / EPIC_CYCLE);
+  const timeInCycle = gameTime % EPIC_CYCLE;
+  const isEpicSeason = timeInCycle < SEASON_DURATION; // First season of each 5-season cycle is epic
+
+  if (!isEpicSeason) return null;
+
+  // Rotate which crops are epic each cycle for variety
+  const epicSeasonConfigs = [
+    { name: 'Harvest Festival', crops: ['pumpkin', 'grapes', 'corn'] as Array<Exclude<CropType, null>> },
+    { name: 'Summer Celebration', crops: ['watermelon', 'tomato', 'peppers'] as Array<Exclude<CropType, null>> },
+    { name: 'Spring Bounty', crops: ['carrot', 'wheat', 'tomato'] as Array<Exclude<CropType, null>> },
+    { name: 'Winter Market', crops: ['avocado', 'oranges', 'rice'] as Array<Exclude<CropType, null>> },
+  ];
+
+  const config = epicSeasonConfigs[cycleNumber % epicSeasonConfigs.length];
+
+  return {
+    isEpicSeason: true,
+    epicCrops: config.crops,
+    seasonName: config.name,
+  };
 }
 
 /**
@@ -114,6 +149,9 @@ function generatePriceForecast(market: MarketData, gameState: GameState): PriceS
     const simulatedHighDemand = getSeasonalDemandCrops(simulatedSeason);
     const simulatedPrices: Record<Exclude<CropType, null>, number> = {} as any;
 
+    // Check for epic seasonal event
+    const epicEvent = getEpicSeasonalEvent(simulatedTime);
+
     crops.forEach((crop, cropIndex) => {
       const basePrice = CROP_INFO[crop].sellPrice;
 
@@ -132,8 +170,12 @@ function generatePriceForecast(market: MarketData, gameState: GameState): PriceS
       const isHighDemand = simulatedHighDemand.includes(crop);
       const seasonalBoost = isHighDemand ? 0.75 : 0;
 
+      // Epic seasonal boost: 3x multiplier for epic crops
+      const isEpicCrop = epicEvent && epicEvent.epicCrops.includes(crop);
+      const epicBoost = isEpicCrop ? 2.0 : 0; // +200% (total 3x)
+
       simulatedMultipliers[crop] = newMultiplier;
-      simulatedPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost));
+      simulatedPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));
     });
 
     forecast.push({
@@ -186,6 +228,7 @@ export function updateMarketPrices(gameState: GameState): GameState {
 
       const newSeason = getSeason(newTime);
       const newHighDemand = getSeasonalDemandCrops(newSeason);
+      const epicEvent = getEpicSeasonalEvent(newTime);
       const newPrices: Record<Exclude<CropType, null>, number> = {} as any;
 
       crops.forEach((crop, cropIndex) => {
@@ -204,7 +247,10 @@ export function updateMarketPrices(gameState: GameState): GameState {
         const isHighDemand = newHighDemand.includes(crop);
         const seasonalBoost = isHighDemand ? 0.75 : 0;
 
-        newPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost));
+        const isEpicCrop = epicEvent && epicEvent.epicCrops.includes(crop);
+        const epicBoost = isEpicCrop ? 2.0 : 0;
+
+        newPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));
       });
 
       updatedForecast.push({
@@ -253,13 +299,17 @@ export function updateMarketPrices(gameState: GameState): GameState {
   // Check if we have a forecast for the current/next time - if so, use it!
   const nextForecast = market.priceForecast.length > 0 ? market.priceForecast[0] : null;
 
+  // Check for epic seasonal event
+  const currentEpicEvent = getEpicSeasonalEvent(gameState.gameTime);
+
   // Realize forecasted prices OR generate new prices if no forecast exists
   crops.forEach((crop, cropIndex) => {
     const basePrice = CROP_INFO[crop].sellPrice;
 
-    // Epic price boost: 5x multiplier for epic crop
-    const isEpicPrice = market.epicPriceCrop === crop;
-    const epicBoost = isEpicPrice ? 4.0 : 0; // +400% (total 5x)
+    // Epic price boosts
+    const isRandomEpicPrice = market.epicPriceCrop === crop; // Random epic event (5x)
+    const isSeasonalEpicPrice = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop); // Seasonal epic (3x)
+    const epicBoost = isRandomEpicPrice ? 4.0 : isSeasonalEpicPrice ? 2.0 : 0;
 
     if (nextForecast && nextForecast.prices[crop]) {
       // Use the forecasted price! This makes forecasts come true

@@ -184,6 +184,9 @@ export default function Game() {
     cropType: Exclude<CropType, null>;
     selectedTiles: Array<{ x: number; y: number }>;
   } | null>(null);
+  const [overlayPosition, setOverlayPosition] = useState({ x: 16, y: 16 }); // Top-left by default
+  const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartRow, setDragStartRow] = useState<number | null>(null);
   const [mouseDownPos, setMouseDownPos] = useState<{ x: number; y: number } | null>(null);
@@ -5382,8 +5385,35 @@ export default function Game() {
 
       {/* Tile Selection Mode Overlay */}
       {tileSelectionMode && tileSelectionMode.active && (
-        <div className="fixed top-4 left-4 z-50 bg-gradient-to-r from-green-600 to-lime-600 text-white px-8 py-4 rounded-xl shadow-2xl border-4 border-green-300 pointer-events-none">
-          <div className="text-center">
+        <div
+          className="fixed z-50 bg-gradient-to-r from-green-600 to-lime-600 text-white px-8 py-4 rounded-xl shadow-2xl border-4 border-green-300 select-none"
+          style={{
+            left: `${overlayPosition.x}px`,
+            top: `${overlayPosition.y}px`,
+            cursor: isDraggingOverlay ? 'grabbing' : 'grab'
+          }}
+          onMouseDown={(e) => {
+            // Only start drag if clicking on the overlay itself, not the button
+            if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+              setIsDraggingOverlay(true);
+              setDragOffset({
+                x: e.clientX - overlayPosition.x,
+                y: e.clientY - overlayPosition.y
+              });
+            }
+          }}
+          onMouseMove={(e) => {
+            if (isDraggingOverlay) {
+              setOverlayPosition({
+                x: e.clientX - dragOffset.x,
+                y: e.clientY - dragOffset.y
+              });
+            }
+          }}
+          onMouseUp={() => setIsDraggingOverlay(false)}
+          onMouseLeave={() => setIsDraggingOverlay(false)}
+        >
+          <div className="text-center pointer-events-none">
             <div className="text-2xl font-bold mb-2">🌱 Tile Selection Mode</div>
             <div className="text-sm mb-3">
               Click on grass or dirt tiles to select planting zones for {tileSelectionMode.cropType}

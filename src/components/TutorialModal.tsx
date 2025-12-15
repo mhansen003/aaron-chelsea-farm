@@ -379,11 +379,6 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
               <p className="text-sm text-gray-300">Game auto-saves every 30 seconds. Click Save to get a 6-digit code that works on any device!</p>
             </div>
 
-            <div className="bg-purple-900/40 rounded-lg p-3 border border-purple-500/40">
-              <h4 className="font-bold text-purple-400 mb-1">🔄 Auto-Buy Seeds</h4>
-              <p className="text-sm text-gray-300">Toggle auto-buy in the shop to automatically purchase seeds when planting!</p>
-            </div>
-
             <div className="bg-orange-900/40 rounded-lg p-3 border border-orange-500/40">
               <h4 className="font-bold text-orange-400 mb-1">🤖 Farmer Automation</h4>
               <p className="text-sm text-gray-300">Enable farmer auto-actions in the left panel to automate planting, watering, harvesting, and selling!</p>

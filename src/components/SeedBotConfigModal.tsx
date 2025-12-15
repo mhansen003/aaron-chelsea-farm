@@ -136,21 +136,6 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
             Configure up to 3 planting jobs. Each job can plant up to 20 tiles of a specific crop. Select tiles directly on the map to assign planting locations.
           </p>
 
-          {/* Auto-Buy Seeds Toggle */}
-          <div className="bg-black/30 rounded-lg p-4 mb-4">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoBuySeeds}
-                onChange={(e) => setAutoBuySeeds(e.target.checked)}
-                className="w-5 h-5"
-              />
-              <span className="text-lg font-semibold">
-                🔄 Auto-Buy Seeds (automatically purchase seeds when inventory is low)
-              </span>
-            </label>
-          </div>
-
           {/* Jobs List - Simple Card View */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
             {jobs.map((job, idx) => {

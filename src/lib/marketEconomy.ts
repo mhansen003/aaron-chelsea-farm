@@ -80,8 +80,18 @@ export function initializeMarket(gameState: GameState): MarketData {
 }
 
 /**
+ * Seeded pseudo-random number generator for deterministic forecasts
+ * Uses the time and crop name to generate consistent values
+ */
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+/**
  * Generate price forecast for the next 10 cycles
  * Each cycle is a price update (typically daily), forecasting ~10 days ahead
+ * Uses deterministic seeding so forecasts are predictable and consistent
  */
 function generatePriceForecast(market: MarketData, gameState: GameState): PriceSnapshot[] {
   const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds (1 season)
@@ -104,19 +114,23 @@ function generatePriceForecast(market: MarketData, gameState: GameState): PriceS
     const simulatedHighDemand = getSeasonalDemandCrops(simulatedSeason);
     const simulatedPrices: Record<Exclude<CropType, null>, number> = {} as any;
 
-    crops.forEach(crop => {
+    crops.forEach((crop, cropIndex) => {
       const basePrice = CROP_INFO[crop].sellPrice;
 
-      // Simulate cycle fluctuation: ±10% change per cycle
-      const fluctuation = (Math.random() - 0.5) * 0.2; // -10% to +10%
+      // Use deterministic seed based on cycle time and crop
+      const seed = Math.floor(simulatedTime / CYCLE_DURATION) + cropIndex * 1000;
+      const randomValue = seededRandom(seed);
+
+      // Simulate cycle fluctuation: ±10% change per cycle (deterministic)
+      const fluctuation = (randomValue - 0.5) * 0.2; // -10% to +10%
       let newMultiplier = simulatedMultipliers[crop] + fluctuation;
 
       // Keep multipliers in reasonable range (0.7x to 1.5x base price)
       newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
 
-      // Seasonal demand boost: +50-100% for high demand crops
+      // Seasonal demand boost: Fixed +75% for high demand crops (predictable)
       const isHighDemand = simulatedHighDemand.includes(crop);
-      const seasonalBoost = isHighDemand ? 0.5 + (Math.random() * 0.5) : 0;
+      const seasonalBoost = isHighDemand ? 0.75 : 0;
 
       simulatedMultipliers[crop] = newMultiplier;
       simulatedPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost));
@@ -187,20 +201,24 @@ export function updateMarketPrices(gameState: GameState): GameState {
     market.epicPriceEndTime = gameState.gameTime + EPIC_DURATION;
   }
 
-  // Update each crop's price multiplier with daily fluctuation
-  crops.forEach(crop => {
+  // Update each crop's price multiplier with daily fluctuation (deterministic)
+  crops.forEach((crop, cropIndex) => {
     const basePrice = CROP_INFO[crop].sellPrice;
 
-    // Daily price fluctuation: ±15% change
-    const fluctuation = (Math.random() - 0.5) * 0.3; // -15% to +15%
+    // Use deterministic seed based on current day and crop
+    const seed = gameState.currentDay + cropIndex * 1000;
+    const randomValue = seededRandom(seed);
+
+    // Daily price fluctuation: ±15% change (deterministic)
+    const fluctuation = (randomValue - 0.5) * 0.3; // -15% to +15%
     let newMultiplier = market.priceMultipliers[crop] + fluctuation;
 
     // Keep multipliers in reasonable range (0.7x to 1.5x base price)
     newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
 
-    // Seasonal demand boost: +50-100% for high demand crops
+    // Seasonal demand boost: Fixed +75% for high demand crops (predictable)
     const isHighDemand = market.highDemandCrops.includes(crop);
-    const seasonalBoost = isHighDemand ? 0.5 + (Math.random() * 0.5) : 0; // +50-100%
+    const seasonalBoost = isHighDemand ? 0.75 : 0;
 
     // Epic price boost: 5x multiplier for epic crop
     const isEpicPrice = market.epicPriceCrop === crop;

@@ -490,7 +490,7 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     npc = {
       name: "Mountain Man",
       description: "Expert mountaineer and mining specialist. He can guide you through caves and help extract precious gems!",
-      image: "/mountainman.png",
+      image: "/mountaineer.png",
       shopType: "mining",
     };
     features = [

@@ -68,7 +68,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
                 <img
                   src={zone.npc.image}
                   alt={zone.npc.name}
-                  className="w-20 h-20 rounded-full border-2 border-cyan-300 object-cover"
+                  className="w-32 h-32 rounded-full border-2 border-cyan-300 object-cover"
                 />
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-cyan-200 mb-1">{zone.npc.name}</h3>

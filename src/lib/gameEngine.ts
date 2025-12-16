@@ -76,6 +76,25 @@ export const BASE_ZONE_PRICE = 2000; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
 
+// Fish spawning constants
+export const FISH_SPAWN_INTERVAL = 8000; // Check for new fish every 8 seconds
+export const FISH_SPAWN_CHANCE = 0.4; // 40% chance to spawn a fish on each check
+export const MAX_FISH_PER_ZONE = 8; // Maximum fish that can be present at once
+
+// Fish rarity spawn rates (must sum to 1.0)
+export const FISH_RARITY_RATES = {
+  common: 0.60,    // 60% chance - Yellowtail, Red Snapper, Clams
+  uncommon: 0.30,  // 30% chance - Starfish, Urchin
+  rare: 0.10,      // 10% chance - Octopus, Shark
+};
+
+// Fish spawn duration by rarity (in milliseconds)
+export const FISH_DURATIONS = {
+  common: { min: 45000, max: 60000 },    // 45-60 seconds
+  uncommon: { min: 30000, max: 45000 },  // 30-45 seconds
+  rare: { min: 20000, max: 30000 },      // 20-30 seconds
+};
+
 /**
  * Calculate progressive bot cost based on how many you already own
  * Each bot costs 50% more than the previous one
@@ -537,6 +556,7 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     demolishBots: [],
     hunterBots: [],
     rabbits: [],
+    fish: [],
     taskQueue: [],
     currentTask: null,
   };

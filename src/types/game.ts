@@ -204,6 +204,8 @@ export interface Zone {
   fertilizerBot?: FertilizerBot; // Only one fertilizer bot allowed per zone
   rabbits: Rabbit[];
   lastRabbitSpawnTime?: number; // Game time when last rabbit spawned
+  fish: Fish[]; // Fish spawned in ocean zones
+  lastFishSpawnTime?: number; // Game time when last fish spawned
   taskQueue: Task[]; // Queue of tasks for worker in this zone
   currentTask: Task | null; // Task currently being executed in this zone
 }
@@ -364,6 +366,24 @@ export interface Rabbit {
   lastEatenX?: number; // Last position where rabbit ate a crop (to prevent re-eating same spot)
   lastEatenY?: number;
   noMoreCropsTime?: number; // Game time when rabbit first found no more crops (for wandering before leaving)
+}
+
+export type FishType = 'yellowtail' | 'redsnapper' | 'clams' | 'starfish' | 'urchen' | 'octopus' | 'shark';
+export type FishRarity = 'common' | 'uncommon' | 'rare';
+
+export interface Fish {
+  id: string; // Unique fish ID
+  type: FishType; // What kind of fish
+  rarity: FishRarity; // Common, uncommon, or rare
+  x: number; // Current tile position X (in ocean)
+  y: number; // Current tile position Y (in ocean)
+  visualX: number; // Animated visual position X
+  visualY: number; // Animated visual position Y
+  targetX: number; // Target tile X (fish swim around)
+  targetY: number; // Target tile Y
+  spawnTime: number; // Game time when fish spawned
+  despawnTime: number; // Game time when fish will despawn
+  caught: boolean; // Whether fish has been caught
 }
 
 export interface HunterBot {

@@ -117,6 +117,18 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
     return false;
   })();
 
+  const hasWell = (() => {
+    for (let y = 0; y < currentZone.grid.length; y++) {
+      for (let x = 0; x < currentZone.grid[y].length; x++) {
+        const tile = currentZone.grid[y][x];
+        if (tile.type === 'well' || (tile.isConstructing && tile.constructionTarget === 'well')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  })();
+
   const getOwned = (type: BotType): number => {
     switch (type) {
       case 'water': return gameState.player.inventory.waterbots;
@@ -274,9 +286,10 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
               const affordable = canAfford(type);
               const inCart = cart.find(item => item.type === type)?.quantity || 0;
 
-              // Check if fertilizer bot requires building
+              // Check if bots require buildings
               const needsFertilizerBuilding = type === 'fertilizer' && !hasFertilizerBuilding;
-              const isDisabled = !affordable || needsFertilizerBuilding;
+              const needsWell = type === 'water' && !hasWell;
+              const isDisabled = !affordable || needsFertilizerBuilding || needsWell;
 
               return (
                 <div
@@ -372,7 +385,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                                 : 'bg-gray-700 cursor-not-allowed text-gray-500'
                             }`}
                           >
-                            {needsFertilizerBuilding ? 'NEED BUILDING' : (affordable ? '+ ADD' : 'NO FUNDS')}
+                            {needsFertilizerBuilding ? 'NEED BUILDING' : needsWell ? 'NEED WELL' : (affordable ? '+ ADD' : 'NO FUNDS')}
                           </button>
                         )}
                       </>

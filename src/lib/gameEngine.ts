@@ -2064,30 +2064,39 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         return a.x - b.x; // Left to right within same row
       });
 
-      // Continue from last position - use targetX/targetY if available, otherwise botX/botY
-      // This prevents recalculating while bot is mid-travel
-      const refX = bot.targetX !== undefined ? bot.targetX : botX;
-      const refY = bot.targetY !== undefined ? bot.targetY : botY;
-
+      // Pick next tile in sequence - only reuse target if already traveling to a valid tile
       let nearest = allPlantableTiles[0];
-      const currentIndex = allPlantableTiles.findIndex(t => t.x === refX && t.y === refY);
 
-      if (currentIndex >= 0 && currentIndex < allPlantableTiles.length - 1) {
-        // Bot's target is in the list, pick the next one
-        nearest = allPlantableTiles[currentIndex + 1];
-      } else if (currentIndex === allPlantableTiles.length - 1) {
-        // Bot's target is the last tile, wrap to first
-        nearest = allPlantableTiles[0];
-      } else {
-        // Bot's target is not in list (just planted), find the next tile in sequence
-        const nextTile = allPlantableTiles.find(t => {
-          // Find first tile that comes after the reference position in row-by-row order
-          return (t.y > refY) || (t.y === refY && t.x > refX);
-        });
-        if (nextTile) {
-          nearest = nextTile;
+      // If bot is traveling and target is still plantable, keep that target
+      if (bot.status === 'traveling' && bot.targetX !== undefined && bot.targetY !== undefined) {
+        const targetStillValid = allPlantableTiles.find(t => t.x === bot.targetX && t.y === bot.targetY);
+        if (targetStillValid) {
+          nearest = targetStillValid;
+        } else {
+          // Target is no longer valid, find next tile after last known position
+          const currentIndex = allPlantableTiles.findIndex(t => t.x === botX && t.y === botY);
+          if (currentIndex >= 0 && currentIndex < allPlantableTiles.length - 1) {
+            nearest = allPlantableTiles[currentIndex + 1];
+          } else {
+            const nextTile = allPlantableTiles.find(t => (t.y > botY) || (t.y === botY && t.x > botX));
+            if (nextTile) nearest = nextTile;
+          }
         }
-        // Otherwise keep nearest = allPlantableTiles[0] (first tile)
+      } else {
+        // Bot just planted or is idle - find next tile in sequence from current position
+        const currentIndex = allPlantableTiles.findIndex(t => t.x === botX && t.y === botY);
+
+        if (currentIndex >= 0 && currentIndex < allPlantableTiles.length - 1) {
+          // Current position is in the list, pick next one
+          nearest = allPlantableTiles[currentIndex + 1];
+        } else if (currentIndex === allPlantableTiles.length - 1) {
+          // Current position is last tile, wrap to first
+          nearest = allPlantableTiles[0];
+        } else {
+          // Current position not in list (just planted), find next tile after current position
+          const nextTile = allPlantableTiles.find(t => (t.y > botY) || (t.y === botY && t.x > botX));
+          if (nextTile) nearest = nextTile;
+        }
       }
 
       // Switch to the job that owns the nearest tile
@@ -2148,23 +2157,33 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return a.x - b.x; // Left to right within same row
         });
 
-        // Continue from last position - use targetX/targetY if available
+        // Find next tile with available seeds in sequence
         nearest = tilesWithSeeds[0];
-        const seedsIndex = tilesWithSeeds.findIndex(t => t.x === refX && t.y === refY);
 
-        if (seedsIndex >= 0 && seedsIndex < tilesWithSeeds.length - 1) {
-          // Bot's target is in the list, pick the next one
-          nearest = tilesWithSeeds[seedsIndex + 1];
-        } else if (seedsIndex === tilesWithSeeds.length - 1) {
-          // Bot's target is the last tile, wrap to first
-          nearest = tilesWithSeeds[0];
+        // If traveling to a tile with seeds, keep that target
+        if (bot.status === 'traveling' && bot.targetX !== undefined && bot.targetY !== undefined) {
+          const targetHasSeeds = tilesWithSeeds.find(t => t.x === bot.targetX && t.y === bot.targetY);
+          if (targetHasSeeds) {
+            nearest = targetHasSeeds;
+          } else {
+            const seedsIndex = tilesWithSeeds.findIndex(t => t.x === botX && t.y === botY);
+            if (seedsIndex >= 0 && seedsIndex < tilesWithSeeds.length - 1) {
+              nearest = tilesWithSeeds[seedsIndex + 1];
+            } else {
+              const nextSeedTile = tilesWithSeeds.find(t => (t.y > botY) || (t.y === botY && t.x > botX));
+              if (nextSeedTile) nearest = nextSeedTile;
+            }
+          }
         } else {
-          // Bot's target is not in list, find the next tile in sequence
-          const nextSeedTile = tilesWithSeeds.find(t => {
-            return (t.y > refY) || (t.y === refY && t.x > refX);
-          });
-          if (nextSeedTile) {
-            nearest = nextSeedTile;
+          const seedsIndex = tilesWithSeeds.findIndex(t => t.x === botX && t.y === botY);
+
+          if (seedsIndex >= 0 && seedsIndex < tilesWithSeeds.length - 1) {
+            nearest = tilesWithSeeds[seedsIndex + 1];
+          } else if (seedsIndex === tilesWithSeeds.length - 1) {
+            nearest = tilesWithSeeds[0];
+          } else {
+            const nextSeedTile = tilesWithSeeds.find(t => (t.y > botY) || (t.y === botY && t.x > botX));
+            if (nextSeedTile) nearest = nextSeedTile;
           }
         }
       }

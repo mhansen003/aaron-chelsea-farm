@@ -267,16 +267,13 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       }
       // Theme-specific zone generation
       else if (isBeach) {
-        // Fishing hut at base of pier (2x2) on the sand
-        if ((x === 7 || x === 8) && (y === 8 || y === 9)) {
+        // Fishing hut at base of pier (2x2) on the sand - moved down 3 rows
+        if ((x === 7 || x === 8) && (y === 11 || y === 12)) {
           type = 'fishinghut';
         }
-        // Fish Market at bottom-left corner (2x2) on the sand
-        else if (x >= 0 && x <= 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
-          type = 'fishmarket';
-        }
-        // Plank dock extending 5 squares into ocean from center of beach
-        else if ((x === 7 || x === 8) && y >= 3 && y <= 7) {
+        // Fish Market removed from default - must be purchased and placed
+        // Plank dock extending 5 squares into ocean from center of beach - moved down 3 rows
+        else if ((x === 7 || x === 8) && y >= 6 && y <= 10) {
           type = 'plank';
         }
         // Beach: top 11 rows water, bottom 4 rows sand with seaweed/shells
@@ -6190,7 +6187,7 @@ function spawnFish(zone: import('@/types/game').Zone, gameTime: number): import(
   // Determine fish type based on rarity
   let fishType: import('@/types/game').FishType;
   if (rarity === 'common') {
-    const commonTypes: import('@/types/game').FishType[] = ['yellowtail', 'redsnapper', 'clams', 'tang'];
+    const commonTypes: import('@/types/game').FishType[] = ['yellowtail', 'redsnapper', 'clams', 'tang', 'flounder', 'mahimahi'];
     fishType = commonTypes[Math.floor(Math.random() * commonTypes.length)];
   } else if (rarity === 'uncommon') {
     const uncommonTypes: import('@/types/game').FishType[] = ['starfish', 'urchen'];

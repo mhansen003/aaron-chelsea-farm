@@ -98,47 +98,55 @@ export default function HopperModal({ gameState, onClose, onUpgrade, onRelocate 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-gray-900 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-600" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-cyan-500/50 shadow-2xl flex flex-col">
 
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-600 p-4 flex justify-between items-center z-10">
-          <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className="text-2xl">🎒</span>
-              Hopper Upgrade Station
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">Upgrade bots for increased inventory capacity</p>
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-cyan-500/30 bg-gradient-to-r from-cyan-900/40 to-blue-900/40">
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">🎒</div>
+            <div>
+              <h2 className="text-4xl font-black tracking-tight">HOPPER UPGRADES</h2>
+              <p className="text-cyan-300 text-sm">Upgrade bots for increased inventory capacity</p>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center transition-colors"
-          >
-            ×
-          </button>
+
+          <div className="flex items-center gap-4">
+            {/* Money Display */}
+            <div className="bg-black/60 px-6 py-3 rounded-xl border-2 border-yellow-500/50">
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Balance</div>
+              <div className="text-2xl font-bold text-yellow-400">${gameState.player.money}</div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="text-3xl hover:text-red-400 transition-colors w-12 h-12 flex items-center justify-center rounded-full hover:bg-red-500/20"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
-          {/* Balance Info */}
-          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 flex justify-between items-center">
+          {/* Info Banner */}
+          <div className="bg-cyan-900/40 border border-cyan-500/30 rounded-lg p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-400">Upgrade Cost</p>
+              <p className="text-sm text-cyan-300">Upgrade Cost</p>
               <p className="text-xl font-bold text-white">${HOPPER_UPGRADE_COST} per bot</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Your Balance</p>
-              <p className={`text-xl font-bold ${gameState.player.money >= HOPPER_UPGRADE_COST ? 'text-green-400' : 'text-red-400'}`}>
-                ${gameState.player.money}
-              </p>
+            <div className="bg-black/40 px-4 py-2 rounded-lg">
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Effect</p>
+              <p className="text-lg font-black text-yellow-400">+Inventory</p>
             </div>
           </div>
 
           {totalBots === 0 ? (
-            <div className="bg-gray-800 border border-gray-600 rounded-lg p-8 text-center">
+            <div className="bg-slate-800/50 border border-cyan-500/30 rounded-lg p-8 text-center">
               <p className="text-gray-400 text-lg">No bots in this zone yet</p>
-              <p className="text-gray-500 text-sm mt-2">Purchase bots from the shop to get started</p>
+              <p className="text-gray-500 text-sm mt-2">Purchase bots from the Bot Factory to get started</p>
             </div>
           ) : (
             <>
@@ -196,24 +204,26 @@ export default function HopperModal({ gameState, onClose, onUpgrade, onRelocate 
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-600 p-4 flex gap-3 justify-between">
-          {onRelocate && (
+        <div className="flex-shrink-0 border-t-2 border-cyan-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
+          <div className="flex items-center justify-between gap-4">
+            {onRelocate && (
+              <button
+                onClick={() => {
+                  onRelocate();
+                  onClose();
+                }}
+                className="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-bold text-sm transition-colors"
+              >
+                📍 Move Building
+              </button>
+            )}
             <button
-              onClick={() => {
-                onRelocate();
-                onClose();
-              }}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
+              onClick={onClose}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl transition-colors ml-auto"
             >
-              📍 Move Building
+              Close
             </button>
-          )}
-          <button
-            onClick={onClose}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors ml-auto"
-          >
-            Close
-          </button>
+          </div>
         </div>
       </div>
     </div>

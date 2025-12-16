@@ -247,15 +247,15 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-orange-500/50 shadow-2xl flex flex-col">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-cyan-500/50 shadow-2xl flex flex-col">
 
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-orange-500/30 bg-gradient-to-r from-orange-900/40 to-red-900/40">
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-cyan-500/30 bg-gradient-to-r from-cyan-900/40 to-blue-900/40">
           <div className="flex items-center gap-4">
             <div className="text-5xl">🏭</div>
             <div>
               <h2 className="text-4xl font-black tracking-tight">BOT FACTORY</h2>
-              <p className="text-orange-300 text-sm">Select bots and add to cart</p>
+              <p className="text-cyan-300 text-sm">Select bots and add to cart</p>
             </div>
           </div>
 
@@ -398,7 +398,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
         </div>
 
         {/* Shopping Cart Footer */}
-        <div className="flex-shrink-0 border-t-2 border-orange-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
+        <div className="flex-shrink-0 border-t-2 border-cyan-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
           <div className="flex items-center justify-between gap-4">
             {/* Cart Summary */}
             <div className="flex-1">
@@ -460,7 +460,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                   onRelocate();
                   onClose();
                 }}
-                className="px-4 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-bold text-sm transition-colors mr-auto"
+                className="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-lg font-bold text-sm transition-colors mr-auto"
               >
                 📍 Move Building
               </button>

@@ -265,8 +265,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       }
       // Theme-specific zone generation
       else if (isBeach) {
-        // Fishing hut at bottom-right corner (2x2) on the sand
-        if (x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
+        // Fishing hut at base of pier (2x2) on the sand
+        if ((x === 7 || x === 8) && (y === 8 || y === 9)) {
           type = 'fishinghut';
         }
         // Fish Market at bottom-left corner (2x2) on the sand

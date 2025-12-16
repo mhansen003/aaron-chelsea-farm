@@ -1818,20 +1818,20 @@ export default function Game() {
           }
           ctx.drawImage(mountainImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'fishinghut' && fishingHutImageRef.current) {
-          // Beach: Fishing Hut on sand
+          // Beach: Fishing Hut on sand at base of pier
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Fishing hut uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Bottom-right corner position
-          const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 512; // x can be 14 or 15
-          const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 512; // y can be 10 or 11
+          // Fishing hut (500x500 image) - divide into 4 quadrants for 2x2 tiles
+          // Fishing hut is at pier base (x: 7-8, y: 8-9)
+          const offsetX = (x - 7) * 250; // 500px / 2 = 250px per tile
+          const offsetY = (y - 8) * 250;
           ctx.drawImage(
             fishingHutImageRef.current,
-            offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite
+            offsetX, offsetY, 250, 250, // Source: extract quadrant from 500x500 image
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
           );
         } else if (tile.type === 'subdock') {

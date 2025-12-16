@@ -1230,6 +1230,59 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, grid: updatedGrid };
   });
 
+  // Beach zone dynamics: Seaweed and shells randomly appear/disappear to show sand movement
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    if (!zone.owned || zone.theme !== 'beach') return; // Only beach zones
+
+    const updatedGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Only process sand tiles (not ocean, not buildings)
+        const isSandTile = tile.type === 'sand';
+        const isSeaweedTile = tile.type === 'seaweed';
+        const isShellsTile = tile.type === 'shells';
+
+        if (isSandTile || isSeaweedTile || isShellsTile) {
+          // Set initial spawn/despawn time if not set
+          if (tile.overgrowthTime === undefined) {
+            // Random time between 3-4 minutes (180000-240000ms)
+            const spawnTime = 180000 + Math.random() * 60000;
+            return {
+              ...tile,
+              overgrowthTime: newGameTime + spawnTime,
+            };
+          }
+
+          // Check if it's time to change state
+          if (newGameTime >= tile.overgrowthTime) {
+            // Sand -> randomly spawn seaweed or shells
+            if (isSandTile) {
+              const spawnType: TileType = Math.random() < 0.5 ? 'seaweed' : 'shells';
+              const nextChangeTime = 180000 + Math.random() * 60000; // 3-4 minutes
+              return {
+                ...tile,
+                type: spawnType,
+                overgrowthTime: newGameTime + nextChangeTime,
+              } as Tile;
+            }
+            // Seaweed/Shells -> return to sand
+            else if (isSeaweedTile || isShellsTile) {
+              const nextChangeTime = 180000 + Math.random() * 60000; // 3-4 minutes
+              return {
+                ...tile,
+                type: 'sand',
+                overgrowthTime: newGameTime + nextChangeTime,
+              } as Tile;
+            }
+          }
+        }
+
+        return tile;
+      })
+    );
+
+    newZones[zoneKey] = { ...zone, grid: updatedGrid };
+  });
+
   // Complete building construction when timer expires
   Object.entries(newZones).forEach(([zoneKey, zone]) => {
     if (!zone.owned) return;

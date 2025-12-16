@@ -5212,6 +5212,68 @@ export function relocateHopper(state: GameState): GameState {
   };
 }
 
+export function placeExport(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt' || t.type === 'export')
+  );
+
+  if (!allTilesValid) {
+    return state;
+  }
+
+  // Clear old export building tiles (make them grass)
+  const clearedGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if (t.type === 'export') {
+        return {
+          ...t,
+          type: 'grass' as const,
+        };
+      }
+      return t;
+    })
+  );
+
+  // Place new export building (instant placement)
+  const newGrid = clearedGrid.map((row, y) =>
+    row.map((t, x) => {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
+        return {
+          ...t,
+          type: 'export' as const,
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
+  };
+}
+
 /**
  * Checks all tiles in all zones for completed constructions and converts them to final buildings
  */

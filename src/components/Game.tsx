@@ -39,6 +39,7 @@ import {
   placeGarage,
   placeSupercharger,
   placeHopper,
+  placeExport,
   superchargeBot,
   hopperUpgrade,
   relocateGarage,
@@ -2389,8 +2390,8 @@ export default function Game() {
       }
     }
 
-    // Draw 2x2 building placement preview (bot factory, well, garage, supercharger)
-    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger' || placementMode === 'fertilizer' || placementMode === 'hopper') && hoveredTile) {
+    // Draw 2x2 building placement preview (bot factory, well, garage, supercharger, export)
+    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger' || placementMode === 'fertilizer' || placementMode === 'hopper' || placementMode === 'export') && hoveredTile) {
       const currentGrid = getCurrentGrid(gameState);
       const tileX = hoveredTile.x;
       const tileY = hoveredTile.y;
@@ -3794,6 +3795,15 @@ export default function Game() {
       // Allow placing hopper on grass or cleared dirt tiles
       if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared)) {
         setGameState(prev => placeHopper(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
+    if (placementMode === 'export') {
+      // Allow placing export on grass, cleared dirt, or existing export tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'export') {
+        setGameState(prev => placeExport(prev, tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }
       return;
@@ -5328,8 +5338,8 @@ export default function Game() {
           gameState={gameState}
           onClose={() => setShowExportModal(false)}
           onRelocate={() => {
-            // Export building relocation - placeholder for future implementation
-            console.log('Export building relocation requested');
+            setPlacementMode('export');
+            setShowExportModal(false);
           }}
         />
       )}

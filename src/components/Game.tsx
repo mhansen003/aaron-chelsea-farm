@@ -1801,9 +1801,11 @@ export default function Game() {
             }
           }
 
-          // Draw the themed arch sprite
+          // Draw the themed arch sprite (slightly bigger)
           if (selectedArchImage) {
-            ctx.drawImage(selectedArchImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            const archSize = GAME_CONFIG.tileSize * 1.2;
+            const offset = (archSize - GAME_CONFIG.tileSize) / 2;
+            ctx.drawImage(selectedArchImage, px - offset, py - offset, archSize, archSize);
           }
 
           // Draw spinning coin in center if not owned (purchasable)
@@ -2749,7 +2751,11 @@ export default function Game() {
 
     if (characterSprite) {
       // Draw character sprite (farmer, surfer, cowgirl, nomad, or mountaineer)
-      ctx.drawImage(characterSprite, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+      // Make Sally Surfer bigger in beach zone
+      const isSurfer = currentZone?.theme === 'beach';
+      const charSize = isSurfer ? GAME_CONFIG.tileSize * 1.25 : GAME_CONFIG.tileSize;
+      const charOffset = isSurfer ? (charSize - GAME_CONFIG.tileSize) / 2 : 0;
+      ctx.drawImage(characterSprite, playerPx - charOffset, playerPy - charOffset, charSize, charSize);
     } else {
       // Fallback to blue circle
       const centerX = playerPx + GAME_CONFIG.tileSize / 2;
@@ -5748,18 +5754,21 @@ export default function Game() {
             <p className="text-lg mb-4">
               Expand your farm to new territory! This will unlock a new area to grow crops and build your farming empire.
             </p>
-            <div className="bg-black/30 px-4 py-3 rounded mb-6">
-              <div className="flex justify-between items-center">
-                <span className="text-lg">Price:</span>
-                <span className="text-2xl font-bold">💰 ${gameState.zones[purchaseZoneKey].purchasePrice}</span>
+            {/* Hide price section for beach zone */}
+            {gameState.zones[purchaseZoneKey].theme !== 'beach' && (
+              <div className="bg-black/30 px-4 py-3 rounded mb-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg">Price:</span>
+                  <span className="text-2xl font-bold">💰 ${gameState.zones[purchaseZoneKey].purchasePrice}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-lg">Your Money:</span>
+                  <span className={`text-xl font-bold ${gameState.player.money >= gameState.zones[purchaseZoneKey].purchasePrice ? 'text-green-400' : 'text-red-400'}`}>
+                    ${gameState.player.money}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-lg">Your Money:</span>
-                <span className={`text-xl font-bold ${gameState.player.money >= gameState.zones[purchaseZoneKey].purchasePrice ? 'text-green-400' : 'text-red-400'}`}>
-                  ${gameState.player.money}
-                </span>
-              </div>
-            </div>
+            )}
             {gameState.player.money < gameState.zones[purchaseZoneKey].purchasePrice && (
               <div className="bg-red-900/30 border border-red-600 px-4 py-2 rounded mb-4 text-center">
                 Not enough money! Keep farming and selling crops.
@@ -5957,7 +5966,7 @@ export default function Game() {
                 <span className="ml-auto bg-green-600/30 px-1 rounded text-xs">{seedBots.length}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {seedBots.map((bot, idx) => {
                   const jobCount = bot.jobs.length;
                   const totalTiles = bot.jobs.reduce((sum, job) => sum + job.targetTiles.length, 0);
@@ -5969,35 +5978,42 @@ export default function Game() {
                     jobCount > 0 ? `${jobCount} job${jobCount > 1 ? 's' : ''} queued` :
                     'Awaiting jobs';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-green-600/20 cursor-pointer hover:bg-green-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span
-                          className="text-xs font-semibold text-green-100 cursor-pointer hover:text-green-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'seed', currentName: bot.name })}
-                          title="Click to rename"
+                    <div key={bot.id} className="bg-gradient-to-br from-green-900/30 to-green-950/20 rounded-lg p-2 border-2 border-green-600/40 hover:border-green-500 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-12 h-12 bg-green-800/50 rounded-lg border-2 border-green-500 flex items-center justify-center cursor-pointer hover:border-green-400 transition-colors"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'seed' })}
+                          title="Click for bot details"
                         >
-                          {bot.name}
-                        </span>
-                        <span className="text-sm text-green-300">
-                          {bot.status === 'traveling' && '🚶'}
-                          {bot.status === 'planting' && '🌱'}
-                          {bot.status === 'idle' && '😴'}
-                        </span>
+                          <NextImage src="/seed-bot.png" alt="Seed Bot" width={40} height={40} className="object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-green-100 truncate">{bot.name}</span>
+                            <div className="flex items-center gap-0.5">
+                              {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                              {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                            </div>
+                          </div>
+                          <div className="text-xs text-green-300/80 truncate">{statusText}</div>
+                        </div>
                       </div>
-                      <div className="text-[10px] font-medium text-green-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="text-sm text-green-300/70 mb-0.5 text-center">
-                        Jobs: {jobCount} • Tiles: {totalTiles}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] text-green-200/60">
+                          <span>Jobs: {jobCount}</span>
+                          <span>Tiles: {totalTiles}</span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSeedBot(bot.id);
+                            setShowSeedBotConfig(true);
+                          }}
+                          className="w-full px-2 py-1 bg-green-600/30 hover:bg-green-600/50 rounded text-xs font-semibold transition-colors"
+                        >
+                          ⚙️ Configure
+                        </button>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSeedBot(bot.id);
-                          setShowSeedBotConfig(true);
-                        }}
-                        className="w-full px-1 py-0.5 bg-green-600/30 hover:bg-green-600/50 rounded text-sm font-semibold transition-colors"
-                      >
-                        ⚙️ Configure
-                      </button>
                     </div>
                   );
                 })}

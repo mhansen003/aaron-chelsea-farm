@@ -43,7 +43,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-6 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-amber-600`}>
+      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-6 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-gray-600`}>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-3xl font-bold flex items-center gap-3">
             <span className="text-5xl">{themeEmojis[zone.theme]}</span>
@@ -64,7 +64,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
             <img
               src={themeArchImages[zone.theme]}
               alt={`${zone.theme} zone`}
-              className="w-full h-64 object-cover rounded-xl drop-shadow-2xl border-2 border-amber-600/50"
+              className="w-full h-64 object-cover rounded-xl drop-shadow-2xl border-2 border-gray-600/50"
             />
           </div>
 
@@ -74,16 +74,16 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
 
             {/* NPC Section - Compact */}
             {zone.npc && (
-              <div className="bg-black/30 p-3 rounded-lg border-2 border-cyan-400 mb-4">
+              <div className="bg-black/30 p-3 rounded-lg border-2 border-gray-600 mb-4">
                 <div className="flex items-center gap-3">
                   <img
                     src={zone.npc.image}
                     alt={zone.npc.name}
-                    className="w-20 h-20 rounded-full border-2 border-cyan-300 object-cover"
+                    className="w-20 h-20 rounded-full border-2 border-gray-500 object-cover"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-cyan-200">{zone.npc.name}</h3>
-                    <p className="text-xs text-cyan-100">{zone.npc.description}</p>
+                    <h3 className="text-lg font-bold text-gray-300">{zone.npc.name}</h3>
+                    <p className="text-xs text-gray-400">{zone.npc.description}</p>
                   </div>
                 </div>
               </div>
@@ -91,7 +91,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
 
             {!zone.owned && (
               <div className="bg-black/40 p-3 rounded-lg border-2 border-yellow-600">
-                <p className="text-yellow-300 font-bold text-center">
+                <p className="text-yellow-400 font-bold text-center">
                   💰 Purchase Price: ${zone.purchasePrice}
                 </p>
               </div>
@@ -108,11 +108,11 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {beachBuildings.map((building, index) => (
-                <div key={index} className="bg-black/40 rounded-lg p-3 border-2 border-cyan-500/30 hover:border-cyan-500/60 transition-all">
+                <div key={index} className="bg-black/40 rounded-lg p-3 border-2 border-gray-600/30 hover:border-gray-600/60 transition-all">
                   <div className="aspect-square bg-black/40 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
                     <img src={building.image} alt={building.name} className="w-full h-full object-contain" />
                   </div>
-                  <h4 className="text-sm font-bold text-cyan-400 mb-1">{building.emoji} {building.name}</h4>
+                  <h4 className="text-sm font-bold text-gray-300 mb-1">{building.emoji} {building.name}</h4>
                   <p className="text-xs text-gray-400 mb-2">{building.description}</p>
                   <span className="text-lg font-black text-yellow-400">{building.price}</span>
                 </div>

@@ -1801,11 +1801,9 @@ export default function Game() {
             }
           }
 
-          // Draw the themed arch sprite (very large - biggest on screen)
+          // Draw the themed arch sprite
           if (selectedArchImage) {
-            const archSize = GAME_CONFIG.tileSize * 2.5;
-            const offset = (archSize - GAME_CONFIG.tileSize) / 2;
-            ctx.drawImage(selectedArchImage, px - offset, py - offset, archSize, archSize);
+            ctx.drawImage(selectedArchImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
 
           // Draw spinning coin in center if not owned (purchasable)
@@ -2751,11 +2749,7 @@ export default function Game() {
 
     if (characterSprite) {
       // Draw character sprite (farmer, surfer, cowgirl, nomad, or mountaineer)
-      // Make Sally Surfer very large in beach zone - biggest on screen alongside arch
-      const isSurfer = currentZone?.theme === 'beach';
-      const charSize = isSurfer ? GAME_CONFIG.tileSize * 2.5 : GAME_CONFIG.tileSize;
-      const charOffset = isSurfer ? (charSize - GAME_CONFIG.tileSize) / 2 : 0;
-      ctx.drawImage(characterSprite, playerPx - charOffset, playerPy - charOffset, charSize, charSize);
+      ctx.drawImage(characterSprite, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
     } else {
       // Fallback to blue circle
       const centerX = playerPx + GAME_CONFIG.tileSize / 2;

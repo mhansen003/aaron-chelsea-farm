@@ -75,6 +75,10 @@ export default function BotDetailModal({
   const isSupercharged = bot.supercharged || false;
   const hasHopperUpgrade = bot.hopperUpgrade || false;
 
+  // Check if required buildings exist
+  const hasSuperchargerBuilding = gameState.player.inventory.superchargerPlaced;
+  const hasHopperBuilding = gameState.player.inventory.hopperPlaced;
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className={`bg-gradient-to-br from-${colors.primary}-900 to-${colors.primary}-950 border-4 border-${colors.primary}-500 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden`}>
@@ -195,26 +199,40 @@ export default function BotDetailModal({
                 <div className="space-y-2">
                   {!isSupercharged && onSupercharge && (
                     <button
-                      onClick={onSupercharge}
-                      className="w-full flex items-center gap-3 p-3 bg-yellow-600/30 hover:bg-yellow-600/50 border-2 border-yellow-500 rounded-lg transition-all"
+                      onClick={hasSuperchargerBuilding ? onSupercharge : undefined}
+                      disabled={!hasSuperchargerBuilding}
+                      className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg transition-all ${
+                        hasSuperchargerBuilding
+                          ? 'bg-yellow-600/30 hover:bg-yellow-600/50 border-yellow-500 cursor-pointer'
+                          : 'bg-gray-600/20 border-gray-600 cursor-not-allowed opacity-50'
+                      }`}
                     >
                       <span className="text-2xl">⚡</span>
                       <div className="flex-1 text-left">
                         <div className="text-sm font-bold text-white">Supercharge</div>
-                        <div className="text-xs text-yellow-200">Double speed boost</div>
+                        <div className="text-xs text-yellow-200">
+                          {hasSuperchargerBuilding ? 'Double speed boost' : 'Build Supercharger first'}
+                        </div>
                       </div>
                       <div className="text-sm font-bold text-yellow-300">$500</div>
                     </button>
                   )}
                   {!hasHopperUpgrade && onHopperUpgrade && (
                     <button
-                      onClick={onHopperUpgrade}
-                      className="w-full flex items-center gap-3 p-3 bg-blue-600/30 hover:bg-blue-600/50 border-2 border-blue-500 rounded-lg transition-all"
+                      onClick={hasHopperBuilding ? onHopperUpgrade : undefined}
+                      disabled={!hasHopperBuilding}
+                      className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg transition-all ${
+                        hasHopperBuilding
+                          ? 'bg-blue-600/30 hover:bg-blue-600/50 border-blue-500 cursor-pointer'
+                          : 'bg-gray-600/20 border-gray-600 cursor-not-allowed opacity-50'
+                      }`}
                     >
                       <span className="text-2xl">📦</span>
                       <div className="flex-1 text-left">
                         <div className="text-sm font-bold text-white">Hopper Upgrade</div>
-                        <div className="text-xs text-blue-200">Increase capacity</div>
+                        <div className="text-xs text-blue-200">
+                          {hasHopperBuilding ? 'Increase capacity' : 'Build Hopper first'}
+                        </div>
                       </div>
                       <div className="text-sm font-bold text-blue-300">$400</div>
                     </button>

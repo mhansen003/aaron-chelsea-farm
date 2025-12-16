@@ -18,16 +18,16 @@ export default function SaveGameModal({ saveCode, onClose }: SaveGameModalProps)
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-green-600 shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-8 rounded-xl max-w-md w-full border-4 border-gray-600 shadow-2xl">
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-4">💾 Game Saved!</h2>
 
-          <p className="text-green-200 mb-6">
+          <p className="text-gray-300 mb-6">
             Write down this code to continue your game later:
           </p>
 
-          <div className="bg-black/40 border-4 border-green-500 rounded-lg p-6 mb-6">
-            <div className="text-6xl font-bold text-green-300 tracking-widest font-mono">
+          <div className="bg-black/40 border-4 border-gray-500 rounded-lg p-6 mb-6">
+            <div className="text-6xl font-bold text-gray-300 tracking-widest font-mono">
               {saveCode}
             </div>
           </div>
@@ -50,7 +50,7 @@ export default function SaveGameModal({ saveCode, onClose }: SaveGameModalProps)
             Close
           </button>
 
-          <div className="mt-4 text-sm text-green-300/70">
+          <div className="mt-4 text-sm text-gray-400">
             💡 Your game is also auto-saved in your browser
           </div>
         </div>

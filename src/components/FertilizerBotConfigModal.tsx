@@ -87,16 +87,16 @@ export default function FertilizerBotConfigModal({
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 via-emerald-800 to-green-900 text-white rounded-2xl max-w-2xl w-full max-h-[95vh] border border-green-600/50 flex flex-col shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-2xl w-full max-h-[95vh] border border-gray-600/50 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-green-700/50">
+        <div className="flex-shrink-0 p-6 border-b border-gray-600/50">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-3xl font-bold text-white flex items-center gap-3">
                 <span className="text-3xl">🌱</span>
                 {botName} - Crop Priority
               </h2>
-              <p className="text-sm text-green-200 mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 Drag and drop to reorder which crops to fertilize first
               </p>
             </div>

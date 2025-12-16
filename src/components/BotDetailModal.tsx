@@ -15,14 +15,15 @@ interface BotDetailModalProps {
   onConfigure?: () => void;
 }
 
+// Unified gray color scheme for all bot types
 const BOT_COLORS = {
-  water: { primary: 'cyan', secondary: 'blue' },
-  harvest: { primary: 'orange', secondary: 'amber' },
-  seed: { primary: 'green', secondary: 'lime' },
-  transport: { primary: 'purple', secondary: 'violet' },
-  demolish: { primary: 'orange', secondary: 'red' },
-  hunter: { primary: 'amber', secondary: 'yellow' },
-  fertilizer: { primary: 'green', secondary: 'lime' },
+  water: { primary: 'gray', secondary: 'gray' },
+  harvest: { primary: 'gray', secondary: 'gray' },
+  seed: { primary: 'gray', secondary: 'gray' },
+  transport: { primary: 'gray', secondary: 'gray' },
+  demolish: { primary: 'gray', secondary: 'gray' },
+  hunter: { primary: 'gray', secondary: 'gray' },
+  fertilizer: { primary: 'gray', secondary: 'gray' },
 };
 
 const BOT_IMAGES = {

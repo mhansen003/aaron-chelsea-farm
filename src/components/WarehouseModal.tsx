@@ -62,9 +62,9 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border border-slate-600/50 shadow-2xl flex flex-col">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border border-gray-600/50 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-700/50">
+        <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-700/50">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
               <span className="text-3xl">🏛️</span>
@@ -193,7 +193,7 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               })}
             </div>
             {gameState.warehouse.length === 0 && (
-              <div className="text-center text-slate-500 bg-slate-800/50 p-8 rounded-xl mt-4">
+              <div className="text-center text-gray-500 bg-gray-800/50 p-8 rounded-xl mt-4">
                 Warehouse is empty. Harvest crops and bring them here to store.
               </div>
             )}
@@ -226,7 +226,7 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               })}
             </div>
             {gameState.player.basket.length === 0 && (
-              <div className="text-center text-slate-500 bg-slate-800/50 p-6 rounded-xl">
+              <div className="text-center text-gray-500 bg-gray-800/50 p-6 rounded-xl">
                 Basket is empty
               </div>
             )}
@@ -234,7 +234,7 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
         </div>
 
         {/* Footer Actions */}
-        <div className="border-t border-slate-700/50 p-4 md:p-6 bg-slate-900/50">
+        <div className="border-t border-gray-700/50 p-4 md:p-6 bg-gray-900/50">
           <div className="flex gap-3">
             <button
               onClick={onDeposit}
@@ -242,14 +242,14 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               className={`flex-1 px-6 py-3 rounded-xl font-semibold text-lg transition-all ${
                 gameState.player.basket.length > 0
                   ? 'bg-emerald-600 hover:bg-emerald-700 shadow-lg hover:shadow-emerald-500/50 border border-emerald-500/30'
-                  : 'bg-slate-700 cursor-not-allowed opacity-50 border border-slate-600/50'
+                  : 'bg-gray-700 cursor-not-allowed opacity-50 border border-gray-600/50'
               }`}
             >
               📦 Deposit Basket to Warehouse
             </button>
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold text-lg transition-all border border-slate-600/50"
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold text-lg transition-all border border-gray-600/50"
             >
               Close
             </button>

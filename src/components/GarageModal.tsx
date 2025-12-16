@@ -69,8 +69,8 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-slate-700 to-slate-900 text-white p-4 md:p-8 rounded-xl max-w-2xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-slate-500">
-        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-slate-700 to-slate-900 pb-2 z-10">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-4 md:p-8 rounded-xl max-w-2xl w-full max-h-[95vh] overflow-y-auto border-2 md:border-4 border-gray-600">
+        <div className="flex justify-between items-center mb-4 md:mb-6 sticky top-0 bg-gradient-to-br from-gray-800 to-gray-900 pb-2 z-10">
           <h2 className="text-2xl md:text-3xl font-bold">🏗️ Bot Garage</h2>
           <button
             onClick={onClose}
@@ -81,7 +81,7 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
         </div>
 
         {/* Garage Description */}
-        <div className="mb-4 md:mb-6 bg-black/40 p-4 md:p-6 rounded-lg border-2 border-slate-400">
+        <div className="mb-4 md:mb-6 bg-black/40 p-4 md:p-6 rounded-lg border-2 border-gray-600">
           <p className="text-base md:text-lg leading-relaxed mb-3 md:mb-4">
             Welcome to your <span className="font-bold text-blue-300">Bot Garage</span> – the central hub where your tireless mechanical workers rest and recharge between tasks. When bots complete their assignments and find themselves idle, they automatically navigate back here to await new orders.
           </p>

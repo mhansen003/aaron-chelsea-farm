@@ -42,7 +42,7 @@ export default function NoSeedsModal({ cropType, onClose, onGoToShop }: NoSeedsM
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-red-900 to-red-950 text-white p-8 rounded-xl max-w-md w-full border-4 border-red-600">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-8 rounded-xl max-w-md w-full border-4 border-gray-600">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold flex items-center gap-3">
             <span className="text-5xl">💸</span>

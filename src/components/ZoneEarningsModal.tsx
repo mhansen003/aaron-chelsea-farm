@@ -116,7 +116,7 @@ export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsMo
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white p-8 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-4 border-green-600">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-8 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-4 border-gray-600">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold">📈 Zone Earnings Over Time</h2>
           <button
@@ -143,7 +143,7 @@ export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsMo
         ) : (
           <div className="space-y-6">
             {/* Line Chart */}
-            <div className="bg-black/40 p-6 rounded-lg border-2 border-green-700">
+            <div className="bg-black/40 p-6 rounded-lg border-2 border-gray-600">
               <div className="overflow-x-auto">
                 <svg
                   viewBox={`0 0 ${chartWidth} ${chartHeight}`}
@@ -194,7 +194,7 @@ export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsMo
             </div>
 
             {/* Legend */}
-            <div className="bg-black/40 p-4 rounded-lg border-2 border-green-700">
+            <div className="bg-black/40 p-4 rounded-lg border-2 border-gray-600">
               <h3 className="text-lg font-bold mb-3">Zones</h3>
               <div className="grid grid-cols-2 gap-3">
                 {chartData.map(({ zone, color }, index) => (
@@ -223,7 +223,7 @@ export default function ZoneEarningsModal({ gameState, onClose }: ZoneEarningsMo
 
         <button
           onClick={onClose}
-          className="mt-6 w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg"
+          className="mt-6 w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-lg"
         >
           Close
         </button>

@@ -59,13 +59,13 @@ export default function BotNameModal({ botType, currentName, onConfirm, onCancel
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
-      <div className="bg-gradient-to-br from-indigo-900 to-purple-950 text-white rounded-xl max-w-md w-full border-4 border-indigo-500 shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl max-w-md w-full border-4 border-gray-600 shadow-2xl">
         {/* Header */}
-        <div className="p-6 border-b border-indigo-700/50">
+        <div className="p-6 border-b border-gray-600/50">
           <h2 className="text-2xl font-bold text-center">
             {isRenaming ? `Rename ${botDisplayName}` : `Name Your ${botDisplayName}`}
           </h2>
-          <p className="text-sm text-gray-300 text-center mt-2">
+          <p className="text-sm text-gray-400 text-center mt-2">
             {isRenaming ? 'Update the name or sell this bot' : 'Choose from suggestions or enter a custom name'}
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function BotNameModal({ botType, currentName, onConfirm, onCancel
         <div className="p-6 space-y-4">
           {/* Custom Name Input */}
           <div>
-            <label className="text-sm font-bold text-indigo-300 mb-2 block">
+            <label className="text-sm font-bold text-gray-300 mb-2 block">
               Custom Name (Optional)
             </label>
             <input
@@ -83,16 +83,16 @@ export default function BotNameModal({ botType, currentName, onConfirm, onCancel
               onChange={(e) => setCustomName(e.target.value)}
               maxLength={20}
               placeholder="Enter custom name..."
-              className="w-full px-4 py-2 rounded-lg bg-black/40 border-2 border-indigo-500/50 text-white placeholder-gray-500 focus:border-indigo-400 focus:outline-none"
+              className="w-full px-4 py-2 rounded-lg bg-black/40 border-2 border-gray-600/50 text-white placeholder-gray-500 focus:border-gray-400 focus:outline-none"
             />
           </div>
 
           {/* Suggestions */}
           <div>
-            <label className="text-sm font-bold text-indigo-300 mb-2 block">
+            <label className="text-sm font-bold text-gray-300 mb-2 block">
               Or Select a Suggestion
             </label>
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto bg-black/20 p-3 rounded-lg border border-indigo-700/30">
+            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto bg-black/20 p-3 rounded-lg border border-gray-600/30">
               {suggestions.map((name) => (
                 <button
                   key={name}
@@ -102,8 +102,8 @@ export default function BotNameModal({ botType, currentName, onConfirm, onCancel
                   }}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     selectedName === name && !customName
-                      ? 'bg-indigo-600 border-2 border-indigo-400 shadow-lg'
-                      : 'bg-indigo-900/40 border-2 border-indigo-700/30 hover:bg-indigo-800/60'
+                      ? 'bg-blue-600 border-2 border-blue-400 shadow-lg'
+                      : 'bg-gray-700/40 border-2 border-gray-600/30 hover:bg-gray-700/60'
                   }`}
                 >
                   {name}
@@ -113,16 +113,16 @@ export default function BotNameModal({ botType, currentName, onConfirm, onCancel
           </div>
 
           {/* Preview */}
-          <div className="bg-black/40 rounded-lg p-3 border border-indigo-500/30">
+          <div className="bg-black/40 rounded-lg p-3 border border-gray-600/30">
             <div className="text-xs text-gray-400 mb-1">Preview:</div>
-            <div className="text-lg font-bold text-indigo-300">
+            <div className="text-lg font-bold text-gray-300">
               {customName.trim() || selectedName || '(No name selected)'}
             </div>
           </div>
         </div>
 
         {/* Footer Buttons */}
-        <div className="p-6 border-t border-indigo-700/50 space-y-3">
+        <div className="p-6 border-t border-gray-600/50 space-y-3">
           {/* Sell Confirmation */}
           {showSellConfirm ? (
             <div className="bg-red-900/50 border-2 border-red-500 rounded-lg p-4">

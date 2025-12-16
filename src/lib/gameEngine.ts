@@ -3072,48 +3072,44 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   const { farmerAuto, basket, basketCapacity, inventory } = state.player;
   const grid = zone.grid;
 
-  // Priority 0: Pickup marked items when no transport bots (farmer fallback)
+  // Priority 0: Pickup marked items - ALWAYS highest priority when user marks items for sale
+  // Farmer should handle marked items immediately, even if transport bots exist
   if (state.markedForSale.length > 0 && basket.length < basketCapacity) {
-    // Check if there are any transport bots
-    const hasTransportBots = zone.transportBots && zone.transportBots.length > 0;
+    const warehousePos = findWarehouseTile(state);
+    const exportPos = findExportTile(state);
 
-    if (!hasTransportBots) {
-      const warehousePos = findWarehouseTile(state);
-      const exportPos = findExportTile(state);
+    if (warehousePos && exportPos) {
+      console.log('📋 Priority 0 - Creating pickup & sell tasks for marked items:');
+      console.log('  Warehouse found at:', warehousePos.x, warehousePos.y);
+      console.log('  Export found at:', exportPos.x, exportPos.y);
+      console.log('  Marked for sale:', state.markedForSale.length, 'items');
 
-      if (warehousePos && exportPos) {
-        console.log('📋 Creating pickup & sell tasks:');
-        console.log('  Warehouse found at:', warehousePos.x, warehousePos.y);
-        console.log('  Export found at:', exportPos.x, exportPos.y);
-        console.log('  Creating deposit task with export coords:', exportPos.x, exportPos.y);
+      // Go to warehouse to pick up marked items
+      tasks.push({
+        id: `pickup-marked-${Date.now()}`,
+        type: 'pickup_marked',
+        tileX: warehousePos.x,
+        tileY: warehousePos.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.pickup_marked,
+      });
 
-        // Go to warehouse to pick up marked items
-        tasks.push({
-          id: `pickup-marked-${Date.now()}`,
-          type: 'pickup_marked',
-          tileX: warehousePos.x,
-          tileY: warehousePos.y,
-          zoneX: state.currentZone.x,
-          zoneY: state.currentZone.y,
-          progress: 0,
-          duration: TASK_DURATIONS.pickup_marked,
-        });
+      // Immediately queue sell task after pickup
+      tasks.push({
+        id: `auto-sell-marked-${Date.now()}`,
+        type: 'deposit',
+        tileX: exportPos.x,
+        tileY: exportPos.y,
+        zoneX: state.currentZone.x,
+        zoneY: state.currentZone.y,
+        progress: 0,
+        duration: TASK_DURATIONS.deposit,
+      });
 
-        // Immediately queue sell task after pickup
-        tasks.push({
-          id: `auto-sell-marked-${Date.now()}`,
-          type: 'deposit',
-          tileX: exportPos.x,
-          tileY: exportPos.y,
-          zoneX: state.currentZone.x,
-          zoneY: state.currentZone.y,
-          progress: 0,
-          duration: TASK_DURATIONS.deposit,
-        });
-
-        console.log('  Created 2 tasks: pickup_marked at warehouse, deposit at export');
-        return tasks; // Return immediately - picking up and selling marked items is highest priority
-      }
+      console.log('  ✅ Created pickup_marked + deposit tasks (highest priority)');
+      return tasks; // Return immediately - picking up and selling marked items is highest priority
     }
   }
 

@@ -157,11 +157,11 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 via-emerald-950 to-green-900 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border-2 border-green-500/50 flex flex-col shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border-2 border-gray-600/50 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-green-500/30">
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-600/30">
           <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold text-gray-300">
               💰 Income History
             </h2>
             <p className="text-sm text-gray-400 mt-1">Track your farming empire's revenue</p>
@@ -177,14 +177,14 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Total Revenue Summary */}
-          <div className="bg-gradient-to-r from-green-800/40 to-emerald-900/40 border-2 border-green-500/50 rounded-xl p-6 text-center">
+          <div className="bg-gray-800/40 border-2 border-gray-600/50 rounded-xl p-6 text-center">
             <div className="text-sm text-gray-300 mb-2">Total Lifetime Revenue</div>
             <div className="text-5xl font-bold text-green-400">${totalRevenue.toLocaleString()}</div>
             <div className="text-sm text-gray-400 mt-2">{salesHistory.length} transactions</div>
           </div>
 
           {/* Cumulative Revenue Chart */}
-          <div className="bg-slate-900/60 rounded-xl p-4 border-2 border-green-500/30">
+          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
             <h3 className="text-xl font-bold mb-3">📈 Cumulative Revenue Over Time</h3>
             <canvas
               ref={canvasRef}
@@ -196,7 +196,7 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
           </div>
 
           {/* Revenue by Crop */}
-          <div className="bg-slate-900/60 rounded-xl p-4 border-2 border-green-500/30">
+          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
             <h3 className="text-xl font-bold mb-4">🌾 Revenue by Crop Type</h3>
             <div className="space-y-3">
               {sortedCrops.map((crop, index) => {
@@ -237,7 +237,7 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-slate-900/60 rounded-xl p-4 border-2 border-green-500/30">
+          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
             <h3 className="text-xl font-bold mb-4">📋 Recent Transactions</h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {salesHistory.slice().reverse().slice(0, 20).map((sale, index) => (
@@ -270,10 +270,10 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-green-500/30 p-4">
+        <div className="flex-shrink-0 border-t border-gray-600/30 p-4">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-lg font-bold text-lg transition-all"
+            className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-lg transition-all"
           >
             Close
           </button>

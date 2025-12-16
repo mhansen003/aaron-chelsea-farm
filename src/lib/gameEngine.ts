@@ -931,6 +931,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           break;
         case 'deposit':
           console.log('📦 DEPOSIT: Depositing basket contents');
+          console.log('  Task location:', task.tileX, task.tileY);
           console.log('  Basket before:', newState.player.basket.length, 'items');
           console.log('  Items:', newState.player.basket.map(i => i.crop).join(', '));
           newState = depositToWarehouse(newState);
@@ -3060,6 +3061,10 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
       const exportPos = findExportTile(state);
 
       if (warehousePos && exportPos) {
+        console.log('📋 Creating pickup & sell tasks:');
+        console.log('  Warehouse at:', warehousePos.x, warehousePos.y);
+        console.log('  Export at:', exportPos.x, exportPos.y);
+
         // Go to warehouse to pick up marked items
         tasks.push({
           id: `pickup-marked-${Date.now()}`,
@@ -3084,6 +3089,7 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
           duration: TASK_DURATIONS.deposit,
         });
 
+        console.log('  Created 2 tasks: pickup_marked at warehouse, deposit at export');
         return tasks; // Return immediately - picking up and selling marked items is highest priority
       }
     }

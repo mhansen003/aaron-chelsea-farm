@@ -5135,6 +5135,11 @@ const HUNTER_MOVE_SPEED = 0.006; // Faster chase speed to catch rabbits more rel
  * Spawn a rabbit in a zone if enough time has passed
  */
 function spawnRabbit(zone: import('@/types/game').Zone, gameTime: number): import('@/types/game').Zone {
+  // Only spawn rabbits in farm zones
+  if (zone.theme !== 'farm') {
+    return zone;
+  }
+
   const lastSpawn = zone.lastRabbitSpawnTime || 0;
 
   // Only allow 1 rabbit at a time

@@ -5630,10 +5630,10 @@ function updateRabbits(
           // Reached edge - remove rabbit (don't add to updatedRabbits)
           continue;
         } else {
-          // Move towards exit
+          // Move towards exit - DON'T clamp so rabbit can move off grid
           const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
-          const newVisualX = clampToGrid(rabbit.visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
-          const newVisualY = clampToGrid(rabbit.visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
+          const newVisualX = rabbit.visualX + (dx / dist) * moveSpeed;
+          const newVisualY = rabbit.visualY + (dy / dist) * moveSpeed;
 
           updatedRabbits.push({
             ...rabbit,

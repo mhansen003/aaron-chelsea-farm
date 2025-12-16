@@ -1955,9 +1955,9 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           // Fishing hut (500x500 image) - divide into 4 quadrants for 2x2 tiles
-          // Fishing hut is at pier base (x: 7-8, y: 8-9)
+          // Fishing hut is at pier base (x: 7-8, y: 11-12)
           const offsetX = (x - 7) * 250; // 500px / 2 = 250px per tile
-          const offsetY = (y - 8) * 250;
+          const offsetY = (y - 11) * 250;
           ctx.drawImage(
             fishingHutImageRef.current,
             offsetX, offsetY, 250, 250, // Source: extract quadrant from 500x500 image
@@ -1982,7 +1982,7 @@ export default function Game() {
           // Beach: Plank dock over ocean
           ctx.drawImage(plankImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
         } else if (tile.type === 'fishmarket' && fishMarketImageRef.current) {
-          // Beach: Fish Market (2x2 building) on sand
+          // Beach: Fish Market (2x2 building) on sand at (9-10, 11-12)
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
@@ -1990,9 +1990,9 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           // Fish Market uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Bottom-left corner position
-          const offsetX = (x - 0) * 512; // x can be 0 or 1
-          const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 512; // y can be 10 or 11
+          // Position: x: 9-10, y: 11-12
+          const offsetX = (x - 9) * 512; // x can be 9 or 10
+          const offsetY = (y - 11) * 512; // y can be 11 or 12
           ctx.drawImage(
             fishMarketImageRef.current,
             offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite

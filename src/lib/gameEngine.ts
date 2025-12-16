@@ -74,7 +74,7 @@ export const HOPPER_COST = 3000; // Cost to buy a hopper upgrade building
 export const HOPPER_UPGRADE_COST = 400; // Cost to upgrade a single bot with larger hopper
 export const BASE_ZONE_PRICE = 2000; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
-export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
+export const MOVE_SPEED = 0.0088; // Movement interpolation speed (0-1, higher = faster) - 10% faster
 
 // Fish spawning constants
 export const FISH_SPAWN_INTERVAL = 5000; // Check for new fish every 5 seconds
@@ -2136,7 +2136,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.8, bot.supercharged); // 20% faster for seed bots
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.68, bot.supercharged); // 32% faster for seed bots (15% faster than previous)
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;

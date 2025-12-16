@@ -231,13 +231,13 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border border-slate-600/50 flex flex-col shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border border-gray-600/50 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-slate-700/50">
+        <div className="flex-shrink-0 p-6 border-b border-gray-700/50">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-3xl font-bold text-white">📊 Goods Economy</h2>
-              <p className="text-sm text-slate-400 mt-1">Price trends & forecasts for all goods</p>
+              <p className="text-sm text-gray-400 mt-1">Price trends & forecasts for all goods</p>
             </div>
             <button
               onClick={onClose}
@@ -263,8 +263,8 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                     isSelected && isActive
                       ? 'bg-emerald-600 border-emerald-500 shadow-lg shadow-emerald-500/30'
                       : isActive
-                      ? 'bg-slate-700 hover:bg-slate-600 border-slate-600 hover:border-slate-500'
-                      : 'bg-slate-800/50 border-slate-700/50 opacity-40 cursor-not-allowed'
+                      ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-gray-500'
+                      : 'bg-gray-800/50 border-gray-700/50 opacity-40 cursor-not-allowed'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -283,7 +283,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {/* Season and Market Info */}
-          <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4 mb-6">
+          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">
@@ -293,7 +293,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   {market.currentSeason === 'winter' && '❄️'}
                 </span>
                 <div>
-                  <div className="text-xs text-slate-400">Current Season</div>
+                  <div className="text-xs text-gray-400">Current Season</div>
                   <div className="text-lg font-bold capitalize">{market.currentSeason}</div>
                 </div>
               </div>
@@ -349,14 +349,14 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
               return (
                 <div
                   key={crop}
-                  className={`relative bg-slate-800/60 rounded-xl border-2 p-4 transition-all ${
+                  className={`relative bg-gray-800/60 rounded-xl border-2 p-4 transition-all ${
                     isEpic
                       ? 'border-purple-500 shadow-lg shadow-purple-500/30'
                       : isHighDemand
                       ? 'border-yellow-500/60 shadow-lg shadow-yellow-500/20'
                       : isLowDemand
                       ? 'border-blue-500/60 shadow-lg shadow-blue-500/20'
-                      : 'border-slate-700'
+                      : 'border-gray-700'
                   }`}
                 >
                   {/* Epic or High Demand Badge */}
@@ -395,7 +395,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   {/* Price Chart */}
                   <div className="bg-black/40 rounded-lg p-2 mb-3 h-16 relative">
                     <MiniChart crop={crop} gameState={gameState} color={color} />
-                    <div className="absolute bottom-1 left-2 text-[10px] text-slate-400">
+                    <div className="absolute bottom-1 left-2 text-[10px] text-gray-400">
                       Past ━━ Future ┉┉
                     </div>
                   </div>
@@ -403,14 +403,14 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   {/* Forecast & Trend */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Forecast:</span>
+                      <span className="text-gray-400">Forecast:</span>
                       <span
                         className={`font-bold ${
                           priceChange > 5
                             ? 'text-green-400'
                             : priceChange < -5
                             ? 'text-red-400'
-                            : 'text-slate-400'
+                            : 'text-gray-400'
                         }`}
                       >
                         {priceChange > 0 ? '↗' : priceChange < 0 ? '↘' : '→'} {priceChange > 0 ? '+' : ''}
@@ -419,7 +419,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                     </div>
                     {forecastPrice > 0 && (
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400">Future Price:</span>
+                        <span className="text-gray-400">Future Price:</span>
                         <span className="font-bold text-cyan-400">${forecastPrice}</span>
                       </div>
                     )}
@@ -431,10 +431,10 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-slate-700/50 p-4 bg-slate-900/50">
+        <div className="flex-shrink-0 border-t border-gray-700/50 p-4 bg-gray-900/50">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold text-lg transition-all border border-slate-600"
+            className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold text-lg transition-all border border-gray-600"
           >
             Close
           </button>

@@ -108,16 +108,16 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
       onClick={onClose}
     >
       <div
-        className={`bg-gradient-to-br ${info.gradient} border-2 ${info.borderColor} rounded-xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col`}
+        className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-600 rounded-xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-white/10 p-4 flex items-center justify-between">
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-b border-gray-600 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="text-4xl">{info.icon}</span>
             <div>
-              <h2 className={`text-2xl font-bold ${info.textColor}`}>{info.name}</h2>
-              <p className="text-sm text-gray-300">{info.description}</p>
+              <h2 className="text-2xl font-bold text-gray-300">{info.name}</h2>
+              <p className="text-sm text-gray-400">{info.description}</p>
             </div>
           </div>
           <button
@@ -132,7 +132,7 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Bot Image */}
           <div className="flex justify-center">
-            <div className={`border-4 ${info.borderColor} rounded-lg overflow-hidden bg-black/40 p-4 shadow-xl`}>
+            <div className="border-4 border-gray-600 rounded-lg overflow-hidden bg-black/40 p-4 shadow-xl">
               <img
                 src={info.image}
                 alt={info.name}
@@ -142,8 +142,8 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
           </div>
 
           {/* History Section */}
-          <div className="bg-black/30 rounded-lg p-4 border border-white/10">
-            <h3 className="text-lg font-bold text-yellow-400 mb-2 flex items-center gap-2">
+          <div className="bg-black/30 rounded-lg p-4 border border-gray-600">
+            <h3 className="text-lg font-bold text-gray-300 mb-2 flex items-center gap-2">
               📜 Historical Record
             </h3>
             <p className="text-gray-200 leading-relaxed">
@@ -152,8 +152,8 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
           </div>
 
           {/* Story Section */}
-          <div className="bg-black/30 rounded-lg p-4 border border-white/10">
-            <h3 className="text-lg font-bold text-blue-400 mb-2 flex items-center gap-2">
+          <div className="bg-black/30 rounded-lg p-4 border border-gray-600">
+            <h3 className="text-lg font-bold text-gray-300 mb-2 flex items-center gap-2">
               📖 The Story
             </h3>
             <p className="text-gray-200 leading-relaxed whitespace-pre-line">
@@ -163,10 +163,10 @@ export function BotInfoModal({ botType, onClose }: BotInfoModalProps) {
         </div>
 
         {/* Sticky Footer with CTA */}
-        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-white/10 p-4">
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-gray-600 p-4">
           <button
             onClick={onClose}
-            className={`w-full px-6 py-3 bg-gradient-to-r ${info.gradient} border-2 ${info.borderColor} rounded-lg font-bold ${info.textColor} hover:scale-105 transition-transform shadow-lg`}
+            className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 border-2 border-gray-600 rounded-lg font-bold text-gray-300 hover:scale-105 transition-transform shadow-lg"
           >
             Back to Fleet
           </button>

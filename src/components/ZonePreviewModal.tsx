@@ -18,11 +18,11 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
   };
 
   const themeColors = {
-    farm: 'from-green-900 to-green-950',
-    beach: 'from-blue-900 to-cyan-950',
-    barn: 'from-amber-900 to-amber-950',
-    mountain: 'from-gray-900 to-slate-950',
-    desert: 'from-yellow-900 to-orange-950',
+    farm: 'from-gray-800 to-gray-900',
+    beach: 'from-gray-800 to-gray-900',
+    barn: 'from-gray-800 to-gray-900',
+    mountain: 'from-gray-800 to-gray-900',
+    desert: 'from-gray-800 to-gray-900',
   };
 
   const themeArchImages = {

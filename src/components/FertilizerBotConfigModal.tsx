@@ -111,9 +111,9 @@ export default function FertilizerBotConfigModal({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="bg-green-950/40 rounded-xl border border-green-700 p-4 mb-4">
-            <h3 className="text-sm font-semibold text-green-300 mb-2">🎯 Priority System</h3>
-            <p className="text-xs text-green-200/80">
+          <div className="bg-gray-800/40 rounded-xl border border-gray-600 p-4 mb-4">
+            <h3 className="text-sm font-semibold text-gray-300 mb-2">🎯 Priority System</h3>
+            <p className="text-xs text-gray-400">
               The bot will fertilize crops from top to bottom. Drag crops to change their priority.
               Higher priority crops get fertilized first when the bot has fertilizer available.
             </p>
@@ -127,20 +127,20 @@ export default function FertilizerBotConfigModal({
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`bg-green-800/50 rounded-xl border-2 p-4 transition-all cursor-move hover:bg-green-700/50 ${
+                className={`bg-gray-800/50 rounded-xl border-2 p-4 transition-all cursor-move hover:bg-gray-700/50 ${
                   draggedIndex === index
-                    ? 'border-green-400 opacity-50'
-                    : 'border-green-700 hover:border-green-500'
+                    ? 'border-gray-400 opacity-50'
+                    : 'border-gray-600 hover:border-gray-500'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-8 h-8 bg-green-950/60 rounded-lg font-bold text-green-300">
+                  <div className="flex items-center justify-center w-8 h-8 bg-gray-900/60 rounded-lg font-bold text-gray-300">
                     {index + 1}
                   </div>
                   <span className="text-3xl">{CROP_ICONS[crop]}</span>
                   <div className="flex-1">
                     <div className="font-semibold text-white">{CROP_NAMES[crop]}</div>
-                    <div className="text-xs text-green-300">
+                    <div className="text-xs text-gray-400">
                       {index === 0 && 'Highest Priority'}
                       {index === config.cropPriority.length - 1 && index !== 0 && 'Lowest Priority'}
                       {index > 0 && index < config.cropPriority.length - 1 && `Priority ${index + 1}`}
@@ -156,7 +156,7 @@ export default function FertilizerBotConfigModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-green-700/50 p-4 bg-green-950/50">
+        <div className="flex-shrink-0 border-t border-gray-600/50 p-4 bg-gray-900/50">
           <div className="flex gap-3">
             <button
               onClick={handleSave}
@@ -166,7 +166,7 @@ export default function FertilizerBotConfigModal({
             </button>
             <button
               onClick={onCancel}
-              className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold text-lg transition-all border border-slate-600/50"
+              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-semibold text-lg transition-all border border-gray-600/50"
             >
               Cancel
             </button>

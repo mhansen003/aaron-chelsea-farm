@@ -96,9 +96,9 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 text-white rounded-xl max-w-4xl w-full max-h-[90vh] border-4 border-green-600 flex flex-col">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl max-w-4xl w-full max-h-[90vh] border-4 border-gray-600 flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-green-700/50">
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-600/50">
           <h2 className="text-3xl font-bold">🌱 Seed Bot Configuration</h2>
           <button
             onClick={onClose}
@@ -111,7 +111,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6">
           {/* Summary Section */}
-          <div className="bg-gradient-to-r from-green-800/40 to-green-900/40 border border-green-500/50 rounded-lg p-4 mb-4">
+          <div className="bg-gray-800/40 border border-gray-600/50 rounded-lg p-4 mb-4">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-green-300">{jobs.length}/3</div>
@@ -164,7 +164,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
               const cropInfo = CROP_INFO[job.cropType as keyof typeof CROP_INFO];
 
               return (
-                <div key={job.id} className={`bg-gradient-to-br from-green-800/40 to-green-900/40 border-2 ${jobColor.border} rounded-lg p-4 hover:shadow-xl transition-shadow`}>
+                <div key={job.id} className={`bg-gray-800/40 border-2 ${jobColor.border} rounded-lg p-4 hover:shadow-xl transition-shadow`}>
                   {/* Header with crop emoji */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -233,7 +233,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
         </div>
 
         {/* Sticky Footer with CTAs */}
-        <div className="flex-shrink-0 border-t border-green-700/50 p-6 bg-green-950/50">
+        <div className="flex-shrink-0 border-t border-gray-600/50 p-6 bg-gray-900/50">
           <div className="flex gap-4">
             <button
               onClick={handleSave}

@@ -100,10 +100,10 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-gray-900 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-700" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-gray-900 rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border border-gray-600" onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center z-10">
+        <div className="sticky top-0 bg-gray-900 border-b border-gray-600 p-4 flex justify-between items-center z-10">
           <div>
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
               <Image src="/charged.png" alt="Supercharger" width={32} height={32} className="inline-block" />
@@ -123,7 +123,7 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
         <div className="p-6 space-y-6">
 
           {/* Balance Info */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex justify-between items-center">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 flex justify-between items-center">
             <div>
               <p className="text-sm text-gray-400">Upgrade Cost</p>
               <p className="text-xl font-bold text-white">${SUPERCHARGE_BOT_COST} per bot</p>
@@ -137,7 +137,7 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
           </div>
 
           {totalBots === 0 ? (
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 text-center">
+            <div className="bg-gray-800 border border-gray-600 rounded-lg p-8 text-center">
               <p className="text-gray-400 text-lg">No bots in this zone yet</p>
               <p className="text-gray-500 text-sm mt-2">Purchase bots from the shop to get started</p>
             </div>
@@ -157,7 +157,7 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-700 p-4 flex gap-3">
+        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-600 p-4 flex gap-3">
           {onRelocate && (
             <button
               onClick={() => {

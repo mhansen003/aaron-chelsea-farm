@@ -567,13 +567,13 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 via-emerald-950 to-green-900 text-white rounded-2xl max-w-4xl w-full h-[90vh] border-4 border-green-500/50 flex flex-col shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-4xl w-full h-[90vh] border-4 border-gray-600/50 flex flex-col shadow-2xl">
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-4 border-b border-green-500/30">
+        <div className="flex-shrink-0 flex justify-between items-center p-4 border-b border-gray-600/30">
           <div className="flex items-center gap-3">
             <span className="text-4xl">{currentPageData.icon}</span>
             <div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold text-gray-300">
                 {currentPageData.title}
               </h2>
               <p className="text-sm text-gray-400">
@@ -596,14 +596,14 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
         </div>
 
         {/* Progress Dots */}
-        <div className="flex-shrink-0 flex justify-center gap-2 py-3 border-t border-green-500/30">
+        <div className="flex-shrink-0 flex justify-center gap-2 py-3 border-t border-gray-600/30">
           {allPages.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentPage(index)}
               className={`w-2 h-2 rounded-full transition-all ${
                 index === currentPage
-                  ? 'bg-green-400 w-6'
+                  ? 'bg-blue-400 w-6'
                   : 'bg-gray-600 hover:bg-gray-500'
               }`}
               title={`Go to page ${index + 1}`}
@@ -612,14 +612,14 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
         </div>
 
         {/* Footer Navigation */}
-        <div className="flex-shrink-0 flex justify-between items-center p-4 border-t border-green-500/30 bg-black/30">
+        <div className="flex-shrink-0 flex justify-between items-center p-4 border-t border-gray-600/30 bg-black/30">
           <button
             onClick={handlePrev}
             disabled={currentPage === 0}
             className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
               currentPage === 0
                 ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
+                : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
             ← Previous
@@ -636,7 +636,7 @@ export default function TutorialModal({ onClose, onStartNew, onLoadGame, onConti
 
           <button
             onClick={handleNext}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-lg font-bold text-lg transition-all"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-lg transition-all"
           >
             {currentPage === pages.length - 1 ? "Let's Farm! 🚜" : 'Next →'}
           </button>

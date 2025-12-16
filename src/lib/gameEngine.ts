@@ -5476,8 +5476,8 @@ function updateHunterBots(
           const dx = hunter.targetX - visualX;
           const dy = hunter.targetY - visualY;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          // Faster patrol speed so hunters cover more ground
-          const moveSpeed = deltaTime * 0.003 * (hunter.supercharged ? 2 : 1);
+          // Slow, relaxed patrol speed - less distracting when idle
+          const moveSpeed = deltaTime * 0.0012 * (hunter.supercharged ? 2 : 1);
           const newVisualX = visualX + (dx / dist) * moveSpeed;
           const newVisualY = visualY + (dy / dist) * moveSpeed;
 
@@ -5595,7 +5595,7 @@ function updateHunterBots(
         const dx = targetX - visualX;
         const dy = targetY - visualY;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow speed when escorting
+        const moveSpeed = deltaTime * 0.0015 * (hunter.supercharged ? 2 : 1); // Slow, calm escort speed
         const newVisualX = visualX + (dx / dist) * moveSpeed;
         const newVisualY = visualY + (dy / dist) * moveSpeed;
 

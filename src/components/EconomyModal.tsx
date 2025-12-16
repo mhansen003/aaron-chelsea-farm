@@ -282,11 +282,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border border-gray-600/50 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex-shrink-0 p-6 border-b border-gray-700/50">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-3xl font-bold text-white">Goods Economy</h2>
-              <p className="text-sm text-gray-400 mt-1">Price trends & forecasts for all goods</p>
-            </div>
+          <div className="flex justify-end mb-4">
             <button
               onClick={onClose}
               className="text-2xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center"

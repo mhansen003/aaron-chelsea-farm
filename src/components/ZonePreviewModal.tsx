@@ -1,14 +1,16 @@
 'use client';
 
 import { Zone } from '@/types/game';
+import { useMemo } from 'react';
 
 interface ZonePreviewModalProps {
   zone: Zone;
   onClose: () => void;
   onTravel: () => void;
+  playerMoney: number;
 }
 
-export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePreviewModalProps) {
+export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney }: ZonePreviewModalProps) {
   const themeColors = {
     farm: 'from-slate-900 to-slate-950',
     beach: 'from-slate-900 to-slate-950',
@@ -41,6 +43,36 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
     { name: 'Sub Depot', description: 'Deploy submarine bots to automatically catch fish', image: '/subdepot.png' },
     { name: 'Fishing Boat', description: 'Sail out to deeper waters for bigger catches', image: '/boat.png' },
   ] : [];
+
+  // All seafood items available
+  const allSeafood = [
+    { name: 'Clams', image: '/images/seafood/clams.png' },
+    { name: 'Anglerfish', image: '/images/seafood/deep anglerfish.png' },
+    { name: 'Blob Fish', image: '/images/seafood/deep blop fish.png' },
+    { name: 'Box Jellyfish', image: '/images/seafood/deep box jellyfish.png' },
+    { name: 'Giant Squid', image: '/images/seafood/deep giant squid.png' },
+    { name: 'Megalodon', image: '/images/seafood/deep meg.png' },
+    { name: 'Oarfish', image: '/images/seafood/deep oarfish.png' },
+    { name: 'Flounder', image: '/images/seafood/flounder.png' },
+    { name: 'Mahi Mahi', image: '/images/seafood/mahi mahi.png' },
+    { name: 'Octopus', image: '/images/seafood/octopus.png' },
+    { name: 'Red Snapper', image: '/images/seafood/redsnapper.png' },
+    { name: 'Shark', image: '/images/seafood/shark.png' },
+    { name: 'Starfish', image: '/images/seafood/starfish.png' },
+    { name: 'Tang', image: '/images/seafood/tang.png' },
+    { name: 'Sea Urchin', image: '/images/seafood/urchen.png' },
+    { name: 'Yellowtail', image: '/images/seafood/yellowtail.png' },
+  ];
+
+  // Randomly select 6 seafood items for beach zone (memoized to prevent re-shuffling)
+  const selectedSeafood = useMemo(() => {
+    if (zone.theme !== 'beach') return [];
+    const shuffled = [...allSeafood].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 6);
+  }, [zone.theme]);
+
+  // Check if player can afford the zone
+  const canAfford = zone.owned || playerMoney >= zone.purchasePrice;
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -98,7 +130,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
         {beachBuildings.length > 0 && (
           <div className="mb-6">
             <h3 className="text-2xl font-bold mb-4 text-slate-200">
-              Available Buildings
+              New Adventure Awaits
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {beachBuildings.map((building, index) => (
@@ -108,6 +140,25 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
                   </div>
                   <h4 className="text-sm font-bold text-slate-200 mb-1">{building.name}</h4>
                   <p className="text-xs text-slate-400">{building.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Seafood Preview - Beach Zone */}
+        {selectedSeafood.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold mb-4 text-cyan-200">
+              Discover Amazing Sea Creatures
+            </h3>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              {selectedSeafood.map((seafood, index) => (
+                <div key={index} className="bg-black/40 rounded-lg p-2 border border-cyan-600/50 hover:border-cyan-500 transition-all">
+                  <div className="aspect-square bg-black/30 rounded-lg mb-1 flex items-center justify-center overflow-hidden">
+                    <img src={seafood.image} alt={seafood.name} className="w-full h-full object-contain" />
+                  </div>
+                  <h4 className="text-xs font-bold text-cyan-100 text-center">{seafood.name}</h4>
                 </div>
               ))}
             </div>
@@ -125,9 +176,14 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
           ) : (
             <button
               onClick={onTravel}
-              className="flex-1 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl font-bold text-xl transition-all shadow-lg"
+              disabled={!canAfford}
+              className={`flex-1 px-8 py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${
+                canAfford
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer'
+                  : 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
+              }`}
             >
-              Purchase & Travel
+              {canAfford ? `Purchase & Travel ($${zone.purchasePrice})` : `Not Enough Money ($${zone.purchasePrice})`}
             </button>
           )}
 

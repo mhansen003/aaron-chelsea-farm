@@ -5570,6 +5570,7 @@ export default function Game() {
             setPreviewZone(null);
           }}
           onTravel={handleZoneTravel}
+          playerMoney={gameState.player.money}
         />
       )}
 

@@ -130,17 +130,17 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
         {/* Buildings Showcase - Beach Zone */}
         {beachBuildings.length > 0 && (
-          <div className="mb-3">
-            <h3 className="text-lg font-bold mb-2 text-slate-200">
+          <div className="mb-2">
+            <h3 className="text-base font-bold mb-1.5 text-slate-200">
               New Adventure Awaits
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
               {beachBuildings.map((building, index) => (
-                <div key={index} className="bg-black/40 rounded-lg p-2 border border-slate-600/50 hover:border-slate-500 transition-all">
-                  <div className="aspect-square bg-black/30 rounded-lg mb-1 flex items-center justify-center overflow-hidden">
+                <div key={index} className="bg-black/40 rounded-lg p-1.5 border border-slate-600/50 hover:border-slate-500 transition-all">
+                  <div className="aspect-square bg-black/30 rounded-lg mb-0.5 flex items-center justify-center overflow-hidden scale-85">
                     <img src={building.image} alt={building.name} className="w-full h-full object-contain" />
                   </div>
-                  <h4 className="text-xs font-bold text-slate-200 text-center">{building.name}</h4>
+                  <h4 className="text-[10px] font-bold text-slate-200 text-center">{building.name}</h4>
                 </div>
               ))}
             </div>
@@ -149,17 +149,17 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
         {/* Seafood Preview - Beach Zone */}
         {selectedSeafood.length > 0 && (
-          <div className="mb-3">
-            <h3 className="text-lg font-bold mb-2 text-cyan-200">
+          <div className="mb-2">
+            <h3 className="text-base font-bold mb-1.5 text-cyan-200">
               Discover Amazing Sea Creatures
             </h3>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
               {selectedSeafood.map((seafood, index) => (
-                <div key={index} className="bg-black/40 rounded-lg p-1.5 border border-cyan-600/50 hover:border-cyan-500 transition-all">
-                  <div className="aspect-square bg-black/30 rounded-lg mb-1 flex items-center justify-center overflow-hidden">
+                <div key={index} className="bg-black/40 rounded-lg p-1 border border-cyan-600/50 hover:border-cyan-500 transition-all">
+                  <div className="aspect-square bg-black/30 rounded-lg mb-0.5 flex items-center justify-center overflow-hidden">
                     <img src={seafood.image} alt={seafood.name} className="w-full h-full object-contain" />
                   </div>
-                  <h4 className="text-xs font-bold text-cyan-100 text-center">{seafood.name}</h4>
+                  <h4 className="text-[10px] font-bold text-cyan-100 text-center">{seafood.name}</h4>
                 </div>
               ))}
             </div>

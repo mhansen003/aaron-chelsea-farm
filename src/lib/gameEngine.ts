@@ -4842,7 +4842,7 @@ function checkConstructionCompletion(state: GameState): GameState {
   return newState;
 }
 
-export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish'): GameState {
+export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer'): GameState {
   // Check if player can afford it
   if (state.player.money < SUPERCHARGE_BOT_COST) return state;
 
@@ -4897,6 +4897,11 @@ export function superchargeBot(state: GameState, botId: string, botType: 'water'
       }
       return bot;
     });
+  } else if (botType === 'fertilizer' && updatedZone.fertilizerBot) {
+    if (updatedZone.fertilizerBot.id === botId && !updatedZone.fertilizerBot.supercharged) {
+      updated = true;
+      updatedZone.fertilizerBot = { ...updatedZone.fertilizerBot, supercharged: true };
+    }
   }
 
   // Only deduct money if a bot was actually supercharged

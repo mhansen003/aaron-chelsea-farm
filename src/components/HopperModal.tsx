@@ -25,12 +25,12 @@ export default function HopperModal({ gameState, onClose, onUpgrade, onRelocate 
 
   const waterBots = currentZone?.waterBots || [];
   const harvestBots = currentZone?.harvestBots || [];
-  const seedBots = currentZone?.seedBots || [];
+  // Seed bots don't get hopper upgrades
   const transportBots = currentZone?.transportBots || [];
   const demolishBots = currentZone?.demolishBots || [];
   const fertilizerBots = currentZone?.fertilizerBot ? [currentZone.fertilizerBot] : [];
 
-  const totalBots = waterBots.length + harvestBots.length + seedBots.length + transportBots.length + demolishBots.length + fertilizerBots.length;
+  const totalBots = waterBots.length + harvestBots.length + transportBots.length + demolishBots.length + fertilizerBots.length;
 
   // Helper to render a bot card
   const renderBotCard = (bot: any, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer') => {
@@ -158,16 +158,6 @@ export default function HopperModal({ gameState, onClose, onUpgrade, onRelocate 
                   <h3 className="text-lg font-bold text-orange-400 mb-3">Harvest Bots ({harvestBots.length})</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {harvestBots.map(bot => renderBotCard(bot, 'harvest'))}
-                  </div>
-                </div>
-              )}
-
-              {/* Seed Bots */}
-              {seedBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-green-400 mb-3">Seed Bots ({seedBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {seedBots.map(bot => renderBotCard(bot, 'seed'))}
                   </div>
                 </div>
               )}

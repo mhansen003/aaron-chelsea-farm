@@ -6,7 +6,7 @@ const SUPERCHARGE_BOT_COST = 500; // Cost to supercharge a single bot
 interface SuperchargerModalProps {
   gameState: GameState;
   onClose: () => void;
-  onSupercharge?: (botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish') => void;
+  onSupercharge?: (botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer') => void;
   onRelocate?: () => void;
 }
 
@@ -16,6 +16,7 @@ const BOT_CONFIG = {
   seed: { name: 'Seed Bot', image: '/seed-bot.png', color: 'border-green-600 bg-green-950/30' },
   transport: { name: 'Transport Bot', image: '/transport-bot.png', color: 'border-purple-600 bg-purple-950/30' },
   demolish: { name: 'Demolish Bot', image: '/demolish-bot.png', color: 'border-red-600 bg-red-950/30' },
+  fertilizer: { name: 'Fertilizer Bot', image: '/fertilizer-bot.png', color: 'border-lime-600 bg-lime-950/30' },
 };
 
 export default function SuperchargerModal({ gameState, onClose, onSupercharge, onRelocate }: SuperchargerModalProps) {
@@ -28,11 +29,12 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
   const seedBots = currentZone?.seedBots || [];
   const transportBots = currentZone?.transportBots || [];
   const demolishBots = currentZone?.demolishBots || [];
+  const fertilizerBot = currentZone?.fertilizerBot ? [currentZone.fertilizerBot] : [];
 
-  const totalBots = waterBots.length + harvestBots.length + seedBots.length + transportBots.length + demolishBots.length;
+  const totalBots = waterBots.length + harvestBots.length + seedBots.length + transportBots.length + demolishBots.length + fertilizerBot.length;
 
   // Helper to render a bot card
-  const renderBotCard = (bot: any, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish') => {
+  const renderBotCard = (bot: any, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer') => {
     const config = BOT_CONFIG[botType];
     const isSupercharged = bot.supercharged === true;
     const canAfford = gameState.player.money >= SUPERCHARGE_BOT_COST;
@@ -148,6 +150,7 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
                 {seedBots.map(bot => renderBotCard(bot, 'seed'))}
                 {transportBots.map(bot => renderBotCard(bot, 'transport'))}
                 {demolishBots.map(bot => renderBotCard(bot, 'demolish'))}
+                {fertilizerBot.map(bot => renderBotCard(bot, 'fertilizer'))}
               </div>
             </div>
           )}

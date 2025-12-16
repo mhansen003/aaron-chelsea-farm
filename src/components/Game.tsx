@@ -178,6 +178,7 @@ export default function Game() {
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
   const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizer' | 'hopper' | null>(null);
+  const [shouldBounce, setShouldBounce] = useState(false);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
   const [showTransportBotConfig, setShowTransportBotConfig] = useState(false);
@@ -888,6 +889,29 @@ export default function Game() {
       }
     };
   }, []);
+
+  // Bounce animation for placement toaster every 5 seconds
+  useEffect(() => {
+    if (!placementMode) {
+      setShouldBounce(false);
+      return;
+    }
+
+    // Trigger bounce immediately when placement mode starts
+    setShouldBounce(true);
+    const initialTimeout = setTimeout(() => setShouldBounce(false), 1000);
+
+    // Then bounce every 5 seconds
+    const bounceInterval = setInterval(() => {
+      setShouldBounce(true);
+      setTimeout(() => setShouldBounce(false), 1000);
+    }, 5000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(bounceInterval);
+    };
+  }, [placementMode]);
 
   // Music configuration - farm zone has multiple songs, other zones have single tracks
   const farmSongs = [
@@ -5014,54 +5038,41 @@ export default function Game() {
 
       {/* Placement Toast Popup - Shows when item is selected for placement */}
       {placementMode && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slideDown">
-          <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 backdrop-blur-xl p-6 rounded-2xl border-2 border-amber-500/50 shadow-2xl shadow-amber-500/20 min-w-[400px]">
-            {/* Header with icon and title */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="text-4xl">
-                  {placementMode === 'sprinkler' && '💦'}
-                  {placementMode === 'botFactory' && '⚙️'}
-                  {placementMode === 'well' && '🪣'}
-                  {placementMode === 'garage' && '🚗'}
-                  {placementMode === 'supercharger' && '⚡'}
-                  {placementMode === 'fertilizer' && '🌱'}
-                  {placementMode === 'hopper' && '🎒'}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-amber-200">
-                    {placementMode === 'sprinkler' && 'Place Sprinkler'}
-                    {placementMode === 'botFactory' && 'Place Bot Factory'}
-                    {placementMode === 'well' && 'Place Water Well'}
-                    {placementMode === 'garage' && 'Place Garage'}
-                    {placementMode === 'supercharger' && 'Place Supercharger'}
-                    {placementMode === 'fertilizer' && 'Place Fertilizer Building'}
-                    {placementMode === 'hopper' && 'Place Hopper'}
-                  </h3>
-                  <p className="text-sm text-slate-400">Click to place on the map</p>
-                </div>
+        <div
+          className={`fixed bottom-24 right-6 z-50 transition-all duration-300 ${
+            shouldBounce ? 'animate-bounce' : ''
+          }`}
+        >
+          <div className="bg-gradient-to-br from-amber-600 via-amber-700 to-amber-800 backdrop-blur-xl p-4 rounded-xl border-2 border-amber-400/70 shadow-2xl shadow-amber-500/40 min-w-[280px]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-3xl">
+                {placementMode === 'sprinkler' && '💦'}
+                {placementMode === 'botFactory' && '⚙️'}
+                {placementMode === 'well' && '🪣'}
+                {placementMode === 'garage' && '🚗'}
+                {placementMode === 'supercharger' && '⚡'}
+                {placementMode === 'fertilizer' && '🌱'}
+                {placementMode === 'hopper' && '🎒'}
               </div>
-              <button
-                onClick={() => setPlacementMode(null)}
-                className="px-4 py-2 bg-red-500/90 hover:bg-red-600 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30 flex items-center gap-2"
-              >
-                <span className="text-lg">✕</span>
-                <span>Cancel</span>
-              </button>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white">
+                  {placementMode === 'sprinkler' && 'Place Sprinkler'}
+                  {placementMode === 'botFactory' && 'Place Bot Factory'}
+                  {placementMode === 'well' && 'Place Water Well'}
+                  {placementMode === 'garage' && 'Place Garage'}
+                  {placementMode === 'supercharger' && 'Place Supercharger'}
+                  {placementMode === 'fertilizer' && 'Place Fertilizer'}
+                  {placementMode === 'hopper' && 'Place Hopper'}
+                </h3>
+                <p className="text-xs text-amber-100">Click on map to place</p>
+              </div>
             </div>
-
-            {/* Instructions */}
-            <div className="bg-black/40 rounded-lg p-4 border border-amber-500/30">
-              <p className="text-amber-100 text-center font-medium">
-                {placementMode === 'sprinkler' && '👆 Click any tile to place sprinkler'}
-                {placementMode === 'botFactory' && '👆 Click a grass tile to place shop (2 min build time)'}
-                {placementMode === 'well' && '👆 Click a grass tile to place water well'}
-                {placementMode === 'garage' && '👆 Click a grass tile to place garage'}
-                {placementMode === 'supercharger' && '👆 Click a grass tile to place supercharger'}
-                {placementMode === 'fertilizer' && '👆 Click a grass tile to place fertilizer building'}
-                {placementMode === 'hopper' && '👆 Click a grass tile to place hopper'}
-              </p>
-            </div>
+            <button
+              onClick={() => setPlacementMode(null)}
+              className="w-full px-3 py-2 bg-red-500/90 hover:bg-red-600 rounded-lg font-bold text-white text-sm transition-all shadow-lg hover:shadow-red-500/30"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

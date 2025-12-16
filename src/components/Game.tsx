@@ -273,6 +273,7 @@ export default function Game() {
   const sandImageRef = useRef<HTMLImageElement | null>(null);
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
   const shellsImageRef = useRef<HTMLImageElement | null>(null);
+  const fishingHutImageRef = useRef<HTMLImageElement | null>(null);
   const cactusImageRef = useRef<HTMLImageElement | null>(null);
   const rocksImageRef = useRef<HTMLImageElement | null>(null);
   const caveImageRef = useRef<HTMLImageElement | null>(null);
@@ -585,65 +586,50 @@ export default function Game() {
       dirtImageRef.current = dirtImg;
     };
 
-    // Load rocks (variant 1)
-    const rockImg = new Image();
-    rockImg.src = `/${theme}-rocks.png`;
-    rockImg.onerror = () => {
+    // Load rocks and trees only for farm theme (non-themed zones)
+    if (theme === 'farm') {
+      // Load rocks (variant 1)
+      const rockImg = new Image();
       rockImg.src = '/farm-rocks.png';
-    };
-    rockImg.onload = () => {
-      rockImageRef.current = rockImg;
-    };
+      rockImg.onload = () => {
+        rockImageRef.current = rockImg;
+      };
 
-    // Load rocks variant 2
-    const rockImg2 = new Image();
-    rockImg2.src = `/${theme}-rocks2.png`;
-    rockImg2.onerror = () => {
+      // Load rocks variant 2
+      const rockImg2 = new Image();
       rockImg2.src = '/farm-rocks2.png';
-    };
-    rockImg2.onload = () => {
-      rockImageRef2.current = rockImg2;
-    };
+      rockImg2.onload = () => {
+        rockImageRef2.current = rockImg2;
+      };
 
-    // Load rocks variant 3
-    const rockImg3 = new Image();
-    rockImg3.src = `/${theme}-rocks3.png`;
-    rockImg3.onerror = () => {
+      // Load rocks variant 3
+      const rockImg3 = new Image();
       rockImg3.src = '/farm-rocks3.png';
-    };
-    rockImg3.onload = () => {
-      rockImageRef3.current = rockImg3;
-    };
+      rockImg3.onload = () => {
+        rockImageRef3.current = rockImg3;
+      };
 
-    // Load rocks variant 4
-    const rockImg4 = new Image();
-    rockImg4.src = `/${theme}-rocks4.png`;
-    rockImg4.onerror = () => {
+      // Load rocks variant 4
+      const rockImg4 = new Image();
       rockImg4.src = '/farm-rocks4.png';
-    };
-    rockImg4.onload = () => {
-      rockImageRef4.current = rockImg4;
-    };
+      rockImg4.onload = () => {
+        rockImageRef4.current = rockImg4;
+      };
 
-    // Load forest/trees (variant 1)
-    const treeImg = new Image();
-    treeImg.src = `/${theme}-forest.png`;
-    treeImg.onerror = () => {
+      // Load forest/trees (variant 1)
+      const treeImg = new Image();
       treeImg.src = '/farm-forest.png';
-    };
-    treeImg.onload = () => {
-      treeImageRef.current = treeImg;
-    };
+      treeImg.onload = () => {
+        treeImageRef.current = treeImg;
+      };
 
-    // Load forest/trees variant 2
-    const treeImg2 = new Image();
-    treeImg2.src = `/${theme}-forest2.png`;
-    treeImg2.onerror = () => {
+      // Load forest/trees variant 2
+      const treeImg2 = new Image();
       treeImg2.src = '/farm-forest2.png';
-    };
-    treeImg2.onload = () => {
-      treeImageRef2.current = treeImg2;
-    };
+      treeImg2.onload = () => {
+        treeImageRef2.current = treeImg2;
+      };
+    }
 
     // Load themed tiles (beach, desert, mountain)
     if (theme === 'beach') {
@@ -2558,12 +2544,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2629,12 +2615,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2724,12 +2710,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2771,12 +2757,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2821,12 +2807,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;
@@ -2910,12 +2896,12 @@ export default function Game() {
           ctx.fill();
         }
 
-        // Draw charged indicator on bot if supercharged (2 bolts side by side, centered)
+        // Draw charged indicator on bot if supercharged (2 bolts side by side, at top)
         if (bot.supercharged && chargedImageRef.current) {
           const chargedSize = GAME_CONFIG.tileSize * 0.35;
           const gap = 2; // Gap between the two bolts
           const totalWidth = chargedSize * 2 + gap;
-          const chargedY = botPy + (GAME_CONFIG.tileSize - chargedSize) / 2;
+          const chargedY = botPy + 2; // Position at top with small padding
 
           // Left bolt
           const leftX = botPx + (GAME_CONFIG.tileSize - totalWidth) / 2;

@@ -246,8 +246,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       }
       // Theme-specific zone generation
       else if (isBeach) {
-        // Fishing hut at bottom-left corner (2x2) on the sand
-        if (x >= 0 && x <= 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
+        // Fishing hut at bottom-right corner (2x2) on the sand
+        if (x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
           type = 'fishinghut';
         }
         // Beach: top 8 rows water (2/3 of grid), bottom 4 rows sand with seaweed/shells
@@ -2025,7 +2025,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   const startZone = newZones[startZoneKey];
   if (startZone && startZone.owned && startZone.transportBots && startZone.transportBots.length > 0) {
     // Migration: Add default config to existing bots without one
-    const updatedTransportBots = startZone.transportBots.map(bot => {
+    const migratedTransportBots = startZone.transportBots.map(bot => {
       if (!bot.config) {
         return {
           ...bot,
@@ -2045,10 +2045,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
       return bot;
     });
-    newZones[startZoneKey] = { ...startZone, transportBots: updatedTransportBots };
+    newZones[startZoneKey] = { ...startZone, transportBots: migratedTransportBots };
 
     // Check each transport bot's configuration to auto-mark items for sale
-    for (const bot of updatedTransportBots) {
+    for (const bot of migratedTransportBots) {
       if (!bot.config) continue; // Skip bots without config (shouldn't happen after migration)
 
       const config = bot.config;
@@ -2589,6 +2589,7 @@ export function plantSeed(
           plantedDay: state.currentDay, // Track when planted
           wateredTimestamp: undefined, // Crop needs to be watered first before growing
           wateredToday: false, // Crop needs water after planting
+          fertilized: false, // Reset fertilized state - must be applied by fertilizer bot
           lastWorkedTime: undefined, // Clear overgrowth tracking - tile is in use
           overgrowthTime: undefined,
         };

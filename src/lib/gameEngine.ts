@@ -613,6 +613,7 @@ export function createInitialState(): GameState {
       y: 1,
       money: 1000,
       farmName: "My Bot Farm",
+      farmerName: "Farmer",
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
       basket: [], // Empty basket to start

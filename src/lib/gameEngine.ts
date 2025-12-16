@@ -1085,7 +1085,13 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       });
 
       if (nearbyTiles.length > 0) {
-        const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
+        // Use zone-specific seed based on zone coordinates and game time
+        // This ensures each zone's farmer has independent random movement
+        const currentZoneKey = `${currentZone.x},${currentZone.y}`;
+        const zoneHash = currentZoneKey.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const zoneSeed = (zoneHash + newGameTime) % nearbyTiles.length;
+        const randomIndex = (zoneSeed + Math.floor(Math.random() * nearbyTiles.length)) % nearbyTiles.length;
+        const randomTile = nearbyTiles[randomIndex];
         newState.player.x = randomTile.x;
         newState.player.y = randomTile.y;
       }
@@ -5861,8 +5867,20 @@ function spawnFish(zone: import('@/types/game').Zone, gameTime: number): import(
     fishType = rareTypes[Math.floor(Math.random() * rareTypes.length)];
   }
 
-  // Random ocean tile position
-  const spawnTile = oceanTiles[Math.floor(Math.random() * oceanTiles.length)];
+  // Filter out ocean tiles that already have fish on them
+  const occupiedTiles = new Set(zone.fish.map(f => `${f.x},${f.y}`));
+  const availableOceanTiles = oceanTiles.filter(tile => !occupiedTiles.has(`${tile.x},${tile.y}`));
+
+  // No available spawn positions
+  if (availableOceanTiles.length === 0) {
+    return {
+      ...zone,
+      lastFishSpawnTime: gameTime,
+    };
+  }
+
+  // Random ocean tile position (from available tiles)
+  const spawnTile = availableOceanTiles[Math.floor(Math.random() * availableOceanTiles.length)];
 
   // Random despawn time based on rarity
   const duration = FISH_DURATIONS[rarity];

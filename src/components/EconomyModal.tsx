@@ -222,6 +222,14 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
   );
 }
 
+// Helper function to format time remaining
+function formatTimeRemaining(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
+
 export default function EconomyModal({ gameState, onClose }: EconomyModalProps) {
   const [activeTab, setActiveTab] = useState<ZoneTab>('farm');
 
@@ -258,7 +266,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
         <div className="flex-shrink-0 p-6 border-b border-gray-700/50">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-3xl font-bold text-white">📊 Goods Economy</h2>
+              <h2 className="text-3xl font-bold text-white">Goods Economy</h2>
               <p className="text-sm text-gray-400 mt-1">Price trends & forecasts for all goods</p>
             </div>
             <button
@@ -317,6 +325,9 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                 <div>
                   <div className="text-xs text-gray-400">Current Season</div>
                   <div className="text-lg font-bold capitalize">{market.currentSeason}</div>
+                  <div className="text-xs text-cyan-400 font-mono mt-1">
+                    Next: {formatTimeRemaining(getSeasonTimeRemaining(gameState.gameTime))}
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -334,6 +345,9 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   <div className="text-xs text-purple-400">⚡ EPIC PRICE (5x)</div>
                   <div className="text-3xl mt-1">
                     {CROP_INFO[market.epicPriceCrop].emoji}
+                  </div>
+                  <div className="text-xs text-purple-300 font-mono mt-1">
+                    Expires: {formatTimeRemaining(Math.max(0, market.epicPriceEndTime - gameState.gameTime))}
                   </div>
                 </div>
               )}

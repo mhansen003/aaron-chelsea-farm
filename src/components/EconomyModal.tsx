@@ -234,6 +234,24 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
   const [activeTab, setActiveTab] = useState<ZoneTab>('farm');
 
   const market = gameState.market;
+
+  // Calculate season progress
+  const SEASON_DURATION = 7 * 60 * 1000; // 7 minutes per season
+  const totalSeasonTime = gameState.gameTime % (SEASON_DURATION * 4);
+  const seasonProgress = totalSeasonTime % SEASON_DURATION;
+  const seasonProgressPercent = (seasonProgress / SEASON_DURATION) * 100;
+
+  // Get next season
+  const nextSeasonInfo = getNextSeasonForecast(gameState.gameTime);
+  const nextSeason = nextSeasonInfo.season;
+
+  // Season image mapping
+  const seasonImages: Record<string, string> = {
+    spring: '/spring.png',
+    summer: '/summer.png',
+    fall: '/fall.png',
+    winter: '/winter.png',
+  };
   if (!market) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -312,45 +330,92 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {/* Season and Market Info */}
-          <div className="bg-gray-800/50 rounded-xl border border-gray-700 p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">
-                  {market.currentSeason === 'spring' && '🌸'}
-                  {market.currentSeason === 'summer' && '☀️'}
-                  {market.currentSeason === 'fall' && '🍂'}
-                  {market.currentSeason === 'winter' && '❄️'}
-                </span>
+          {/* Season Banner - 75% Current / 25% Next */}
+          <div className="relative rounded-xl overflow-hidden border-2 border-gray-600/50 shadow-2xl mb-6 h-48">
+            {/* Background Images */}
+            <div className="absolute inset-0 flex">
+              {/* Current Season - 75% */}
+              <div className="w-[75%] relative">
+                <img
+                  src={seasonImages[market.currentSeason]}
+                  alt={market.currentSeason}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+              </div>
+
+              {/* Next Season - 25% */}
+              <div className="w-[25%] relative">
+                <img
+                  src={seasonImages[nextSeason]}
+                  alt={nextSeason}
+                  className="absolute inset-0 w-full h-full object-cover opacity-60"
+                />
+                <div className="absolute inset-0 bg-black/50" />
+              </div>
+            </div>
+
+            {/* Vertical Divider */}
+            <div className="absolute left-[75%] top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 via-cyan-300 to-cyan-400 shadow-lg shadow-cyan-500/50" />
+
+            {/* Content Overlay */}
+            <div className="relative h-full flex">
+              {/* Current Season Info - Left 75% */}
+              <div className="w-[75%] p-6 flex flex-col justify-between">
                 <div>
-                  <div className="text-xs text-gray-400">Current Season</div>
-                  <div className="text-lg font-bold capitalize">{market.currentSeason}</div>
-                  <div className="text-xs text-cyan-400 font-mono mt-1">
-                    Next: {formatTimeRemaining(getSeasonTimeRemaining(gameState.gameTime))}
+                  <div className="text-sm text-cyan-300 font-bold mb-1">CURRENT SEASON</div>
+                  <div className="text-5xl font-bold text-white capitalize drop-shadow-lg mb-2">
+                    {market.currentSeason}
                   </div>
+                  <div className="text-lg text-cyan-200 font-mono">
+                    {formatTimeRemaining(getSeasonTimeRemaining(gameState.gameTime))} remaining
+                  </div>
+                </div>
+
+                {/* Bottom Info */}
+                <div className="flex gap-6">
+                  {/* High Demand Crops */}
+                  <div>
+                    <div className="text-xs text-gray-300 font-bold mb-1">HIGH DEMAND</div>
+                    <div className="flex gap-2">
+                      {market.highDemandCrops.map(crop => (
+                        <div key={crop} className="bg-black/40 rounded-lg px-2 py-1 border border-yellow-500/50" title={CROP_INFO[crop].name}>
+                          <span className="text-2xl">{CROP_INFO[crop].emoji}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Epic Price */}
+                  {market.epicPriceCrop && (
+                    <div>
+                      <div className="text-xs text-purple-300 font-bold mb-1">⚡ EPIC PRICE (5x)</div>
+                      <div className="bg-purple-900/60 rounded-lg px-3 py-1 border border-purple-400/50">
+                        <span className="text-2xl">{CROP_INFO[market.epicPriceCrop].emoji}</span>
+                        <span className="text-xs text-purple-200 ml-2 font-mono">
+                          {formatTimeRemaining(Math.max(0, market.epicPriceEndTime - gameState.gameTime))}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xs text-slate-400">High Demand Crops</div>
-                <div className="flex gap-2 mt-1">
-                  {market.highDemandCrops.map(crop => (
-                    <span key={crop} className="text-2xl" title={CROP_INFO[crop].name}>
-                      {CROP_INFO[crop].emoji}
-                    </span>
-                  ))}
+
+              {/* Next Season Info - Right 25% */}
+              <div className="w-[25%] p-4 flex flex-col items-center justify-center text-center">
+                <div className="text-xs text-gray-300 font-bold mb-2">UP NEXT</div>
+                <div className="text-3xl font-bold text-white capitalize drop-shadow-lg">
+                  {nextSeason}
                 </div>
               </div>
-              {market.epicPriceCrop && (
-                <div className="text-right">
-                  <div className="text-xs text-purple-400">⚡ EPIC PRICE (5x)</div>
-                  <div className="text-3xl mt-1">
-                    {CROP_INFO[market.epicPriceCrop].emoji}
-                  </div>
-                  <div className="text-xs text-purple-300 font-mono mt-1">
-                    Expires: {formatTimeRemaining(Math.max(0, market.epicPriceEndTime - gameState.gameTime))}
-                  </div>
-                </div>
-              )}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/50">
+              <div
+                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 transition-all duration-1000 shadow-lg shadow-cyan-500/50"
+                style={{ width: `${seasonProgressPercent}%` }}
+              />
             </div>
           </div>
 

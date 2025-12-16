@@ -5020,7 +5020,7 @@ export default function Game() {
               player: {
                 ...prev.player,
                 selectedCrop: null,
-                selectedTool: 'uproot' as ToolType
+                selectedTool: prev.player.selectedTool === 'uproot' ? 'hoe' as ToolType : 'uproot' as ToolType
               },
             }))
           }
@@ -5029,7 +5029,7 @@ export default function Game() {
               ? 'bg-red-700 ring-2 ring-red-400 scale-105 md:scale-110'
               : 'bg-gray-700 hover:bg-gray-600'
           }`}
-          title="Uproot - Remove plants and clear seed bot tiles"
+          title="Uproot - Remove plants and clear seed bot tiles (click again to deselect)"
         >
           <span>🪓</span>
           <span className="text-xs md:text-sm hidden md:inline">Uproot</span>

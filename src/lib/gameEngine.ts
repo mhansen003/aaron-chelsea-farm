@@ -75,6 +75,7 @@ export const HOPPER_UPGRADE_COST = 400; // Cost to upgrade a single bot with lar
 export const BASE_ZONE_PRICE = 2000; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
 export const MOVE_SPEED = 0.0088; // Movement interpolation speed (0-1, higher = faster) - 10% faster
+export const SEEDBOT_MOVE_SPEED = 0.0112; // Seedbot movement speed - 40% faster than original to handle backlog
 
 // Fish spawning constants
 export const FISH_SPAWN_INTERVAL = 5000; // Check for new fish every 5 seconds
@@ -2136,7 +2137,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.68, bot.supercharged); // 32% faster for seed bots (15% faster than previous)
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.6, bot.supercharged); // 40% faster for seed bots to handle backlog
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;
@@ -5213,10 +5214,8 @@ export function relocateHopper(state: GameState): GameState {
 }
 
 export function relocateWarehouse(state: GameState): GameState {
-  // Only allow relocating if the building is currently placed
-  if (!state.player.inventory.warehousePlaced) {
-    return state;
-  }
+  // The warehouse is always placed in the game (one per farm)
+  // Just remove it from wherever it is and allow re-placement
 
   // Find and remove the warehouse from all zones
   const newZones = { ...state.zones };

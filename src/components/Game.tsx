@@ -2391,8 +2391,8 @@ export default function Game() {
       }
     }
 
-    // Draw 2x2 building placement preview (bot factory, well, garage, supercharger, export)
-    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger' || placementMode === 'fertilizer' || placementMode === 'hopper' || placementMode === 'export') && hoveredTile) {
+    // Draw 2x2 building placement preview (bot factory, well, garage, supercharger, export, warehouse)
+    if ((placementMode === 'botFactory' || placementMode === 'well' || placementMode === 'garage' || placementMode === 'supercharger' || placementMode === 'fertilizer' || placementMode === 'hopper' || placementMode === 'export' || placementMode === 'warehouse') && hoveredTile) {
       const currentGrid = getCurrentGrid(gameState);
       const tileX = hoveredTile.x;
       const tileY = hoveredTile.y;

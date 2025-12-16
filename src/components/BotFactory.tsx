@@ -278,7 +278,7 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
 
         {/* Bot Grid */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
             {(Object.entries(BOT_DATA) as [BotType, typeof BOT_DATA[BotType]][]).map(([type, data]) => {
               const owned = getOwned(type);
               const cost = getCost(type);

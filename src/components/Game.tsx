@@ -98,6 +98,7 @@ import WelcomeSplash from './WelcomeSplash';
 import QuickStartTutorial from './QuickStartTutorial';
 import TutorialModal from './TutorialModal';
 import FarmerModal from './FarmerModal';
+import BotDetailModal from './BotDetailModal';
 import {
   generateSaveCode,
   loadFromSaveCode,
@@ -203,6 +204,7 @@ export default function Game() {
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
   const [showFarmerModal, setShowFarmerModal] = useState(false);
+  const [showBotDetailModal, setShowBotDetailModal] = useState<{ botId: string; botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' } | null>(null);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
@@ -5787,9 +5789,12 @@ export default function Game() {
       )}
       </div>
 
-      {/* Right Sidebar - Bot Status */}
-      <div className="w-56 bg-black/70 p-2 rounded-lg text-white flex flex-col gap-1.5 max-h-full overflow-y-auto">
-        <div className="text-sm font-bold text-center mb-1 text-blue-400">🤖 Bot Fleet</div>
+      {/* Right Sidebar - Bot Fleet */}
+      <div className="w-80 bg-gradient-to-b from-gray-950/90 to-gray-900/90 backdrop-blur-sm p-3 rounded-xl border-2 border-blue-500/50 text-white flex flex-col gap-2 max-h-full overflow-y-auto shadow-2xl">
+        <div className="text-lg font-bold text-center mb-2 text-blue-400 flex items-center justify-center gap-2">
+          <span className="text-2xl">🤖</span>
+          <span>Bot Fleet</span>
+        </div>
 
         {/* Calculate garage position once for all bots */}
         {(() => {
@@ -5820,42 +5825,48 @@ export default function Game() {
                 <span className="ml-auto bg-cyan-600/30 px-1.5 py-0.5 rounded text-[10px]">{waterBots?.length ?? 0}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {waterBots?.map((bot, idx) => {
                   const actualCapacity = getWaterBotCapacity(bot.hopperUpgrade);
                   const waterPercent = (bot.waterLevel / actualCapacity) * 100;
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
-                    isParked ? '🏠 Parked in garage' :
-                    bot.status === 'traveling' ? 'Moving to crops' :
-                    bot.status === 'watering' ? 'Watering plants' :
-                    bot.status === 'refilling' ? 'At well' :
+                    isParked ? '🏠 Parked' :
+                    bot.status === 'traveling' ? 'Moving' :
+                    bot.status === 'watering' ? 'Watering' :
+                    bot.status === 'refilling' ? 'Refilling' :
                     'Ready';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1.5 border border-cyan-600/20 hover:bg-cyan-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-1">
-                        <span
-                          className="text-xs font-semibold text-cyan-100 cursor-pointer hover:text-cyan-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'water', currentName: bot.name })}
-                          title="Click to rename"
+                    <div key={bot.id} className="bg-gradient-to-br from-cyan-900/30 to-cyan-950/20 rounded-lg p-2 border-2 border-cyan-600/40 hover:border-cyan-500 hover:from-cyan-900/40 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-2">
+                        {/* Bot Image - Clickable */}
+                        <div
+                          className="w-12 h-12 bg-cyan-800/50 rounded-lg border-2 border-cyan-500 flex items-center justify-center cursor-pointer hover:bg-cyan-700/50 transition-all p-1"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'water' })}
+                          title="Click for details"
                         >
-                          {bot.name}
-                        </span>
-                        <span className="text-sm text-cyan-300">
-                          {bot.status === 'traveling' && '🚶'}
-                          {bot.status === 'watering' && '💦'}
-                          {bot.status === 'idle' && '😴'}
-                          {bot.status === 'refilling' && '⚡'}
-                        </span>
+                          <NextImage src="/water bot.png" alt="Water Bot" width={40} height={40} className="object-contain" />
+                        </div>
+                        {/* Bot Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-cyan-100 truncate">{bot.name}</span>
+                            {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                            {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                          </div>
+                          <div className="text-xs text-cyan-300/80">{statusText}</div>
+                        </div>
                       </div>
-                      <div className="text-[10px] text-cyan-200/70 mb-1 truncate font-medium">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                      {/* Progress Bar */}
+                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden mb-1">
                         <div
                           className={`h-full transition-all ${waterPercent > 30 ? 'bg-cyan-400' : 'bg-red-500'}`}
                           style={{ width: `${waterPercent}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-cyan-300/80 text-center mt-0.5 font-medium">Water: {bot.waterLevel}/{actualCapacity}</div>
+                      <div className="text-xs text-cyan-300/70 text-center font-medium">
+                        💧 {bot.waterLevel}/{actualCapacity}
+                      </div>
                     </div>
                   );
                 })}
@@ -6418,6 +6429,53 @@ export default function Game() {
           }}
         />
       )}
+
+      {/* Bot Detail Modal */}
+      {showBotDetailModal && (() => {
+        const currentZone = gameState.zones[getZoneKey(gameState.currentZone.x, gameState.currentZone.y)];
+        let bot = null;
+        const botType = showBotDetailModal.botType;
+
+        // Find the bot based on type
+        if (botType === 'water') bot = currentZone.waterBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'harvest') bot = currentZone.harvestBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'seed') bot = currentZone.seedBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'transport') bot = currentZone.transportBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'demolish') bot = currentZone.demolishBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'hunter') bot = currentZone.hunterBots?.find(b => b.id === showBotDetailModal.botId);
+        else if (botType === 'fertilizer') bot = currentZone.fertilizerBot;
+
+        if (!bot) return null;
+
+        return (
+          <BotDetailModal
+            bot={bot}
+            botType={botType}
+            gameState={gameState}
+            onClose={() => setShowBotDetailModal(null)}
+            onRename={(newName) => {
+              setGameState(prev => updateBotName(prev, showBotDetailModal.botId, newName, botType));
+              setShowBotDetailModal(null);
+            }}
+            onSupercharge={() => {
+              setGameState(prev => superchargeBot(prev, showBotDetailModal.botId, botType));
+            }}
+            onHopperUpgrade={() => {
+              setGameState(prev => hopperUpgrade(prev, showBotDetailModal.botId, botType));
+            }}
+            onConfigure={botType === 'seed' || botType === 'transport' ? () => {
+              setShowBotDetailModal(null);
+              if (botType === 'seed') {
+                setSelectedSeedBot(showBotDetailModal.botId);
+                setShowSeedBotConfig(true);
+              } else if (botType === 'transport') {
+                setSelectedTransportBot(showBotDetailModal.botId);
+                setShowTransportBotConfig(true);
+              }
+            } : undefined}
+          />
+        );
+      })()}
     </div>
   );
 }

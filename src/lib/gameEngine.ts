@@ -3062,8 +3062,9 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
 
       if (warehousePos && exportPos) {
         console.log('📋 Creating pickup & sell tasks:');
-        console.log('  Warehouse at:', warehousePos.x, warehousePos.y);
-        console.log('  Export at:', exportPos.x, exportPos.y);
+        console.log('  Warehouse found at:', warehousePos.x, warehousePos.y);
+        console.log('  Export found at:', exportPos.x, exportPos.y);
+        console.log('  Creating deposit task with export coords:', exportPos.x, exportPos.y);
 
         // Go to warehouse to pick up marked items
         tasks.push({
@@ -3107,6 +3108,7 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
       // Go to export building to sell crops
       const exportPos = findExportTile(state);
       if (exportPos) {
+        console.log('💰 Priority 1: Creating SELL task at export:', exportPos.x, exportPos.y);
         tasks.push({
           id: `auto-sell-${Date.now()}`,
           type: 'deposit',
@@ -3123,6 +3125,7 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
       // Go to warehouse to deposit crops
       const warehousePos = findWarehouseTile(state);
       if (warehousePos) {
+        console.log('📦 Priority 1: Creating DEPOSIT task at warehouse:', warehousePos.x, warehousePos.y);
         tasks.push({
           id: `auto-deposit-${Date.now()}`,
           type: 'deposit',

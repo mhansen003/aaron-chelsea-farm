@@ -1801,9 +1801,9 @@ export default function Game() {
             }
           }
 
-          // Draw the themed arch sprite (slightly bigger)
+          // Draw the themed arch sprite (very large - biggest on screen)
           if (selectedArchImage) {
-            const archSize = GAME_CONFIG.tileSize * 1.2;
+            const archSize = GAME_CONFIG.tileSize * 2.5;
             const offset = (archSize - GAME_CONFIG.tileSize) / 2;
             ctx.drawImage(selectedArchImage, px - offset, py - offset, archSize, archSize);
           }
@@ -2751,9 +2751,9 @@ export default function Game() {
 
     if (characterSprite) {
       // Draw character sprite (farmer, surfer, cowgirl, nomad, or mountaineer)
-      // Make Sally Surfer bigger in beach zone
+      // Make Sally Surfer very large in beach zone - biggest on screen alongside arch
       const isSurfer = currentZone?.theme === 'beach';
-      const charSize = isSurfer ? GAME_CONFIG.tileSize * 1.25 : GAME_CONFIG.tileSize;
+      const charSize = isSurfer ? GAME_CONFIG.tileSize * 2.5 : GAME_CONFIG.tileSize;
       const charOffset = isSurfer ? (charSize - GAME_CONFIG.tileSize) / 2 : 0;
       ctx.drawImage(characterSprite, playerPx - charOffset, playerPy - charOffset, charSize, charSize);
     } else {
@@ -6034,7 +6034,7 @@ export default function Game() {
                 <span className="ml-auto bg-purple-600/30 px-1 rounded text-xs">{transportBots?.length ?? 0}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {transportBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
@@ -6046,41 +6046,45 @@ export default function Game() {
                     bot.status === 'selling' ? 'Selling goods' :
                     'Ready';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-purple-600/20 cursor-pointer hover:bg-purple-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span
-                          className="text-xs font-semibold text-purple-100 cursor-pointer hover:text-purple-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'transport', currentName: bot.name })}
-                          title="Click to rename"
-                        >
-                          {bot.name}
-                        </span>
-                        <span className="text-sm text-purple-300">
-                          {bot.status === 'traveling' && '🚶'}
-                          {bot.status === 'loading' && '📥'}
-                          {bot.status === 'transporting' && '🚚'}
-                          {bot.status === 'selling' && '💰'}
-                          {bot.status === 'idle' && '😴'}
-                        </span>
-                      </div>
-                      <div className="text-[10px] font-medium text-purple-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                    <div key={bot.id} className="bg-gradient-to-br from-purple-900/30 to-purple-950/20 rounded-lg p-2 border-2 border-purple-600/40 hover:border-purple-500 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-2">
                         <div
-                          className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-purple-400' : 'bg-yellow-400'}`}
-                          style={{ width: `${inventoryPercent}%` }}
-                        />
+                          className="w-12 h-12 bg-purple-800/50 rounded-lg border-2 border-purple-500 flex items-center justify-center cursor-pointer hover:border-purple-400 transition-colors"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'transport' })}
+                          title="Click for bot details"
+                        >
+                          <NextImage src="/transport-bot.png" alt="Transport Bot" width={40} height={40} className="object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-purple-100 truncate">{bot.name}</span>
+                            <div className="flex items-center gap-0.5">
+                              {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                              {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                            </div>
+                          </div>
+                          <div className="text-xs text-purple-300/80 truncate">{statusText}</div>
+                        </div>
                       </div>
-                      <div className="text-sm text-purple-300/70 text-center mb-1">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTransportBot(bot.id);
-                          setShowTransportBotConfig(true);
-                        }}
-                        className="w-full px-1 py-0.5 bg-purple-600/30 hover:bg-purple-600/50 rounded text-xs font-semibold transition-colors"
-                      >
-                        ⚙️ Sell Rules
-                      </button>
+                      <div className="space-y-1">
+                        <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-purple-400' : 'bg-yellow-400'}`}
+                            style={{ width: `${inventoryPercent}%` }}
+                          />
+                        </div>
+                        <div className="text-[10px] text-purple-200/60 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTransportBot(bot.id);
+                            setShowTransportBotConfig(true);
+                          }}
+                          className="w-full px-2 py-1 bg-purple-600/30 hover:bg-purple-600/50 rounded text-xs font-semibold transition-colors"
+                        >
+                          ⚙️ Sell Rules
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -6101,7 +6105,7 @@ export default function Game() {
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-xs">{demolishBots?.length ?? 0}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {demolishBots?.map((bot, idx) => {
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
@@ -6120,36 +6124,40 @@ export default function Game() {
                   }
 
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span
-                          className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'demolish', currentName: bot.name })}
-                          title="Click to rename"
+                    <div key={bot.id} className="bg-gradient-to-br from-orange-900/30 to-orange-950/20 rounded-lg p-2 border-2 border-orange-600/40 hover:border-orange-500 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-12 h-12 bg-orange-800/50 rounded-lg border-2 border-orange-500 flex items-center justify-center cursor-pointer hover:border-orange-400 transition-colors"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'demolish' })}
+                          title="Click for bot details"
                         >
-                          {bot.name}
-                        </span>
-                        <span className="text-sm text-orange-300">
-                          {bot.status === 'traveling' && '🚶'}
-                          {bot.status === 'clearing' && '🔨'}
-                          {bot.status === 'idle' && '😴'}
-                        </span>
+                          <NextImage src="/demolish-bot.png" alt="Demolish Bot" width={40} height={40} className="object-contain" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-orange-100 truncate">{bot.name}</span>
+                            <div className="flex items-center gap-0.5">
+                              {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                              {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                            </div>
+                          </div>
+                          <div className="text-xs text-orange-300/80 truncate">{statusText}</div>
+                        </div>
                       </div>
-                      <div className="text-[10px] font-medium text-orange-200/60 mb-1 truncate">{statusText}</div>
 
                       {/* Progress bar when clearing */}
                       {bot.status === 'clearing' && (
-                        <>
-                          <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                        <div className="space-y-1">
+                          <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
                             <div
                               className="h-full bg-orange-500 transition-all"
                               style={{ width: `${clearingProgress}%` }}
                             />
                           </div>
-                          <div className="text-[10px] text-orange-300/70 text-center mt-0.5">
+                          <div className="text-[10px] text-orange-200/60 text-center">
                             {Math.floor(clearingProgress)}%
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   );
@@ -6169,7 +6177,7 @@ export default function Game() {
                 <span className="ml-auto bg-amber-600/30 px-1 rounded text-xs">{hunterBots?.length ?? 0}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {hunterBots?.map((bot, idx) => {
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
@@ -6180,33 +6188,26 @@ export default function Game() {
                     bot.status === 'patrolling' ? '👁️ Patrolling' :
                     'Ready';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-amber-600/20 cursor-pointer hover:bg-amber-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span
-                          className="text-xs font-semibold text-amber-100 cursor-pointer hover:text-amber-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'hunter', currentName: bot.name })}
-                          title="Click to rename"
+                    <div key={bot.id} className="bg-gradient-to-br from-amber-900/30 to-amber-950/20 rounded-lg p-2 border-2 border-amber-600/40 hover:border-amber-500 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className="w-12 h-12 bg-amber-800/50 rounded-lg border-2 border-amber-500 flex items-center justify-center cursor-pointer hover:border-amber-400 transition-colors"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'hunter' })}
+                          title="Click for bot details"
                         >
-                          {bot.name}
-                        </span>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Sell ${bot.name} for $${Math.floor(HUNTERBOT_COST * 0.7)}?`)) {
-                              setGameState(prev => sellBot(prev, bot.id, 'hunter'));
-                            }
-                          }}
-                          className="text-red-400 hover:text-red-300 text-xs px-1"
-                          title="Sell bot"
-                        >
-                          💰
-                        </button>
-                      </div>
-                      <div className="text-[10px] font-medium text-amber-200/60 mb-1 truncate">{statusText}</div>
-                      {bot.supercharged && (
-                        <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">
-                          ⚡ SUPERCHARGED
+                          <NextImage src="/fishing-bot.png" alt="Hunter Bot" width={40} height={40} className="object-contain" />
                         </div>
-                      )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-amber-100 truncate">{bot.name}</span>
+                            <div className="flex items-center gap-0.5">
+                              {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                              {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                            </div>
+                          </div>
+                          <div className="text-xs text-amber-300/80 truncate">{statusText}</div>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -6225,65 +6226,60 @@ export default function Game() {
                 <span className="ml-auto bg-lime-600/30 px-1 rounded text-xs">1</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
-                <div className="bg-black/20 rounded p-1 border border-lime-600/20 cursor-pointer hover:bg-lime-900/20 transition-colors">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span
-                      className="text-xs font-semibold text-lime-100 cursor-pointer hover:text-lime-300 hover:underline"
-                      onClick={() => setRenamingBot({ id: fertilizerBot.id, type: 'fertilizer', currentName: fertilizerBot.name })}
-                      title="Click to rename"
+              <div className="space-y-1.5">
+                <div className="bg-gradient-to-br from-lime-900/30 to-lime-950/20 rounded-lg p-2 border-2 border-lime-600/40 hover:border-lime-500 transition-all shadow-md">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className="w-12 h-12 bg-lime-800/50 rounded-lg border-2 border-lime-500 flex items-center justify-center cursor-pointer hover:border-lime-400 transition-colors"
+                      onClick={() => setShowBotDetailModal({ botId: fertilizerBot.id, botType: 'fertilizer' })}
+                      title="Click for bot details"
                     >
-                      {fertilizerBot.name}
-                    </span>
-                    <button
-                      onClick={() => {
-                        if (window.confirm(`Sell ${fertilizerBot.name} for $${Math.floor(FERTILIZERBOT_COST * 0.7)}?`)) {
-                          setGameState(prev => sellBot(prev, fertilizerBot.id, 'fertilizer'));
-                        }
-                      }}
-                      className="text-red-400 hover:text-red-300 text-xs px-1"
-                      title="Sell bot"
-                    >
-                      💰
-                    </button>
-                  </div>
-                  <div className="text-[10px] font-medium text-lime-200/60 mb-1 truncate">
-                    {fertilizerBot.status === 'idle' && garagePos && fertilizerBot.x === garagePos.x && fertilizerBot.y === garagePos.y
-                      ? '🏠 Parked in garage'
-                      : fertilizerBot.status === 'fertilizing'
-                      ? '🌱 Fertilizing crops'
-                      : fertilizerBot.status === 'refilling'
-                      ? '⛽ Refilling fertilizer'
-                      : 'Ready'}
+                      <NextImage src="/fertilizer-bot.png" alt="Fertilizer Bot" width={40} height={40} className="object-contain" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-sm font-bold text-lime-100 truncate">{fertilizerBot.name}</span>
+                        <div className="flex items-center gap-0.5">
+                          {fertilizerBot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                          {fertilizerBot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                        </div>
+                      </div>
+                      <div className="text-xs text-lime-300/80 truncate">
+                        {fertilizerBot.status === 'idle' && garagePos && fertilizerBot.x === garagePos.x && fertilizerBot.y === garagePos.y
+                          ? '🏠 Parked in garage'
+                          : fertilizerBot.status === 'fertilizing'
+                          ? '🌱 Fertilizing crops'
+                          : fertilizerBot.status === 'refilling'
+                          ? '⛽ Refilling fertilizer'
+                          : 'Ready'}
+                      </div>
+                    </div>
                   </div>
                   {/* Fertilizer level bar */}
-                  {(() => {
-                    const actualCapacity = getFertilizerBotCapacity(fertilizerBot.hopperUpgrade);
-                    return (
-                      <>
-                        <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${
-                              fertilizerBot.fertilizerLevel > 5
-                                ? 'bg-lime-400'
-                                : fertilizerBot.fertilizerLevel > 0
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
-                            }`}
-                            style={{ width: `${(fertilizerBot.fertilizerLevel / actualCapacity) * 100}%` }}
-                          />
-                        </div>
-                        <div className="text-[10px] text-lime-300/80 text-center mt-0.5 font-medium">
-                          Fertilizer: {fertilizerBot.fertilizerLevel}/{actualCapacity}
-                        </div>
-                      </>
-                    );
-                  })()}
-                  {fertilizerBot.supercharged && (
-                    <div className="text-[9px] text-yellow-300 bg-yellow-900/30 px-1 py-0.5 rounded mt-1">
-                      ⚡ SUPERCHARGED
-                    </div>
-                  )}
+                  <div className="space-y-1">
+                    {(() => {
+                      const actualCapacity = getFertilizerBotCapacity(fertilizerBot.hopperUpgrade);
+                      return (
+                        <>
+                          <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                fertilizerBot.fertilizerLevel > 5
+                                  ? 'bg-lime-400'
+                                  : fertilizerBot.fertilizerLevel > 0
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-500'
+                              }`}
+                              style={{ width: `${(fertilizerBot.fertilizerLevel / actualCapacity) * 100}%` }}
+                            />
+                          </div>
+                          <div className="text-[10px] text-lime-200/60 text-center">
+                            Fertilizer: {fertilizerBot.fertilizerLevel}/{actualCapacity}
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>

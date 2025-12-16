@@ -115,6 +115,30 @@ export default function FishingMarket({ gameState, onClose }: FishingMarketProps
               </div>
             </div>
 
+            {/* Fishing Boat */}
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-cyan-500/30 hover:border-cyan-500/60 transition-all">
+              <div className="aspect-square bg-black/40 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                <img src="/boat.png" alt="Fishing Boat" className="w-full h-full object-contain" />
+              </div>
+              <h3 className="text-2xl font-bold text-cyan-400 mb-2">⛵ Fishing Boat</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                Sail out to deeper waters for bigger catches and rare ocean treasures.
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-black text-yellow-400">$12,000</span>
+                <button
+                  disabled={gameState.player.money < 12000}
+                  className={`px-6 py-2 rounded-lg font-bold transition-all ${
+                    gameState.player.money >= 12000
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white hover:scale-105'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  BUILD
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 

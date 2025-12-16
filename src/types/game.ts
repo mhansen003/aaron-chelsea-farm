@@ -22,6 +22,7 @@ export type TileType =
   | 'sand'
   | 'seaweed'
   | 'shells'
+  | 'plank'
   | 'cactus'
   | 'rocks'
   | 'cave'

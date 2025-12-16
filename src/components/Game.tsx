@@ -276,6 +276,8 @@ export default function Game() {
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
   const shellsImageRef = useRef<HTMLImageElement | null>(null);
   const fishingHutImageRef = useRef<HTMLImageElement | null>(null);
+  const fishMarketImageRef = useRef<HTMLImageElement | null>(null);
+  const plankImageRef = useRef<HTMLImageElement | null>(null);
 
   // Fish image refs
   const yellowtailImageRef = useRef<HTMLImageElement | null>(null);
@@ -674,6 +676,18 @@ export default function Game() {
       fishingHutImg.src = '/fishinghut.png';
       fishingHutImg.onload = () => {
         fishingHutImageRef.current = fishingHutImg;
+      };
+
+      const fishMarketImg = new Image();
+      fishMarketImg.src = '/fishmarket.png';
+      fishMarketImg.onload = () => {
+        fishMarketImageRef.current = fishMarketImg;
+      };
+
+      const plankImg = new Image();
+      plankImg.src = '/plank.png';
+      plankImg.onload = () => {
+        plankImageRef.current = plankImg;
       };
 
       // Load fish images for beach theme
@@ -1834,7 +1848,10 @@ export default function Game() {
           ctx.fillStyle = '#FFFFFF';
           ctx.font = '48px Arial';
           ctx.fillText('🚢', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
-        } else if (tile.type === 'fishmarket') {
+        } else if (tile.type === 'plank' && plankImageRef.current) {
+          // Beach: Plank dock over ocean
+          ctx.drawImage(plankImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        } else if (tile.type === 'fishmarket' && fishMarketImageRef.current) {
           // Beach: Fish Market (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1842,13 +1859,15 @@ export default function Game() {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: 2x2 Orange market building
-          ctx.fillStyle = '#FF8C00';
-          const buildingSize = GAME_CONFIG.tileSize * 1.8;
-          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
-          ctx.fillStyle = '#FFFFFF';
-          ctx.font = '48px Arial';
-          ctx.fillText('🐟', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
+          // Fish Market uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Bottom-left corner position
+          const offsetX = (x - 0) * 512; // x can be 0 or 1
+          const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 512; // y can be 10 or 11
+          ctx.drawImage(
+            fishMarketImageRef.current,
+            offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
+          );
         } else if (tile.type === 'baitshop') {
           // Beach: Bait Shop (2x2 building) on sand
           if (sandImageRef.current) {

@@ -269,6 +269,14 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         if (x >= GAME_CONFIG.gridWidth - 2 && x <= GAME_CONFIG.gridWidth - 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
           type = 'fishinghut';
         }
+        // Fish Market at bottom-left corner (2x2) on the sand
+        else if (x >= 0 && x <= 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
+          type = 'fishmarket';
+        }
+        // Plank dock extending 5 squares into ocean from center of beach
+        else if ((x === 7 || x === 8) && y >= 3 && y <= 7) {
+          type = 'plank';
+        }
         // Beach: top 8 rows water (2/3 of grid), bottom 4 rows sand with seaweed/shells
         else if (y < 8) {
           type = 'ocean';

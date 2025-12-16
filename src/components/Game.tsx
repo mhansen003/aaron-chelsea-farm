@@ -5035,94 +5035,117 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Placement Toaster - Right side when placing or when unplaced building exists */}
+      {/* Placement Toasters - Right side when placing or when unplaced buildings exist */}
       {(() => {
-        // Determine which building needs placement
-        const unplacedBuilding =
-          gameState.player.inventory.sprinklers > 0 ? 'sprinkler' :
-          gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced ? 'botFactory' :
-          gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced ? 'well' :
-          (gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false) ? 'garage' :
-          (gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false) ? 'supercharger' :
-          (gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false) ? 'fertilizer' :
-          (gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false) ? 'hopper' :
-          null;
+        // Collect ALL unplaced buildings
+        const unplacedBuildings: Array<{type: string; count?: number}> = [];
 
-        const buildingToShow = placementMode || unplacedBuilding;
-        if (!buildingToShow) return null;
+        if (gameState.player.inventory.sprinklers > 0) {
+          unplacedBuildings.push({ type: 'sprinkler', count: gameState.player.inventory.sprinklers });
+        }
+        if (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) {
+          unplacedBuildings.push({ type: 'botFactory' });
+        }
+        if (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) {
+          unplacedBuildings.push({ type: 'well' });
+        }
+        if ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) {
+          unplacedBuildings.push({ type: 'garage' });
+        }
+        if ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) {
+          unplacedBuildings.push({ type: 'supercharger' });
+        }
+        if ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) {
+          unplacedBuildings.push({ type: 'fertilizer' });
+        }
+        if ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false)) {
+          unplacedBuildings.push({ type: 'hopper' });
+        }
+
+        // If in placement mode, show that first; otherwise show all unplaced
+        const buildingsToShow = placementMode
+          ? [{ type: placementMode, count: placementMode === 'sprinkler' ? gameState.player.inventory.sprinklers : undefined }]
+          : unplacedBuildings;
+
+        if (buildingsToShow.length === 0) return null;
+
+        const getBuildingInfo = (type: string) => {
+          switch (type) {
+            case 'sprinkler': return { name: 'Sprinkler', image: '/sprinkler.png' };
+            case 'botFactory': return { name: 'Bot Factory', image: '/botfactory.png' };
+            case 'well': return { name: 'Water Well', image: '/well.png' };
+            case 'garage': return { name: 'Garage', image: '/garage.png' };
+            case 'supercharger': return { name: 'Supercharger', image: '/supercharger.png' };
+            case 'fertilizer': return { name: 'Fertilizer Building', image: '/fertilizer building.png' };
+            case 'hopper': return { name: 'Hopper', image: '/hopper.png' };
+            default: return { name: 'Building', image: '/sprinkler.png' };
+          }
+        };
 
         const isInPlacementMode = !!placementMode;
 
         return (
-          <div
-            className={`fixed bottom-24 right-6 z-50 transition-all duration-300 ${
-              shouldBounce ? 'scale-105 shadow-orange-500/60' : 'scale-100'
-            }`}
-          >
-            <div className="bg-gradient-to-br from-orange-600 via-orange-700 to-orange-800 backdrop-blur-xl p-4 rounded-xl border-2 border-orange-400/70 shadow-2xl min-w-[320px]">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-900/50 rounded-lg border border-orange-400/30">
-                  <span className="text-xl">{isInPlacementMode ? '📍' : '⚠️'}</span>
-                  <span className="text-orange-100 font-bold text-sm tracking-wide">
-                    {isInPlacementMode ? 'PLACING' : 'UNPLACED'}
-                  </span>
+          <>
+            {buildingsToShow.map((building, index) => (
+              <div
+                key={`${building.type}-${index}`}
+                className={`fixed right-6 z-50 transition-all duration-300 ${
+                  shouldBounce && index === 0 ? 'scale-105 shadow-orange-500/60' : 'scale-100'
+                }`}
+                style={{ bottom: `${24 + (index * 200)}px` }}
+              >
+                <div className="bg-gradient-to-br from-orange-600 via-orange-700 to-orange-800 backdrop-blur-xl p-4 rounded-xl border-2 border-orange-400/70 shadow-2xl min-w-[320px]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-900/50 rounded-lg border border-orange-400/30">
+                      <span className="text-xl">{isInPlacementMode ? '📍' : '⚠️'}</span>
+                      <span className="text-orange-100 font-bold text-sm tracking-wide">
+                        {isInPlacementMode ? 'PLACING' : 'UNPLACED'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-3 bg-black/30 px-3 py-3 rounded-lg border border-orange-400/30">
+                    <NextImage
+                      src={getBuildingInfo(building.type).image}
+                      alt="Building"
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                    />
+                    <div className="flex-1">
+                      <div className="text-base text-orange-100 font-bold">
+                        {getBuildingInfo(building.type).name}
+                      </div>
+                      <div className="text-xs text-orange-200">
+                        {isInPlacementMode ? 'Click map to place' : 'Needs placement'}
+                      </div>
+                    </div>
+                    {building.count && building.count > 0 && (
+                      <span className="text-sm bg-orange-900/60 px-3 py-1.5 rounded-md text-orange-200 font-bold">
+                        ×{building.count}
+                      </span>
+                    )}
+                  </div>
+
+                  {isInPlacementMode ? (
+                    <button
+                      onClick={() => setPlacementMode(null)}
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setPlacementMode(building.type as any)}
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-green-500/30"
+                    >
+                      Place Building
+                    </button>
+                  )}
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 mb-3 bg-black/30 px-3 py-3 rounded-lg border border-orange-400/30">
-                <NextImage
-                  src={
-                    buildingToShow === 'sprinkler' ? '/sprinkler.png' :
-                    buildingToShow === 'botFactory' ? '/botfactory.png' :
-                    buildingToShow === 'well' ? '/well.png' :
-                    buildingToShow === 'garage' ? '/garage.png' :
-                    buildingToShow === 'supercharger' ? '/supercharger.png' :
-                    buildingToShow === 'fertilizer' ? '/fertilizer building.png' :
-                    '/hopper.png'
-                  }
-                  alt="Building"
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-                <div className="flex-1">
-                  <div className="text-base text-orange-100 font-bold">
-                    {buildingToShow === 'sprinkler' && 'Sprinkler'}
-                    {buildingToShow === 'botFactory' && 'Bot Factory'}
-                    {buildingToShow === 'well' && 'Water Well'}
-                    {buildingToShow === 'garage' && 'Garage'}
-                    {buildingToShow === 'supercharger' && 'Supercharger'}
-                    {buildingToShow === 'fertilizer' && 'Fertilizer Building'}
-                    {buildingToShow === 'hopper' && 'Hopper'}
-                  </div>
-                  <div className="text-xs text-orange-200">
-                    {isInPlacementMode ? 'Click map to place' : 'Needs placement'}
-                  </div>
-                </div>
-                {buildingToShow === 'sprinkler' && gameState.player.inventory.sprinklers > 0 && (
-                  <span className="text-sm bg-orange-900/60 px-3 py-1.5 rounded-md text-orange-200 font-bold">
-                    ×{gameState.player.inventory.sprinklers}
-                  </span>
-                )}
-              </div>
-
-              {isInPlacementMode ? (
-                <button
-                  onClick={() => setPlacementMode(null)}
-                  className="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30"
-                >
-                  Cancel
-                </button>
-              ) : (
-                <button
-                  onClick={() => setPlacementMode(buildingToShow as any)}
-                  className="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-green-500/30"
-                >
-                  Place Building
-                </button>
-              )}
-            </div>
-          </div>
+            ))}
+          </>
         );
       })()}
 

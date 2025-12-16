@@ -836,6 +836,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             const shouldSell = newState.player.farmerAuto.autoSell;
             const depositPos = shouldSell ? findExportTile(newState) : findWarehouseTile(newState);
 
+            console.log('🚨 BASKET FULL (before harvest) - Creating deposit task');
+            console.log('  autoSell setting:', shouldSell);
+            console.log('  Destination:', shouldSell ? 'EXPORT (sell)' : 'WAREHOUSE (store)');
+            console.log('  Destination position:', depositPos);
+
             if (depositPos) {
               // Create deposit task at export (sell) or warehouse (deposit) based on setting
               const depositTask: Task = {
@@ -855,6 +860,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               // Set player position to destination so they walk there
               newState.player.x = depositPos.x;
               newState.player.y = depositPos.y;
+              console.log('  ✅ Player teleported to:', depositPos.x, depositPos.y);
               break; // Don't execute harvest, deposit first
             }
           }
@@ -865,6 +871,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
             const shouldSell = newState.player.farmerAuto.autoSell;
             const depositPos = shouldSell ? findExportTile(newState) : findWarehouseTile(newState);
+
+            console.log('🚨 BASKET FULL (after harvest) - Creating deposit task');
+            console.log('  autoSell setting:', shouldSell);
+            console.log('  Destination:', shouldSell ? 'EXPORT (sell)' : 'WAREHOUSE (store)');
+            console.log('  Destination position:', depositPos);
 
             if (depositPos) {
               // Create deposit task at export (sell) or warehouse (deposit) based on setting
@@ -885,6 +896,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               // Set player position to destination so they walk there
               newState.player.x = depositPos.x;
               newState.player.y = depositPos.y;
+              console.log('  ✅ Player teleported to:', depositPos.x, depositPos.y);
               break; // Don't clear current task, keep the deposit task
             }
           }

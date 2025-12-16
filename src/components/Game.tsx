@@ -4998,8 +4998,62 @@ export default function Game() {
         </button>
       </div>
 
+      {/* Placement Toast Popup - Shows when item is selected for placement */}
+      {placementMode && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slideDown">
+          <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 backdrop-blur-xl p-6 rounded-2xl border-2 border-amber-500/50 shadow-2xl shadow-amber-500/20 min-w-[400px]">
+            {/* Header with icon and title */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl">
+                  {placementMode === 'sprinkler' && '💦'}
+                  {placementMode === 'botFactory' && '⚙️'}
+                  {placementMode === 'well' && '🪣'}
+                  {placementMode === 'garage' && '🚗'}
+                  {placementMode === 'supercharger' && '⚡'}
+                  {placementMode === 'fertilizer' && '🌱'}
+                  {placementMode === 'hopper' && '🎒'}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-amber-200">
+                    {placementMode === 'sprinkler' && 'Place Sprinkler'}
+                    {placementMode === 'botFactory' && 'Place Bot Factory'}
+                    {placementMode === 'well' && 'Place Water Well'}
+                    {placementMode === 'garage' && 'Place Garage'}
+                    {placementMode === 'supercharger' && 'Place Supercharger'}
+                    {placementMode === 'fertilizer' && 'Place Fertilizer Building'}
+                    {placementMode === 'hopper' && 'Place Hopper'}
+                  </h3>
+                  <p className="text-sm text-slate-400">Click to place on the map</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPlacementMode(null)}
+                className="px-4 py-2 bg-red-500/90 hover:bg-red-600 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30 flex items-center gap-2"
+              >
+                <span className="text-lg">✕</span>
+                <span>Cancel</span>
+              </button>
+            </div>
+
+            {/* Instructions */}
+            <div className="bg-black/40 rounded-lg p-4 border border-amber-500/30">
+              <p className="text-amber-100 text-center font-medium">
+                {placementMode === 'sprinkler' && '👆 Click any tile to place sprinkler'}
+                {placementMode === 'botFactory' && '👆 Click a grass tile to place shop (2 min build time)'}
+                {placementMode === 'well' && '👆 Click a grass tile to place water well'}
+                {placementMode === 'garage' && '👆 Click a grass tile to place garage'}
+                {placementMode === 'supercharger' && '👆 Click a grass tile to place supercharger'}
+                {placementMode === 'fertilizer' && '👆 Click a grass tile to place fertilizer building'}
+                {placementMode === 'hopper' && '👆 Click a grass tile to place hopper'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Placement Toolbar - Modern menu for placing items */}
-      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
+      {isMounted && !placementMode && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
         <div className="w-full bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-slate-800/95 backdrop-blur-sm p-4 rounded-xl border border-slate-600/50 shadow-xl">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg border border-slate-600/30">
@@ -5111,33 +5165,6 @@ export default function Game() {
               <span className="text-lg">🎒</span>
               <span>Hopper</span>
             </button>
-          )}
-
-          {/* Cancel/Clear Selection */}
-          {placementMode && (
-            <button
-              onClick={() => setPlacementMode(null)}
-              className="px-4 py-2.5 rounded-lg font-semibold text-sm bg-red-500/90 hover:bg-red-600 border border-red-400 text-white ml-auto flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
-            >
-              <span className="text-lg">✕</span>
-              <span>Cancel</span>
-            </button>
-          )}
-
-          {/* Help Text */}
-          {placementMode && (
-            <div className="text-slate-300 text-xs font-medium px-3 py-1.5 bg-slate-700/40 rounded-md border border-slate-600/30">
-              👉 {
-                placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' :
-                placementMode === 'botFactory' ? 'Click grass tile to place shop (2 min build)' :
-                placementMode === 'well' ? 'Click grass tile to place well' :
-                placementMode === 'garage' ? 'Click grass tile to place garage' :
-                placementMode === 'supercharger' ? 'Click grass tile to place supercharger' :
-                placementMode === 'fertilizer' ? 'Click grass tile to place fertilizer building' :
-                placementMode === 'hopper' ? 'Click grass tile to place hopper' :
-                'Click a tile to place'
-              }
-            </div>
           )}
           </div>
         </div>

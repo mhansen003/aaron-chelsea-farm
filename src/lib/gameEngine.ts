@@ -128,7 +128,7 @@ export function getFertilizerBotCapacity(hopperUpgrade?: boolean): number {
 // Task durations in milliseconds
 export const TASK_DURATIONS: Record<TaskType, number> = {
   clear: 7500, // 7.5 seconds to clear rocks/trees (25% faster)
-  plant: 3000, // 3 seconds to plant (50% slower than before)
+  plant: 9000, // 9 seconds to plant (200% slower than original)
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   uproot: 2000, // 2 seconds to uproot a crop
@@ -2986,7 +2986,7 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
     })
   );
 
-  // After placing sprinkler, instantly water all plants in 7x7 coverage area
+  // After placing sprinkler, instantly water all thirsty plants in 7x7 coverage area
   const wateredGrid = newGrid.map((row, y) =>
     row.map((t, x) => {
       const dx = Math.abs(x - tileX);
@@ -2994,8 +2994,8 @@ export function placeSprinkler(state: GameState, tileX: number, tileY: number): 
 
       // Check if tile is in sprinkler range (7x7 area)
       if (dx <= SPRINKLER_RANGE && dy <= SPRINKLER_RANGE) {
-        // If there's a planted crop that hasn't been watered, water it instantly
-        if (t.type === 'planted' && !t.wateredTimestamp) {
+        // If there's a planted crop that is thirsty (not watered today), water it instantly
+        if (t.type === 'planted' && !t.wateredToday) {
           return {
             ...t,
             wateredTimestamp: state.gameTime,

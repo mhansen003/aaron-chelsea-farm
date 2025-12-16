@@ -81,8 +81,19 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
 
     // Get price range for this crop
     const prices = allData.map(snapshot => snapshot.prices[crop]);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+
+    // Check if this crop has epic pricing active
+    const isRandomEpic = market.epicPriceCrop === crop;
+    const currentEpicEvent = getEpicSeasonalEvent(gameState.gameTime);
+    const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
+    const isEpic = isRandomEpic || isSeasonalEpic;
+
+    // If epic, ensure current price is properly represented in scale
+    const currentPrice = gameState.market?.currentPrices[crop] || prices[prices.length - 1];
+    const allPricesIncludingCurrent = [...prices, currentPrice];
+
+    const minPrice = Math.min(...allPricesIncludingCurrent);
+    const maxPrice = Math.max(...allPricesIncludingCurrent);
     const priceRange = maxPrice - minPrice || 1;
 
     const historyLength = market.priceHistory.length;
@@ -120,14 +131,25 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
       // Draw points on the line
       market.priceHistory.forEach((snapshot, index) => {
         const x = getX(index);
-        const y = getY(snapshot.prices[crop]);
+        // For current price (last point), use actual current price with epic multiplier
+        const price = (index === market.priceHistory.length - 1) ? currentPrice : snapshot.prices[crop];
+        const y = getY(price);
 
         // Current price point is larger and highlighted
         if (index === market.priceHistory.length - 1) {
-          ctx.fillStyle = '#eab308';
+          // If epic, make it even more prominent
+          ctx.fillStyle = isEpic ? '#a855f7' : '#eab308';
           ctx.beginPath();
-          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.arc(x, y, isEpic ? 5 : 4, 0, Math.PI * 2);
           ctx.fill();
+          // Add glow effect for epic
+          if (isEpic) {
+            ctx.strokeStyle = '#a855f7';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, 7, 0, Math.PI * 2);
+            ctx.stroke();
+          }
         } else {
           ctx.fillStyle = color;
           ctx.beginPath();

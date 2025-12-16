@@ -66,6 +66,15 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
               className="w-full h-96 object-cover rounded-xl drop-shadow-2xl"
             />
 
+            {/* Purchase price badge on top-left */}
+            {!zone.owned && zone.purchasePrice && (
+              <div className="absolute top-4 left-4 bg-yellow-600/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-yellow-500 shadow-lg">
+                <p className="text-white font-bold text-xs">
+                  ${zone.purchasePrice?.toLocaleString()}
+                </p>
+              </div>
+            )}
+
             {/* NPC overlaid on bottom-left corner */}
             {zone.npc && (
               <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm p-3 rounded-xl border-2 border-cyan-500">
@@ -84,19 +93,11 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
             )}
           </div>
 
-          {/* Right: Description and purchase info - takes 2 columns */}
+          {/* Right: Description - takes 2 columns */}
           <div className="lg:col-span-2 flex flex-col">
-            <p className="text-lg text-slate-200 mb-6 leading-relaxed">
+            <p className="text-lg text-slate-200 leading-relaxed">
               {expandedDescriptions[zone.theme as keyof typeof expandedDescriptions]}
             </p>
-
-            {!zone.owned && (
-              <div className="bg-yellow-600/20 px-4 py-2 rounded-lg border border-yellow-600/50 mt-auto">
-                <p className="text-yellow-400 font-bold text-sm">
-                  Purchase Price: ${zone.purchasePrice?.toLocaleString()}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 

@@ -48,17 +48,17 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
     return (
       <div
         key={bot.id}
-        className={`relative border-2 ${config.color} ${isSupercharged ? 'ring-2 ring-yellow-400' : ''} rounded-lg p-3 hover:shadow-lg transition-all`}
+        className={`relative border-2 ${config.color} ${isSupercharged ? 'ring-2 ring-yellow-400' : ''} rounded-lg p-4 hover:shadow-lg transition-all`}
       >
         {isSupercharged && (
-          <div className="absolute -top-2 -right-2 w-8 h-8">
-            <Image src="/charged.png" alt="Supercharged" width={32} height={32} className="drop-shadow-lg" />
+          <div className="absolute -top-2 -right-2 w-10 h-10">
+            <Image src="/charged.png" alt="Supercharged" width={40} height={40} className="drop-shadow-lg" />
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-2">
-          {/* Bot Image */}
-          <div className="w-16 h-16 relative">
+        <div className="flex flex-col items-center gap-3">
+          {/* Bot Image - Bigger */}
+          <div className="w-24 h-24 relative">
             <Image
               src={config.image}
               alt={config.name}
@@ -69,20 +69,20 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
 
           {/* Bot Info */}
           <div className="text-center">
-            <p className="text-white text-xs font-semibold">Bot #{bot.id.slice(0, 6)}</p>
+            <p className="text-white text-sm font-semibold">{bot.name || config.name}</p>
             <p className="text-gray-400 text-xs capitalize">{bot.status}</p>
           </div>
 
           {/* Upgrade Button or Status */}
           {isSupercharged ? (
-            <div className="bg-yellow-400 text-black px-3 py-1 rounded text-xs font-bold">
+            <div className="bg-yellow-400 text-black px-4 py-2 rounded text-sm font-bold">
               ACTIVE
             </div>
           ) : (
             <button
               onClick={handleUpgrade}
               disabled={!canAfford}
-              className={`w-full px-3 py-1.5 rounded text-xs font-bold transition-all ${
+              className={`w-full px-4 py-2 rounded text-sm font-bold transition-all ${
                 canAfford
                   ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
                   : 'bg-gray-700 text-gray-500 cursor-not-allowed'
@@ -140,57 +140,16 @@ export default function SuperchargerModal({ gameState, onClose, onSupercharge, o
               <p className="text-gray-500 text-sm mt-2">Purchase bots from the shop to get started</p>
             </div>
           ) : (
-            <>
-              {/* Water Bots */}
-              {waterBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-cyan-400 mb-3">Water Bots ({waterBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {waterBots.map(bot => renderBotCard(bot, 'water'))}
-                  </div>
-                </div>
-              )}
-
-              {/* Harvest Bots */}
-              {harvestBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-orange-400 mb-3">Harvest Bots ({harvestBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {harvestBots.map(bot => renderBotCard(bot, 'harvest'))}
-                  </div>
-                </div>
-              )}
-
-              {/* Seed Bots */}
-              {seedBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-green-400 mb-3">Seed Bots ({seedBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {seedBots.map(bot => renderBotCard(bot, 'seed'))}
-                  </div>
-                </div>
-              )}
-
-              {/* Transport Bots */}
-              {transportBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-purple-400 mb-3">Transport Bots ({transportBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {transportBots.map(bot => renderBotCard(bot, 'transport'))}
-                  </div>
-                </div>
-              )}
-
-              {/* Demolish Bots */}
-              {demolishBots.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-bold text-red-400 mb-3">Demolish Bots ({demolishBots.length})</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {demolishBots.map(bot => renderBotCard(bot, 'demolish'))}
-                  </div>
-                </div>
-              )}
-            </>
+            <div>
+              <h3 className="text-xl font-bold text-white mb-4">All Bots ({totalBots})</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {waterBots.map(bot => renderBotCard(bot, 'water'))}
+                {harvestBots.map(bot => renderBotCard(bot, 'harvest'))}
+                {seedBots.map(bot => renderBotCard(bot, 'seed'))}
+                {transportBots.map(bot => renderBotCard(bot, 'transport'))}
+                {demolishBots.map(bot => renderBotCard(bot, 'demolish'))}
+              </div>
+            </div>
           )}
         </div>
 

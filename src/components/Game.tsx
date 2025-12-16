@@ -5095,123 +5095,6 @@ export default function Game() {
         </div>
       )}
 
-      {/* Build Toolbar - Only show when NOT in placement mode */}
-      {isMounted && !placementMode && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
-        <div className="w-full bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-slate-800/95 backdrop-blur-sm p-4 rounded-xl border border-slate-600/50 shadow-xl">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg border border-slate-600/30">
-              <span className="text-xl">🔨</span>
-              <span className="text-slate-200 font-semibold text-sm tracking-wide">BUILD</span>
-            </div>
-
-          {/* Sprinkler Placement Button */}
-          {gameState.player.inventory.sprinklers > 0 && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'sprinkler' ? null : 'sprinkler')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'sprinkler'
-                  ? 'bg-cyan-500/90 border-cyan-400 text-white shadow-lg shadow-cyan-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">💦</span>
-              <span>Sprinkler</span>
-              <span className="text-xs bg-black/30 px-2 py-0.5 rounded-md ml-1">×{gameState.player.inventory.sprinklers}</span>
-            </button>
-          )}
-
-          {/* Bot Factory Placement Button */}
-          {gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'botFactory' ? null : 'botFactory')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'botFactory'
-                  ? 'bg-orange-500/90 border-orange-400 text-white shadow-lg shadow-orange-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">⚙️</span>
-              <span>Bot Factory</span>
-            </button>
-          )}
-
-          {/* Well Placement Button */}
-          {gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'well' ? null : 'well')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'well'
-                  ? 'bg-blue-500/90 border-blue-400 text-white shadow-lg shadow-blue-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">🪣</span>
-              <span>Water Well</span>
-            </button>
-          )}
-
-          {/* Garage Placement Button */}
-          {(gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false) && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'garage' ? null : 'garage')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'garage'
-                  ? 'bg-amber-500/90 border-amber-400 text-white shadow-lg shadow-amber-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">🚗</span>
-              <span>Garage</span>
-            </button>
-          )}
-
-          {/* Supercharger Placement Button */}
-          {(gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false) && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'supercharger' ? null : 'supercharger')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'supercharger'
-                  ? 'bg-purple-500/90 border-purple-400 text-white shadow-lg shadow-purple-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">⚡</span>
-              <span>Supercharger</span>
-            </button>
-          )}
-
-          {/* Fertilizer Building Placement Button */}
-          {(gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false) && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'fertilizer' ? null : 'fertilizer')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'fertilizer'
-                  ? 'bg-lime-500/90 border-lime-400 text-white shadow-lg shadow-lime-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">🌱</span>
-              <span>Fertilizer</span>
-            </button>
-          )}
-
-          {/* Hopper Placement Button */}
-          {(gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false) && (
-            <button
-              onClick={() => setPlacementMode(placementMode === 'hopper' ? null : 'hopper')}
-              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
-                placementMode === 'hopper'
-                  ? 'bg-teal-500/90 border-teal-400 text-white shadow-lg shadow-teal-500/30'
-                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
-              }`}
-            >
-              <span className="text-lg">🎒</span>
-              <span>Hopper</span>
-            </button>
-          )}
-          </div>
-        </div>
-      )}
 
       {/* Sell Message */}
       {sellMessage && (
@@ -5326,16 +5209,37 @@ export default function Game() {
           onClose={() => setShowShop(false)}
           onBuySeeds={(crop, amount) => setGameState(prev => buySeeds(prev, crop, amount))}
           onBuyTool={toolName => setGameState(prev => buyTool(prev, toolName))}
-          onBuySprinklers={amount => setGameState(prev => buySprinklers(prev, amount))}
+          onBuySprinklers={amount => {
+            setGameState(prev => buySprinklers(prev, amount));
+            setPlacementMode('sprinkler');
+          }}
           onBuyWaterbots={(amount, name) => setGameState(prev => buyWaterbots(prev, amount, name))}
           onBuyHarvestbots={(amount, name) => setGameState(prev => buyHarvestbots(prev, amount, name))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
-          onBuyBotFactory={() => setGameState(prev => buyBotFactory(prev))}
-          onBuyWell={() => setGameState(prev => buyWell(prev))}
-          onBuyGarage={() => setGameState(prev => buyGarage(prev))}
-          onBuySupercharger={() => setGameState(prev => buySupercharger(prev))}
-          onBuyFertilizerBuilding={() => setGameState(prev => buyFertilizerBuilding(prev))}
-          onBuyHopper={() => setGameState(prev => buyHopper(prev))}
+          onBuyBotFactory={() => {
+            setGameState(prev => buyBotFactory(prev));
+            setPlacementMode('botFactory');
+          }}
+          onBuyWell={() => {
+            setGameState(prev => buyWell(prev));
+            setPlacementMode('well');
+          }}
+          onBuyGarage={() => {
+            setGameState(prev => buyGarage(prev));
+            setPlacementMode('garage');
+          }}
+          onBuySupercharger={() => {
+            setGameState(prev => buySupercharger(prev));
+            setPlacementMode('supercharger');
+          }}
+          onBuyFertilizerBuilding={() => {
+            setGameState(prev => buyFertilizerBuilding(prev));
+            setPlacementMode('fertilizer');
+          }}
+          onBuyHopper={() => {
+            setGameState(prev => buyHopper(prev));
+            setPlacementMode('hopper');
+          }}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}

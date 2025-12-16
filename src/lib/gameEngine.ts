@@ -4,8 +4,8 @@ import { CROP_INFO } from './cropConstants';
 import { getMarketPrice, getEpicSeasonalEvent } from './marketEconomy';
 
 export const GAME_CONFIG: GameConfig = {
-  gridWidth: 16,
-  gridHeight: 12,
+  gridWidth: 20,
+  gridHeight: 15,
   tileSize: 90, // Increased from 72 to fill header width (16 * 90 = 1440px)
 };
 

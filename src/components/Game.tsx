@@ -152,6 +152,7 @@ export default function Game() {
   // User must use save codes to load previous games
   const [gameState, setGameState] = useState<GameState>(createInitialState);
   const [showShop, setShowShop] = useState(false);
+  const [showFishingMarket, setShowFishingMarket] = useState(false);
   const [showSellShop, setShowSellShop] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -3579,6 +3580,12 @@ export default function Game() {
     if (tile.type === 'warehouse') {
       // Open warehouse modal
       setShowWarehouseModal(true);
+      return;
+    }
+
+    // Handle fishing hut tile clicks (beach zone)
+    if (tile.type === 'fishinghut') {
+      setShowFishingMarket(true);
       return;
     }
 

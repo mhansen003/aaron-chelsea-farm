@@ -1983,7 +1983,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           }
         } else {
           let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 250)) { // Faster movement (was 500)
+          if (Math.random() < (deltaTime / 150)) { // Much faster travel speed
             if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
             else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
           }

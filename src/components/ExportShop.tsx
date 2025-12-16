@@ -51,6 +51,26 @@ const SEASON_EMOJIS = {
   winter: '❄️',
 };
 
+const SEASON_IMAGES: Record<string, string> = {
+  spring: '/spring.png',
+  summer: '/summer.png',
+  fall: '/fall.png',
+  winter: '/winter.png',
+};
+
+function formatTimeRemaining(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
+}
+
+function getSeasonTimeRemaining(gameTime: number): number {
+  const SEASON_DURATION = 7 * 60 * 1000; // 7 minutes
+  const seasonProgress = gameTime % SEASON_DURATION;
+  return SEASON_DURATION - seasonProgress;
+}
+
 export default function ExportShop({ gameState, onClose }: ExportShopProps) {
   const [selectedCrop, setSelectedCrop] = useState<Exclude<CropType, null> | null>(null);
 
@@ -121,53 +141,98 @@ export default function ExportShop({ gameState, onClose }: ExportShopProps) {
           </button>
         </div>
 
-        {/* Season & Market Info */}
-        <div className="mb-4 bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">
-                {SEASON_EMOJIS[gameState.market?.currentSeason || 'spring']}
-              </span>
-              <div>
-                <div className="font-bold capitalize">{gameState.market?.currentSeason || 'Spring'} Season</div>
-                <div className="text-xs text-slate-400">Day {gameState.currentDay}</div>
-              </div>
+        {/* Season Banner with Background Images - 75/25 Split */}
+        <div className="mb-4 relative rounded-xl overflow-hidden border-2 border-gray-600/50 shadow-2xl h-48">
+          {/* Background Images */}
+          <div className="absolute inset-0 flex">
+            {/* Current Season - 75% */}
+            <div className="w-[75%] relative">
+              <img
+                src={SEASON_IMAGES[gameState.market?.currentSeason || 'spring']}
+                alt={gameState.market?.currentSeason || 'spring'}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-transparent" />
             </div>
 
-            {/* Next Season Forecast */}
-            <div className="bg-blue-900/50 px-3 py-1.5 rounded-lg border border-blue-400 flex items-center gap-2">
-              <span className="text-blue-300 font-bold">📅 Next Season:</span>
-              <span>{SEASON_EMOJIS[nextSeasonForecast.season]} {nextSeasonForecast.season} in {nextSeasonForecast.minutesUntil}m</span>
+            {/* Next Season - 25% */}
+            <div className="w-[25%] relative">
+              <img
+                src={SEASON_IMAGES[nextSeasonForecast.season]}
+                alt={nextSeasonForecast.season}
+                className="absolute inset-0 w-full h-full object-cover opacity-70"
+              />
+              <div className="absolute inset-0 bg-black/60" />
             </div>
-
-            {gameState.market?.epicPriceCrop && (
-              <div className="bg-purple-900/50 px-3 py-1.5 rounded-lg border border-purple-400 flex items-center gap-2">
-                <span className="text-purple-300 font-bold">⚡ EPIC PRICES!</span>
-                <span>{CROP_EMOJIS[gameState.market.epicPriceCrop]} {CROP_NAMES[gameState.market.epicPriceCrop]} (5x)</span>
-              </div>
-            )}
           </div>
 
-          {/* High Demand Preview */}
-          {gameState.market?.highDemandCrops && gameState.market.highDemandCrops.length > 0 && (
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <span className="text-yellow-400 font-bold text-sm">🔥 High Demand Now:</span>
-              {gameState.market.highDemandCrops.map(crop => (
-                <span key={crop} className="bg-yellow-900/30 border border-yellow-600 rounded px-2 py-0.5 text-xs">
-                  {CROP_EMOJIS[crop]} {CROP_NAMES[crop]}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Vertical Divider */}
+          <div className="absolute left-[75%] top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400/50 via-cyan-300/50 to-cyan-400/50 shadow-lg shadow-cyan-500/30" />
 
-          {/* Upcoming High Demand */}
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <span className="text-blue-400 font-bold text-sm">📈 High Demand {nextSeasonForecast.season}:</span>
-            {nextSeasonForecast.crops.map(crop => (
-              <span key={crop} className="bg-blue-900/30 border border-blue-600 rounded px-2 py-0.5 text-xs">
-                {CROP_EMOJIS[crop]} {CROP_NAMES[crop]}
-              </span>
-            ))}
+          {/* Content Overlay */}
+          <div className="relative h-full flex">
+            {/* Current Season Info - Left 75% */}
+            <div className="w-[75%] p-4 flex flex-col justify-between">
+              <div>
+                <div className="text-xs text-cyan-300 font-bold mb-1">CURRENT SEASON</div>
+                <div className="text-4xl font-bold text-white capitalize drop-shadow-lg mb-1">
+                  {gameState.market?.currentSeason || 'Spring'}
+                </div>
+                <div className="text-sm text-cyan-200 font-mono mb-2">
+                  {formatTimeRemaining(getSeasonTimeRemaining(gameState.gameTime))} remaining
+                </div>
+              </div>
+
+              {/* Bottom Info */}
+              <div className="flex gap-4 flex-wrap">
+                {/* High Demand Crops */}
+                {gameState.market?.highDemandCrops && gameState.market.highDemandCrops.length > 0 && (
+                  <div>
+                    <div className="text-xs text-yellow-300 font-bold mb-1">🔥 HIGH DEMAND</div>
+                    <div className="flex gap-1">
+                      {gameState.market.highDemandCrops.map(crop => (
+                        <div key={crop} className="bg-black/40 rounded-lg px-2 py-1 border border-yellow-500/50">
+                          <span className="text-xl">{CROP_EMOJIS[crop]}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Epic Price */}
+                {gameState.market?.epicPriceCrop && (
+                  <div>
+                    <div className="text-xs text-purple-300 font-bold mb-1">⚡ EPIC PRICE</div>
+                    <div className="bg-purple-900/60 rounded-lg px-2 py-1 border border-purple-400/50">
+                      <span className="text-xl">{CROP_EMOJIS[gameState.market.epicPriceCrop]}</span>
+                      <span className="text-xs text-purple-200 ml-1 font-bold">5x</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Next Season Info - Right 25% */}
+            <div className="w-[25%] p-3 flex flex-col items-center justify-center text-center">
+              <div className="text-xs text-cyan-300 font-bold mb-2">UP NEXT</div>
+              <div className="text-3xl mb-2">{SEASON_EMOJIS[nextSeasonForecast.season]}</div>
+              <div className="text-2xl font-bold text-white capitalize drop-shadow-lg mb-1">
+                {nextSeasonForecast.season}
+              </div>
+              <div className="text-xs text-cyan-200 font-mono">
+                in {nextSeasonForecast.minutesUntil}m
+              </div>
+
+              {/* Upcoming High Demand */}
+              <div className="mt-3 w-full">
+                <div className="text-xs text-blue-300 font-bold mb-1">📈 DEMAND</div>
+                <div className="flex gap-1 justify-center flex-wrap">
+                  {nextSeasonForecast.crops.slice(0, 3).map(crop => (
+                    <span key={crop} className="text-sm">{CROP_EMOJIS[crop]}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

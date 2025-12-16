@@ -47,6 +47,7 @@ import {
   relocateBotFactory,
   relocateSupercharger,
   relocateHopper,
+  relocateWarehouse,
   toggleAutoBuy,
   addTask,
   removeTask,
@@ -5592,6 +5593,11 @@ export default function Game() {
 
               return newState;
             });
+          }}
+          onRelocate={() => {
+            setGameState(prev => relocateWarehouse(prev));
+            setPlacementMode('warehouse');
+            setShowWarehouseModal(false);
           }}
         />
       )}

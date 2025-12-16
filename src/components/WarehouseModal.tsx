@@ -9,6 +9,7 @@ interface WarehouseModalProps {
   onClose: () => void;
   onDeposit: () => void;
   onMarkForSale: (cropType: Exclude<CropType, null>, quantity: number) => void;
+  onRelocate: () => void;
 }
 
 interface CropInfo {
@@ -32,7 +33,7 @@ const CROPS: CropInfo[] = [
   { type: 'corn', emoji: '🌽', name: 'Corn', color: 'from-yellow-500 to-yellow-600' },
 ];
 
-export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkForSale }: WarehouseModalProps) {
+export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkForSale, onRelocate }: WarehouseModalProps) {
   // Count warehouse items by crop type
   const warehouseCounts = gameState.warehouse.reduce((acc, item) => {
     acc[item.crop] = (acc[item.crop] || 0) + 1;
@@ -64,32 +65,24 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border border-gray-600/50 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-700/50">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-              <span className="text-3xl">🏛️</span>
-              Warehouse Storage
-            </h2>
-            <div className="flex gap-4 mt-2 text-sm">
+        <div className="p-4 md:p-6 border-b border-gray-700/50">
+          <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+            <span className="text-3xl">🏛️</span>
+            Warehouse Storage
+          </h2>
+          <div className="flex gap-4 mt-2 text-sm">
+            <div className="text-slate-400">
+              <span className="text-white font-semibold">{gameState.warehouse.length}</span> items stored
+            </div>
+            {gameState.markedForSale.length > 0 && (
               <div className="text-slate-400">
-                <span className="text-white font-semibold">{gameState.warehouse.length}</span> items stored
+                <span className="text-yellow-400 font-semibold">{gameState.markedForSale.length}</span> marked for sale
               </div>
-              {gameState.markedForSale.length > 0 && (
-                <div className="text-slate-400">
-                  <span className="text-yellow-400 font-semibold">{gameState.markedForSale.length}</span> marked for sale
-                </div>
-              )}
-              <div className="text-slate-400">
-                Total value: <span className="text-green-400 font-semibold">${warehouseValue + markedValue}</span>
-              </div>
+            )}
+            <div className="text-slate-400">
+              Total value: <span className="text-green-400 font-semibold">${warehouseValue + markedValue}</span>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center"
-          >
-            ✕
-          </button>
         </div>
 
         {/* Scrollable Content */}
@@ -246,6 +239,12 @@ export default function WarehouseModal({ gameState, onClose, onDeposit, onMarkFo
               }`}
             >
               📦 Deposit Basket to Warehouse
+            </button>
+            <button
+              onClick={onRelocate}
+              className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-xl font-semibold text-lg transition-all border border-orange-500/30"
+            >
+              📍 Move Building
             </button>
             <button
               onClick={onClose}

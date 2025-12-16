@@ -5212,6 +5212,38 @@ export function relocateHopper(state: GameState): GameState {
   };
 }
 
+export function relocateWarehouse(state: GameState): GameState {
+  // Only allow relocating if the building is currently placed
+  if (!state.player.inventory.warehousePlaced) {
+    return state;
+  }
+
+  // Find and remove the warehouse from all zones
+  const newZones = { ...state.zones };
+  Object.entries(newZones).forEach(([zoneKey, zone]) => {
+    const newGrid = zone.grid.map(row =>
+      row.map(tile => {
+        // Remove warehouse
+        if (tile.type === 'warehouse') {
+          return {
+            ...tile,
+            type: 'grass' as const,
+            variant: getRandomGrassVariant(),
+          };
+        }
+        return tile;
+      })
+    );
+    newZones[zoneKey] = { ...zone, grid: newGrid };
+  });
+
+  // Keep warehousePlaced=true so placement knows it's a relocation
+  return {
+    ...state,
+    zones: newZones,
+  };
+}
+
 export function placeExport(state: GameState, tileX: number, tileY: number): GameState {
   const grid = getCurrentGrid(state);
 

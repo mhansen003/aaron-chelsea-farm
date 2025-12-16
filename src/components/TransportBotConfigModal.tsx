@@ -62,12 +62,12 @@ const CROP_NAMES: Record<Exclude<CropType, null>, string> = {
 
 function createDefaultConfig(): TransportBotConfig {
   return {
-    sellMode: 'market-based',
+    sellMode: 'market-based', // Default to market-based as requested
     perCropSettings: CROP_LIST.map(crop => ({
       crop,
-      maxInventory: 0, // 0 = no limit
-      sellOnHighDemand: true,
-      sellOnEpic: true,
+      maxInventory: 0, // Not used in simplified UI
+      sellOnHighDemand: true, // Default ON
+      sellOnEpic: true, // Default ON
     })),
   };
 }
@@ -83,8 +83,23 @@ export default function TransportBotConfigModal({
     existingConfig || createDefaultConfig()
   );
 
+  // Extract global settings from first crop (all crops share same settings in simplified UI)
+  const globalSellOnHighDemand = config.perCropSettings[0]?.sellOnHighDemand ?? true;
+  const globalSellOnEpic = config.perCropSettings[0]?.sellOnEpic ?? true;
+
   const handleSave = () => {
     onSave(config);
+  };
+
+  // Update all crops when global setting changes
+  const updateGlobalSetting = (setting: 'sellOnHighDemand' | 'sellOnEpic', value: boolean) => {
+    setConfig({
+      ...config,
+      perCropSettings: config.perCropSettings.map(crop => ({
+        ...crop,
+        [setting]: value,
+      })),
+    });
   };
 
   const currentEpicEvent = getEpicSeasonalEvent(gameState.gameTime);
@@ -166,151 +181,108 @@ export default function TransportBotConfigModal({
               </p>
             </div>
           ) : (
-            /* Market-Based Mode - Per-Crop Configuration */
-            <div className="space-y-4">
-              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-cyan-400 mb-2">📈 Market-Based Selling</h3>
-                <p className="text-xs text-slate-400 mb-2">
-                  For each crop, you can configure:
+            /* Market-Based Mode - Simplified Global Settings */
+            <div className="space-y-6">
+              <div className="bg-cyan-900/20 border border-cyan-600/50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-cyan-400 mb-3 flex items-center gap-2">
+                  📈 Market-Based Selling
+                </h3>
+                <p className="text-sm text-slate-300 mb-4">
+                  Choose when to automatically sell crops from the warehouse. These settings apply to <strong>all crops</strong>.
                 </p>
-                <ul className="text-xs text-slate-300 space-y-1 ml-4">
-                  <li><strong>🔥 Sell on High Demand:</strong> Auto-sell when crop enters high demand season</li>
-                  <li><strong>⚡ Sell on Epic:</strong> Auto-sell during epic seasonal events (3x price)</li>
-                  <li><strong>📦 Max Inventory:</strong> Sell when warehouse has this many (prevents overflow)</li>
-                </ul>
-                <p className="text-xs text-yellow-400 mt-3">
-                  💡 Tip: Enable high demand/epic tags to auto-sell when markets peak. Use max inventory to prevent warehouse from filling up.
-                </p>
+
+                {/* Global Checkboxes */}
+                <div className="space-y-4">
+                  {/* High Demand Checkbox */}
+                  <label className="flex items-start gap-4 cursor-pointer bg-slate-700/30 hover:bg-slate-700/50 rounded-lg p-4 transition-colors border-2 border-transparent hover:border-yellow-500/30">
+                    <input
+                      type="checkbox"
+                      checked={globalSellOnHighDemand}
+                      onChange={(e) => updateGlobalSetting('sellOnHighDemand', e.target.checked)}
+                      className="mt-1 w-5 h-5 text-yellow-600 bg-slate-700 border-slate-600 rounded focus:ring-yellow-500"
+                    />
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-yellow-400 flex items-center gap-2">
+                        🔥 Sell on High Demand
+                        <span className="text-xs bg-yellow-500/20 px-2 py-0.5 rounded">Recommended</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mt-1">
+                        Automatically sell crops when they enter high demand (forecast shows price increasing significantly).
+                        Great for maximizing profit on trending crops.
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* Epic Checkbox */}
+                  <label className="flex items-start gap-4 cursor-pointer bg-slate-700/30 hover:bg-slate-700/50 rounded-lg p-4 transition-colors border-2 border-transparent hover:border-purple-500/30">
+                    <input
+                      type="checkbox"
+                      checked={globalSellOnEpic}
+                      onChange={(e) => updateGlobalSetting('sellOnEpic', e.target.checked)}
+                      className="mt-1 w-5 h-5 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <div className="text-base font-semibold text-purple-400 flex items-center gap-2">
+                        ⚡ Sell on Epic Events
+                        <span className="text-xs bg-purple-500/20 px-2 py-0.5 rounded">Recommended</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mt-1">
+                        Automatically sell crops during epic seasonal events when prices are 3x-5x higher.
+                        Perfect for taking advantage of peak market opportunities.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                <div className="mt-6 p-4 bg-emerald-900/20 border border-emerald-600/50 rounded-lg">
+                  <div className="text-sm font-semibold text-emerald-400 mb-2">💡 Pro Tip</div>
+                  <p className="text-xs text-slate-300">
+                    Both options are enabled by default for optimal profit. The bot will continuously monitor market conditions
+                    and automatically sell when opportunities arise. You can disable either option if you prefer more manual control.
+                  </p>
+                </div>
               </div>
 
-              {CROP_LIST.map((crop) => {
-                const cropConfig = config.perCropSettings.find((c) => c.crop === crop);
-                if (!cropConfig) return null;
+              {/* Current Market Status Preview */}
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <h4 className="text-sm font-semibold text-white mb-3">📊 Current Market Opportunities</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {CROP_LIST.map((crop) => {
+                    const isHighDemand = gameState.market?.highDemandCrops.includes(crop) || false;
+                    const isRandomEpic = gameState.market?.epicPriceCrop === crop;
+                    const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
+                    const isEpic = isRandomEpic || isSeasonalEpic;
+                    const warehouseCount = gameState.warehouse.filter(item => item.crop === crop).length;
 
-                const basePrice = CROP_INFO[crop].sellPrice;
-                const marketPrice = getMarketPrice(crop, gameState);
-                const isHighDemand = gameState.market?.highDemandCrops.includes(crop) || false;
-                const isRandomEpic = gameState.market?.epicPriceCrop === crop;
-                const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
-                const isEpic = isRandomEpic || isSeasonalEpic;
+                    if (!isHighDemand && !isEpic && warehouseCount === 0) return null;
 
-                // Get current warehouse inventory for this crop
-                const warehouseInventory = gameState.warehouse.filter(item => item.crop === crop).length;
-
-                const wouldSellNow =
-                  (cropConfig.sellOnHighDemand && isHighDemand) ||
-                  (cropConfig.sellOnEpic && isEpic) ||
-                  (cropConfig.maxInventory > 0 && warehouseInventory >= cropConfig.maxInventory);
-
-                return (
-                  <div
-                    key={crop}
-                    className={`bg-slate-800/50 rounded-xl border-2 p-4 transition-all ${
-                      wouldSellNow ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/20' : 'border-slate-700'
-                    }`}
-                  >
-                    {/* Crop Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{CROP_ICONS[crop]}</span>
-                        <div>
-                          <div className="font-semibold text-white">{CROP_NAMES[crop]}</div>
-                          <div className="text-xs flex items-center gap-2">
-                            <span style={{ color: CROP_COLORS[crop] }}>
-                              ${marketPrice}
-                            </span>
-                            {isHighDemand && <span className="text-yellow-400">🔥</span>}
-                            {isSeasonalEpic && <span className="text-purple-400">⚡ 3X</span>}
-                            {isRandomEpic && <span className="text-purple-400">⚡ 5X</span>}
-                          </div>
+                    return (
+                      <div key={crop} className="bg-slate-700/30 rounded-lg p-2 text-center">
+                        <div className="text-2xl mb-1">{CROP_ICONS[crop]}</div>
+                        <div className="text-[10px] text-slate-400">{CROP_NAMES[crop]}</div>
+                        <div className="flex items-center justify-center gap-1 mt-1">
+                          {isHighDemand && <span className="text-xs">🔥</span>}
+                          {isSeasonalEpic && <span className="text-xs text-purple-400">⚡3X</span>}
+                          {isRandomEpic && <span className="text-xs text-purple-400">⚡5X</span>}
+                          {warehouseCount > 0 && <span className="text-xs text-cyan-400">({warehouseCount})</span>}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xs text-slate-400">Warehouse</div>
-                        <div className="text-lg font-bold text-cyan-400">{warehouseInventory}</div>
-                      </div>
-                    </div>
-
-                    {/* Configuration Options */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                      {/* Sell on High Demand */}
-                      <label className="flex items-center gap-2 cursor-pointer bg-slate-700/30 rounded-lg p-2">
-                        <input
-                          type="checkbox"
-                          checked={cropConfig.sellOnHighDemand}
-                          onChange={(e) => {
-                            const newSettings = config.perCropSettings.map((c) =>
-                              c.crop === crop ? { ...c, sellOnHighDemand: e.target.checked } : c
-                            );
-                            setConfig({ ...config, perCropSettings: newSettings });
-                          }}
-                          className="w-4 h-4 text-yellow-600 bg-slate-700 border-slate-600 rounded focus:ring-yellow-500"
-                        />
-                        <div className="flex-1">
-                          <div className="text-xs font-semibold text-yellow-400">🔥 High Demand</div>
-                          <div className="text-[10px] text-slate-400">Auto-sell +75%</div>
-                        </div>
-                      </label>
-
-                      {/* Sell on Epic */}
-                      <label className="flex items-center gap-2 cursor-pointer bg-slate-700/30 rounded-lg p-2">
-                        <input
-                          type="checkbox"
-                          checked={cropConfig.sellOnEpic}
-                          onChange={(e) => {
-                            const newSettings = config.perCropSettings.map((c) =>
-                              c.crop === crop ? { ...c, sellOnEpic: e.target.checked } : c
-                            );
-                            setConfig({ ...config, perCropSettings: newSettings });
-                          }}
-                          className="w-4 h-4 text-purple-600 bg-slate-700 border-slate-600 rounded focus:ring-purple-500"
-                        />
-                        <div className="flex-1">
-                          <div className="text-xs font-semibold text-purple-400">⚡ Epic</div>
-                          <div className="text-[10px] text-slate-400">Auto-sell 3x</div>
-                        </div>
-                      </label>
-
-                      {/* Max Inventory */}
-                      <div className="bg-slate-700/30 rounded-lg p-2">
-                        <div className="text-xs font-semibold text-slate-300 mb-1">📦 Max Inventory</div>
-                        <input
-                          type="number"
-                          min="0"
-                          max="999"
-                          value={cropConfig.maxInventory}
-                          onChange={(e) => {
-                            const newSettings = config.perCropSettings.map((c) =>
-                              c.crop === crop ? { ...c, maxInventory: parseInt(e.target.value) || 0 } : c
-                            );
-                            setConfig({ ...config, perCropSettings: newSettings });
-                          }}
-                          className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-xs text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                          placeholder="0 = no limit"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Status Indicator */}
-                    <div className="text-xs font-semibold pt-2 border-t border-slate-700">
-                      {wouldSellNow ? (
-                        <div className="flex items-center gap-2 text-emerald-400">
-                          <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                          ✓ Would sell now
-                          {cropConfig.sellOnHighDemand && isHighDemand && <span>(High Demand)</span>}
-                          {cropConfig.sellOnEpic && isEpic && <span>(Epic)</span>}
-                          {cropConfig.maxInventory > 0 && warehouseInventory >= cropConfig.maxInventory && <span>(Inventory Full)</span>}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-slate-500">
-                          <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
-                          Waiting for conditions
-                        </div>
-                      )}
-                    </div>
+                    );
+                  })}
+                </div>
+                {CROP_LIST.every(crop => {
+                  const isHighDemand = gameState.market?.highDemandCrops.includes(crop) || false;
+                  const isRandomEpic = gameState.market?.epicPriceCrop === crop;
+                  const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
+                  const isEpic = isRandomEpic || isSeasonalEpic;
+                  const warehouseCount = gameState.warehouse.filter(item => item.crop === crop).length;
+                  return !isHighDemand && !isEpic && warehouseCount === 0;
+                }) && (
+                  <div className="text-center text-slate-500 text-sm py-4">
+                    No active market opportunities at the moment
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
           )}
         </div>

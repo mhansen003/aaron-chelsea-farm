@@ -2015,10 +2015,68 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     newZones[zoneKey] = { ...zone, seedBots: updatedSeedBots, grid: updatedGrid };
   });
 
-  // ========== TRANSPORT BOT AI (START ZONE ONLY) ==========
+  // ========== TRANSPORT BOT AUTO-MARKING (START ZONE ONLY) ==========
+  // Automatically mark items for sale based on transport bot configurations
   const startZoneKey = '0,0';
   const startZone = newZones[startZoneKey];
   if (startZone && startZone.owned && startZone.transportBots && startZone.transportBots.length > 0) {
+    // Check each transport bot's configuration to auto-mark items for sale
+    for (const bot of startZone.transportBots) {
+      if (!bot.config) continue; // Skip bots without config
+
+      const config = bot.config;
+
+      // Sell everything mode - mark all warehouse items
+      if (config.sellMode === 'everything') {
+        const unmarkedWarehouseItems = newState.warehouse.filter(
+          item => !newState.markedForSale.some(marked => marked.id === item.id)
+        );
+        newState = {
+          ...newState,
+          markedForSale: [...newState.markedForSale, ...unmarkedWarehouseItems],
+        };
+      }
+      // Market-based mode - check each crop's conditions
+      else if (config.sellMode === 'market-based') {
+        const itemsToMark: import('@/types/game').BasketItem[] = [];
+
+        for (const cropConfig of config.perCropSettings) {
+          // Get warehouse items for this crop
+          const warehouseItemsForCrop = newState.warehouse.filter(item => item.crop === cropConfig.crop);
+          const alreadyMarkedForCrop = newState.markedForSale.filter(item => item.crop === cropConfig.crop);
+          const unmarkedForCrop = warehouseItemsForCrop.filter(
+            item => !newState.markedForSale.some(marked => marked.id === item.id)
+          );
+
+          if (unmarkedForCrop.length === 0) continue;
+
+          // Check if we should sell this crop
+          const isHighDemand = newState.market?.highDemandCrops.includes(cropConfig.crop) || false;
+          const currentEpicEvent = getEpicSeasonalEvent(newState.gameTime);
+          const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(cropConfig.crop);
+          const isRandomEpic = newState.market?.epicPriceCrop === cropConfig.crop;
+          const isEpic = isRandomEpic || isSeasonalEpic;
+
+          const shouldSell =
+            (cropConfig.sellOnHighDemand && isHighDemand) ||
+            (cropConfig.sellOnEpic && isEpic) ||
+            (cropConfig.maxInventory > 0 && warehouseItemsForCrop.length >= cropConfig.maxInventory);
+
+          if (shouldSell) {
+            itemsToMark.push(...unmarkedForCrop);
+          }
+        }
+
+        if (itemsToMark.length > 0) {
+          newState = {
+            ...newState,
+            markedForSale: [...newState.markedForSale, ...itemsToMark],
+          };
+        }
+      }
+    }
+
+    // ========== TRANSPORT BOT AI (START ZONE ONLY) ==========
     const grid = startZone.grid;
     const updatedTransportBots = startZone.transportBots.map(bot => {
       if (bot.x === undefined || bot.y === undefined) return bot;

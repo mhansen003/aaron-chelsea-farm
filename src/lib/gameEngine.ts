@@ -2124,7 +2124,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant, bot.supercharged); // Use global plant duration
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.8, bot.supercharged); // 20% faster for seed bots
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;

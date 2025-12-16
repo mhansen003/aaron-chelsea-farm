@@ -657,6 +657,12 @@ export default function Game() {
         shellsImageRef.current = shellsImg;
       };
 
+      const fishingHutImg = new Image();
+      fishingHutImg.src = '/fishinghut.png';
+      fishingHutImg.onload = () => {
+        fishingHutImageRef.current = fishingHutImg;
+      };
+
       // Load surfer farmer for beach theme
       const surferImg = new Image();
       surferImg.src = '/surfer.png';
@@ -1734,7 +1740,7 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           ctx.drawImage(mountainImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-        } else if (tile.type === 'fishinghut') {
+        } else if (tile.type === 'fishinghut' && fishingHutImageRef.current) {
           // Beach: Fishing Hut on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
@@ -1742,12 +1748,15 @@ export default function Game() {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Draw blue rectangle for fishing hut
-          ctx.fillStyle = '#8B4513';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
-          ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🏠', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          // Fishing hut uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Bottom-right corner position
+          const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 512; // x can be 14 or 15
+          const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 512; // y can be 10 or 11
+          ctx.drawImage(
+            fishingHutImageRef.current,
+            offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
+          );
         } else if (tile.type === 'subdock') {
           // Beach: Submarine Dock on sand/water
           if (sandImageRef.current) {

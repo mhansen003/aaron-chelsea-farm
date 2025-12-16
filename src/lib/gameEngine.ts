@@ -1933,7 +1933,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
           const tile = updatedGrid[nearest.y]?.[nearest.x];
           if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
-            const ACTION_DURATION = getAdjustedDuration(800, bot.supercharged); // Faster planting (400ms if supercharged)
+            const ACTION_DURATION = getAdjustedDuration(480, bot.supercharged); // 40% faster planting (240ms if supercharged)
 
             if (bot.actionStartTime !== undefined) {
               const elapsed = newState.gameTime - bot.actionStartTime;
@@ -1968,7 +1968,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   },
                 };
 
-                return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
+                // Round-robin: After planting, switch to next job with plantable tiles for crop mixing
+                const currentJobIndex = bot.jobs.findIndex(j => j.id === currentJob?.id);
+                const nextJobIndex = (currentJobIndex + 1) % bot.jobs.length;
+                const nextJob = bot.jobs[nextJobIndex];
+
+                return { ...bot, status: 'planting' as const, currentJobId: nextJob.id, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
               } else {
                 return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY };
               }

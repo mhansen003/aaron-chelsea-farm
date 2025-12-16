@@ -4318,7 +4318,7 @@ export default function Game() {
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 bg-green-900 rounded-full border-4 border-green-400 overflow-hidden flex items-center justify-center shadow-xl">
               <NextImage
-                src="/images/general/farmer.png"
+                src="/farmer.png"
                 alt="Farmer"
                 width={56}
                 height={56}
@@ -4326,7 +4326,7 @@ export default function Game() {
               />
             </div>
             <div className="flex-1">
-              <div className="text-lg font-bold text-green-100">Farmer</div>
+              <div className="text-lg font-bold text-green-100">{gameState.player.farmerName || 'Farmer'}</div>
               <div className="text-xs text-green-300">Click to configure</div>
             </div>
             <div className="text-2xl text-green-300">⚙️</div>

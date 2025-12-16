@@ -67,7 +67,7 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-green-800 rounded-full border-4 border-green-400 overflow-hidden flex items-center justify-center">
                 <NextImage
-                  src="/images/general/farmer.png"
+                  src="/farmer.png"
                   alt="Farmer"
                   width={56}
                   height={56}
@@ -140,7 +140,7 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
                 />
                 <div className="flex items-center gap-3 flex-1">
                   <NextImage
-                    src="/images/cursors/harvest.png"
+                    src="/harvest.png"
                     alt="Harvest"
                     width={28}
                     height={28}
@@ -162,7 +162,7 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
                 />
                 <div className="flex items-center gap-3 flex-1">
                   <NextImage
-                    src="/images/bots/water bot.png"
+                    src="/water bot.png"
                     alt="Water"
                     width={28}
                     height={28}
@@ -185,7 +185,7 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
                   />
                   <div className="flex items-center gap-3 flex-1">
                     <NextImage
-                      src="/images/bots/plant seeds.png"
+                      src="/plant seeds.png"
                       alt="Plant"
                       width={28}
                       height={28}

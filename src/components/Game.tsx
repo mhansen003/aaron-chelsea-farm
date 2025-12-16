@@ -2421,26 +2421,32 @@ export default function Game() {
             ctx.lineWidth = 1;
             ctx.strokeRect(px + 1, py + 1, GAME_CONFIG.tileSize - 2, GAME_CONFIG.tileSize - 2);
 
-            // Draw crop icon in bottom-right corner to show what will be planted
-            const iconSize = GAME_CONFIG.tileSize * 0.30; // 30% of tile size
-            const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
-            const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
+            // Only draw crop icon on empty tiles (dirt or grass with no crop)
+            const tile = currentGrid[targetTile.y]?.[targetTile.x];
+            const isEmptyTile = tile && ((tile.type === 'dirt' || tile.type === 'grass') && !tile.crop);
 
-            // Draw semi-transparent background circle for icon
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.beginPath();
-            ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 2, 0, Math.PI * 2);
-            ctx.fill();
+            if (isEmptyTile) {
+              // Draw crop icon in bottom-right corner to show what will be planted
+              const iconSize = GAME_CONFIG.tileSize * 0.30; // 30% of tile size
+              const iconX = px + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from right
+              const iconY = py + GAME_CONFIG.tileSize - iconSize - 4; // 4px padding from bottom
 
-            // Draw the crop icon
-            const cropIconImg = new Image();
-            cropIconImg.src = `/${job.cropType}.png`;
-            if (cropIconImg.complete) {
-              ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
-            } else {
-              cropIconImg.onload = () => {
+              // Draw semi-transparent background circle for icon
+              ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+              ctx.beginPath();
+              ctx.arc(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2 + 2, 0, Math.PI * 2);
+              ctx.fill();
+
+              // Draw the crop icon
+              const cropIconImg = new Image();
+              cropIconImg.src = `/${job.cropType}.png`;
+              if (cropIconImg.complete) {
                 ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
-              };
+              } else {
+                cropIconImg.onload = () => {
+                  ctx.drawImage(cropIconImg, iconX, iconY, iconSize, iconSize);
+                };
+              }
             }
           });
         });
@@ -2559,6 +2565,60 @@ export default function Game() {
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 1;
       ctx.strokeRect(px + 5, py + GAME_CONFIG.tileSize - 15, GAME_CONFIG.tileSize - 10, 10);
+    }
+
+    // Draw fish (before player so player appears on top)
+    if (currentZone?.fish && currentZone.fish.length > 0) {
+      currentZone.fish.forEach(fish => {
+        if (fish.caught) return; // Skip caught fish
+
+        const fishX = fish.visualX * GAME_CONFIG.tileSize;
+        const fishY = fish.visualY * GAME_CONFIG.tileSize;
+
+        // Get the appropriate fish image based on type
+        let fishImage: HTMLImageElement | null = null;
+        switch (fish.type) {
+          case 'yellowtail':
+            fishImage = yellowtailImageRef.current;
+            break;
+          case 'redsnapper':
+            fishImage = redsnapperImageRef.current;
+            break;
+          case 'clams':
+            fishImage = clamsImageRef.current;
+            break;
+          case 'starfish':
+            fishImage = starfishImageRef.current;
+            break;
+          case 'urchen':
+            fishImage = urchenImageRef.current;
+            break;
+          case 'octopus':
+            fishImage = octopusImageRef.current;
+            break;
+          case 'shark':
+            fishImage = sharkImageRef.current;
+            break;
+        }
+
+        if (fishImage) {
+          // Draw fish with slight scale variation based on rarity
+          const scale = fish.rarity === 'rare' ? 1.1 : fish.rarity === 'uncommon' ? 1.0 : 0.9;
+          const size = GAME_CONFIG.tileSize * scale;
+          const offset = (GAME_CONFIG.tileSize - size) / 2;
+          ctx.drawImage(fishImage, fishX + offset, fishY + offset, size, size);
+
+          // Optional: Draw rarity indicator (subtle glow)
+          if (fish.rarity === 'rare') {
+            ctx.shadowColor = 'rgba(255, 215, 0, 0.5)'; // Gold glow for rare
+            ctx.shadowBlur = 10;
+          } else if (fish.rarity === 'uncommon') {
+            ctx.shadowColor = 'rgba(147, 197, 253, 0.5)'; // Blue glow for uncommon
+            ctx.shadowBlur = 8;
+          }
+          ctx.shadowBlur = 0; // Reset shadow
+        }
+      });
     }
 
     // Draw player using visual position for smooth movement

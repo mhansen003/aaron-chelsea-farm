@@ -123,70 +123,70 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
               ℹ️ Changes take effect immediately and clear the current task queue
             </div>
 
-            {/* Auto Harvest */}
-            <label className="flex items-center gap-3 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3 transition-all">
-              <input
-                type="checkbox"
-                checked={farmerAuto.autoHarvest}
-                onChange={toggleAutoHarvest}
-                className="w-5 h-5 cursor-pointer"
-              />
-              <div className="flex items-center gap-3 flex-1">
+            {/* Auto Harvest, Water, Plant - Horizontal Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Auto Harvest */}
+              <label className="flex items-center gap-2 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-2 transition-all">
+                <input
+                  type="checkbox"
+                  checked={farmerAuto.autoHarvest}
+                  onChange={toggleAutoHarvest}
+                  className="w-4 h-4 cursor-pointer flex-shrink-0"
+                />
                 <NextImage
                   src="/harvest.png"
                   alt="Harvest"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
+                  className="flex-shrink-0"
                 />
-                <div>
-                  <div className="text-base font-bold text-white">Auto Harvest</div>
-                  <div className="text-xs text-gray-400">Automatically harvest grown crops</div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-white">Auto Harvest</div>
+                  <div className="text-xs text-gray-400 truncate">Harvest grown crops</div>
                 </div>
-              </div>
-            </label>
+              </label>
 
-            {/* Auto Water */}
-            <label className="flex items-center gap-3 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3 transition-all">
-              <input
-                type="checkbox"
-                checked={farmerAuto.autoWater}
-                onChange={toggleAutoWater}
-                className="w-5 h-5 cursor-pointer"
-              />
-              <div className="flex items-center gap-3 flex-1">
+              {/* Auto Water */}
+              <label className="flex items-center gap-2 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-2 transition-all">
+                <input
+                  type="checkbox"
+                  checked={farmerAuto.autoWater}
+                  onChange={toggleAutoWater}
+                  className="w-4 h-4 cursor-pointer flex-shrink-0"
+                />
                 <NextImage
                   src="/water bot.png"
                   alt="Water"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
+                  className="flex-shrink-0"
                 />
-                <div>
-                  <div className="text-base font-bold text-white">Auto Water</div>
-                  <div className="text-xs text-gray-400">Automatically water planted crops</div>
+                <div className="min-w-0">
+                  <div className="text-sm font-bold text-white">Auto Water</div>
+                  <div className="text-xs text-gray-400 truncate">Water planted crops</div>
                 </div>
-              </div>
-            </label>
+              </label>
+            </div>
 
-            {/* Auto Plant */}
-            <div className="bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3">
-              <label className="flex items-center gap-3 cursor-pointer">
+            {/* Auto Plant - Full Width */}
+            <div className="bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={farmerAuto.autoPlant}
                   onChange={toggleAutoPlant}
-                  className="w-5 h-5 cursor-pointer"
+                  className="w-4 h-4 cursor-pointer flex-shrink-0"
                 />
-                <div className="flex items-center gap-3 flex-1">
-                  <NextImage
-                    src="/plant seeds.png"
-                    alt="Plant"
-                    width={28}
-                    height={28}
-                  />
-                  <div>
-                    <div className="text-base font-bold text-white">Auto Plant</div>
-                    <div className="text-xs text-gray-400">Automatically plant seeds on cleared tiles</div>
-                  </div>
+                <NextImage
+                  src="/plant seeds.png"
+                  alt="Plant"
+                  width={24}
+                  height={24}
+                  className="flex-shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-bold text-white">Auto Plant</div>
+                  <div className="text-xs text-gray-400">Plant seeds on cleared tiles</div>
                 </div>
               </label>
 
@@ -227,40 +227,36 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
               )}
             </div>
 
-            {/* Harvest Destination */}
+            {/* Harvest Destination - Horizontal */}
             <div className="bg-gray-800/30 border-2 border-gray-700 rounded-lg p-3">
               <div className="text-sm text-gray-400 font-bold mb-2">Harvest Destination:</div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-3 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex items-center gap-2 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
                   <input
                     type="radio"
                     name="depositDestination"
                     checked={farmerAuto.autoSell}
                     onChange={() => setDepositDestination(true)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 flex-shrink-0"
                   />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🚢</span>
-                    <div>
-                      <div className="text-sm font-bold text-white">Auto Sell</div>
-                      <div className="text-xs text-gray-400">Deposit harvests directly to export</div>
-                    </div>
+                  <span className="text-xl flex-shrink-0">🚢</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-white">Auto Sell</div>
+                    <div className="text-xs text-gray-400 truncate">To export</div>
                   </div>
                 </label>
-                <label className="flex items-center gap-3 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
+                <label className="flex items-center gap-2 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
                   <input
                     type="radio"
                     name="depositDestination"
                     checked={!farmerAuto.autoSell}
                     onChange={() => setDepositDestination(false)}
-                    className="w-4 h-4"
+                    className="w-4 h-4 flex-shrink-0"
                   />
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">🏭</span>
-                    <div>
-                      <div className="text-sm font-bold text-white">To Warehouse</div>
-                      <div className="text-xs text-gray-400">Store harvests in warehouse</div>
-                    </div>
+                  <span className="text-xl flex-shrink-0">🏭</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-white">Warehouse</div>
+                    <div className="text-xs text-gray-400 truncate">Store harvests</div>
                   </div>
                 </label>
               </div>

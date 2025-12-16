@@ -907,7 +907,6 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         case 'pickup_marked':
           // Pickup marked items from warehouse into farmer's basket
           const itemsToPickup = newState.markedForSale.slice(0, Math.min(newState.player.basketCapacity - newState.player.basket.length, newState.markedForSale.length));
-          const remainingMarked = newState.markedForSale.slice(itemsToPickup.length);
           console.log('🧺 PICKUP_MARKED: Picking up', itemsToPickup.length, 'items from warehouse');
           console.log('  Items:', itemsToPickup.map(i => i.crop).join(', '));
           console.log('  Basket before:', newState.player.basket.length);
@@ -922,12 +921,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               ...newState.player,
               basket: [...newState.player.basket, ...itemsToPickup],
             },
-            markedForSale: remainingMarked,
+            // DON'T clear markedForSale here - keep it until items are actually sold!
+            // This ensures hasMarkedItems stays true so farmer goes to export
+            markedForSale: newState.markedForSale,
             warehouse: updatedWarehouse,
           };
           console.log('  Basket after:', newState.player.basket.length);
           console.log('  Warehouse after:', newState.warehouse.length);
-          console.log('  Remaining marked for sale:', remainingMarked.length);
+          console.log('  Marked for sale (kept):', newState.markedForSale.length);
           break;
         case 'deposit':
           console.log('📦 DEPOSIT: Depositing basket contents');
@@ -4494,6 +4495,8 @@ export function depositToWarehouse(state: GameState): GameState {
       },
       cropsSold: updatedCropsSold,
       salesHistory: newSalesHistory,
+      // Clear markedForSale since we just sold everything
+      markedForSale: [],
     };
 
     // Record earnings for the zone
@@ -4501,6 +4504,7 @@ export function depositToWarehouse(state: GameState): GameState {
 
     console.log('💰 Total earnings:', totalEarnings);
     console.log('💵 New player money:', updatedState.player.money);
+    console.log('✅ Cleared markedForSale array after successful sale');
 
     return updatedState;
   }

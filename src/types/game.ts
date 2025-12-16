@@ -368,7 +368,7 @@ export interface Rabbit {
   noMoreCropsTime?: number; // Game time when rabbit first found no more crops (for wandering before leaving)
 }
 
-export type FishType = 'yellowtail' | 'redsnapper' | 'clams' | 'starfish' | 'urchen' | 'octopus' | 'shark';
+export type FishType = 'yellowtail' | 'redsnapper' | 'clams' | 'starfish' | 'urchen' | 'octopus' | 'shark' | 'tang';
 export type FishRarity = 'common' | 'uncommon' | 'rare';
 
 export interface Fish {

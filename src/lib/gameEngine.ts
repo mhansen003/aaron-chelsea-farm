@@ -5843,7 +5843,7 @@ function spawnFish(zone: import('@/types/game').Zone, gameTime: number): import(
   // Determine fish type based on rarity
   let fishType: import('@/types/game').FishType;
   if (rarity === 'common') {
-    const commonTypes: import('@/types/game').FishType[] = ['yellowtail', 'redsnapper', 'clams'];
+    const commonTypes: import('@/types/game').FishType[] = ['yellowtail', 'redsnapper', 'clams', 'tang'];
     fishType = commonTypes[Math.floor(Math.random() * commonTypes.length)];
   } else if (rarity === 'uncommon') {
     const uncommonTypes: import('@/types/game').FishType[] = ['starfish', 'urchen'];

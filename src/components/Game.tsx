@@ -285,6 +285,7 @@ export default function Game() {
   const urchenImageRef = useRef<HTMLImageElement | null>(null);
   const octopusImageRef = useRef<HTMLImageElement | null>(null);
   const sharkImageRef = useRef<HTMLImageElement | null>(null);
+  const tangImageRef = useRef<HTMLImageElement | null>(null);
 
   const cactusImageRef = useRef<HTMLImageElement | null>(null);
   const rocksImageRef = useRef<HTMLImageElement | null>(null);
@@ -716,6 +717,12 @@ export default function Game() {
       sharkImg.src = '/shark.png';
       sharkImg.onload = () => {
         sharkImageRef.current = sharkImg;
+      };
+
+      const tangImg = new Image();
+      tangImg.src = '/tang.png';
+      tangImg.onload = () => {
+        tangImageRef.current = tangImg;
       };
 
       // Load surfer farmer for beach theme
@@ -2603,6 +2610,9 @@ export default function Game() {
             break;
           case 'shark':
             fishImage = sharkImageRef.current;
+            break;
+          case 'tang':
+            fishImage = tangImageRef.current;
             break;
         }
 

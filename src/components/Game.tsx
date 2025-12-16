@@ -179,7 +179,7 @@ export default function Game() {
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [cursorType, setCursorType] = useState<string>('default');
   const [isMounted, setIsMounted] = useState(false);
-  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizer' | 'hopper' | 'export' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'sprinkler' | 'botFactory' | 'well' | 'garage' | 'supercharger' | 'fertilizer' | 'hopper' | 'export' | 'warehouse' | null>(null);
   const [shouldBounce, setShouldBounce] = useState(false);
   const [showSeedBotConfig, setShowSeedBotConfig] = useState(false);
   const [selectedSeedBot, setSelectedSeedBot] = useState<string | null>(null);
@@ -4177,6 +4177,10 @@ export default function Game() {
         const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
         const targetZoneKey = getZoneKey(previewZone.x, previewZone.y);
 
+        console.log('🚀 ZONE TRAVEL DEBUG:');
+        console.log('  From:', currentZoneKey, '| To:', targetZoneKey);
+        console.log('  Current player position:', { x: prev.player.x, y: prev.player.y, visualX: prev.player.visualX, visualY: prev.player.visualY });
+
         const updatedCurrentZone = {
           ...prev.zones[currentZoneKey],
           playerPosition: {
@@ -4187,6 +4191,8 @@ export default function Game() {
           },
         };
 
+        console.log('  Saving position to', currentZoneKey, ':', updatedCurrentZone.playerPosition);
+
         // Load saved position from target zone, or use default position (middle of map)
         const targetZone = prev.zones[targetZoneKey];
         const savedPosition = targetZone?.playerPosition || {
@@ -4195,6 +4201,9 @@ export default function Game() {
           visualX: Math.floor(GAME_CONFIG.gridWidth / 2),
           visualY: Math.floor(GAME_CONFIG.gridHeight / 2),
         };
+
+        console.log('  Loading position from', targetZoneKey, ':', savedPosition);
+        console.log('  Target zone has saved position?', !!targetZone?.playerPosition);
 
         return {
           ...prev,
@@ -4223,6 +4232,10 @@ export default function Game() {
           const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
           const targetZoneKey = getZoneKey(previewZone.x, previewZone.y);
 
+          console.log('🛒 PURCHASE & TRAVEL DEBUG:');
+          console.log('  From:', currentZoneKey, '| To:', targetZoneKey);
+          console.log('  Current player position:', { x: prev.player.x, y: prev.player.y, visualX: prev.player.visualX, visualY: prev.player.visualY });
+
           const updatedCurrentZone = {
             ...prev.zones[currentZoneKey],
             playerPosition: {
@@ -4233,6 +4246,8 @@ export default function Game() {
             },
           };
 
+          console.log('  Saving position to', currentZoneKey, ':', updatedCurrentZone.playerPosition);
+
           // Load saved position from target zone, or use default position (middle of map)
           const targetZone = prev.zones[targetZoneKey];
           const savedPosition = targetZone?.playerPosition || {
@@ -4241,6 +4256,9 @@ export default function Game() {
             visualX: Math.floor(GAME_CONFIG.gridWidth / 2),
             visualY: Math.floor(GAME_CONFIG.gridHeight / 2),
           };
+
+          console.log('  Loading position from', targetZoneKey, ':', savedPosition);
+          console.log('  Target zone has saved position?', !!targetZone?.playerPosition);
 
           return {
             ...prev,

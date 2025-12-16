@@ -306,6 +306,10 @@ export function updateMarketPrices(gameState: GameState): GameState {
   crops.forEach((crop, cropIndex) => {
     const basePrice = CROP_INFO[crop].sellPrice;
 
+    // Check for high demand (seasonal boost)
+    const isHighDemand = market.highDemandCrops.includes(crop);
+    const seasonalBoost = isHighDemand ? 0.75 : 0;
+
     // Epic price boosts
     const isRandomEpicPrice = market.epicPriceCrop === crop; // Random epic event (5x)
     const isSeasonalEpicPrice = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop); // Seasonal epic (3x)
@@ -314,11 +318,11 @@ export function updateMarketPrices(gameState: GameState): GameState {
     if (nextForecast && nextForecast.prices[crop]) {
       // Use the forecasted price! This makes forecasts come true
       const forecastedPrice = nextForecast.prices[crop];
-      market.currentPrices[crop] = Math.round(forecastedPrice * (1 + (epicBoost > 0 ? epicBoost : 0)));
 
-      // Update multiplier to match realized price
-      const totalMultiplier = forecastedPrice / basePrice;
-      market.priceMultipliers[crop] = totalMultiplier;
+      // Apply both seasonal boost AND epic boost to the forecasted price
+      const totalMultiplier = (forecastedPrice / basePrice) + seasonalBoost + epicBoost;
+      market.currentPrices[crop] = Math.round(basePrice * totalMultiplier);
+      market.priceMultipliers[crop] = forecastedPrice / basePrice;
     } else {
       // No forecast available - generate price (fallback)
       const seed = gameState.currentDay + cropIndex * 1000;
@@ -327,9 +331,6 @@ export function updateMarketPrices(gameState: GameState): GameState {
       const fluctuation = (randomValue - 0.5) * 0.3; // -15% to +15%
       let newMultiplier = market.priceMultipliers[crop] + fluctuation;
       newMultiplier = Math.max(0.7, Math.min(1.5, newMultiplier));
-
-      const isHighDemand = market.highDemandCrops.includes(crop);
-      const seasonalBoost = isHighDemand ? 0.75 : 0;
 
       market.priceMultipliers[crop] = newMultiplier;
       market.currentPrices[crop] = Math.round(basePrice * (newMultiplier + seasonalBoost + epicBoost));

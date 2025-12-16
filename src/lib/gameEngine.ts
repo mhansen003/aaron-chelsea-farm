@@ -1280,7 +1280,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               type: 'grass' as TileType,
               variant: getRandomGrassVariant(),
               lastWorkedTime: newGameTime,
-              overgrowthTime: newGameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
+              overgrowthTime: newGameTime + (1800000 + Math.random() * 1800000), // 30-60 minutes random (50% less frequent)
             } as Tile;
           }
         }
@@ -1298,12 +1298,24 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return {
               ...tile,
               lastWorkedTime: newGameTime,
-              overgrowthTime: newGameTime + (1200000 + Math.random() * 1200000), // 20-40 minutes random (25% less frequent)
+              overgrowthTime: newGameTime + (2400000 + Math.random() * 2400000), // 40-80 minutes random (50% less frequent)
             };
           }
 
           // Check if overgrowth time has passed
           if (tile.overgrowthTime !== undefined && newGameTime >= tile.overgrowthTime) {
+            // Count existing rocks and trees in this zone
+            const obstacleCount = zone.grid.flat().filter(t => t.type === 'rock' || t.type === 'tree').length;
+
+            // Cap at 20 obstacles per zone
+            if (obstacleCount >= 20) {
+              // Don't spawn, just reset timer
+              return {
+                ...tile,
+                overgrowthTime: newGameTime + (2400000 + Math.random() * 2400000), // 40-80 minutes
+              };
+            }
+
             // Randomly choose between rock and tree
             const overgrowthType: TileType = Math.random() < 0.5 ? 'rock' : 'tree';
             // Assign random variant for overgrown obstacles
@@ -1831,7 +1843,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                 updatedGrid = updatedGrid.map((row, rowY) =>
                   row.map((t, tileX) => {
                     if (tileX === nearest.x && rowY === nearest.y) {
-                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, wateredTimestamp: undefined, wateredToday: false, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (900000 + Math.random() * 900000) };
+                      return { ...t, type: 'dirt' as import('@/types/game').TileType, crop: null, growthStage: 0, plantedDay: undefined, wateredTimestamp: undefined, wateredToday: false, lastWorkedTime: newState.gameTime, overgrowthTime: newState.gameTime + (1800000 + Math.random() * 1800000) };
                     }
                     return t;
                   })
@@ -2700,7 +2712,7 @@ export function clearTile(state: GameState, tileX: number, tileY: number): GameS
           variant: getRandomGrassVariant(),
           cleared: true,
           lastWorkedTime: state.gameTime,
-          overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
+          overgrowthTime: state.gameTime + (1800000 + Math.random() * 1800000), // 30-60 minutes random (50% less frequent)
         };
       }
       return t;
@@ -2820,7 +2832,7 @@ export function harvestCrop(state: GameState, tileX: number, tileY: number): Gam
           wateredToday: false, // Reset watering status
           fertilized: false, // Clear fertilizer - must be reapplied for next crop
           lastWorkedTime: state.gameTime,
-          overgrowthTime: state.gameTime + (900000 + Math.random() * 900000), // 15-30 minutes random
+          overgrowthTime: state.gameTime + (1800000 + Math.random() * 1800000), // 30-60 minutes random (50% less frequent)
         };
       }
       return t;

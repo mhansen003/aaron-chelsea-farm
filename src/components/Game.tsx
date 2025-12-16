@@ -1572,7 +1572,7 @@ export default function Game() {
                      gridRef[y]?.[x - 1]?.type === 'fertilizer' &&
                      gridRef[y + 1]?.[x]?.type === 'fertilizer' &&
                      gridRef[y + 1]?.[x - 1]?.type === 'fertilizer') {
-              offsetX = 512;
+              offsetX = 250;
               offsetY = 0;
             }
             // Check if this is bottom-left
@@ -1581,21 +1581,21 @@ export default function Game() {
                      gridRef[y - 1]?.[x]?.type === 'fertilizer' &&
                      gridRef[y - 1]?.[x + 1]?.type === 'fertilizer') {
               offsetX = 0;
-              offsetY = 512;
+              offsetY = 250;
             }
             // Check if this is bottom-right
             else if (x > 0 && y > 0 &&
                      gridRef[y]?.[x - 1]?.type === 'fertilizer' &&
                      gridRef[y - 1]?.[x]?.type === 'fertilizer' &&
                      gridRef[y - 1]?.[x - 1]?.type === 'fertilizer') {
-              offsetX = 512;
-              offsetY = 512;
+              offsetX = 250;
+              offsetY = 250;
             }
 
-            // Draw the appropriate quadrant
+            // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
             ctx.drawImage(
               fertilizerBuildingImageRef.current,
-              offsetX, offsetY, 512, 512,
+              offsetX, offsetY, 250, 250,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           } else {
@@ -1645,7 +1645,7 @@ export default function Game() {
                      gridRef[y]?.[x - 1]?.type === 'hopper' &&
                      gridRef[y + 1]?.[x]?.type === 'hopper' &&
                      gridRef[y + 1]?.[x - 1]?.type === 'hopper') {
-              offsetX = 512;
+              offsetX = 250;
               offsetY = 0;
             }
             // Check if this is bottom-left
@@ -1654,21 +1654,21 @@ export default function Game() {
                      gridRef[y - 1]?.[x]?.type === 'hopper' &&
                      gridRef[y - 1]?.[x + 1]?.type === 'hopper') {
               offsetX = 0;
-              offsetY = 512;
+              offsetY = 250;
             }
             // Check if this is bottom-right
             else if (x > 0 && y > 0 &&
                      gridRef[y]?.[x - 1]?.type === 'hopper' &&
                      gridRef[y - 1]?.[x]?.type === 'hopper' &&
                      gridRef[y - 1]?.[x - 1]?.type === 'hopper') {
-              offsetX = 512;
-              offsetY = 512;
+              offsetX = 250;
+              offsetY = 250;
             }
 
-            // Draw the appropriate quadrant
+            // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
             ctx.drawImage(
               hopperImageRef.current,
-              offsetX, offsetY, 512, 512,
+              offsetX, offsetY, 250, 250,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           } else {

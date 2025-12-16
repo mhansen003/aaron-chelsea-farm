@@ -568,11 +568,16 @@ export default function Game() {
 
     // Load grass (variant 1 - most common)
     const grassImg = new Image();
-    grassImg.src = `/${theme}-grass.jpg`;
-    grassImg.onerror = () => {
-      // Fallback to farm theme if themed image doesn't exist
-      grassImg.src = '/farm-grass.jpg';
-    };
+    // Use new grass.png for farm zones, keep themed versions for other zones
+    if (theme === 'farm') {
+      grassImg.src = '/grass.png';
+    } else {
+      grassImg.src = `/${theme}-grass.jpg`;
+      grassImg.onerror = () => {
+        // Fallback to new grass.png if themed image doesn't exist
+        grassImg.src = '/grass.png';
+      };
+    }
     grassImg.onload = () => {
       grassImageRef.current = grassImg;
     };

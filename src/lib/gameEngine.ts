@@ -1973,8 +1973,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
-        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
+        visualX = clampToGrid(visualX + dx * SEEDBOT_MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * SEEDBOT_MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
         visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
         visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);

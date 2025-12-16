@@ -1,7 +1,7 @@
 // Game engine for My Bot Farm
 import { GameState, GameConfig, Tile, TileType, CropType, CropGrowthInfo, Zone, WaterBot, Task, TaskType, DemolishBot, ZoneEarnings, BasketItem } from '@/types/game';
 import { CROP_INFO } from './cropConstants';
-import { getMarketPrice } from './marketEconomy';
+import { getMarketPrice, getEpicSeasonalEvent } from './marketEconomy';
 
 export const GAME_CONFIG: GameConfig = {
   gridWidth: 16,

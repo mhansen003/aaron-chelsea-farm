@@ -1800,36 +1800,53 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
       }
 
-      let currentJob = bot.jobs.find(j => j.id === bot.currentJobId);
-      if (!currentJob) {
-        currentJob = bot.jobs[0];
-      }
-
-      const plantableTiles = currentJob.targetTiles.filter(targetTile => {
-        const tile = grid[targetTile.y]?.[targetTile.x];
-        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
+      // Collect ALL plantable tiles from ALL jobs with their job info
+      // Filter out tiles already claimed by other seed bots
+      const claimedSeedTiles = new Set<string>();
+      zone.seedBots.forEach(otherBot => {
+        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
+          claimedSeedTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
+        }
       });
 
-      if (plantableTiles.length === 0) {
-        const currentJobIndex = bot.jobs.findIndex(j => j.id === currentJob?.id);
-        const nextJobIndex = (currentJobIndex + 1) % bot.jobs.length;
-        const nextJob = bot.jobs[nextJobIndex];
+      // Gather all plantable tiles from all jobs
+      type PlantableTileWithJob = { x: number; y: number; job: import('@/types/game').SeedBotJob };
+      const allPlantableTiles: PlantableTileWithJob[] = [];
 
-        const nextPlantableTiles = nextJob.targetTiles.filter(targetTile => {
-          const tile = grid[targetTile.y]?.[targetTile.x];
-          return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
+      bot.jobs.forEach(job => {
+        job.targetTiles.forEach(targetTile => {
+          const tile = updatedGrid[targetTile.y]?.[targetTile.x];
+          const isPlantable = tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
+          const notClaimed = !claimedSeedTiles.has(`${targetTile.x},${targetTile.y}`);
+
+          if (isPlantable && notClaimed) {
+            allPlantableTiles.push({ x: targetTile.x, y: targetTile.y, job });
+          }
         });
+      });
 
-        if (nextPlantableTiles.length > 0) {
-          currentJob = nextJob;
-        } else {
-          return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
-        }
+      // No plantable tiles at all - go idle
+      if (allPlantableTiles.length === 0) {
+        return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
       }
 
+      // Find the NEAREST tile across ALL jobs (spiral outward pattern)
+      let nearest = allPlantableTiles[0];
+      let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
+      allPlantableTiles.forEach(tileWithJob => {
+        const dist = Math.abs(botX - tileWithJob.x) + Math.abs(botY - tileWithJob.y);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = tileWithJob;
+        }
+      });
+
+      // Switch to the job that owns the nearest tile
+      const currentJob = nearest.job;
       const cropType = currentJob.cropType;
       const currentSeeds = newState.player.inventory.seeds[cropType];
 
+      // Auto-buy seeds if needed
       if (bot.autoBuySeeds && currentSeeds < 5) {
         const seedCost = getCurrentSeedCost(cropType, newState.cropsSold);
         const amountToBuy = 10;
@@ -1853,170 +1870,100 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         }
       }
 
+      // If no seeds for this crop, skip to next nearest tile with available seeds
       if (newState.player.inventory.seeds[cropType] <= 0) {
-        // Idle - go to garage if it exists, otherwise wander
-        const garagePos = findGaragePosition(grid);
-        if (garagePos) {
-          // Garage exists - navigate to it and park
-          if (botX === garagePos.x && botY === garagePos.y) {
-            // Already at garage - stay parked
-            return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
-          } else {
-            // Travel to garage
-            let newX = botX, newY = botY;
-            if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
-              if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
-              else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
-            }
-            return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: currentJob.id, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
-          }
-        }
-        // No garage - wander randomly
-        if (Math.random() < (deltaTime / 2000)) {
-          const walkableTiles: Array<{ x: number; y: number }> = [];
-          grid.forEach((row, y) => {
-            row.forEach((tile, x) => {
-              const isWalkable =
-                tile.type === 'grass' ||
-                (tile.type === 'dirt' && tile.cleared) ||
-                tile.type === 'planted' ||
-                tile.type === 'grown';
-              if (isWalkable) {
-                walkableTiles.push({ x, y });
+        // Try to find another plantable tile with seeds available
+        const tilesWithSeeds = allPlantableTiles.filter(t => newState.player.inventory.seeds[t.job.cropType] > 0);
+
+        if (tilesWithSeeds.length === 0) {
+          // No seeds for any crops - go to garage or idle
+          const garagePos = findGaragePosition(grid);
+          if (garagePos) {
+            if (botX === garagePos.x && botY === garagePos.y) {
+              return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+            } else {
+              let newX = botX, newY = botY;
+              if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+                if (botX < garagePos.x) newX++; else if (botX > garagePos.x) newX--;
+                else if (botY < garagePos.y) newY++; else if (botY > garagePos.y) newY--;
               }
-            });
-          });
-
-          const nearbyTiles = walkableTiles.filter(t => {
-            const dx = Math.abs(t.x - botX);
-            const dy = Math.abs(t.y - botY);
-            return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
-          });
-
-          if (nearbyTiles.length > 0) {
-            const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
-            return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+              return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: currentJob.id, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
+            }
           }
+          return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
         }
-        return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
-      }
 
-      const refreshedPlantableTiles = currentJob.targetTiles.filter(targetTile => {
-        const tile = updatedGrid[targetTile.y]?.[targetTile.x];
-        return tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop && !tile.hasSprinkler;
-      });
-
-      // Filter out tiles already claimed by other seed bots
-      const claimedSeedTiles = new Set<string>();
-      zone.seedBots.forEach(otherBot => {
-        if (otherBot.id !== bot.id && otherBot.targetX !== undefined && otherBot.targetY !== undefined) {
-          claimedSeedTiles.add(`${otherBot.targetX},${otherBot.targetY}`);
-        }
-      });
-
-      const availablePlantableTiles = refreshedPlantableTiles.filter(tile =>
-        !claimedSeedTiles.has(`${tile.x},${tile.y}`)
-      );
-
-      if (availablePlantableTiles.length > 0) {
-        let nearest = availablePlantableTiles[0];
-        let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-        availablePlantableTiles.forEach(tile => {
-          const dist = Math.abs(botX - tile.x) + Math.abs(botY - tile.y);
-          if (dist < minDist) {
-            minDist = dist;
-            nearest = tile;
+        // Find nearest tile that we have seeds for
+        let nearestWithSeeds = tilesWithSeeds[0];
+        let minDistWithSeeds = Math.abs(botX - nearestWithSeeds.x) + Math.abs(botY - nearestWithSeeds.y);
+        tilesWithSeeds.forEach(tileWithJob => {
+          const dist = Math.abs(botX - tileWithJob.x) + Math.abs(botY - tileWithJob.y);
+          if (dist < minDistWithSeeds) {
+            minDistWithSeeds = dist;
+            nearestWithSeeds = tileWithJob;
           }
         });
+        nearest = nearestWithSeeds;
+      }
 
-        const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
-        if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
-          const tile = updatedGrid[nearest.y]?.[nearest.x];
-          if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
-            const ACTION_DURATION = getAdjustedDuration(480, bot.supercharged); // 40% faster planting (240ms if supercharged)
+      // Now we have the nearest tile with available seeds - plant it!
+      const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
+      if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
+        const tile = updatedGrid[nearest.y]?.[nearest.x];
+        if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
+          const finalCropType = nearest.job.cropType;
+          const ACTION_DURATION = getAdjustedDuration(480, bot.supercharged); // 40% faster planting (240ms if supercharged)
 
-            if (bot.actionStartTime !== undefined) {
-              const elapsed = newState.gameTime - bot.actionStartTime;
-              if (elapsed >= ACTION_DURATION) {
-                updatedGrid = updatedGrid.map((row, rowY) =>
-                  row.map((t, tileX) => {
-                    if (tileX === nearest.x && rowY === nearest.y) {
-                      return {
-                        ...t,
-                        type: 'planted' as import('@/types/game').TileType,
-                        crop: cropType,
-                        growthStage: 0,
-                        lastWorkedTime: undefined,
-                        overgrowthTime: undefined,
-                      };
-                    }
-                    return t;
-                  })
-                );
+          if (bot.actionStartTime !== undefined) {
+            const elapsed = newState.gameTime - bot.actionStartTime;
+            if (elapsed >= ACTION_DURATION) {
+              updatedGrid = updatedGrid.map((row, rowY) =>
+                row.map((t, tileX) => {
+                  if (tileX === nearest.x && rowY === nearest.y) {
+                    return {
+                      ...t,
+                      type: 'planted' as import('@/types/game').TileType,
+                      crop: finalCropType,
+                      growthStage: 0,
+                      lastWorkedTime: undefined,
+                      overgrowthTime: undefined,
+                    };
+                  }
+                  return t;
+                })
+              );
 
-                newState = {
-                  ...newState,
-                  player: {
-                    ...newState.player,
-                    inventory: {
-                      ...newState.player.inventory,
-                      seeds: {
-                        ...newState.player.inventory.seeds,
-                        [cropType]: newState.player.inventory.seeds[cropType] - 1,
-                      },
+              newState = {
+                ...newState,
+                player: {
+                  ...newState.player,
+                  inventory: {
+                    ...newState.player.inventory,
+                    seeds: {
+                      ...newState.player.inventory.seeds,
+                      [finalCropType]: newState.player.inventory.seeds[finalCropType] - 1,
                     },
                   },
-                };
+                },
+              };
 
-                // Round-robin: After planting, switch to next job with plantable tiles for crop mixing
-                const currentJobIndex = bot.jobs.findIndex(j => j.id === currentJob?.id);
-                const nextJobIndex = (currentJobIndex + 1) % bot.jobs.length;
-                const nextJob = bot.jobs[nextJobIndex];
-
-                return { ...bot, status: 'planting' as const, currentJobId: nextJob.id, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
-              } else {
-                return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY };
-              }
+              // After planting, bot will naturally pick the next nearest tile (spiral pattern)
+              return { ...bot, status: 'planting' as const, currentJobId: nearest.job.id, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
             } else {
-              return { ...bot, status: 'planting' as const, currentJobId: currentJob.id, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
+              return { ...bot, status: 'planting' as const, currentJobId: nearest.job.id, visualX, visualY };
             }
+          } else {
+            return { ...bot, status: 'planting' as const, currentJobId: nearest.job.id, visualX, visualY, actionStartTime: newState.gameTime, actionDuration: ACTION_DURATION };
           }
-        } else {
-          let newX = botX, newY = botY;
-          if (Math.random() < (deltaTime / 150)) { // Much faster travel speed
-            if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
-            else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
-          }
-          return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, currentJobId: currentJob.id, visualX, visualY };
         }
       } else {
-        if (Math.random() < (deltaTime / 2000)) {
-          const walkableTiles: Array<{ x: number; y: number }> = [];
-          grid.forEach((row, y) => {
-            row.forEach((tile, x) => {
-              const isWalkable =
-                tile.type === 'grass' ||
-                (tile.type === 'dirt' && tile.cleared) ||
-                tile.type === 'planted' ||
-                tile.type === 'grown';
-              if (isWalkable) {
-                walkableTiles.push({ x, y });
-              }
-            });
-          });
-
-          const nearbyTiles = walkableTiles.filter(t => {
-            const dx = Math.abs(t.x - botX);
-            const dy = Math.abs(t.y - botY);
-            return dx <= 3 && dy <= 3 && (dx > 0 || dy > 0);
-          });
-
-          if (nearbyTiles.length > 0) {
-            const randomTile = nearbyTiles[Math.floor(Math.random() * nearbyTiles.length)];
-            return { ...bot, x: randomTile.x, y: randomTile.y, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
-          }
+        // Travel to the nearest tile
+        let newX = botX, newY = botY;
+        if (Math.random() < (deltaTime / 150)) { // Much faster travel speed
+          if (botX < nearest.x) newX++; else if (botX > nearest.x) newX--;
+          else if (botY < nearest.y) newY++; else if (botY > nearest.y) newY--;
         }
-        return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
+        return { ...bot, x: newX, y: newY, status: 'traveling' as const, targetX: nearest.x, targetY: nearest.y, currentJobId: nearest.job.id, visualX, visualY };
       }
 
       return { ...bot, visualX, visualY };

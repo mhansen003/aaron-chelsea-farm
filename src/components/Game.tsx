@@ -75,6 +75,7 @@ import {
 } from '@/lib/gameEngine';
 import { GameState, CropType, ToolType, Tile, Zone, SaleRecord, BasketItem, Task } from '@/types/game';
 import Shop from './Shop';
+import FishingMarket from './FishingMarket';
 import SellShop from './SellShop';
 import ExportShop from './ExportShop';
 import BotFactory from './BotFactory';
@@ -5157,6 +5158,14 @@ export default function Game() {
             setShowBuildingPurchaseTip(true);
           }}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
+        />
+      )}
+
+      {/* Fishing Market Modal (Beach Zone) */}
+      {showFishingMarket && (
+        <FishingMarket
+          gameState={gameState}
+          onClose={() => setShowFishingMarket(false)}
         />
       )}
 

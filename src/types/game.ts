@@ -215,6 +215,7 @@ export interface Zone {
   lastFishSpawnTime?: number; // Game time when last fish spawned
   taskQueue: Task[]; // Queue of tasks for worker in this zone
   currentTask: Task | null; // Task currently being executed in this zone
+  playerPosition?: { x: number; y: number; visualX?: number; visualY?: number }; // Player's last position in this zone
 }
 
 export interface WaterBotJob {

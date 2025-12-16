@@ -430,8 +430,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
     name = "Sunny Beach";
     description = "A tropical paradise with sandy shores and palm trees. Perfect for fishing and relaxation!";
     npc = {
-      name: "Sally Surfer",
-      description: "Beach expert and fishing robot specialist. She can help you automate ocean harvesting!",
+      name: "Surfer Girl",
+      description: "A laid-back beach expert who grew up on these shores and knows every reef, current, and secret fishing spot. She's spent years perfecting fishing robot technology and can teach you how to automate your ocean harvesting operation. With her help, you'll unlock advanced submarine bots, discover rare deep-sea creatures, and turn this tropical paradise into a thriving aquatic empire!",
       image: "/surfer.png",
       shopType: "fishing",
     };

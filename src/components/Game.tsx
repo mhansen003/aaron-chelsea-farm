@@ -1318,7 +1318,7 @@ export default function Game() {
               const checkX = x - dx;
               const checkY = y - dy;
               if (checkX >= 0 && checkY >= 0 &&
-                  currentGrid[checkY]?.[checkX]?.type === 'export') {
+                  gridRef[checkY]?.[checkX]?.type === 'export') {
                 if (checkX < exportTopLeftX) exportTopLeftX = checkX;
                 if (checkY < exportTopLeftY) exportTopLeftY = checkY;
               }

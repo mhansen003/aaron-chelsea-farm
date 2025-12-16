@@ -49,12 +49,12 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
           </button>
         </div>
 
-        {/* Large themed arch image */}
+        {/* Large themed arch landscape image */}
         <div className="mb-6 flex justify-center">
           <img
             src={themeArchImages[zone.theme]}
             alt={`${zone.theme} zone`}
-            className="w-64 h-64 object-contain drop-shadow-2xl"
+            className="w-full h-80 object-cover rounded-xl drop-shadow-2xl border-2 border-amber-600/50"
           />
         </div>
 

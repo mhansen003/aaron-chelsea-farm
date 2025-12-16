@@ -196,21 +196,21 @@ export default function HopperModal({ gameState, onClose, onUpgrade, onRelocate 
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-600 p-4 flex gap-3">
+        <div className="sticky bottom-0 bg-gray-900 border-t border-gray-600 p-4 flex gap-3 justify-between">
           {onRelocate && (
             <button
               onClick={() => {
                 onRelocate();
                 onClose();
               }}
-              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
             >
-              📍 Relocate
+              📍 Move Building
             </button>
           )}
           <button
             onClick={onClose}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors ml-auto"
           >
             Close
           </button>

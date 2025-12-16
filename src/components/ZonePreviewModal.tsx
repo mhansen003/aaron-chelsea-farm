@@ -76,17 +76,14 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-6 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-slate-700`}>
-        {/* Header with close button */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-4xl font-bold">{zone.name}</h2>
-          <button
-            onClick={onClose}
-            className="text-3xl hover:text-red-400 transition-colors px-2"
-          >
-            ✕
-          </button>
-        </div>
+      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-6 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-slate-700 relative`}>
+        {/* Close button - top right corner */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-3xl hover:text-red-400 transition-colors px-2 z-10"
+        >
+          ✕
+        </button>
 
         {/* Main content layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
@@ -95,7 +92,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
             <img
               src={themeArchImages[zone.theme]}
               alt={`${zone.theme} zone`}
-              className="w-full h-96 object-cover rounded-xl drop-shadow-2xl"
+              className="w-full h-[500px] object-cover rounded-xl drop-shadow-2xl"
             />
 
             {/* NPC photo overlaid on top-left corner - larger */}
@@ -110,8 +107,9 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
             )}
           </div>
 
-          {/* Right: Description and NPC info - takes 2 columns */}
+          {/* Right: Title, Description and NPC info - takes 2 columns */}
           <div className="lg:col-span-2 flex flex-col space-y-4">
+            <h2 className="text-4xl font-bold">{zone.name}</h2>
             <p className="text-lg text-slate-200 leading-relaxed">
               {expandedDescriptions[zone.theme as keyof typeof expandedDescriptions]}
             </p>

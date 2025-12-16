@@ -5106,27 +5106,28 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Placement Toolbar - Compact menu for placing items */}
+      {/* Placement Toolbar - Modern menu for placing items */}
       {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
-        <div className="w-full bg-gradient-to-r from-blue-900/90 to-purple-900/90 p-3 rounded-lg border-4 border-yellow-400 flex items-center gap-3 shadow-2xl animate-pulse" style={{
-          boxShadow: '0 0 30px rgba(250, 204, 21, 0.8), 0 0 60px rgba(250, 204, 21, 0.5), 0 0 90px rgba(250, 204, 21, 0.3), 0 10px 40px rgba(0, 0, 0, 0.5)'
-        }}>
-          <div className="text-white font-bold text-base flex items-center gap-2">
-            <span className="text-2xl">🔨</span>
-            <span>Place Items:</span>
-          </div>
+        <div className="w-full bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-slate-800/95 backdrop-blur-sm p-4 rounded-xl border border-slate-600/50 shadow-xl">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg border border-slate-600/30">
+              <span className="text-xl">🔨</span>
+              <span className="text-slate-200 font-semibold text-sm tracking-wide">BUILD</span>
+            </div>
 
           {/* Sprinkler Placement Button */}
           {gameState.player.inventory.sprinklers > 0 && (
             <button
               onClick={() => setPlacementMode(placementMode === 'sprinkler' ? null : 'sprinkler')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'sprinkler'
-                  ? 'bg-cyan-500 ring-4 ring-cyan-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105'
+                  ? 'bg-cyan-500/90 border-cyan-400 text-white shadow-lg shadow-cyan-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              💦 Sprinkler <span className="text-sm bg-black/30 px-2 py-1 rounded">×{gameState.player.inventory.sprinklers}</span>
+              <span className="text-lg">💦</span>
+              <span>Sprinkler</span>
+              <span className="text-xs bg-black/30 px-2 py-0.5 rounded-md ml-1">×{gameState.player.inventory.sprinklers}</span>
             </button>
           )}
 
@@ -5134,13 +5135,14 @@ export default function Game() {
           {gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced && (
             <button
               onClick={() => setPlacementMode(placementMode === 'botFactory' ? null : 'botFactory')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'botFactory'
-                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-orange-400/50'
+                  ? 'bg-orange-500/90 border-orange-400 text-white shadow-lg shadow-orange-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              ⚙️ Bot Factory
+              <span className="text-lg">⚙️</span>
+              <span>Bot Factory</span>
             </button>
           )}
 
@@ -5148,26 +5150,29 @@ export default function Game() {
           {gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced && (
             <button
               onClick={() => setPlacementMode(placementMode === 'well' ? null : 'well')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'well'
-                  ? 'bg-blue-500 ring-4 ring-blue-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-blue-400/50'
+                  ? 'bg-blue-500/90 border-blue-400 text-white shadow-lg shadow-blue-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              🪣 Water Well
+              <span className="text-lg">🪣</span>
+              <span>Water Well</span>
             </button>
           )}
-{/* Garage Placement Button */}
+
+          {/* Garage Placement Button */}
           {(gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false) && (
             <button
               onClick={() => setPlacementMode(placementMode === 'garage' ? null : 'garage')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'garage'
-                  ? 'bg-orange-500 ring-4 ring-orange-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-orange-400/50'
+                  ? 'bg-amber-500/90 border-amber-400 text-white shadow-lg shadow-amber-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              🚗 Garage
+              <span className="text-lg">🚗</span>
+              <span>Garage</span>
             </button>
           )}
 
@@ -5175,13 +5180,14 @@ export default function Game() {
           {(gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false) && (
             <button
               onClick={() => setPlacementMode(placementMode === 'supercharger' ? null : 'supercharger')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'supercharger'
-                  ? 'bg-purple-500 ring-4 ring-purple-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-purple-400/50'
+                  ? 'bg-purple-500/90 border-purple-400 text-white shadow-lg shadow-purple-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              ⚡ Supercharger
+              <span className="text-lg">⚡</span>
+              <span>Supercharger</span>
             </button>
           )}
 
@@ -5189,13 +5195,14 @@ export default function Game() {
           {(gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false) && (
             <button
               onClick={() => setPlacementMode(placementMode === 'fertilizer' ? null : 'fertilizer')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'fertilizer'
-                  ? 'bg-lime-500 ring-4 ring-lime-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-lime-400/50'
+                  ? 'bg-lime-500/90 border-lime-400 text-white shadow-lg shadow-lime-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              🌱 Fertilizer
+              <span className="text-lg">🌱</span>
+              <span>Fertilizer</span>
             </button>
           )}
 
@@ -5203,13 +5210,14 @@ export default function Game() {
           {(gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false) && (
             <button
               onClick={() => setPlacementMode(placementMode === 'hopper' ? null : 'hopper')}
-              className={`px-4 py-2 rounded-lg font-bold text-base flex items-center gap-2 transition-all ${
+              className={`px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2.5 transition-all border ${
                 placementMode === 'hopper'
-                  ? 'bg-cyan-500 ring-4 ring-cyan-300 scale-105'
-                  : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 animate-pulse ring-2 ring-cyan-400/50'
+                  ? 'bg-teal-500/90 border-teal-400 text-white shadow-lg shadow-teal-500/30'
+                  : 'bg-slate-700/60 border-slate-600/40 text-slate-200 hover:bg-slate-600/70 hover:border-slate-500/60 hover:shadow-md'
               }`}
             >
-              🎒 Hopper
+              <span className="text-lg">🎒</span>
+              <span>Hopper</span>
             </button>
           )}
 
@@ -5217,15 +5225,16 @@ export default function Game() {
           {placementMode && (
             <button
               onClick={() => setPlacementMode(null)}
-              className="px-4 py-2 rounded-lg font-bold text-base bg-red-600 hover:bg-red-700 ml-auto flex items-center gap-2"
+              className="px-4 py-2.5 rounded-lg font-semibold text-sm bg-red-500/90 hover:bg-red-600 border border-red-400 text-white ml-auto flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
             >
-              ✕ Cancel Placement
+              <span className="text-lg">✕</span>
+              <span>Cancel</span>
             </button>
           )}
 
           {/* Help Text */}
           {placementMode && (
-            <div className="text-yellow-300 text-sm font-bold ml-2 bg-black/40 px-3 py-1 rounded">
+            <div className="text-slate-300 text-xs font-medium px-3 py-1.5 bg-slate-700/40 rounded-md border border-slate-600/30">
               👉 {
                 placementMode === 'sprinkler' ? 'Click any tile to place sprinkler' :
                 placementMode === 'botFactory' ? 'Click grass tile to place shop (2 min build)' :
@@ -5238,6 +5247,7 @@ export default function Game() {
               }
             </div>
           )}
+          </div>
         </div>
       )}
 

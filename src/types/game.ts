@@ -26,7 +26,12 @@ export type TileType =
   | 'rocks'
   | 'cave'
   | 'mountain'
-  | 'fishinghut';
+  | 'fishinghut'
+  | 'subdock'
+  | 'fishmarket'
+  | 'baitshop'
+  | 'lighthouse'
+  | 'aquarium';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' | 'peppers' | 'grapes' | 'oranges' | 'avocado' | 'rice' | 'corn' | null;
 

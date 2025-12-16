@@ -256,8 +256,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         } else {
           type = 'sand';
           const rand = Math.random();
-          if (rand < 0.30) type = 'seaweed'; // 30% seaweed
-          else if (rand < 0.50) type = 'shells'; // 20% shells
+          if (rand < 0.12) type = 'seaweed'; // 12% seaweed (reduced by 60%)
+          else if (rand < 0.20) type = 'shells'; // 8% shells (reduced by 60%)
         }
       } else if (theme === 'desert') {
         // Desert: sand with cactus and rocks
@@ -2024,9 +2024,32 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   const startZoneKey = '0,0';
   const startZone = newZones[startZoneKey];
   if (startZone && startZone.owned && startZone.transportBots && startZone.transportBots.length > 0) {
+    // Migration: Add default config to existing bots without one
+    const updatedTransportBots = startZone.transportBots.map(bot => {
+      if (!bot.config) {
+        return {
+          ...bot,
+          config: {
+            sellMode: 'market-based' as const,
+            perCropSettings: [
+              'carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon',
+              'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
+            ].map(crop => ({
+              crop: crop as Exclude<import('@/types/game').CropType, null>,
+              maxInventory: 0,
+              sellOnHighDemand: true,
+              sellOnEpic: true,
+            })),
+          },
+        };
+      }
+      return bot;
+    });
+    newZones[startZoneKey] = { ...startZone, transportBots: updatedTransportBots };
+
     // Check each transport bot's configuration to auto-mark items for sale
-    for (const bot of startZone.transportBots) {
-      if (!bot.config) continue; // Skip bots without config
+    for (const bot of updatedTransportBots) {
+      if (!bot.config) continue; // Skip bots without config (shouldn't happen after migration)
 
       const config = bot.config;
 
@@ -3308,6 +3331,20 @@ export function buyTransportbots(state: GameState, amount: number, name?: string
   const actualAmount = 1;
   const actualCost = currentCost;
 
+  // Create default config if none provided
+  const defaultConfig: import('@/types/game').TransportBotConfig = {
+    sellMode: 'market-based',
+    perCropSettings: [
+      'carrot', 'wheat', 'tomato', 'pumpkin', 'watermelon',
+      'peppers', 'grapes', 'oranges', 'avocado', 'rice', 'corn'
+    ].map(crop => ({
+      crop: crop as Exclude<import('@/types/game').CropType, null>,
+      maxInventory: 0,
+      sellOnHighDemand: true,
+      sellOnEpic: true,
+    })),
+  };
+
   // Create actual TransportBot entities
   const newBots: import('@/types/game').TransportBot[] = [];
   for (let i = 0; i < actualAmount; i++) {
@@ -3335,7 +3372,7 @@ export function buyTransportbots(state: GameState, amount: number, name?: string
       y: spawnY,
       visualX: spawnX,
       visualY: spawnY,
-      config, // Include the sell configuration
+      config: config || defaultConfig, // Use provided config or default with both options enabled
     });
   }
 

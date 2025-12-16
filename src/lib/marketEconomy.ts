@@ -8,7 +8,7 @@ import { CROP_INFO } from './cropConstants';
  * Full cycle: 40 minutes (Spring -> Summer -> Fall -> Winter)
  */
 export function getSeason(gameTime: number): Season {
-  const SEASON_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const SEASON_DURATION = 7 * 60 * 1000; // 7 minutes in milliseconds
   const totalSeasonTime = gameTime % (SEASON_DURATION * 4); // 4 seasons cycle
   const seasonIndex = Math.floor(totalSeasonTime / SEASON_DURATION);
   const seasons: Season[] = ['spring', 'summer', 'fall', 'winter'];
@@ -19,7 +19,7 @@ export function getSeason(gameTime: number): Season {
  * Get time remaining in current season (in milliseconds)
  */
 export function getSeasonTimeRemaining(gameTime: number): number {
-  const SEASON_DURATION = 10 * 60 * 1000; // 10 minutes
+  const SEASON_DURATION = 7 * 60 * 1000; // 10 minutes
   const totalSeasonTime = gameTime % (SEASON_DURATION * 4);
   const seasonProgress = totalSeasonTime % SEASON_DURATION;
   return SEASON_DURATION - seasonProgress;
@@ -48,7 +48,7 @@ export function getEpicSeasonalEvent(gameTime: number): {
   epicCrops: Array<Exclude<CropType, null>>;
   seasonName: string;
 } | null {
-  const SEASON_DURATION = 10 * 60 * 1000; // 10 minutes
+  const SEASON_DURATION = 7 * 60 * 1000; // 10 minutes
   const EPIC_CYCLE = SEASON_DURATION * 5; // Every 5 seasons (50 minutes)
 
   const cycleNumber = Math.floor(gameTime / EPIC_CYCLE);
@@ -129,8 +129,8 @@ function seededRandom(seed: number): number {
  * Uses deterministic seeding so forecasts are predictable and consistent
  */
 function generatePriceForecast(market: MarketData, gameState: GameState): PriceSnapshot[] {
-  const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds (1 season)
-  const NUM_CYCLES = 10; // Forecast 10 cycles ahead for balanced chart
+  const CYCLE_DURATION = 7 * 60 * 1000; // 7 minutes in milliseconds (1 season)
+  const NUM_CYCLES = 3; // Forecast 3 seasons ahead
   const forecast: PriceSnapshot[] = [];
 
   const crops: Array<Exclude<CropType, null>> = [
@@ -202,7 +202,7 @@ export function updateMarketPrices(gameState: GameState): GameState {
   }
 
   const market = { ...gameState.market };
-  const CYCLE_DURATION = 10 * 60 * 1000; // 10 minutes
+  const CYCLE_DURATION = 7 * 60 * 1000; // 10 minutes
 
   // Update season based on real-time
   market.currentSeason = getSeason(gameState.gameTime);
@@ -339,14 +339,14 @@ export function updateMarketPrices(gameState: GameState): GameState {
 
   market.lastUpdateDay = gameState.currentDay;
 
-  // Record price snapshot for history (keep last 10 for ~2 seasons)
+  // Record price snapshot for history (keep last 2: 1 past season + 1 current)
   const snapshot: PriceSnapshot = {
     timestamp: gameState.gameTime,
     day: gameState.currentDay,
     prices: { ...market.currentPrices },
   };
 
-  market.priceHistory = [...market.priceHistory, snapshot].slice(-10);
+  market.priceHistory = [...market.priceHistory, snapshot].slice(-2);
 
   return {
     ...gameState,
@@ -407,7 +407,7 @@ export function getNextSeasonForecast(gameTime: number): {
   crops: Array<Exclude<CropType, null>>;
   minutesUntil: number;
 } {
-  const SEASON_DURATION = 10 * 60 * 1000; // 10 minutes
+  const SEASON_DURATION = 7 * 60 * 1000; // 10 minutes
   const timeRemaining = getSeasonTimeRemaining(gameTime);
   const nextTime = gameTime + timeRemaining;
   const nextSeason = getSeason(nextTime);

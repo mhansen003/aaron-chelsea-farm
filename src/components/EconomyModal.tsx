@@ -295,24 +295,29 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
               const info = CROP_INFO[crop];
               const color = CROP_COLORS[crop];
 
-              // Check if season is ending soon (< 2 minutes remaining)
-              const timeRemaining = getSeasonTimeRemaining(gameState.gameTime);
-              const seasonEndingSoon = timeRemaining < (2 * 60 * 1000); // < 2 minutes
-
-              // Show upcoming high demand if season is ending soon, otherwise current
-              const upcomingSeasonInfo = getNextSeasonForecast(gameState.gameTime);
-              const relevantHighDemand = seasonEndingSoon ? upcomingSeasonInfo.crops : market.highDemandCrops;
-
-              const isHighDemand = relevantHighDemand.includes(crop);
-              const isUpcoming = seasonEndingSoon && upcomingSeasonInfo.crops.includes(crop);
-
               // Check for epic seasonal events
               const currentEpicEvent = getEpicSeasonalEvent(gameState.gameTime);
               const isSeasonalEpic = currentEpicEvent && currentEpicEvent.epicCrops.includes(crop);
               const isRandomEpic = market.epicPriceCrop === crop;
               const isEpic = isRandomEpic || isSeasonalEpic;
 
-              // Calculate price change from forecast
+              // Calculate price change from previous season to determine high/low demand
+              let priceChangeFromPrevious = 0;
+              let isHighDemand = false;
+              let isLowDemand = false;
+
+              if (market.priceHistory.length >= 2) {
+                const previousPrice = market.priceHistory[0].prices[crop];
+                const currentPrice = market.priceHistory[1].prices[crop];
+                priceChangeFromPrevious = ((currentPrice - previousPrice) / previousPrice) * 100;
+
+                // High demand: price increased by more than 30% (excluding epic)
+                isHighDemand = !isEpic && priceChangeFromPrevious > 30;
+                // Low demand: price decreased by more than 20%
+                isLowDemand = !isEpic && priceChangeFromPrevious < -20;
+              }
+
+              // Calculate price change from forecast for trend
               let priceChange = 0;
               let forecastPrice = 0;
               if (market.priceForecast.length > 0 && market.priceHistory.length > 0) {
@@ -329,6 +334,8 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                       ? 'border-purple-500 shadow-lg shadow-purple-500/30'
                       : isHighDemand
                       ? 'border-yellow-500/60 shadow-lg shadow-yellow-500/20'
+                      : isLowDemand
+                      ? 'border-blue-500/60 shadow-lg shadow-blue-500/20'
                       : 'border-slate-700'
                   }`}
                 >
@@ -345,7 +352,12 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                   )}
                   {isHighDemand && !isEpic && (
                     <div className="absolute -top-2 -right-2 bg-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-                      {isUpcoming ? '🔥 UPCOMING' : '🔥 HIGH DEMAND'}
+                      🔥 HIGH DEMAND
+                    </div>
+                  )}
+                  {isLowDemand && !isEpic && (
+                    <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      ❄️ LOW DEMAND
                     </div>
                   )}
 

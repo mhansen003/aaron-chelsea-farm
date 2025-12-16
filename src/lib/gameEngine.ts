@@ -5260,7 +5260,7 @@ export function placeWarehouse(state: GameState, tileX: number, tileY: number): 
     t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
   );
 
-  if (!allTilesValid || !state.player.inventory.warehousePlaced) {
+  if (!allTilesValid) {
     return state;
   }
 

@@ -1194,14 +1194,15 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Shop building - draw full 2x2 building only on top-left tile
-          if (x === 0 && y === 0) {
-            const buildingSize = GAME_CONFIG.tileSize * 2;
-            ctx.drawImage(
-              shopImageRef.current,
-              px, py, buildingSize, buildingSize
-            );
-          }
+          // Shop building (500x500 image) - divide into 4 quadrants for 2x2 tiles
+          // Shop is at top-left (x: 0-1, y: 0-1)
+          const offsetX = (x - 0) * 250; // 500px / 2 = 250px per tile
+          const offsetY = (y - 0) * 250;
+          ctx.drawImage(
+            shopImageRef.current,
+            offsetX, offsetY, 250, 250, // Source: extract quadrant from 500x500 image
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
+          );
         } else if (tile.type === 'export' && exportImageRef.current) {
           // Draw grass background
           if (grassImageRef.current) {
@@ -1210,14 +1211,15 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Export building - draw full 2x2 building only on top-left tile of its position
-          if (x === GAME_CONFIG.gridWidth - 2 && y === 0) {
-            const buildingSize = GAME_CONFIG.tileSize * 2;
-            ctx.drawImage(
-              exportImageRef.current,
-              px, py, buildingSize, buildingSize
-            );
-          }
+          // Export building (500x500 image) - divide into 4 quadrants for 2x2 tiles
+          // Export is at top-right (x: 14-15, y: 0-1)
+          const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 250; // 500px / 2 = 250px per tile
+          const offsetY = (y - 0) * 250;
+          ctx.drawImage(
+            exportImageRef.current,
+            offsetX, offsetY, 250, 250, // Source: extract quadrant from 500x500 image
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
+          );
         } else if (tile.type === 'warehouse') {
           // Draw grass background
           if (grassImageRef.current) {

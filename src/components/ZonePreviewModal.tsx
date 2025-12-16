@@ -68,11 +68,11 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
 
             {/* NPC photo overlaid on top-left corner - larger */}
             {zone.npc && (
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-2 left-2">
                 <img
                   src={zone.npc.image}
                   alt={zone.npc.name}
-                  className="w-32 h-32 rounded-full border-4 border-cyan-400 object-cover shadow-2xl ring-4 ring-cyan-500/30"
+                  className="w-32 h-32 object-cover shadow-2xl"
                 />
               </div>
             )}

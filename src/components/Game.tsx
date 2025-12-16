@@ -1764,8 +1764,10 @@ export default function Game() {
             ctx.fillText('🎒', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
           }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
-          // Draw water bot sprite
-          ctx.drawImage(waterBotImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          // Draw water bot sprite (30% larger)
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(waterBotImageRef.current, px - botOffset, py - botOffset, botSize, botSize);
         } else if (tile.type === 'arch' && tile.archTargetZone) {
           // Draw arch - select themed arch based on target zone
           const zoneKey = `${tile.archTargetZone.x},${tile.archTargetZone.y}`;
@@ -2773,7 +2775,9 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (waterBotImageRef.current) {
-          ctx.drawImage(waterBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(waterBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to cyan circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -2844,7 +2848,9 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (harvestBotImageRef.current) {
-          ctx.drawImage(harvestBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(harvestBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to orange circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -2939,7 +2945,9 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (seedBotImageRef.current) {
-          ctx.drawImage(seedBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(seedBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to green circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -2986,7 +2994,9 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (transportBotImageRef.current) {
-          ctx.drawImage(transportBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(transportBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to purple circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -3033,10 +3043,10 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (demolishBotImageRef.current) {
-          // Scale demolish bot up by 15% to match other bots
-          const scaledSize = GAME_CONFIG.tileSize * 1.15;
-          const offset = (scaledSize - GAME_CONFIG.tileSize) / 2;
-          ctx.drawImage(demolishBotImageRef.current, botPx - offset, botPy - offset, scaledSize, scaledSize);
+          // Scale demolish bot up by 30% to match other bots
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(demolishBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to orange circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -3125,7 +3135,9 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (hunterBotImageRef.current) {
-          ctx.drawImage(hunterBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+          ctx.drawImage(hunterBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
           // Fallback to amber circle
           const centerX = botPx + GAME_CONFIG.tileSize / 2;
@@ -3172,7 +3184,9 @@ export default function Game() {
       const botPy = visualY * GAME_CONFIG.tileSize;
 
       if (fertilizerBotImageRef.current) {
-        ctx.drawImage(fertilizerBotImageRef.current, botPx, botPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+        const botSize = GAME_CONFIG.tileSize * 1.3;
+        const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
+        ctx.drawImage(fertilizerBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
       } else {
         // Fallback to lime circle
         const centerX = botPx + GAME_CONFIG.tileSize / 2;

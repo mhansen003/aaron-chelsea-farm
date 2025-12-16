@@ -1350,8 +1350,22 @@ export default function Game() {
 
           // Warehouse building uses 500x500 sprite sheet with 4 quadrants (250x250 each)
           if (warehouseImg) {
-            const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 250; // Bottom-right position
-            const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 250; // Bottom-right position
+            // Find the top-left corner of the warehouse building dynamically
+            let warehouseTopLeftX = x;
+            let warehouseTopLeftY = y;
+            for (let dy = 0; dy < 2; dy++) {
+              for (let dx = 0; dx < 2; dx++) {
+                const checkX = x - dx;
+                const checkY = y - dy;
+                if (checkX >= 0 && checkY >= 0 &&
+                    gridRef[checkY]?.[checkX]?.type === 'warehouse') {
+                  if (checkX < warehouseTopLeftX) warehouseTopLeftX = checkX;
+                  if (checkY < warehouseTopLeftY) warehouseTopLeftY = checkY;
+                }
+              }
+            }
+            const offsetX = (x - warehouseTopLeftX) * 250;
+            const offsetY = (y - warehouseTopLeftY) * 250;
             ctx.drawImage(
               warehouseImg,
               offsetX, offsetY, 250, 250,

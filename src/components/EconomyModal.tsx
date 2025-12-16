@@ -280,23 +280,79 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
       <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border border-gray-600/50 flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-700/50">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-white">Goods Economy</h2>
-              <p className="text-sm text-gray-400 mt-1">Price trends & forecasts for all goods</p>
+        {/* Header with Seasonal Images */}
+        <div className="flex-shrink-0 relative overflow-hidden border-b-4 border-gray-600/50">
+          {/* Background Images - 75/25 Split */}
+          <div className="absolute inset-0 flex">
+            {/* Current Season - 75% */}
+            <div className="w-[75%] relative">
+              <img
+                src={seasonImages[market.currentSeason]}
+                alt={market.currentSeason}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-transparent" />
             </div>
-            <button
-              onClick={onClose}
-              className="text-2xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center"
-            >
-              ✕
-            </button>
+
+            {/* Next Season - 25% */}
+            <div className="w-[25%] relative">
+              <img
+                src={seasonImages[nextSeason]}
+                alt={nextSeason}
+                className="absolute inset-0 w-full h-full object-cover opacity-70"
+              />
+              <div className="absolute inset-0 bg-black/60" />
+            </div>
           </div>
 
-          {/* Zone Tabs */}
-          <div className="flex gap-2 mt-6">
+          {/* Vertical Divider */}
+          <div className="absolute left-[75%] top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400/50 via-cyan-300/50 to-cyan-400/50 shadow-lg shadow-cyan-500/30" />
+
+          {/* Content Overlay */}
+          <div className="relative p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold text-white drop-shadow-lg">Market Data Center</h2>
+                <p className="text-sm text-cyan-200 mt-1">Price trends & forecasts for all goods</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-3xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center text-white drop-shadow-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Season Info Row */}
+            <div className="flex items-center gap-6 mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🌸</span>
+                <div>
+                  <div className="text-sm text-cyan-300 font-bold">Current Season</div>
+                  <div className="text-2xl font-bold text-white capitalize">{market.currentSeason}</div>
+                  <div className="text-xs text-cyan-200">Day {Math.floor((gameState.gameTime % (7 * 60 * 1000)) / (60 * 1000)) + 1}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-blue-900/60 px-4 py-2 rounded-lg border border-blue-500/50">
+                <span className="text-xl">📅</span>
+                <div>
+                  <div className="text-xs text-blue-200">Next Season</div>
+                  <div className="text-sm font-bold text-white capitalize">☀️ {nextSeason} in {formatTimeRemaining(getSeasonTimeRemaining(gameState.gameTime))}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-purple-900/60 px-4 py-2 rounded-lg border border-purple-500/50">
+                <span className="text-xl">⚡</span>
+                <div>
+                  <div className="text-xs text-purple-200">EPIC PRICES!</div>
+                  <div className="text-sm font-bold text-yellow-300">🌾 Wheat (5x)</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Zone Tabs */}
+            <div className="flex gap-2">
             {(Object.keys(ZONE_INFO) as ZoneTab[]).map(zoneTab => {
               const zone = ZONE_INFO[zoneTab];
               const isActive = isZoneActive(zoneTab);
@@ -325,6 +381,7 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                 </button>
               );
             })}
+          </div>
           </div>
         </div>
 

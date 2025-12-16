@@ -5899,6 +5899,12 @@ function updateFish(
 
   // Update fish positions (simple wandering within ocean tiles)
   const updatedFish = activeFish.map(fish => {
+    // Shellfish don't move (starfish, clams, urchin)
+    const isShellfish = fish.type === 'starfish' || fish.type === 'clams' || fish.type === 'urchen';
+    if (isShellfish) {
+      return fish; // Stay stationary
+    }
+
     // Randomly change target position occasionally
     if (Math.random() < 0.02) { // 2% chance per update to change target
       const oceanTiles: Array<{ x: number; y: number }> = [];
@@ -5933,7 +5939,8 @@ function updateFish(
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > 0.1) {
-      const speed = 0.02; // Slow swimming speed
+      // Octopus moves slowly, other fish move at normal speed
+      const speed = fish.type === 'octopus' ? 0.01 : 0.02;
       newVisualX += dx * speed;
       newVisualY += dy * speed;
     }

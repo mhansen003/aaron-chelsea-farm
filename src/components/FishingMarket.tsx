@@ -10,7 +10,7 @@ interface FishingMarketProps {
 export default function FishingMarket({ gameState, onClose }: FishingMarketProps) {
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-cyan-500/50 shadow-2xl flex flex-col">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl w-auto max-w-5xl max-h-[95vh] border-4 border-cyan-500/50 shadow-2xl flex flex-col">
 
         {/* Header */}
         <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-cyan-500/30 bg-gradient-to-r from-cyan-900/40 to-blue-900/40">
@@ -40,8 +40,8 @@ export default function FishingMarket({ gameState, onClose }: FishingMarketProps
         </div>
 
         {/* Buildings Grid */}
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* Fish Market */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border-2 border-cyan-500/30 hover:border-cyan-500/60 transition-all">
@@ -139,18 +139,6 @@ export default function FishingMarket({ gameState, onClose }: FishingMarketProps
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex-shrink-0 border-t-2 border-cyan-500/30 p-4 bg-black/40">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black text-xl rounded-xl shadow-lg transition-all hover:scale-105"
-            >
-              CLOSE
-            </button>
           </div>
         </div>
       </div>

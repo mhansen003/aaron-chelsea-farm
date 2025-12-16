@@ -103,6 +103,7 @@ export interface Player {
   money: number;
   farmName: string; // Name of the farm
   farmerName: string; // Name of the farmer
+  surferName: string; // Name of the surfer
   selectedTool: ToolType;
   selectedCrop: CropType;
   basket: BasketItem[]; // Max 8 items
@@ -158,6 +159,7 @@ export interface Player {
   fishBasket: Fish[]; // Surfer's fish inventory (max 8)
   surferAuto: {
     autoFish: boolean; // Whether surfer automatically fishes
+    autoSell: boolean; // Whether surfer automatically sells fish to Fish Market
   };
 }
 

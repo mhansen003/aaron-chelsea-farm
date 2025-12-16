@@ -95,18 +95,17 @@ export function WellModal({ onClose, onRelocate }: WellModalProps) {
         </div>
 
         {/* Sticky Footer with CTAs */}
-        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-gray-600 p-4 space-y-3">
+        <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-gray-600 p-4 flex gap-3 justify-between">
           <button
             onClick={handleRelocate}
-            className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-bold text-white shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
+            className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
           >
-            <span>🔄</span>
-            <span>Relocate Well</span>
+            📍 Move Building
           </button>
 
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-white shadow-lg transition-all"
+            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors ml-auto"
           >
             Close
           </button>

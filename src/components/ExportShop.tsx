@@ -128,11 +128,7 @@ export default function ExportShop({ gameState, onClose }: ExportShopProps) {
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 md:p-6 rounded-xl max-w-7xl w-full max-h-[95vh] border-2 border-slate-600 flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-            <span>📊</span>
-            Market Data Center
-          </h2>
+        <div className="flex justify-end mb-4">
           <button
             onClick={onClose}
             className="text-2xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center"

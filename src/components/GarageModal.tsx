@@ -142,16 +142,16 @@ export default function GarageModal({ gameState, onClose, onRelocate }: GarageMo
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 md:gap-4">
+        <div className="flex gap-3 justify-between">
           <button
             onClick={onRelocate}
-            className="flex-1 px-4 md:px-6 py-2 md:py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold text-base md:text-lg"
+            className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
           >
-            📍 Relocate Garage
+            📍 Move Building
           </button>
           <button
             onClick={onClose}
-            className="px-4 md:px-6 py-2 md:py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-base md:text-lg"
+            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors ml-auto"
           >
             Close
           </button>

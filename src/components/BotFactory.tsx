@@ -460,9 +460,9 @@ export default function BotFactory({ gameState, onClose, onBuyWaterbots, onBuyHa
                   onRelocate();
                   onClose();
                 }}
-                className="px-6 py-4 bg-orange-600 hover:bg-orange-700 rounded-xl font-bold transition-colors"
+                className="px-4 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg font-bold text-sm transition-colors mr-auto"
               >
-                📍 Relocate
+                📍 Move Building
               </button>
 
               <button

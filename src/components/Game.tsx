@@ -5036,66 +5036,68 @@ export default function Game() {
         </button>
       </div>
 
-      {/* Placement Toolbar - Shows build options OR active placement mode */}
-      {isMounted && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
-        placementMode ? (
-          // Active Placement Mode - Orange toaster with smooth pulse
-          <div
-            className={`w-full bg-gradient-to-br from-orange-600/95 via-orange-700/95 to-orange-800/95 backdrop-blur-sm p-4 rounded-xl border-2 border-orange-400/70 shadow-2xl transition-all duration-300 ${
-              shouldBounce ? 'scale-105 shadow-orange-500/50' : 'scale-100'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-2 bg-orange-900/50 rounded-lg border border-orange-400/30">
-                <span className="text-2xl">📍</span>
-                <span className="text-orange-100 font-bold text-lg tracking-wide">PLACING</span>
+      {/* Placement Toaster - Right side when placing */}
+      {placementMode && (
+        <div
+          className={`fixed bottom-24 right-6 z-50 transition-all duration-300 ${
+            shouldBounce ? 'scale-105 shadow-orange-500/60' : 'scale-100'
+          }`}
+        >
+          <div className="bg-gradient-to-br from-orange-600 via-orange-700 to-orange-800 backdrop-blur-xl p-4 rounded-xl border-2 border-orange-400/70 shadow-2xl min-w-[320px]">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-900/50 rounded-lg border border-orange-400/30">
+                <span className="text-xl">📍</span>
+                <span className="text-orange-100 font-bold text-sm tracking-wide">PLACING</span>
               </div>
-
-              <div className="flex items-center gap-3 flex-1 bg-black/30 px-4 py-2 rounded-lg border border-orange-400/30">
-                <NextImage
-                  src={
-                    placementMode === 'sprinkler' ? '/sprinkler.png' :
-                    placementMode === 'botFactory' ? '/botfactory.png' :
-                    placementMode === 'well' ? '/well.png' :
-                    placementMode === 'garage' ? '/garage.png' :
-                    placementMode === 'supercharger' ? '/supercharger.png' :
-                    placementMode === 'fertilizer' ? '/fertilizer building.png' :
-                    '/hopper.png'
-                  }
-                  alt="Building"
-                  width={40}
-                  height={40}
-                  className="object-contain"
-                />
-                <div className="flex-1">
-                  <div className="text-sm text-orange-200 font-bold">
-                    {placementMode === 'sprinkler' && 'Sprinkler'}
-                    {placementMode === 'botFactory' && 'Bot Factory'}
-                    {placementMode === 'well' && 'Water Well'}
-                    {placementMode === 'garage' && 'Garage'}
-                    {placementMode === 'supercharger' && 'Supercharger'}
-                    {placementMode === 'fertilizer' && 'Fertilizer Building'}
-                    {placementMode === 'hopper' && 'Hopper'}
-                  </div>
-                  <div className="text-xs text-orange-300">Click on the map to place</div>
-                </div>
-                {placementMode === 'sprinkler' && gameState.player.inventory.sprinklers > 0 && (
-                  <span className="text-sm bg-orange-900/60 px-3 py-1 rounded-md text-orange-200 font-bold">
-                    ×{gameState.player.inventory.sprinklers}
-                  </span>
-                )}
-              </div>
-
-              <button
-                onClick={() => setPlacementMode(null)}
-                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30"
-              >
-                Cancel
-              </button>
             </div>
+
+            <div className="flex items-center gap-3 mb-3 bg-black/30 px-3 py-3 rounded-lg border border-orange-400/30">
+              <NextImage
+                src={
+                  placementMode === 'sprinkler' ? '/sprinkler.png' :
+                  placementMode === 'botFactory' ? '/botfactory.png' :
+                  placementMode === 'well' ? '/well.png' :
+                  placementMode === 'garage' ? '/garage.png' :
+                  placementMode === 'supercharger' ? '/supercharger.png' :
+                  placementMode === 'fertilizer' ? '/fertilizer building.png' :
+                  '/hopper.png'
+                }
+                alt="Building"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
+              <div className="flex-1">
+                <div className="text-base text-orange-100 font-bold">
+                  {placementMode === 'sprinkler' && 'Sprinkler'}
+                  {placementMode === 'botFactory' && 'Bot Factory'}
+                  {placementMode === 'well' && 'Water Well'}
+                  {placementMode === 'garage' && 'Garage'}
+                  {placementMode === 'supercharger' && 'Supercharger'}
+                  {placementMode === 'fertilizer' && 'Fertilizer Building'}
+                  {placementMode === 'hopper' && 'Hopper'}
+                </div>
+                <div className="text-xs text-orange-200">Click map to place</div>
+              </div>
+              {placementMode === 'sprinkler' && gameState.player.inventory.sprinklers > 0 && (
+                <span className="text-sm bg-orange-900/60 px-3 py-1.5 rounded-md text-orange-200 font-bold">
+                  ×{gameState.player.inventory.sprinklers}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => setPlacementMode(null)}
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg font-bold text-white transition-all shadow-lg hover:shadow-red-500/30"
+            >
+              Cancel
+            </button>
           </div>
-        ) : (
-          // Normal Build Toolbar - when no placement mode active
+        </div>
+      )}
+
+      {/* Build Toolbar - Only show when NOT in placement mode */}
+      {isMounted && !placementMode && (gameState.player.inventory.sprinklers > 0 || (gameState.player.inventory.botFactory > 0 && !gameState.player.inventory.botFactoryPlaced) || (gameState.player.inventory.well > 0 && !gameState.player.inventory.wellPlaced) || ((gameState.player.inventory.garage ?? 0) > 0 && !(gameState.player.inventory.garagePlaced ?? false)) || ((gameState.player.inventory.supercharger ?? 0) > 0 && !(gameState.player.inventory.superchargerPlaced ?? false)) || ((gameState.player.inventory.fertilizerBuilding ?? 0) > 0 && !(gameState.player.inventory.fertilizerBuildingPlaced ?? false)) || ((gameState.player.inventory.hopper ?? 0) > 0 && !(gameState.player.inventory.hopperPlaced ?? false))) && (
         <div className="w-full bg-gradient-to-br from-slate-800/95 via-slate-900/95 to-slate-800/95 backdrop-blur-sm p-4 rounded-xl border border-slate-600/50 shadow-xl">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 rounded-lg border border-slate-600/30">

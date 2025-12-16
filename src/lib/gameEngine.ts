@@ -128,7 +128,7 @@ export function getFertilizerBotCapacity(hopperUpgrade?: boolean): number {
 // Task durations in milliseconds
 export const TASK_DURATIONS: Record<TaskType, number> = {
   clear: 7500, // 7.5 seconds to clear rocks/trees (25% faster)
-  plant: 2000, // 2 seconds to plant
+  plant: 3000, // 3 seconds to plant (50% slower than before)
   water: 1000, // 1 second to water
   harvest: 2000, // 2 seconds to harvest
   uproot: 2000, // 2 seconds to uproot a crop

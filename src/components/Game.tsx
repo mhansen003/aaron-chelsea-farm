@@ -101,6 +101,7 @@ import WelcomeSplash from './WelcomeSplash';
 import QuickStartTutorial from './QuickStartTutorial';
 import TutorialModal from './TutorialModal';
 import FarmerModal from './FarmerModal';
+import SurferModal from './SurferModal';
 import BotDetailModal from './BotDetailModal';
 import {
   generateSaveCode,
@@ -207,6 +208,7 @@ export default function Game() {
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showFarmerModal, setShowFarmerModal] = useState(false);
+  const [showSurferModal, setShowSurferModal] = useState(false);
   const [showBotDetailModal, setShowBotDetailModal] = useState<{ botId: string; botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' } | null>(null);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
@@ -4671,6 +4673,101 @@ export default function Game() {
           </div>
         </div>
 
+        {/* Surfer Section - Only visible in beach zone */}
+        {currentZone.theme === 'beach' && (
+          <>
+            {/* Spacer */}
+            <div className="border-t-2 border-cyan-500/30 my-3" />
+
+            {/* Surfer Avatar Header - Clickable */}
+            <div
+              className="bg-gradient-to-br from-cyan-700 to-blue-800 rounded-xl p-4 mb-3 cursor-pointer hover:from-cyan-600 hover:to-blue-700 transition-all shadow-lg border-2 border-cyan-400/50"
+              onClick={() => setShowSurferModal(true)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 bg-cyan-900 rounded-full border-4 border-cyan-400 overflow-hidden flex items-center justify-center shadow-xl">
+                  <NextImage
+                    src="/surfer.png"
+                    alt="Surfer"
+                    width={56}
+                    height={56}
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-cyan-100">{gameState.player.surferName || 'Surfer'}</div>
+                  <div className="text-xs text-cyan-300">Click to configure</div>
+                </div>
+                <div className="text-2xl text-cyan-300">⚙️</div>
+              </div>
+            </div>
+
+            {/* Surfer Fish Basket */}
+            <div className="bg-gradient-to-br from-cyan-950/50 to-cyan-900/30 border-2 border-cyan-500/60 rounded-xl p-3 shadow-lg">
+              <div className="text-sm text-cyan-300 font-bold mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎣</span>
+                  <span>FISH BASKET</span>
+                </div>
+                <span className="text-xs bg-cyan-700/50 px-2 py-1 rounded-full">{gameState.player.fishBasket.length}/8</span>
+              </div>
+              {gameState.player.fishBasket.length > 0 ? (
+                <div className="space-y-0.5">
+                  {gameState.player.fishBasket.map((fish, idx) => {
+                    const fishEmojis: Record<string, string> = {
+                      yellowtail: '🐟', redsnapper: '🐠', clams: '🦪', starfish: '⭐',
+                      urchen: '🦔', octopus: '🐙', shark: '🦈', tang: '🐡',
+                      flounder: '🐟', mahimahi: '🐟'
+                    };
+                    const rarityColors: Record<string, string> = {
+                      common: 'text-gray-300',
+                      uncommon: 'text-green-300',
+                      rare: 'text-purple-300'
+                    };
+                    return (
+                      <div key={idx} className="text-xs text-white flex items-center gap-1">
+                        <span>{fishEmojis[fish.type] || '🐟'}</span>
+                        <span className="capitalize">{fish.type}</span>
+                        <span className={`ml-auto ${rarityColors[fish.rarity]}`}>{fish.rarity}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-400 text-center py-1">Empty</div>
+              )}
+            </div>
+
+            {/* Surfer Automation Status */}
+            <div className="mt-2 bg-gradient-to-br from-cyan-950/50 to-cyan-900/30 border-2 border-cyan-500/60 rounded-xl p-3 shadow-lg">
+              <div className="text-sm text-cyan-300 font-bold mb-2 flex items-center gap-2">
+                <span className="text-lg">🤖</span>
+                <span>SURF AUTOMATION</span>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between bg-cyan-900/30 px-2 py-1 rounded">
+                  <span className="text-cyan-200">Auto Fish</span>
+                  <span className={gameState.player.surferAuto.autoFish ? 'text-green-400' : 'text-gray-500'}>
+                    {gameState.player.surferAuto.autoFish ? '✓ ON' : '✗ OFF'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-cyan-900/30 px-2 py-1 rounded">
+                  <span className="text-cyan-200">Auto Sell</span>
+                  <span className={gameState.player.surferAuto.autoSell ? 'text-green-400' : 'text-gray-500'}>
+                    {gameState.player.surferAuto.autoSell ? '✓ ON' : '✗ OFF'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-cyan-900/30 px-2 py-1 rounded">
+                  <span className="text-cyan-200">Destination</span>
+                  <span className="text-amber-400">
+                    {gameState.player.surferAuto.autoSell ? '🐟 Fish Market' : '🧺 Basket'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
       </div>
 
       {/* Main Game Area */}
@@ -6549,6 +6646,49 @@ export default function Game() {
                   ...prev.player,
                   farmerAuto: {
                     ...prev.player.farmerAuto,
+                    ...settings,
+                  },
+                },
+                zones: {
+                  ...prev.zones,
+                  [zoneKey]: {
+                    ...currentZone,
+                    // Clear current task and queue so new automation settings take effect immediately
+                    currentTask: null,
+                    taskQueue: [],
+                  },
+                },
+              };
+            });
+          }}
+        />
+      )}
+
+      {/* Surfer Settings Modal */}
+      {showSurferModal && (
+        <SurferModal
+          gameState={gameState}
+          onClose={() => setShowSurferModal(false)}
+          onUpdateSurferName={(name) => {
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                surferName: name,
+              },
+            }));
+          }}
+          onUpdateSurferSettings={(settings) => {
+            setGameState(prev => {
+              const zoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+              const currentZone = prev.zones[zoneKey];
+
+              return {
+                ...prev,
+                player: {
+                  ...prev.player,
+                  surferAuto: {
+                    ...prev.player.surferAuto,
                     ...settings,
                   },
                 },

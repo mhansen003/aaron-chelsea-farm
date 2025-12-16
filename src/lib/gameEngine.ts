@@ -615,6 +615,7 @@ export function createInitialState(): GameState {
       money: 1000,
       farmName: "My Bot Farm",
       farmerName: "Farmer",
+      surferName: "Surfer",
       selectedTool: 'hoe',
       selectedCrop: 'carrot',
       basket: [], // Empty basket to start
@@ -695,6 +696,7 @@ export function createInitialState(): GameState {
       fishBasket: [], // Empty fish basket to start
       surferAuto: {
         autoFish: true, // Surfer auto-fishes by default in beach zones
+        autoSell: true, // Surfer auto-sells to Fish Market by default
       },
     },
     tools: [

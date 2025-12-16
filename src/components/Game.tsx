@@ -203,7 +203,6 @@ export default function Game() {
   const [renamingBot, setRenamingBot] = useState<{ id: string; type: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'; currentName: string } | null>(null);
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
-  const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
   const [showFarmerModal, setShowFarmerModal] = useState(false);
   const [showBotDetailModal, setShowBotDetailModal] = useState<{ botId: string; botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' } | null>(null);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
@@ -5331,30 +5330,12 @@ export default function Game() {
           onBuyWaterbots={(amount, name) => setGameState(prev => buyWaterbots(prev, amount, name))}
           onBuyHarvestbots={(amount, name) => setGameState(prev => buyHarvestbots(prev, amount, name))}
           onUpgradeBag={() => setGameState(prev => upgradeBag(prev))}
-          onBuyBotFactory={() => {
-            setGameState(prev => buyBotFactory(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
-          onBuyWell={() => {
-            setGameState(prev => buyWell(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
-          onBuyGarage={() => {
-            setGameState(prev => buyGarage(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
-          onBuySupercharger={() => {
-            setGameState(prev => buySupercharger(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
-          onBuyFertilizerBuilding={() => {
-            setGameState(prev => buyFertilizerBuilding(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
-          onBuyHopper={() => {
-            setGameState(prev => buyHopper(prev));
-            setShowBuildingPurchaseTip(true);
-          }}
+          onBuyBotFactory={() => setGameState(prev => buyBotFactory(prev))}
+          onBuyWell={() => setGameState(prev => buyWell(prev))}
+          onBuyGarage={() => setGameState(prev => buyGarage(prev))}
+          onBuySupercharger={() => setGameState(prev => buySupercharger(prev))}
+          onBuyFertilizerBuilding={() => setGameState(prev => buyFertilizerBuilding(prev))}
+          onBuyHopper={() => setGameState(prev => buyHopper(prev))}
           onToggleAutoBuy={crop => setGameState(prev => toggleAutoBuy(prev, crop))}
         />
       )}
@@ -6423,34 +6404,6 @@ export default function Game() {
           gameState={gameState}
           isInitialWelcome={false}
         />
-      )}
-
-      {/* Building Purchase Tip */}
-      {showBuildingPurchaseTip && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-amber-900 to-amber-950 border-4 border-amber-500 rounded-xl p-6 max-w-md w-full shadow-2xl">
-            <div className="text-center mb-4">
-              <div className="text-6xl mb-2">🏗️</div>
-              <h2 className="text-2xl font-bold text-amber-200 mb-2">Building Purchased!</h2>
-            </div>
-            <div className="bg-black/30 rounded-lg p-4 mb-4">
-              <p className="text-amber-100 text-center mb-3">
-                Look at the <strong className="text-amber-300">bottom of your screen</strong> to find the placement button for your new building!
-              </p>
-              <div className="flex items-center justify-center gap-2 text-amber-200">
-                <span className="text-2xl">👇</span>
-                <span className="font-bold">Scroll down to place it</span>
-                <span className="text-2xl">👇</span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowBuildingPurchaseTip(false)}
-              className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-bold text-lg shadow-lg"
-            >
-              Got It!
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Bot Rename/Sell Modal */}

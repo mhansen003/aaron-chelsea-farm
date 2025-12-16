@@ -154,7 +154,7 @@ function getAdjustedDuration(baseDuration: number, supercharged?: boolean): numb
 }
 
 function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
-  return supercharged ? deltaTime / 150 : deltaTime / 500; // Supercharged bots move ~3.3x faster
+  return supercharged ? deltaTime / 130 : deltaTime / 500; // Supercharged bots move ~3.85x faster (15% boost from previous 3.3x)
 }
 
 /**
@@ -5458,98 +5458,43 @@ function updateHunterBots(
           visualY,
         });
       } else {
-        // No rabbits nearby - check for garage
-        const garagePos = findGaragePosition(zone.grid);
+        // No rabbits nearby - patrol the farm (hunter bots never go to garage)
         const hunterX = hunter.x ?? 0;
         const hunterY = hunter.y ?? 0;
 
-        if (garagePos) {
-          // Garage exists - navigate to it and park
-          if (Math.abs(visualX - garagePos.x) < 0.5 && Math.abs(visualY - garagePos.y) < 0.5) {
-            // Already at garage - check if should despawn
-            const GARAGE_DESPAWN_TIME = 5000; // 5 seconds
-            const idleTime = hunter.idleStartTime ? gameTime - hunter.idleStartTime : 0;
+        // Wander around while patrolling
+        // Pick a random nearby destination if we don't have one or reached it
+        if (!hunter.targetX || !hunter.targetY ||
+            (Math.abs(visualX - hunter.targetX) < 0.3 && Math.abs(visualY - hunter.targetY) < 0.3)) {
+          // Pick new random target within 5 tiles
+          const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, hunterX + Math.floor(Math.random() * 11) - 5));
+          const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, hunterY + Math.floor(Math.random() * 11) - 5));
 
-            if (idleTime >= GARAGE_DESPAWN_TIME) {
-              // Despawn - set to garaged status and clear position
-              updatedHunterBots.push({
-                ...hunter,
-                status: 'garaged',
-                x: undefined,
-                y: undefined,
-                visualX: undefined,
-                visualY: undefined,
-                targetX: undefined,
-                targetY: undefined,
-                idleStartTime: undefined,
-              });
-            } else {
-              // Track idle time at garage
-              const startTime = hunter.idleStartTime || gameTime;
-              updatedHunterBots.push({
-                ...hunter,
-                status: 'idle',
-                visualX,
-                visualY,
-                idleStartTime: startTime,
-              });
-            }
-          } else {
-            // Travel to garage (slow idle speed)
-            const dx = garagePos.x - visualX;
-            const dy = garagePos.y - visualY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1);
-            const newVisualX = visualX + (dx / dist) * moveSpeed;
-            const newVisualY = visualY + (dy / dist) * moveSpeed;
-
-            updatedHunterBots.push({
-              ...hunter,
-              status: 'patrolling',
-              visualX: newVisualX,
-              visualY: newVisualY,
-              x: Math.round(newVisualX),
-              y: Math.round(newVisualY),
-              targetX: garagePos.x,
-              targetY: garagePos.y,
-              idleStartTime: undefined,
-            });
-          }
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'patrolling',
+            targetX: newTargetX,
+            targetY: newTargetY,
+            visualX,
+            visualY,
+          });
         } else {
-          // No garage - wander around while patrolling
-          // Pick a random nearby destination if we don't have one or reached it
-          if (!hunter.targetX || !hunter.targetY ||
-              (Math.abs(visualX - hunter.targetX) < 0.3 && Math.abs(visualY - hunter.targetY) < 0.3)) {
-            // Pick new random target within 5 tiles
-            const newTargetX = Math.max(0, Math.min(GAME_CONFIG.gridWidth - 1, hunterX + Math.floor(Math.random() * 11) - 5));
-            const newTargetY = Math.max(0, Math.min(GAME_CONFIG.gridHeight - 1, hunterY + Math.floor(Math.random() * 11) - 5));
+          // Move towards wander target
+          const dx = hunter.targetX - visualX;
+          const dy = hunter.targetY - visualY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow idle speed when wandering
+          const newVisualX = visualX + (dx / dist) * moveSpeed;
+          const newVisualY = visualY + (dy / dist) * moveSpeed;
 
-            updatedHunterBots.push({
-              ...hunter,
-              status: 'patrolling',
-              targetX: newTargetX,
-              targetY: newTargetY,
-              visualX,
-              visualY,
-            });
-          } else {
-            // Move towards wander target
-            const dx = hunter.targetX - visualX;
-            const dy = hunter.targetY - visualY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow idle speed when wandering
-            const newVisualX = visualX + (dx / dist) * moveSpeed;
-            const newVisualY = visualY + (dy / dist) * moveSpeed;
-
-            updatedHunterBots.push({
-              ...hunter,
-              status: 'patrolling',
-              visualX: newVisualX,
-              visualY: newVisualY,
-              x: Math.round(newVisualX),
-              y: Math.round(newVisualY),
-            });
-          }
+          updatedHunterBots.push({
+            ...hunter,
+            status: 'patrolling',
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
+          });
         }
       }
     } else if (hunter.status === 'chasing') {

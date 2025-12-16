@@ -136,10 +136,30 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
             Configure up to 3 planting jobs. Each job can plant up to 20 tiles of a specific crop. Select tiles directly on the map to assign planting locations.
           </p>
 
-          {/* Jobs List - Simple Card View */}
+          {/* Jobs List - Fixed 3 Slot Layout */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-            {jobs.map((job, idx) => {
-              const jobColor = JOB_COLORS[idx % JOB_COLORS.length];
+            {[0, 1, 2].map((slotIdx) => {
+              const job = jobs[slotIdx];
+              const jobColor = JOB_COLORS[slotIdx % JOB_COLORS.length];
+
+              // Empty slot - show add button
+              if (!job) {
+                return (
+                  <button
+                    key={`slot-${slotIdx}`}
+                    onClick={addJob}
+                    className="bg-black/20 border-2 border-dashed border-green-600 rounded-lg p-8 hover:bg-green-900/20 hover:border-green-500 transition-all group"
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="text-6xl group-hover:scale-110 transition-transform">+</div>
+                      <div className="text-lg font-bold text-green-400">Add Job {slotIdx + 1}</div>
+                      <div className="text-xs text-gray-500">Click to create planting job</div>
+                    </div>
+                  </button>
+                );
+              }
+
+              // Filled slot - show job configuration
               const tilePercent = (job.targetTiles.length / job.maxTiles) * 100;
               const cropInfo = CROP_INFO[job.cropType as keyof typeof CROP_INFO];
 
@@ -149,7 +169,7 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-3xl">{cropInfo.emoji}</span>
-                      <h3 className={`text-lg font-bold ${jobColor.text}`}>Job {idx + 1}</h3>
+                      <h3 className={`text-lg font-bold ${jobColor.text}`}>Job {slotIdx + 1}</h3>
                     </div>
                     <button
                       onClick={() => removeJob(job.id)}
@@ -210,36 +230,6 @@ export default function SeedBotConfigModal({ seedBot, gameState, onClose, onUpda
               );
             })}
           </div>
-
-          {/* Empty State - No Jobs */}
-          {jobs.length === 0 && (
-            <div className="bg-black/20 border-2 border-dashed border-green-600 rounded-lg p-8 text-center mb-4">
-              <div className="text-6xl mb-3">🌱</div>
-              <h3 className="text-xl font-bold text-green-300 mb-2">No Planting Jobs Configured</h3>
-              <p className="text-gray-400 mb-4">Get started by creating your first planting job below!</p>
-            </div>
-          )}
-
-          {/* Add Job Button */}
-          {jobs.length < 3 && (
-            <button
-              onClick={addJob}
-              className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 rounded-lg font-bold text-lg shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2"
-            >
-              <span className="text-2xl">+</span>
-              <span>Add New Planting Job</span>
-              <span className="ml-2 bg-black/30 px-2 py-0.5 rounded text-sm">
-                {jobs.length}/3
-              </span>
-            </button>
-          )}
-
-          {/* Max Jobs Reached */}
-          {jobs.length >= 3 && (
-            <div className="text-center text-yellow-400 text-sm font-semibold bg-yellow-900/20 border border-yellow-600/40 rounded-lg p-3">
-              ✓ Maximum jobs configured (3/3)
-            </div>
-          )}
         </div>
 
         {/* Sticky Footer with CTAs */}

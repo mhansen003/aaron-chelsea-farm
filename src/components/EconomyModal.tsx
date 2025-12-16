@@ -86,53 +86,91 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
     const priceRange = maxPrice - minPrice || 1;
 
     const historyLength = market.priceHistory.length;
+    const padding = 8;
 
-    // Calculate bar width based on number of data points
-    const barWidth = Math.max(2, width / allData.length - 2);
+    // Helper function to get Y coordinate for a price
+    const getY = (price: number) => {
+      return height - padding - ((price - minPrice) / priceRange) * (height - 2 * padding);
+    };
 
-    // Draw historical bars (solid) - except the last one which is "current"
-    market.priceHistory.forEach((snapshot, index) => {
-      const x = (index / (allData.length - 1)) * width - barWidth / 2;
-      const price = snapshot.prices[crop];
-      const barHeight = ((price - minPrice) / priceRange) * (height - 10);
-      const y = height - barHeight - 5;
+    // Helper function to get X coordinate for an index
+    const getX = (index: number) => {
+      return padding + (index / (allData.length - 1)) * (width - 2 * padding);
+    };
 
-      // Last bar is the "current" price - make it yellow/gold
-      if (index === market.priceHistory.length - 1) {
-        ctx.fillStyle = '#eab308'; // Yellow for current
-        ctx.shadowColor = '#eab308';
-        ctx.shadowBlur = 8;
-      } else {
-        ctx.fillStyle = color;
-        ctx.shadowBlur = 0;
-      }
+    // Draw historical line (solid)
+    if (market.priceHistory.length > 0) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
 
-      ctx.fillRect(x, y, barWidth, barHeight);
-    });
-    ctx.shadowBlur = 0;
+      market.priceHistory.forEach((snapshot, index) => {
+        const x = getX(index);
+        const y = getY(snapshot.prices[crop]);
 
-    // Draw forecast bars (with dotted/dashed pattern)
-    if (market.priceForecast.length > 0) {
-      ctx.globalAlpha = 0.7;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+
+      ctx.stroke();
+
+      // Draw points on the line
+      market.priceHistory.forEach((snapshot, index) => {
+        const x = getX(index);
+        const y = getY(snapshot.prices[crop]);
+
+        // Current price point is larger and highlighted
+        if (index === market.priceHistory.length - 1) {
+          ctx.fillStyle = '#eab308';
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // Draw forecast line (dashed)
+    if (market.priceForecast.length > 0 && historyLength > 0) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.globalAlpha = 0.6;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+
+      // Start from the last history point
+      const lastHistoryX = getX(historyLength - 1);
+      const lastHistoryY = getY(market.priceHistory[historyLength - 1].prices[crop]);
+      ctx.moveTo(lastHistoryX, lastHistoryY);
 
       market.priceForecast.forEach((snapshot, forecastIndex) => {
         const index = historyLength + forecastIndex;
-        const x = (index / (allData.length - 1)) * width - barWidth / 2;
-        const price = snapshot.prices[crop];
-        const barHeight = ((price - minPrice) / priceRange) * (height - 10);
-        const y = height - barHeight - 5;
+        const x = getX(index);
+        const y = getY(snapshot.prices[crop]);
+        ctx.lineTo(x, y);
+      });
 
-        // Draw dashed/dotted bar by drawing small segments
-        const dashHeight = 3;
-        const gapHeight = 2;
-        let currentY = y + barHeight;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw points on forecast
+      market.priceForecast.forEach((snapshot, forecastIndex) => {
+        const index = historyLength + forecastIndex;
+        const x = getX(index);
+        const y = getY(snapshot.prices[crop]);
 
         ctx.fillStyle = color;
-        while (currentY > y) {
-          const segmentHeight = Math.min(dashHeight, currentY - y);
-          ctx.fillRect(x, currentY - segmentHeight, barWidth, segmentHeight);
-          currentY -= (segmentHeight + gapHeight);
-        }
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
       });
 
       ctx.globalAlpha = 1.0;
@@ -140,23 +178,15 @@ function MiniChart({ crop, gameState, color }: MiniChartProps) {
 
     // Draw current price indicator (vertical line at end of history)
     if (historyLength > 0) {
-      const x = ((historyLength - 1) / (allData.length - 1)) * width;
+      const x = getX(historyLength - 1);
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.3;
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, height);
       ctx.stroke();
       ctx.globalAlpha = 1.0;
-
-      // Draw dot at current price
-      const currentPrice = market.priceHistory[historyLength - 1].prices[crop];
-      const y = height - ((currentPrice - minPrice) / priceRange) * (height - 10) - 5;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fill();
     }
   }, [crop, gameState.market, color]);
 
@@ -301,22 +331,6 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
               const isRandomEpic = market.epicPriceCrop === crop;
               const isEpic = isRandomEpic || isSeasonalEpic;
 
-              // Calculate price change from previous season to determine high/low demand
-              let priceChangeFromPrevious = 0;
-              let isHighDemand = false;
-              let isLowDemand = false;
-
-              if (market.priceHistory.length >= 2) {
-                const previousPrice = market.priceHistory[0].prices[crop];
-                const currentPrice = market.priceHistory[1].prices[crop];
-                priceChangeFromPrevious = ((currentPrice - previousPrice) / previousPrice) * 100;
-
-                // High demand: price increased by more than 30% (excluding epic)
-                isHighDemand = !isEpic && priceChangeFromPrevious > 30;
-                // Low demand: price decreased by more than 20%
-                isLowDemand = !isEpic && priceChangeFromPrevious < -20;
-              }
-
               // Calculate price change from forecast for trend
               let priceChange = 0;
               let forecastPrice = 0;
@@ -325,6 +339,12 @@ export default function EconomyModal({ gameState, onClose }: EconomyModalProps) 
                 forecastPrice = market.priceForecast[market.priceForecast.length - 1].prices[crop];
                 priceChange = ((forecastPrice - currentPrice) / currentPrice) * 100;
               }
+
+              // Determine high/low demand based on forecast (not past performance)
+              // High demand: forecast shows price increasing significantly
+              const isHighDemand = !isEpic && priceChange > 20;
+              // Low demand: forecast shows price decreasing significantly
+              const isLowDemand = !isEpic && priceChange < -15;
 
               return (
                 <div

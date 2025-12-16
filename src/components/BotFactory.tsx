@@ -30,7 +30,7 @@ interface CartItem {
 const BOT_DATA = {
   water: {
     name: 'Water Bot',
-    image: '/water bot.png',
+    image: '/water-bot.png',
     color: 'cyan',
     gradient: 'from-cyan-500 to-blue-600',
     maxOwned: 3,
@@ -39,7 +39,7 @@ const BOT_DATA = {
   },
   harvest: {
     name: 'Harvest Bot',
-    image: '/harvest bot.png',
+    image: '/harvest-bot.png',
     color: 'amber',
     gradient: 'from-amber-500 to-orange-600',
     maxOwned: 7,
@@ -48,7 +48,7 @@ const BOT_DATA = {
   },
   seed: {
     name: 'Seed Bot',
-    image: '/plant seeds.png',
+    image: '/plant-seeds.png',
     color: 'green',
     gradient: 'from-green-500 to-emerald-600',
     maxOwned: 3,

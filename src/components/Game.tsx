@@ -248,6 +248,9 @@ export default function Game() {
   const grassImageRef3 = useRef<HTMLImageElement | null>(null);
   const farmerImageRef = useRef<HTMLImageElement | null>(null);
   const surferImageRef = useRef<HTMLImageElement | null>(null);
+  const cowgirlImageRef = useRef<HTMLImageElement | null>(null);
+  const nomadImageRef = useRef<HTMLImageElement | null>(null);
+  const mountaineerImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef = useRef<HTMLImageElement | null>(null);
   const treeImageRef2 = useRef<HTMLImageElement | null>(null);
   const plantedCropImageRef = useRef<HTMLImageElement | null>(null);
@@ -776,6 +779,13 @@ export default function Game() {
       surferImg.onload = () => {
         surferImageRef.current = surferImg;
       };
+    } else if (theme === 'barn') {
+      // Load cowgirl for barn theme
+      const cowgirlImg = new Image();
+      cowgirlImg.src = '/cowgirl.png';
+      cowgirlImg.onload = () => {
+        cowgirlImageRef.current = cowgirlImg;
+      };
     } else if (theme === 'desert') {
       const sandImg = new Image();
       sandImg.src = '/sand.png';
@@ -794,6 +804,13 @@ export default function Game() {
       rocksImg.onload = () => {
         rocksImageRef.current = rocksImg;
       };
+
+      // Load nomad for desert theme
+      const nomadImg = new Image();
+      nomadImg.src = '/nomad.png';
+      nomadImg.onload = () => {
+        nomadImageRef.current = nomadImg;
+      };
     } else if (theme === 'mountain') {
       const mountainImg = new Image();
       mountainImg.src = '/mountain.png';
@@ -811,6 +828,13 @@ export default function Game() {
       rocksImg.src = '/rocks.png';
       rocksImg.onload = () => {
         rocksImageRef.current = rocksImg;
+      };
+
+      // Load mountaineer for mountain theme
+      const mountaineerImg = new Image();
+      mountaineerImg.src = '/mountaineer.png';
+      mountaineerImg.onload = () => {
+        mountaineerImageRef.current = mountaineerImg;
       };
     }
   }, [gameState.currentZone.x, gameState.currentZone.y, gameState.zones]);
@@ -2707,13 +2731,21 @@ export default function Game() {
     const playerPx = visualX * GAME_CONFIG.tileSize;
     const playerPy = visualY * GAME_CONFIG.tileSize;
 
-    // Use themed farmer sprite based on current zone
-    const isBeachZone = currentZone?.theme === 'beach';
-    const farmerSprite = (isBeachZone && surferImageRef.current) ? surferImageRef.current : farmerImageRef.current;
+    // Use themed character sprite based on current zone
+    let characterSprite = farmerImageRef.current; // Default to farmer
+    if (currentZone?.theme === 'beach' && surferImageRef.current) {
+      characterSprite = surferImageRef.current;
+    } else if (currentZone?.theme === 'barn' && cowgirlImageRef.current) {
+      characterSprite = cowgirlImageRef.current;
+    } else if (currentZone?.theme === 'desert' && nomadImageRef.current) {
+      characterSprite = nomadImageRef.current;
+    } else if (currentZone?.theme === 'mountain' && mountaineerImageRef.current) {
+      characterSprite = mountaineerImageRef.current;
+    }
 
-    if (farmerSprite) {
-      // Draw farmer sprite (surfer in beach, regular farmer elsewhere)
-      ctx.drawImage(farmerSprite, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+    if (characterSprite) {
+      // Draw character sprite (farmer, surfer, cowgirl, nomad, or mountaineer)
+      ctx.drawImage(characterSprite, playerPx, playerPy, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
     } else {
       // Fallback to blue circle
       const centerX = playerPx + GAME_CONFIG.tileSize / 2;

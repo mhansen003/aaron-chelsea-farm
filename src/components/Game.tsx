@@ -1194,15 +1194,14 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Shop building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          // Determine which quadrant to draw based on position
-          const offsetX = (x - 0) * 512; // x can be 0 or 1
-          const offsetY = (y - 0) * 512; // y can be 0 or 1
-          ctx.drawImage(
-            shopImageRef.current,
-            offsetX, offsetY, 512, 512, // Source: extract quadrant from sprite
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
-          );
+          // Shop building - draw full 2x2 building only on top-left tile
+          if (x === 0 && y === 0) {
+            const buildingSize = GAME_CONFIG.tileSize * 2;
+            ctx.drawImage(
+              shopImageRef.current,
+              px, py, buildingSize, buildingSize
+            );
+          }
         } else if (tile.type === 'export' && exportImageRef.current) {
           // Draw grass background
           if (grassImageRef.current) {
@@ -1211,14 +1210,14 @@ export default function Game() {
             ctx.fillStyle = COLORS.grass;
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Export building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
-          const offsetX = (x - 14) * 512; // x can be 14 or 15
-          const offsetY = (y - 0) * 512; // y can be 0 or 1 (top of grid)
-          ctx.drawImage(
-            exportImageRef.current,
-            offsetX, offsetY, 512, 512,
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
-          );
+          // Export building - draw full 2x2 building only on top-left tile of its position
+          if (x === GAME_CONFIG.gridWidth - 2 && y === 0) {
+            const buildingSize = GAME_CONFIG.tileSize * 2;
+            ctx.drawImage(
+              exportImageRef.current,
+              px, py, buildingSize, buildingSize
+            );
+          }
         } else if (tile.type === 'warehouse') {
           // Draw grass background
           if (grassImageRef.current) {

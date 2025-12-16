@@ -38,7 +38,7 @@ export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' 
 
 export type ToolType = 'hoe' | 'seed_bag' | 'watering_can' | 'water_sprinkler' | 'scythe' | 'uproot';
 
-export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'place_fertilizer' | 'deposit' | 'pickup_marked' | 'fertilize' | 'scare_rabbit';
+export type TaskType = 'clear' | 'plant' | 'water' | 'harvest' | 'uproot' | 'place_sprinkler' | 'place_botFactory' | 'place_well' | 'place_garage' | 'place_supercharger' | 'place_fertilizer' | 'deposit' | 'pickup_marked' | 'fertilize' | 'scare_rabbit' | 'catch_fish';
 
 export interface Task {
   id: string;
@@ -49,6 +49,7 @@ export interface Task {
   zoneY: number;
   cropType?: CropType; // For planting tasks
   rabbitId?: string; // For scare_rabbit tasks
+  fishId?: string; // For catch_fish tasks
   progress: number; // 0-100
   duration: number; // milliseconds
 }
@@ -152,6 +153,10 @@ export interface Player {
     autoHarvest: boolean;
     autoSell: boolean;
     automationOrder: ('plant' | 'water' | 'harvest')[]; // Priority order for automation tasks
+  };
+  fishBasket: Fish[]; // Surfer's fish inventory (max 8)
+  surferAuto: {
+    autoFish: boolean; // Whether surfer automatically fishes
   };
 }
 

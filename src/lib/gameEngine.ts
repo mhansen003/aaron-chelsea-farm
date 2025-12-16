@@ -689,6 +689,10 @@ export function createInitialState(): GameState {
         autoSell: true,
         automationOrder: ['harvest', 'water', 'plant'], // Fixed priority order: harvest > water > plant
       },
+      fishBasket: [], // Empty fish basket to start
+      surferAuto: {
+        autoFish: true, // Surfer auto-fishes by default in beach zones
+      },
     },
     tools: [
       {
@@ -775,10 +779,13 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
   const dy = newState.player.y - newState.player.visualY;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
+  // Surfer moves slower than farmer (swimming is harder than walking!)
+  const moveSpeed = currentZone.theme === 'beach' ? MOVE_SPEED * 0.6 : MOVE_SPEED;
+
   if (distance > 0.01) {
     // Move toward target position
-    newState.player.visualX = clampToGrid(newState.player.visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
-    newState.player.visualY = clampToGrid(newState.player.visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
+    newState.player.visualX = clampToGrid(newState.player.visualX + dx * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+    newState.player.visualY = clampToGrid(newState.player.visualY + dy * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
   } else {
     // Snap to target when close enough
     newState.player.visualX = clampToGrid(newState.player.x, 0, GAME_CONFIG.gridWidth - 1);
@@ -966,6 +973,60 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             }
           }
           break;
+        case 'catch_fish':
+          // Attempt to catch the fish
+          if (task.fishId) {
+            const zoneKey = getZoneKey(newState.currentZone.x, newState.currentZone.y);
+            const zone = newState.zones[zoneKey];
+            const fish = zone.fish.find(f => f.id === task.fishId);
+
+            if (fish && !fish.caught) {
+              // Fish can escape! 30% chance to get away (surfer is slow)
+              const escaped = Math.random() < 0.3;
+
+              if (escaped) {
+                console.log('🐟 FISH ESCAPED! The fish got away');
+                // Fish swims away - remove it from the zone
+                const updatedFish = zone.fish.filter(f => f.id !== task.fishId);
+                newState = {
+                  ...newState,
+                  zones: {
+                    ...newState.zones,
+                    [zoneKey]: {
+                      ...zone,
+                      fish: updatedFish,
+                    },
+                  },
+                };
+              } else {
+                // Successfully caught the fish!
+                console.log('🎣 CAUGHT FISH:', fish.type, '(', fish.rarity, ')');
+
+                // Add to fish basket if there's space
+                if (newState.player.fishBasket.length < 8) {
+                  const updatedFish = zone.fish.map(f =>
+                    f.id === task.fishId ? { ...f, caught: true } : f
+                  );
+
+                  newState = {
+                    ...newState,
+                    player: {
+                      ...newState.player,
+                      fishBasket: [...newState.player.fishBasket, { ...fish, caught: true }],
+                    },
+                    zones: {
+                      ...newState.zones,
+                      [zoneKey]: {
+                        ...zone,
+                        fish: updatedFish,
+                      },
+                    },
+                  };
+                }
+              }
+            }
+          }
+          break;
       }
 
       // Clear current task (player is already at location)
@@ -1031,13 +1092,22 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     }
   }
 
-  // FARMER AUTOMATION: Generate automated tasks when farmer is idle
-  if (!currentZone.currentTask && currentZone.taskQueue.length === 0) {
+  // FARMER AUTOMATION: Generate automated tasks when farmer is idle (farm zones)
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && currentZone.theme === 'farm') {
     const autoTasks = generateFarmerAutoTasks(newState, currentZone);
     if (autoTasks.length > 0) {
       // Add the first task as current, rest go to queue
       currentZone.currentTask = autoTasks[0];
       currentZone.taskQueue = [...autoTasks.slice(1)];
+    }
+  }
+
+  // SURFER AUTOMATION: Generate fishing tasks when surfer is idle (beach zones)
+  if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && currentZone.theme === 'beach') {
+    const fishingTasks = generateSurferFishingTasks(newState, currentZone);
+    if (fishingTasks.length > 0) {
+      currentZone.currentTask = fishingTasks[0];
+      currentZone.taskQueue = [...fishingTasks.slice(1)];
     }
   }
 
@@ -3158,6 +3228,55 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
       }
     }
   }
+
+  return tasks;
+}
+
+// Generate automated surfing/fishing tasks for beach zones
+function generateSurferFishingTasks(state: GameState, zone: Zone): Task[] {
+  const tasks: Task[] = [];
+  const { surferAuto, fishBasket } = state.player;
+  const MAX_FISH_BASKET = 8;
+
+  // Only auto-fish if enabled and basket has space
+  if (!surferAuto.autoFish || fishBasket.length >= MAX_FISH_BASKET) {
+    return tasks;
+  }
+
+  // Find uncaught fish in the zone
+  const uncaughtFish = zone.fish.filter(fish => !fish.caught);
+
+  if (uncaughtFish.length === 0) {
+    return tasks;
+  }
+
+  // Find the closest fish to the surfer
+  const playerX = state.player.x;
+  const playerY = state.player.y;
+
+  let closestFish = uncaughtFish[0];
+  let closestDistance = Math.abs(closestFish.x - playerX) + Math.abs(closestFish.y - playerY);
+
+  for (const fish of uncaughtFish) {
+    const distance = Math.abs(fish.x - playerX) + Math.abs(fish.y - playerY);
+    if (distance < closestDistance) {
+      closestFish = fish;
+      closestDistance = distance;
+    }
+  }
+
+  // Create a task to swim to and catch the fish
+  tasks.push({
+    id: `auto-fish-${closestFish.id}`,
+    type: 'catch_fish' as any, // We'll add this type
+    tileX: closestFish.x,
+    tileY: closestFish.y,
+    zoneX: state.currentZone.x,
+    zoneY: state.currentZone.y,
+    progress: 0,
+    duration: 2000, // 2 seconds to catch a fish (slower than farming tasks)
+    fishId: closestFish.id, // Store fish ID to catch
+  });
 
   return tasks;
 }

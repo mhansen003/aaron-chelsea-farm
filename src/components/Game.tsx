@@ -4171,28 +4171,94 @@ export default function Game() {
 
     if (previewZone.owned) {
       // Just travel
-      setGameState(prev => ({
-        ...prev,
-        currentZone: { x: previewZone.x, y: previewZone.y },
-      }));
+      setGameState(prev => {
+        // Save current player position to current zone
+        const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+        const targetZoneKey = getZoneKey(previewZone.x, previewZone.y);
+
+        const updatedCurrentZone = {
+          ...prev.zones[currentZoneKey],
+          playerPosition: {
+            x: prev.player.x,
+            y: prev.player.y,
+            visualX: prev.player.visualX,
+            visualY: prev.player.visualY,
+          },
+        };
+
+        // Load saved position from target zone, or use default position (middle of map)
+        const targetZone = prev.zones[targetZoneKey];
+        const savedPosition = targetZone?.playerPosition || {
+          x: Math.floor(GAME_CONFIG.gridWidth / 2),
+          y: Math.floor(GAME_CONFIG.gridHeight / 2),
+          visualX: Math.floor(GAME_CONFIG.gridWidth / 2),
+          visualY: Math.floor(GAME_CONFIG.gridHeight / 2),
+        };
+
+        return {
+          ...prev,
+          player: {
+            ...prev.player,
+            x: savedPosition.x,
+            y: savedPosition.y,
+            visualX: savedPosition.visualX,
+            visualY: savedPosition.visualY,
+          },
+          zones: {
+            ...prev.zones,
+            [currentZoneKey]: updatedCurrentZone,
+          },
+          currentZone: { x: previewZone.x, y: previewZone.y },
+        };
+      });
       setShowZonePreview(false);
       setPreviewZone(null);
     } else {
       // Purchase and travel
       const canAfford = gameState.player.money >= previewZone.purchasePrice;
       if (canAfford) {
-        setGameState(prev => ({
-          ...prev,
-          player: {
-            ...prev.player,
-            money: prev.player.money - previewZone.purchasePrice,
-          },
-          zones: {
-            ...prev.zones,
-            [purchaseZoneKey]: { ...previewZone, owned: true },
-          },
-          currentZone: { x: previewZone.x, y: previewZone.y },
-        }));
+        setGameState(prev => {
+          // Save current player position to current zone
+          const currentZoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+          const targetZoneKey = getZoneKey(previewZone.x, previewZone.y);
+
+          const updatedCurrentZone = {
+            ...prev.zones[currentZoneKey],
+            playerPosition: {
+              x: prev.player.x,
+              y: prev.player.y,
+              visualX: prev.player.visualX,
+              visualY: prev.player.visualY,
+            },
+          };
+
+          // Load saved position from target zone, or use default position (middle of map)
+          const targetZone = prev.zones[targetZoneKey];
+          const savedPosition = targetZone?.playerPosition || {
+            x: Math.floor(GAME_CONFIG.gridWidth / 2),
+            y: Math.floor(GAME_CONFIG.gridHeight / 2),
+            visualX: Math.floor(GAME_CONFIG.gridWidth / 2),
+            visualY: Math.floor(GAME_CONFIG.gridHeight / 2),
+          };
+
+          return {
+            ...prev,
+            player: {
+              ...prev.player,
+              x: savedPosition.x,
+              y: savedPosition.y,
+              visualX: savedPosition.visualX,
+              visualY: savedPosition.visualY,
+              money: prev.player.money - previewZone.purchasePrice,
+            },
+            zones: {
+              ...prev.zones,
+              [currentZoneKey]: updatedCurrentZone,
+              [purchaseZoneKey]: { ...previewZone, owned: true },
+            },
+            currentZone: { x: previewZone.x, y: previewZone.y },
+          };
+        });
         setShowZonePreview(false);
         setPreviewZone(null);
       }

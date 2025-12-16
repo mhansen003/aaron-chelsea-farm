@@ -288,12 +288,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                       <button
                         onClick={() => toggleCart(itemType)}
                         disabled={!canAfford && !inCart}
-                        className={`w-full px-2 py-1 rounded text-xs font-bold ${
+                        className={`w-full px-2 py-2 rounded-lg text-xs font-bold transition-all ${
                           inCart
-                            ? 'bg-red-600 hover:bg-red-700'
+                            ? 'bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50'
                             : canAfford
-                            ? 'bg-blue-600 hover:bg-blue-700'
-                            : 'bg-gray-600 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                            : 'bg-gray-700 cursor-not-allowed text-gray-500'
                         }`}
                       >
                         {inCart ? '− REMOVE' : `+ ADD $${BAG_UPGRADE_COSTS[tier]}`}
@@ -318,12 +318,12 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 <button
                   onClick={() => toggleCart({ category: 'tool', name: 'sprinkler' })}
                   disabled={gameState.player.money < SPRINKLER_COST && !itemInCart({ category: 'tool', name: 'sprinkler' })}
-                  className={`w-full px-2 py-1 rounded text-xs font-bold ${
+                  className={`w-full px-2 py-2 rounded-lg text-xs font-bold transition-all ${
                     itemInCart({ category: 'tool', name: 'sprinkler' })
-                      ? 'bg-red-600 hover:bg-red-700'
+                      ? 'bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50'
                       : gameState.player.money >= SPRINKLER_COST
-                      ? 'bg-cyan-600 hover:bg-cyan-700'
-                      : 'bg-gray-600 cursor-not-allowed'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                      : 'bg-gray-700 cursor-not-allowed text-gray-500'
                   }`}
                 >
                   {itemInCart({ category: 'tool', name: 'sprinkler' }) ? '− REMOVE' : `+ ADD $${SPRINKLER_COST}`}
@@ -333,92 +333,110 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
           )}
         </div>
 
-        {/* Cart Footer */}
-        {cart.length > 0 && (
-          <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t-2 border-amber-500 p-4 space-y-3">
-            {/* Cart Items */}
-            <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-              {cart.map((item, index) => {
-                const cost = getItemCost(item.type);
-                let name = '';
-                if (item.type.category === 'building') {
-                  const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg', hopper: 'Hopper' };
-                  name = names[item.type.name];
-                } else if (item.type.category === 'tool') {
-                  name = 'Sprinkler';
-                } else if (item.type.category === 'upgrade') {
-                  name = `Basket T${item.type.tier + 1}`;
-                }
+        {/* Shopping Cart Footer */}
+        <div className="flex-shrink-0 border-t-2 border-orange-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
+          <div className="flex items-center justify-between gap-4">
+            {/* Cart Summary */}
+            <div className="flex-1">
+              {cart.length === 0 ? (
+                <div className="text-gray-500 text-sm">🛒 Cart is empty - add items above!</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {cart.map((item, index) => {
+                    const cost = getItemCost(item.type);
+                    let name = '';
+                    let image = '';
+                    if (item.type.category === 'building') {
+                      const names = { botFactory: 'Bot Factory', well: 'Well', garage: 'Garage', supercharger: 'Supercharger', fertilizerBuilding: 'Fertilizer Bldg', hopper: 'Hopper' };
+                      const images = { botFactory: '/mechanic.png', well: '/well.png', garage: '/garage.png', supercharger: '/supercharge.png', fertilizerBuilding: '/fertilizer-building.png', hopper: '/hopper.png' };
+                      name = names[item.type.name];
+                      image = images[item.type.name];
+                    } else if (item.type.category === 'tool') {
+                      name = 'Sprinkler';
+                      image = '/sprinkler.png';
+                    } else if (item.type.category === 'upgrade') {
+                      name = `Basket T${item.type.tier + 1}`;
+                      image = '/basket.png';
+                    }
 
-                return (
-                  <div key={index} className="bg-amber-800/60 px-3 py-1 rounded flex items-center gap-2 border border-amber-600">
-                    <span className="text-sm font-bold text-amber-100">{name}</span>
-                    {item.type.category === 'tool' ? (
-                      <>
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 bg-slate-700 px-3 py-2 rounded-lg"
+                      >
+                        {image && (
+                          <div className="w-8 h-8 relative">
+                            <Image
+                              src={image}
+                              alt={name}
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                        )}
+                        <span className="font-bold text-sm">{name}</span>
+                        {item.type.category === 'tool' && (
+                          <>
+                            <button
+                              onClick={() => updateQuantity(item.type, -1)}
+                              className="w-5 h-5 bg-red-600 hover:bg-red-700 rounded text-xs font-bold flex items-center justify-center"
+                            >
+                              −
+                            </button>
+                            <span className="font-bold text-sm">×{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.type, 1)}
+                              className="w-5 h-5 bg-green-600 hover:bg-green-700 rounded text-xs font-bold flex items-center justify-center"
+                            >
+                              +
+                            </button>
+                          </>
+                        )}
                         <button
-                          onClick={() => updateQuantity(item.type, -1)}
-                          className="w-5 h-5 bg-red-600 hover:bg-red-700 rounded text-xs font-bold"
+                          onClick={() => toggleCart(item.type)}
+                          className="text-red-400 hover:text-red-300 text-lg leading-none"
                         >
-                          −
+                          ×
                         </button>
-                        <span className="text-xs text-amber-200">×{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.type, 1)}
-                          className="w-5 h-5 bg-green-600 hover:bg-green-700 rounded text-xs font-bold"
-                        >
-                          +
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-xs text-amber-300">${cost}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Checkout Row */}
-            <div className="flex gap-3 items-center">
-              <button
-                onClick={() => setCart([])}
-                className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg font-bold text-white"
-              >
-                Cancel
-              </button>
-              <div className="flex-1 text-right">
-                <div className="text-2xl font-bold text-amber-300">
-                  Total: ${getTotalCost()}
+                      </div>
+                    );
+                  })}
                 </div>
-                {!canAffordCart && (
-                  <div className="text-xs text-red-400">Not enough money!</div>
-                )}
-              </div>
+              )}
+            </div>
+
+            {/* Total & Checkout */}
+            <div className="flex items-center gap-4">
+              {cart.length > 0 && (
+                <>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-400 uppercase">Total ({cart.length} {cart.length === 1 ? 'item' : 'items'})</div>
+                    <div className="text-3xl font-black text-yellow-400">${getTotalCost()}</div>
+                  </div>
+
+                  <button
+                    onClick={handleCheckout}
+                    disabled={!canAffordCart}
+                    className={`px-8 py-4 rounded-xl font-black text-xl transition-all ${
+                      canAffordCart
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
+                        : 'bg-gray-700 cursor-not-allowed text-gray-500'
+                    }`}
+                  >
+                    🛒 CHECKOUT
+                  </button>
+                </>
+              )}
+
               <button
-                onClick={handleCheckout}
-                disabled={!canAffordCart}
-                className={`px-8 py-3 rounded-lg font-bold text-lg ${
-                  canAffordCart
-                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg'
-                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
+                onClick={onClose}
+                className="px-6 py-4 bg-gray-600 hover:bg-gray-700 rounded-xl font-bold transition-colors"
               >
-                Checkout ({cart.length})
+                {cart.length > 0 ? 'Cancel' : 'Close Shop'}
               </button>
             </div>
           </div>
-        )}
-
-        {/* Close Button (when cart empty) */}
-        {cart.length === 0 && (
-          <div className="flex-shrink-0 bg-black/40 backdrop-blur-sm border-t border-amber-500/30 p-4">
-            <button
-              onClick={onClose}
-              className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold text-lg"
-            >
-              Close Shop
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -492,7 +510,7 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
               {inCart ? (
                 <button
                   onClick={() => toggleCart(itemType)}
-                  className="w-full py-1.5 bg-red-600 hover:bg-red-500 rounded-lg font-bold text-white text-xs transition-colors"
+                  className="w-full py-2 rounded-lg font-bold text-xs transition-all bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-red-500/50"
                 >
                   − REMOVE
                 </button>
@@ -500,9 +518,9 @@ export default function Shop({ gameState, onClose, onBuySeeds, onBuyTool, onBuyS
                 <button
                   onClick={() => toggleCart(itemType)}
                   disabled={!canAfford}
-                  className={`w-full py-1.5 rounded-lg font-bold text-xs transition-colors ${
+                  className={`w-full py-2 rounded-lg font-bold text-xs transition-all ${
                     canAfford
-                      ? 'bg-orange-600 hover:bg-orange-500 text-white'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-green-500/50'
                       : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   }`}
                 >

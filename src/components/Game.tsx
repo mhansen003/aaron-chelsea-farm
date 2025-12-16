@@ -6381,6 +6381,15 @@ export default function Game() {
         <FarmerModal
           gameState={gameState}
           onClose={() => setShowFarmerModal(false)}
+          onUpdateFarmerName={(name) => {
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                farmerName: name,
+              },
+            }));
+          }}
           onUpdateFarmerSettings={(settings) => {
             setGameState(prev => {
               const zoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);

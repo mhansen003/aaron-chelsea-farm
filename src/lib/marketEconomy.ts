@@ -317,11 +317,10 @@ export function updateMarketPrices(gameState: GameState): GameState {
 
     if (nextForecast && nextForecast.prices[crop]) {
       // Use the forecasted price! This makes forecasts come true
+      // The forecast already includes all boosts (seasonal, epic), so use it directly
       const forecastedPrice = nextForecast.prices[crop];
 
-      // Apply both seasonal boost AND epic boost to the forecasted price
-      const totalMultiplier = (forecastedPrice / basePrice) + seasonalBoost + epicBoost;
-      market.currentPrices[crop] = Math.round(basePrice * totalMultiplier);
+      market.currentPrices[crop] = forecastedPrice;
       market.priceMultipliers[crop] = forecastedPrice / basePrice;
     } else {
       // No forecast available - generate price (fallback)

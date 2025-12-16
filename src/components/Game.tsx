@@ -1235,13 +1235,13 @@ export default function Game() {
             ? warehouseFullImageRef.current
             : warehouseImageRef.current;
 
-          // Warehouse building uses 1024x1024 sprite sheet with 4 quadrants (512x512 each)
+          // Warehouse building uses 500x500 sprite sheet with 4 quadrants (250x250 each)
           if (warehouseImg) {
-            const offsetX = (x - 14) * 512; // x can be 14 or 15
-            const offsetY = (y - 10) * 512; // y can be 10 or 11 (bottom of grid)
+            const offsetX = (x - 14) * 250; // x can be 14 or 15
+            const offsetY = (y - 10) * 250; // y can be 10 or 11 (bottom of grid)
             ctx.drawImage(
               warehouseImg,
-              offsetX, offsetY, 512, 512,
+              offsetX, offsetY, 250, 250,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           }
@@ -1332,7 +1332,7 @@ export default function Game() {
                    gridRef[y]?.[x - 1]?.type === 'botFactory' &&
                    gridRef[y + 1]?.[x]?.type === 'botFactory' &&
                    gridRef[y + 1]?.[x - 1]?.type === 'botFactory') {
-            offsetX = 512;
+            offsetX = 250;
             offsetY = 0;
           }
           // Check if this is bottom-left
@@ -1341,21 +1341,21 @@ export default function Game() {
                    gridRef[y - 1]?.[x]?.type === 'botFactory' &&
                    gridRef[y - 1]?.[x + 1]?.type === 'botFactory') {
             offsetX = 0;
-            offsetY = 512;
+            offsetY = 250;
           }
           // Check if this is bottom-right
           else if (x > 0 && y > 0 &&
                    gridRef[y]?.[x - 1]?.type === 'botFactory' &&
                    gridRef[y - 1]?.[x]?.type === 'botFactory' &&
                    gridRef[y - 1]?.[x - 1]?.type === 'botFactory') {
-            offsetX = 512;
-            offsetY = 512;
+            offsetX = 250;
+            offsetY = 250;
           }
 
-          // Draw the appropriate quadrant
+          // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
           ctx.drawImage(
             botFactoryImageRef.current,
-            offsetX, offsetY, 512, 512,
+            offsetX, offsetY, 250, 250,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
         } else if (tile.type === 'well' && wellImageRef.current) {
@@ -1384,7 +1384,7 @@ export default function Game() {
                    gridRef[y]?.[x - 1]?.type === 'well' &&
                    gridRef[y + 1]?.[x]?.type === 'well' &&
                    gridRef[y + 1]?.[x - 1]?.type === 'well') {
-            offsetX = 512;
+            offsetX = 250;
             offsetY = 0;
           }
           // Check if this is bottom-left
@@ -1393,21 +1393,21 @@ export default function Game() {
                    gridRef[y - 1]?.[x]?.type === 'well' &&
                    gridRef[y - 1]?.[x + 1]?.type === 'well') {
             offsetX = 0;
-            offsetY = 512;
+            offsetY = 250;
           }
           // Check if this is bottom-right
           else if (x > 0 && y > 0 &&
                    gridRef[y]?.[x - 1]?.type === 'well' &&
                    gridRef[y - 1]?.[x]?.type === 'well' &&
                    gridRef[y - 1]?.[x - 1]?.type === 'well') {
-            offsetX = 512;
-            offsetY = 512;
+            offsetX = 250;
+            offsetY = 250;
           }
 
-          // Draw the appropriate quadrant
+          // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
           ctx.drawImage(
             wellImageRef.current,
-            offsetX, offsetY, 512, 512,
+            offsetX, offsetY, 250, 250,
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
         } else if (tile.type === 'garage' && garageImageRef.current) {
@@ -1469,7 +1469,7 @@ export default function Game() {
           // All 2x2 buildings should follow this approach for consistent rendering:
           // 1. Draw grass background on all 4 tiles
           // 2. Determine which quadrant position this tile occupies
-          // 3. Extract the corresponding 512x512 quadrant from 1024x1024 sprite
+          // 3. Extract the corresponding quadrant from the sprite (250x250 for 500x500)
           // 4. Draw at single tile size (32px)
           // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1499,7 +1499,7 @@ export default function Game() {
                      gridRef[y]?.[x - 1]?.type === 'supercharger' &&
                      gridRef[y + 1]?.[x]?.type === 'supercharger' &&
                      gridRef[y + 1]?.[x - 1]?.type === 'supercharger') {
-              offsetX = 512;
+              offsetX = 250;
               offsetY = 0;
             }
             // Check if this is bottom-left
@@ -1508,21 +1508,21 @@ export default function Game() {
                      gridRef[y - 1]?.[x]?.type === 'supercharger' &&
                      gridRef[y - 1]?.[x + 1]?.type === 'supercharger') {
               offsetX = 0;
-              offsetY = 512;
+              offsetY = 250;
             }
             // Check if this is bottom-right
             else if (x > 0 && y > 0 &&
                      gridRef[y]?.[x - 1]?.type === 'supercharger' &&
                      gridRef[y - 1]?.[x]?.type === 'supercharger' &&
                      gridRef[y - 1]?.[x - 1]?.type === 'supercharger') {
-              offsetX = 512;
-              offsetY = 512;
+              offsetX = 250;
+              offsetY = 250;
             }
 
-            // Draw the appropriate quadrant
+            // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
             ctx.drawImage(
               superchargerImageRef.current,
-              offsetX, offsetY, 512, 512,
+              offsetX, offsetY, 250, 250,
               px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
             );
           } else {

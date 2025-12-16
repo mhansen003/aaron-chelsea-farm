@@ -142,6 +142,7 @@ export const TASK_DURATIONS: Record<TaskType, number> = {
   deposit: 3000, // 3 seconds to deposit crops at warehouse
   pickup_marked: 2000, // 2 seconds to pick up marked items
   scare_rabbit: 2000, // 2 seconds to scare rabbit away
+  catch_fish: 2000, // 2 seconds to attempt catching a fish
 };
 
 /**

@@ -1310,9 +1310,23 @@ export default function Game() {
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
           // Export building (500x500 image) - divide into 4 quadrants for 2x2 tiles
-          // Export is at top-right (x: 14-15, y: 0-1)
-          const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 250; // 500px / 2 = 250px per tile
-          const offsetY = (y - 0) * 250;
+          // Find the top-left corner of the export building dynamically
+          let exportTopLeftX = x;
+          let exportTopLeftY = y;
+          for (let dy = 0; dy < 2; dy++) {
+            for (let dx = 0; dx < 2; dx++) {
+              const checkX = x - dx;
+              const checkY = y - dy;
+              if (checkX >= 0 && checkY >= 0 &&
+                  currentGrid[checkY]?.[checkX]?.type === 'export') {
+                if (checkX < exportTopLeftX) exportTopLeftX = checkX;
+                if (checkY < exportTopLeftY) exportTopLeftY = checkY;
+              }
+            }
+          }
+          // Calculate offset based on position relative to top-left corner
+          const offsetX = (x - exportTopLeftX) * 250; // 500px / 2 = 250px per tile
+          const offsetY = (y - exportTopLeftY) * 250;
           ctx.drawImage(
             exportImageRef.current,
             offsetX, offsetY, 250, 250, // Source: extract quadrant from 500x500 image

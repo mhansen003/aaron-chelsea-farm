@@ -2548,7 +2548,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newGameTime - bot.actionStartTime;
             if (elapsed >= CLEARING_DURATION) {
-              // Clearing complete - clear the tile
+              // Clearing complete - clear the tile and award $3 for the cleared resource
               updatedGrid = updatedGrid.map((row, rowY) =>
                 row.map((tile, tileX) => {
                   if (tileX === nearest.x && rowY === nearest.y) {
@@ -2557,6 +2557,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
                   return tile;
                 })
               );
+              // Award $3 for cleared resource (can be sold)
+              newState = {
+                ...newState,
+                player: {
+                  ...newState.player,
+                  money: newState.player.money + 3,
+                },
+              };
               const updatedBot = { ...bot, status: 'idle' as const, visualX, visualY, actionStartTime: undefined, actionDuration: undefined };
               updatedDemolishBots.push(updatedBot);
               continue;

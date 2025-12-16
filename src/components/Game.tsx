@@ -1813,75 +1813,80 @@ export default function Game() {
             px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize // Dest: draw at tile position
           );
         } else if (tile.type === 'subdock') {
-          // Beach: Submarine Dock on sand/water
+          // Beach: Submarine Dock (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Dark gray dock
+          // Placeholder: 2x2 Dark gray dock - draw larger building
           ctx.fillStyle = '#4A4A4A';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
+          const buildingSize = GAME_CONFIG.tileSize * 1.8;
+          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🚢', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          ctx.font = '48px Arial';
+          ctx.fillText('🚢', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
         } else if (tile.type === 'fishmarket') {
-          // Beach: Fish Market on sand
+          // Beach: Fish Market (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Orange market building
+          // Placeholder: 2x2 Orange market building
           ctx.fillStyle = '#FF8C00';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
+          const buildingSize = GAME_CONFIG.tileSize * 1.8;
+          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🐟', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          ctx.font = '48px Arial';
+          ctx.fillText('🐟', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
         } else if (tile.type === 'baitshop') {
-          // Beach: Bait Shop on sand
+          // Beach: Bait Shop (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Green bait shop
+          // Placeholder: 2x2 Green bait shop
           ctx.fillStyle = '#228B22';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
+          const buildingSize = GAME_CONFIG.tileSize * 1.8;
+          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🪱', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          ctx.font = '48px Arial';
+          ctx.fillText('🪱', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
         } else if (tile.type === 'lighthouse') {
-          // Beach: Lighthouse on sand
+          // Beach: Lighthouse (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Red and white lighthouse
+          // Placeholder: 2x2 Red and white lighthouse
           ctx.fillStyle = '#FF0000';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
+          const buildingSize = GAME_CONFIG.tileSize * 1.8;
+          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🗼', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          ctx.font = '48px Arial';
+          ctx.fillText('🗼', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
         } else if (tile.type === 'aquarium') {
-          // Beach: Aquarium on sand
+          // Beach: Aquarium (2x2 building) on sand
           if (sandImageRef.current) {
             ctx.drawImage(sandImageRef.current, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           } else {
             ctx.fillStyle = '#f4e4c1';
             ctx.fillRect(px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
-          // Placeholder: Blue aquarium building
+          // Placeholder: 2x2 Blue aquarium building
           ctx.fillStyle = '#4169E1';
-          ctx.fillRect(px + 5, py + 5, GAME_CONFIG.tileSize - 10, GAME_CONFIG.tileSize - 10);
+          const buildingSize = GAME_CONFIG.tileSize * 1.8;
+          ctx.fillRect(px + 5, py + 5, buildingSize, buildingSize);
           ctx.fillStyle = '#FFFFFF';
-          ctx.font = '12px Arial';
-          ctx.fillText('🐠', px + GAME_CONFIG.tileSize / 3, py + GAME_CONFIG.tileSize / 2);
+          ctx.font = '48px Arial';
+          ctx.fillText('🐠', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize);
         } else if (tile.type === 'planted' && plantedCropImageRef.current) {
           // Draw grass background first, then dirt, then planted crop sprite on top
           if (grassImageRef.current) {

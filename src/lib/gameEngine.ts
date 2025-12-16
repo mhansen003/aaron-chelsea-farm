@@ -77,9 +77,9 @@ export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
 
 // Fish spawning constants
-export const FISH_SPAWN_INTERVAL = 8000; // Check for new fish every 8 seconds
-export const FISH_SPAWN_CHANCE = 0.4; // 40% chance to spawn a fish on each check
-export const MAX_FISH_PER_ZONE = 8; // Maximum fish that can be present at once
+export const FISH_SPAWN_INTERVAL = 5000; // Check for new fish every 5 seconds
+export const FISH_SPAWN_CHANCE = 0.6; // 60% chance to spawn a fish on each check
+export const MAX_FISH_PER_ZONE = 5; // Maximum 4-5 fish that can be present at once
 
 // Fish rarity spawn rates (must sum to 1.0)
 export const FISH_RARITY_RATES = {

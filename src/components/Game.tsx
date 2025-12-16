@@ -207,10 +207,36 @@ export default function Game() {
   const [showCropDropdown, setShowCropDropdown] = useState(false);
   const [showFarmMusicSection, setShowFarmMusicSection] = useState(true);
   const [showFarmRapSection, setShowFarmRapSection] = useState(false);
-  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  // Load music preferences from localStorage, or use defaults
+  const [isMusicMuted, setIsMusicMuted] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('music_muted');
+      return saved ? saved === 'true' : false;
+    }
+    return false;
+  });
   const [isMusicPaused, setIsMusicPaused] = useState(false);
-  const [musicVolume, setMusicVolume] = useState(0.5); // Default 50% volume
-  const [enabledSongs, setEnabledSongs] = useState<Set<number>>(new Set([0, 1, 2, 3, 4, 5])); // Default: all regular farm songs enabled
+  const [musicVolume, setMusicVolume] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('music_volume');
+      return saved ? parseFloat(saved) : 0.5;
+    }
+    return 0.5;
+  });
+  const [enabledSongs, setEnabledSongs] = useState<Set<number>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('enabled_songs');
+      if (saved) {
+        try {
+          const arr = JSON.parse(saved);
+          return new Set(arr);
+        } catch {
+          return new Set([0, 1, 2, 3, 4, 5]);
+        }
+      }
+    }
+    return new Set([0, 1, 2, 3, 4, 5]);
+  });
   // Fixed automation order: harvest > water > plant
   const automationOrder: ('plant' | 'water' | 'harvest')[] = ['harvest', 'water', 'plant'];
   const lastTimeRef = useRef<number>(0);
@@ -804,8 +830,22 @@ export default function Game() {
 
   // Removed auto-open shop effect - shop now opens only on click or 'B' key
 
+  // Save music preferences to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('music_muted', isMusicMuted.toString());
+      localStorage.setItem('music_volume', musicVolume.toString());
+      localStorage.setItem('enabled_songs', JSON.stringify(Array.from(enabledSongs)));
+      // Sync the ref with the current volume
+      musicVolumeRef.current = musicVolume;
+    }
+  }, [isMusicMuted, musicVolume, enabledSongs]);
+
   // Background music and sound effects
   useEffect(() => {
+    // Sync musicVolumeRef with loaded volume on mount
+    musicVolumeRef.current = musicVolume;
+
     // Water splash sound effect (one-time setup)
     waterSplashRef.current = new Audio('/water splash.mp3');
     waterSplashRef.current.volume = 0.4;
@@ -1143,24 +1183,9 @@ export default function Game() {
           } else if (tile.variant === 3 && grassImageRef3.current) {
             grassImage = grassImageRef3.current;
           }
-          // Draw grass texture with random rotation and offset for natural look
+          // Draw grass texture
           if (grassImage) {
-            // Seeded random based on tile position for consistency
-            const seed = x * 73 + y * 37;
-            const pseudoRandom = (Math.sin(seed) * 10000) % 1;
-
-            // Random rotation (0, 90, 180, or 270 degrees)
-            const rotation = Math.floor(pseudoRandom * 4) * (Math.PI / 2);
-
-            // Slight random offset (±2 pixels)
-            const offsetX = ((pseudoRandom * 1000) % 1) * 4 - 2;
-            const offsetY = ((pseudoRandom * 2000) % 1) * 4 - 2;
-
-            ctx.save();
-            ctx.translate(px + GAME_CONFIG.tileSize / 2 + offsetX, py + GAME_CONFIG.tileSize / 2 + offsetY);
-            ctx.rotate(rotation);
-            ctx.drawImage(grassImage, -GAME_CONFIG.tileSize / 2, -GAME_CONFIG.tileSize / 2, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
-            ctx.restore();
+            ctx.drawImage(grassImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
           }
         } else if (tile.type === 'tree') {
           // Draw grass background first, then tree sprite

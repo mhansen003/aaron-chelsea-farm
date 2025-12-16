@@ -5262,7 +5262,7 @@ export function superchargeBot(state: GameState, botId: string, botType: 'water'
 /**
  * Upgrade a bot with hopper upgrade (increased inventory capacity)
  */
-export function hopperUpgrade(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer'): GameState {
+export function hopperUpgrade(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'): GameState {
   // Check if player can afford it
   if (state.player.money < HOPPER_UPGRADE_COST) return state;
 

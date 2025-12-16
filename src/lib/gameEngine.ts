@@ -2061,8 +2061,27 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         return a.x - b.x; // Left to right within same row
       });
 
-      // Pick the first tile in sorted order (row by row planting)
+      // Continue from last position - find next tile after current bot position
       let nearest = allPlantableTiles[0];
+      const currentIndex = allPlantableTiles.findIndex(t => t.x === botX && t.y === botY);
+
+      if (currentIndex >= 0 && currentIndex < allPlantableTiles.length - 1) {
+        // Bot is at a tile in the list, pick the next one
+        nearest = allPlantableTiles[currentIndex + 1];
+      } else if (currentIndex === allPlantableTiles.length - 1) {
+        // Bot is at last tile, wrap to first
+        nearest = allPlantableTiles[0];
+      } else {
+        // Bot is not at any tile in list, find the next tile in sequence after bot's position
+        const nextTile = allPlantableTiles.find(t => {
+          // Find first tile that comes after bot's current position in row-by-row order
+          return (t.y > botY) || (t.y === botY && t.x > botX);
+        });
+        if (nextTile) {
+          nearest = nextTile;
+        }
+        // Otherwise keep nearest = allPlantableTiles[0] (first tile)
+      }
 
       // Switch to the job that owns the nearest tile
       const currentJob = nearest.job;
@@ -2122,8 +2141,25 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return a.x - b.x; // Left to right within same row
         });
 
-        // Pick the first tile with seeds in sorted order
+        // Continue from last position - find next tile after current bot position
         nearest = tilesWithSeeds[0];
+        const seedsIndex = tilesWithSeeds.findIndex(t => t.x === botX && t.y === botY);
+
+        if (seedsIndex >= 0 && seedsIndex < tilesWithSeeds.length - 1) {
+          // Bot is at a tile in the list, pick the next one
+          nearest = tilesWithSeeds[seedsIndex + 1];
+        } else if (seedsIndex === tilesWithSeeds.length - 1) {
+          // Bot is at last tile, wrap to first
+          nearest = tilesWithSeeds[0];
+        } else {
+          // Bot is not at any tile in list, find the next tile in sequence after bot's position
+          const nextSeedTile = tilesWithSeeds.find(t => {
+            return (t.y > botY) || (t.y === botY && t.x > botX);
+          });
+          if (nextSeedTile) {
+            nearest = nextSeedTile;
+          }
+        }
       }
 
       // Now we have the nearest tile with available seeds - plant it!
@@ -2134,7 +2170,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.5, bot.supercharged); // 100% faster (2x speed) for seed bots
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.167, bot.supercharged); // 300% faster (6x speed) for seed bots
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;

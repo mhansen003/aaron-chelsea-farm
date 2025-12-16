@@ -67,7 +67,7 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
     .filter(crop => revenueByCrop[crop] > 0)
     .sort((a, b) => revenueByCrop[b] - revenueByCrop[a]);
 
-  // Draw income history chart
+  // Draw income history chart - line chart per crop type
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || salesHistory.length === 0) return;
@@ -77,30 +77,33 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
 
     const width = canvas.width;
     const height = canvas.height;
+    const padding = 60;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
 
     // Clear canvas
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, width, height);
 
     // Draw grid
-    ctx.strokeStyle = '#334155';
+    ctx.strokeStyle = '#1e3a5f';
     ctx.lineWidth = 1;
 
     // Horizontal lines
     for (let i = 0; i <= 5; i++) {
-      const y = (height / 5) * i;
+      const y = padding + (chartHeight / 5) * i;
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
       ctx.stroke();
     }
 
     // Vertical lines
     for (let i = 0; i <= 10; i++) {
-      const x = (width / 10) * i;
+      const x = padding + (chartWidth / 10) * i;
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, height - padding);
       ctx.stroke();
     }
 
@@ -112,63 +115,128 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
       return;
     }
 
-    // Calculate cumulative revenue over time
-    const cumulativeData: Array<{ timestamp: number; revenue: number }> = [];
-    let cumulative = 0;
+    // Calculate cumulative revenue over time for each crop
+    const cropData: Record<Exclude<CropType, null>, Array<{ timestamp: number; revenue: number }>> = {
+      carrot: [],
+      wheat: [],
+      tomato: [],
+      pumpkin: [],
+      watermelon: [],
+      peppers: [],
+      grapes: [],
+      oranges: [],
+      avocado: [],
+      rice: [],
+      corn: [],
+    };
+
+    const cropCumulative: Record<Exclude<CropType, null>, number> = {
+      carrot: 0,
+      wheat: 0,
+      tomato: 0,
+      pumpkin: 0,
+      watermelon: 0,
+      peppers: 0,
+      grapes: 0,
+      oranges: 0,
+      avocado: 0,
+      rice: 0,
+      corn: 0,
+    };
+
     salesHistory.forEach(sale => {
-      cumulative += sale.totalRevenue;
-      cumulativeData.push({ timestamp: sale.timestamp, revenue: cumulative });
+      cropCumulative[sale.crop] += sale.totalRevenue;
+      cropData[sale.crop].push({
+        timestamp: sale.timestamp,
+        revenue: cropCumulative[sale.crop]
+      });
     });
 
     // Find min/max for scaling
-    const maxRevenue = cumulativeData[cumulativeData.length - 1].revenue;
-    const minTime = cumulativeData[0].timestamp;
-    const maxTime = cumulativeData[cumulativeData.length - 1].timestamp;
+    const minTime = salesHistory[0].timestamp;
+    const maxTime = salesHistory[salesHistory.length - 1].timestamp;
     const timeRange = maxTime - minTime || 1;
 
-    // Draw cumulative revenue line
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-
-    cumulativeData.forEach((point, index) => {
-      const x = ((point.timestamp - minTime) / timeRange) * width;
-      const y = height - (point.revenue / maxRevenue) * (height - 20) - 10;
-
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
+    let maxRevenue = 0;
+    Object.values(cropData).forEach(data => {
+      if (data.length > 0) {
+        maxRevenue = Math.max(maxRevenue, data[data.length - 1].revenue);
       }
     });
 
-    ctx.stroke();
+    // Draw line for each crop type
+    Object.entries(cropData).forEach(([crop, data]) => {
+      if (data.length === 0) return;
+
+      const cropType = crop as Exclude<CropType, null>;
+      ctx.strokeStyle = CROP_COLORS[cropType];
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+
+      data.forEach((point, index) => {
+        const x = padding + ((point.timestamp - minTime) / timeRange) * chartWidth;
+        const y = height - padding - (point.revenue / maxRevenue) * chartHeight;
+
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+
+      ctx.stroke();
+
+      // Draw dots at data points
+      data.forEach((point) => {
+        const x = padding + ((point.timestamp - minTime) / timeRange) * chartWidth;
+        const y = height - padding - (point.revenue / maxRevenue) * chartHeight;
+
+        ctx.fillStyle = CROP_COLORS[cropType];
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    });
 
     // Draw Y-axis labels
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '12px Arial';
+    ctx.font = 'bold 12px Arial';
     ctx.textAlign = 'right';
     for (let i = 0; i <= 5; i++) {
       const revenue = maxRevenue - ((maxRevenue) / 5) * i;
-      const y = (height / 5) * i;
-      ctx.fillText(`$${Math.round(revenue)}`, width - 5, y + 4);
+      const y = padding + (chartHeight / 5) * i;
+      ctx.fillText(`$${Math.round(revenue)}`, padding - 10, y + 4);
     }
+
+    // Draw axis labels
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Revenue Over Time', width / 2, 20);
+
+    ctx.save();
+    ctx.translate(15, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Revenue ($)', 0, 0);
+    ctx.restore();
   }, [salesHistory]);
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-2xl max-w-6xl w-full max-h-[95vh] border-2 border-gray-600/50 flex flex-col shadow-2xl">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl max-w-7xl w-full max-h-[95vh] border-4 border-cyan-500/50 shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-600/30">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-300">
-              💰 Income History
-            </h2>
-            <p className="text-sm text-gray-400 mt-1">Track your farming empire's revenue</p>
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b-2 border-cyan-500/30 bg-gradient-to-r from-cyan-900/40 to-blue-900/40">
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">💰</div>
+            <div>
+              <h2 className="text-4xl font-black tracking-tight">INCOME HISTORY</h2>
+              <p className="text-cyan-300 text-sm">Track your farming empire's revenue</p>
+            </div>
           </div>
+
           <button
             onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors"
+            className="text-3xl hover:text-red-400 transition-colors w-12 h-12 flex items-center justify-center rounded-full hover:bg-red-500/20"
           >
             ✕
           </button>
@@ -177,27 +245,44 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Total Revenue Summary */}
-          <div className="bg-gray-800/40 border-2 border-gray-600/50 rounded-xl p-6 text-center">
-            <div className="text-sm text-gray-300 mb-2">Total Lifetime Revenue</div>
-            <div className="text-5xl font-bold text-green-400">${totalRevenue.toLocaleString()}</div>
+          <div className="bg-cyan-900/40 border-2 border-cyan-500/30 rounded-xl p-6 text-center">
+            <div className="text-sm text-cyan-300 mb-2">Total Lifetime Revenue</div>
+            <div className="text-5xl font-bold text-yellow-400">${totalRevenue.toLocaleString()}</div>
             <div className="text-sm text-gray-400 mt-2">{salesHistory.length} transactions</div>
           </div>
 
-          {/* Cumulative Revenue Chart */}
-          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
-            <h3 className="text-xl font-bold mb-3">📈 Cumulative Revenue Over Time</h3>
+          {/* Revenue by Crop Type Chart */}
+          <div className="bg-slate-800/60 rounded-xl p-4 border-2 border-cyan-500/30">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-bold text-cyan-400">📈 Revenue by Crop Type Over Time</h3>
+            </div>
             <canvas
               ref={canvasRef}
-              width={800}
-              height={300}
+              width={900}
+              height={350}
               className="w-full"
-              style={{ maxHeight: '300px' }}
+              style={{ maxHeight: '350px' }}
             />
+
+            {/* Legend */}
+            {sortedCrops.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {sortedCrops.map(crop => (
+                  <div key={crop} className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: CROP_COLORS[crop] }}
+                    />
+                    <span className="text-xs">{CROP_EMOJI[crop]} {crop}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Revenue by Crop */}
-          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
-            <h3 className="text-xl font-bold mb-4">🌾 Revenue by Crop Type</h3>
+          <div className="bg-slate-800/60 rounded-xl p-4 border-2 border-cyan-500/30">
+            <h3 className="text-xl font-bold mb-4 text-cyan-400">🌾 Revenue Breakdown</h3>
             <div className="space-y-3">
               {sortedCrops.map((crop, index) => {
                 const revenue = revenueByCrop[crop];
@@ -237,8 +322,8 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-gray-800/60 rounded-xl p-4 border-2 border-gray-600/30">
-            <h3 className="text-xl font-bold mb-4">📋 Recent Transactions</h3>
+          <div className="bg-slate-800/60 rounded-xl p-4 border-2 border-cyan-500/30">
+            <h3 className="text-xl font-bold mb-4 text-cyan-400">📋 Recent Transactions</h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {salesHistory.slice().reverse().slice(0, 20).map((sale, index) => (
                 <div
@@ -270,10 +355,10 @@ export default function IncomeModal({ gameState, onClose }: IncomeModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-600/30 p-4">
+        <div className="flex-shrink-0 border-t-2 border-cyan-500/30 bg-gradient-to-r from-slate-900 to-slate-800 p-6">
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-lg transition-all"
+            className="w-full px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-xl font-bold text-lg transition-all"
           >
             Close
           </button>

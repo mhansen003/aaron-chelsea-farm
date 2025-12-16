@@ -5212,7 +5212,6 @@ export default function Game() {
           )}
           </div>
         </div>
-        )
       )}
 
       {/* Sell Message */}

@@ -5896,41 +5896,47 @@ export default function Game() {
                 <span className="ml-auto bg-orange-600/30 px-1 rounded text-xs">{harvestBots?.length ?? 0}</span>
                 <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">ℹ️</span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {harvestBots?.map((bot, idx) => {
                   const inventoryPercent = (bot.inventory.length / bot.inventoryCapacity) * 100;
                   const isParked = bot.status === 'idle' && garagePos && bot.x === garagePos.x && bot.y === garagePos.y;
                   const statusText =
-                    isParked ? '🏠 Parked in garage' :
-                    bot.status === 'traveling' ? 'Moving to field' :
-                    bot.status === 'harvesting' ? 'Collecting crops' :
-                    bot.status === 'depositing' ? 'At barn' :
+                    isParked ? '🏠 Parked' :
+                    bot.status === 'traveling' ? 'Moving' :
+                    bot.status === 'harvesting' ? 'Harvesting' :
+                    bot.status === 'depositing' ? 'Depositing' :
                     'Ready';
                   return (
-                    <div key={bot.id} className="bg-black/20 rounded p-1 border border-orange-600/20 cursor-pointer hover:bg-orange-900/20 transition-colors">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span
-                          className="text-xs font-semibold text-orange-100 cursor-pointer hover:text-orange-300 hover:underline"
-                          onClick={() => setRenamingBot({ id: bot.id, type: 'harvest', currentName: bot.name })}
-                          title="Click to rename"
+                    <div key={bot.id} className="bg-gradient-to-br from-orange-900/30 to-orange-950/20 rounded-lg p-2 border-2 border-orange-600/40 hover:border-orange-500 hover:from-orange-900/40 transition-all shadow-md">
+                      <div className="flex items-center gap-2 mb-2">
+                        {/* Bot Image - Clickable */}
+                        <div
+                          className="w-12 h-12 bg-orange-800/50 rounded-lg border-2 border-orange-500 flex items-center justify-center cursor-pointer hover:bg-orange-700/50 transition-all p-1"
+                          onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'harvest' })}
+                          title="Click for details"
                         >
-                          {bot.name}
-                        </span>
-                        <span className="text-sm text-orange-300">
-                          {bot.status === 'traveling' && '🚶'}
-                          {bot.status === 'harvesting' && '✂️'}
-                          {bot.status === 'depositing' && '📦'}
-                          {bot.status === 'idle' && '😴'}
-                        </span>
+                          <NextImage src="/harvest bot.png" alt="Harvest Bot" width={40} height={40} className="object-contain" />
+                        </div>
+                        {/* Bot Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-bold text-orange-100 truncate">{bot.name}</span>
+                            {bot.supercharged && <span className="text-xs" title="Supercharged">⚡</span>}
+                            {bot.hopperUpgrade && <span className="text-xs" title="Hopper Upgrade">📦</span>}
+                          </div>
+                          <div className="text-xs text-orange-300/80">{statusText}</div>
+                        </div>
                       </div>
-                      <div className="text-[10px] font-medium text-orange-200/60 mb-1 truncate">{statusText}</div>
-                      <div className="bg-gray-900/60 rounded-full h-2.5 overflow-hidden">
+                      {/* Progress Bar */}
+                      <div className="bg-gray-900/60 rounded-full h-2 overflow-hidden mb-1">
                         <div
                           className={`h-full transition-all ${inventoryPercent < 100 ? 'bg-green-400' : 'bg-yellow-400'}`}
                           style={{ width: `${inventoryPercent}%` }}
                         />
                       </div>
-                      <div className="text-sm text-orange-300/70 text-center">Cargo: {bot.inventory.length}/{bot.inventoryCapacity}</div>
+                      <div className="text-xs text-orange-300/70 text-center font-medium">
+                        📦 {bot.inventory.length}/{bot.inventoryCapacity}
+                      </div>
                     </div>
                   );
                 })}

@@ -5179,7 +5179,7 @@ function checkConstructionCompletion(state: GameState): GameState {
   return newState;
 }
 
-export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'fertilizer'): GameState {
+export function superchargeBot(state: GameState, botId: string, botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer'): GameState {
   // Check if player can afford it
   if (state.player.money < SUPERCHARGE_BOT_COST) return state;
 

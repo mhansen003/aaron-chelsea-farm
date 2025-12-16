@@ -1244,8 +1244,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         if (isSandTile || isSeaweedTile || isShellsTile) {
           // Set initial spawn/despawn time if not set
           if (tile.overgrowthTime === undefined) {
-            // Random time between 3-4 minutes (180000-240000ms)
-            const spawnTime = 180000 + Math.random() * 60000;
+            // Random time between 15-20 minutes (900000-1200000ms) - very infrequent
+            const spawnTime = 900000 + Math.random() * 300000;
             return {
               ...tile,
               overgrowthTime: newGameTime + spawnTime,
@@ -1254,19 +1254,29 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
           // Check if it's time to change state
           if (newGameTime >= tile.overgrowthTime) {
-            // Sand -> randomly spawn seaweed or shells
+            // Sand -> randomly spawn seaweed or shells (only 20% chance when timer expires)
             if (isSandTile) {
-              const spawnType: TileType = Math.random() < 0.5 ? 'seaweed' : 'shells';
-              const nextChangeTime = 180000 + Math.random() * 60000; // 3-4 minutes
-              return {
-                ...tile,
-                type: spawnType,
-                overgrowthTime: newGameTime + nextChangeTime,
-              } as Tile;
+              // Only spawn 20% of the time to keep beach mostly clean
+              if (Math.random() < 0.2) {
+                const spawnType: TileType = Math.random() < 0.5 ? 'seaweed' : 'shells';
+                const nextChangeTime = 900000 + Math.random() * 300000; // 15-20 minutes
+                return {
+                  ...tile,
+                  type: spawnType,
+                  overgrowthTime: newGameTime + nextChangeTime,
+                } as Tile;
+              } else {
+                // Don't spawn, just reset timer
+                const nextChangeTime = 900000 + Math.random() * 300000;
+                return {
+                  ...tile,
+                  overgrowthTime: newGameTime + nextChangeTime,
+                };
+              }
             }
             // Seaweed/Shells -> return to sand
             else if (isSeaweedTile || isShellsTile) {
-              const nextChangeTime = 180000 + Math.random() * 60000; // 3-4 minutes
+              const nextChangeTime = 900000 + Math.random() * 300000; // 15-20 minutes
               return {
                 ...tile,
                 type: 'sand',

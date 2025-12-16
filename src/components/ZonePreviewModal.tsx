@@ -51,8 +51,12 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
     { name: 'Blob Fish', image: '/images/seafood/deep blop fish.png' },
     { name: 'Box Jellyfish', image: '/images/seafood/deep box jellyfish.png' },
     { name: 'Giant Squid', image: '/images/seafood/deep giant squid.png' },
+    { name: 'Loot Chest', image: '/images/seafood/deep loot1.png' },
+    { name: 'Treasure Box', image: '/images/seafood/deep loot2.png' },
+    { name: 'Golden Chest', image: '/images/seafood/deep loot3.png' },
     { name: 'Megalodon', image: '/images/seafood/deep meg.png' },
     { name: 'Oarfish', image: '/images/seafood/deep oarfish.png' },
+    { name: 'Treasure', image: '/images/seafood/deep treasure-.png' },
     { name: 'Flounder', image: '/images/seafood/flounder.png' },
     { name: 'Mahi Mahi', image: '/images/seafood/mahi mahi.png' },
     { name: 'Octopus', image: '/images/seafood/octopus.png' },
@@ -76,17 +80,17 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-6 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-slate-700 relative`}>
+      <div className={`bg-gradient-to-br ${themeColors[zone.theme]} text-white p-4 rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-y-auto border-4 border-slate-700 relative`}>
         {/* Close button - top right corner */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-3xl hover:text-red-400 transition-colors px-2 z-10"
+          className="absolute top-2 right-2 text-2xl hover:text-red-400 transition-colors px-2 z-10"
         >
           ✕
         </button>
 
         {/* Main content layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
           {/* Left: Large arch image with NPC overlay - takes 3 columns */}
           <div className="lg:col-span-3 relative">
             <img
@@ -108,17 +112,17 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
           </div>
 
           {/* Right: Title, Description and NPC info - takes 2 columns */}
-          <div className="lg:col-span-2 flex flex-col space-y-4">
-            <h2 className="text-4xl font-bold">{zone.name}</h2>
-            <p className="text-lg text-slate-200 leading-relaxed">
+          <div className="lg:col-span-2 flex flex-col space-y-2">
+            <h2 className="text-2xl font-bold">{zone.name}</h2>
+            <p className="text-sm text-slate-200 leading-snug">
               {expandedDescriptions[zone.theme as keyof typeof expandedDescriptions]}
             </p>
 
             {/* NPC description below zone description */}
             {zone.npc && (
-              <div className="bg-black/40 p-4 rounded-xl border border-cyan-500/50">
-                <h3 className="text-lg font-bold text-cyan-200 mb-2">{zone.npc.name}</h3>
-                <p className="text-sm text-cyan-100">{zone.npc.description}</p>
+              <div className="bg-black/40 p-3 rounded-xl border border-cyan-500/50">
+                <h3 className="text-base font-bold text-cyan-200 mb-1">{zone.npc.name}</h3>
+                <p className="text-xs text-cyan-100">{zone.npc.description}</p>
               </div>
             )}
           </div>
@@ -126,18 +130,17 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
         {/* Buildings Showcase - Beach Zone */}
         {beachBuildings.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold mb-4 text-slate-200">
+          <div className="mb-3">
+            <h3 className="text-lg font-bold mb-2 text-slate-200">
               New Adventure Awaits
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {beachBuildings.map((building, index) => (
-                <div key={index} className="bg-black/40 rounded-lg p-3 border border-slate-600/50 hover:border-slate-500 transition-all">
-                  <div className="aspect-square bg-black/30 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                <div key={index} className="bg-black/40 rounded-lg p-2 border border-slate-600/50 hover:border-slate-500 transition-all">
+                  <div className="aspect-square bg-black/30 rounded-lg mb-1 flex items-center justify-center overflow-hidden">
                     <img src={building.image} alt={building.name} className="w-full h-full object-contain" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-200 mb-1">{building.name}</h4>
-                  <p className="text-xs text-slate-400">{building.description}</p>
+                  <h4 className="text-xs font-bold text-slate-200 text-center">{building.name}</h4>
                 </div>
               ))}
             </div>
@@ -146,13 +149,13 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
         {/* Seafood Preview - Beach Zone */}
         {selectedSeafood.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold mb-4 text-cyan-200">
+          <div className="mb-3">
+            <h3 className="text-lg font-bold mb-2 text-cyan-200">
               Discover Amazing Sea Creatures
             </h3>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
               {selectedSeafood.map((seafood, index) => (
-                <div key={index} className="bg-black/40 rounded-lg p-2 border border-cyan-600/50 hover:border-cyan-500 transition-all">
+                <div key={index} className="bg-black/40 rounded-lg p-1.5 border border-cyan-600/50 hover:border-cyan-500 transition-all">
                   <div className="aspect-square bg-black/30 rounded-lg mb-1 flex items-center justify-center overflow-hidden">
                     <img src={seafood.image} alt={seafood.name} className="w-full h-full object-contain" />
                   </div>
@@ -163,11 +166,11 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           {zone.owned ? (
             <button
               onClick={onTravel}
-              className="flex-1 px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl font-bold text-xl transition-all shadow-lg"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl font-bold text-lg transition-all shadow-lg"
             >
               Travel Here
             </button>
@@ -175,7 +178,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
             <button
               onClick={onTravel}
               disabled={!canAfford}
-              className={`flex-1 px-8 py-4 rounded-xl font-bold text-xl transition-all shadow-lg ${
+              className={`flex-1 px-6 py-3 rounded-xl font-bold text-lg transition-all shadow-lg ${
                 canAfford
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 cursor-pointer'
                   : 'bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed opacity-50'
@@ -187,7 +190,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel, playerMoney 
 
           <button
             onClick={onClose}
-            className="px-8 py-4 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 rounded-xl font-bold text-xl transition-all shadow-lg"
+            className="px-6 py-3 bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 rounded-xl font-bold text-lg transition-all shadow-lg"
           >
             Cancel
           </button>

@@ -9,6 +9,7 @@ import { getMarketPrice, getNextSeasonForecast } from '@/lib/marketEconomy';
 interface ExportShopProps {
   gameState: GameState;
   onClose: () => void;
+  onRelocate?: () => void;
 }
 
 const ALL_CROPS: Array<Exclude<CropType, null>> = [
@@ -71,7 +72,7 @@ function getSeasonTimeRemaining(gameTime: number): number {
   return SEASON_DURATION - seasonProgress;
 }
 
-export default function ExportShop({ gameState, onClose }: ExportShopProps) {
+export default function ExportShop({ gameState, onClose, onRelocate }: ExportShopProps) {
   const [selectedCrop, setSelectedCrop] = useState<Exclude<CropType, null> | null>(null);
 
   // Get current market prices

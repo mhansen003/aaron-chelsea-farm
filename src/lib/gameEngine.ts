@@ -72,8 +72,8 @@ export const SUPERCHARGER_COST = 5000; // Cost to buy a supercharger
 export const SUPERCHARGE_BOT_COST = 500; // Cost to supercharge a single bot
 export const HOPPER_COST = 3000; // Cost to buy a hopper upgrade building
 export const HOPPER_UPGRADE_COST = 400; // Cost to upgrade a single bot with larger hopper
-export const BASE_ZONE_PRICE = 500; // Base to first adjacent zone
-export const ZONE_PRICE_MULTIPLIER = 1.5; // Each zone costs 50% more
+export const BASE_ZONE_PRICE = 2000; // Base price for first adjacent zone
+export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
 export const MOVE_SPEED = 0.008; // Movement interpolation speed (0-1, higher = faster)
 
 /**
@@ -246,8 +246,12 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
       }
       // Theme-specific zone generation
       else if (isBeach) {
-        // Beach: top half water, bottom half sand with seaweed/shells
-        if (y < GAME_CONFIG.gridHeight / 2) {
+        // Fishing hut at bottom-left corner (2x2) on the sand
+        if (x >= 0 && x <= 1 && y >= GAME_CONFIG.gridHeight - 2 && y <= GAME_CONFIG.gridHeight - 1) {
+          type = 'fishinghut';
+        }
+        // Beach: top 8 rows water (2/3 of grid), bottom 4 rows sand with seaweed/shells
+        else if (y < 8) {
           type = 'ocean';
         } else {
           type = 'sand';
@@ -330,7 +334,7 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         y,
         crop: null,
         growthStage: 0,
-        cleared: type === 'grass' || type === 'shop' || type === 'warehouse' || type === 'export' || type === 'arch',
+        cleared: type === 'grass' || type === 'shop' || type === 'warehouse' || type === 'export' || type === 'arch' || type === 'fishinghut',
         wateredToday: false,
         hasSprinkler: false,
         archDirection,
@@ -2029,7 +2033,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       // Sell everything mode - mark all warehouse items
       if (config.sellMode === 'everything') {
         const unmarkedWarehouseItems = newState.warehouse.filter(
-          item => !newState.markedForSale.some(marked => marked.id === item.id)
+          item => !newState.markedForSale.includes(item)
         );
         newState = {
           ...newState,
@@ -2045,7 +2049,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           const warehouseItemsForCrop = newState.warehouse.filter(item => item.crop === cropConfig.crop);
           const alreadyMarkedForCrop = newState.markedForSale.filter(item => item.crop === cropConfig.crop);
           const unmarkedForCrop = warehouseItemsForCrop.filter(
-            item => !newState.markedForSale.some(marked => marked.id === item.id)
+            item => !newState.markedForSale.includes(item)
           );
 
           if (unmarkedForCrop.length === 0) continue;

@@ -25,7 +25,8 @@ export type TileType =
   | 'cactus'
   | 'rocks'
   | 'cave'
-  | 'mountain';
+  | 'mountain'
+  | 'fishinghut';
 
 export type CropType = 'carrot' | 'wheat' | 'tomato' | 'pumpkin' | 'watermelon' | 'peppers' | 'grapes' | 'oranges' | 'avocado' | 'rice' | 'corn' | null;
 

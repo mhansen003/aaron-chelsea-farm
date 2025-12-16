@@ -4313,47 +4313,6 @@ export default function Game() {
           <button onClick={() => setShowNewGameConfirm(true)} className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-bold">🆕 New Game</button>
           <button onClick={() => setShowTutorialModal(true)} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded text-sm font-bold" title="Open Tutorial">❓ Help</button>
           <button onClick={addDebugMoney} className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-bold" title="Debug: Add $1000">💰</button>
-          <button
-            onClick={() => {
-              setGameState(prev => {
-                const zoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
-                const zone = prev.zones[zoneKey];
-
-                // Spawn rabbit at random edge
-                const edge = Math.floor(Math.random() * 4);
-                let x: number, y: number;
-                if (edge === 0) { x = Math.floor(Math.random() * 16); y = 0; }
-                else if (edge === 1) { x = Math.floor(Math.random() * 16); y = 11; }
-                else if (edge === 2) { x = 15; y = Math.floor(Math.random() * 12); }
-                else { x = 0; y = Math.floor(Math.random() * 12); }
-
-                const maxCropsToEat = 3 + Math.floor(Math.random() * 3); // Random 3-5
-                const newRabbit = {
-                  id: `rabbit-${Date.now()}-${Math.random()}`,
-                  x, y, visualX: x, visualY: y,
-                  status: 'wandering' as const,
-                  spawnTime: prev.gameTime,
-                  cropsEaten: 0,
-                  maxCropsToEat,
-                };
-
-                return {
-                  ...prev,
-                  zones: {
-                    ...prev.zones,
-                    [zoneKey]: {
-                      ...zone,
-                      rabbits: [...zone.rabbits, newRabbit],
-                    },
-                  },
-                };
-              });
-            }}
-            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-bold"
-            title="Debug: Spawn Rabbit"
-          >
-            🐰
-          </button>
 
           {/* Music Selector - Only show in farm zone */}
           {isInFarmZone() && (

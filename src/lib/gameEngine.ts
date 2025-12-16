@@ -1357,6 +1357,15 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               return { ...bot, status: 'watering' as const, visualX, visualY };
             }
           } else {
+            // Set wateredToday immediately when watering starts to hide droplet indicator
+            updatedGrid = updatedGrid.map((row, rowY) =>
+              row.map((tile, tileX) => {
+                if (tileX === nearest.x && rowY === nearest.y) {
+                  return { ...tile, wateredToday: true };
+                }
+                return tile;
+              })
+            );
             return { ...bot, status: 'watering' as const, visualX, visualY, actionStartTime: newGameTime, actionDuration: ACTION_DURATION };
           }
         } else {
@@ -2462,6 +2471,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     const rabbitUpdate = updateRabbits(zone, newGameTime, deltaTime);
     zone = rabbitUpdate.zone;
     let currentGrid = rabbitUpdate.grid; // Track grid changes through all updates
+
+    // Spawn and update fish in ocean zones
+    if (zone.owned && zone.theme === 'beach') {
+      zone = spawnFish(zone, newGameTime);
+      zone = updateFish(zone, newGameTime, deltaTime);
+    }
 
     // Update hunter bots (detecting and chasing rabbits)
     if (zone.hunterBots.length > 0) {
@@ -5704,6 +5719,167 @@ function updateHunterBots(
     ...zone,
     hunterBots: updatedHunterBots,
     rabbits: updatedRabbits,
+  };
+}
+
+/**
+ * Spawn fish in ocean zones
+ */
+function spawnFish(zone: import('@/types/game').Zone, gameTime: number): import('@/types/game').Zone {
+  // Only spawn fish in beach zones with ocean tiles
+  if (zone.theme !== 'beach') {
+    return zone;
+  }
+
+  const lastSpawn = zone.lastFishSpawnTime || 0;
+
+  // Check if enough time has passed and we're under the max fish limit
+  if (gameTime - lastSpawn < FISH_SPAWN_INTERVAL || zone.fish.length >= MAX_FISH_PER_ZONE) {
+    return zone;
+  }
+
+  // Random chance to spawn
+  if (Math.random() > FISH_SPAWN_CHANCE) {
+    return {
+      ...zone,
+      lastFishSpawnTime: gameTime,
+    };
+  }
+
+  // Find all ocean tiles
+  const oceanTiles: Array<{ x: number; y: number }> = [];
+  zone.grid.forEach((row, y) => {
+    row.forEach((tile, x) => {
+      if (tile.type === 'ocean') {
+        oceanTiles.push({ x, y });
+      }
+    });
+  });
+
+  // No ocean tiles available
+  if (oceanTiles.length === 0) {
+    return zone;
+  }
+
+  // Determine rarity based on spawn rates
+  const rarityRoll = Math.random();
+  let rarity: import('@/types/game').FishRarity;
+  if (rarityRoll < FISH_RARITY_RATES.rare) {
+    rarity = 'rare';
+  } else if (rarityRoll < FISH_RARITY_RATES.rare + FISH_RARITY_RATES.uncommon) {
+    rarity = 'uncommon';
+  } else {
+    rarity = 'common';
+  }
+
+  // Determine fish type based on rarity
+  let fishType: import('@/types/game').FishType;
+  if (rarity === 'common') {
+    const commonTypes: import('@/types/game').FishType[] = ['yellowtail', 'redsnapper', 'clams'];
+    fishType = commonTypes[Math.floor(Math.random() * commonTypes.length)];
+  } else if (rarity === 'uncommon') {
+    const uncommonTypes: import('@/types/game').FishType[] = ['starfish', 'urchen'];
+    fishType = uncommonTypes[Math.floor(Math.random() * uncommonTypes.length)];
+  } else {
+    const rareTypes: import('@/types/game').FishType[] = ['octopus', 'shark'];
+    fishType = rareTypes[Math.floor(Math.random() * rareTypes.length)];
+  }
+
+  // Random ocean tile position
+  const spawnTile = oceanTiles[Math.floor(Math.random() * oceanTiles.length)];
+
+  // Random despawn time based on rarity
+  const duration = FISH_DURATIONS[rarity];
+  const despawnTime = gameTime + duration.min + Math.random() * (duration.max - duration.min);
+
+  const newFish: import('@/types/game').Fish = {
+    id: `fish-${Date.now()}-${Math.random()}`,
+    type: fishType,
+    rarity,
+    x: spawnTile.x,
+    y: spawnTile.y,
+    visualX: spawnTile.x,
+    visualY: spawnTile.y,
+    targetX: spawnTile.x,
+    targetY: spawnTile.y,
+    spawnTime: gameTime,
+    despawnTime,
+    caught: false,
+  };
+
+  return {
+    ...zone,
+    fish: [...zone.fish, newFish],
+    lastFishSpawnTime: gameTime,
+  };
+}
+
+/**
+ * Update fish - handle despawning and movement
+ */
+function updateFish(
+  zone: import('@/types/game').Zone,
+  gameTime: number,
+  deltaTime: number
+): import('@/types/game').Zone {
+  // Filter out despawned and caught fish
+  const activeFish = zone.fish.filter(fish => {
+    if (fish.caught) return false;
+    if (gameTime >= fish.despawnTime) return false;
+    return true;
+  });
+
+  // Update fish positions (simple wandering within ocean tiles)
+  const updatedFish = activeFish.map(fish => {
+    // Randomly change target position occasionally
+    if (Math.random() < 0.02) { // 2% chance per update to change target
+      const oceanTiles: Array<{ x: number; y: number }> = [];
+      zone.grid.forEach((row, y) => {
+        row.forEach((tile, x) => {
+          if (tile.type === 'ocean') {
+            // Prefer tiles near current position
+            const distance = Math.abs(x - fish.x) + Math.abs(y - fish.y);
+            if (distance <= 3) {
+              oceanTiles.push({ x, y });
+            }
+          }
+        });
+      });
+
+      if (oceanTiles.length > 0) {
+        const newTarget = oceanTiles[Math.floor(Math.random() * oceanTiles.length)];
+        return {
+          ...fish,
+          targetX: newTarget.x,
+          targetY: newTarget.y,
+        };
+      }
+    }
+
+    // Smoothly move towards target
+    let newVisualX = fish.visualX;
+    let newVisualY = fish.visualY;
+
+    const dx = fish.targetX - fish.visualX;
+    const dy = fish.targetY - fish.visualY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 0.1) {
+      const speed = 0.02; // Slow swimming speed
+      newVisualX += dx * speed;
+      newVisualY += dy * speed;
+    }
+
+    return {
+      ...fish,
+      visualX: newVisualX,
+      visualY: newVisualY,
+    };
+  });
+
+  return {
+    ...zone,
+    fish: updatedFish,
   };
 }
 

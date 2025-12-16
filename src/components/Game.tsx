@@ -276,6 +276,16 @@ export default function Game() {
   const seaweedImageRef = useRef<HTMLImageElement | null>(null);
   const shellsImageRef = useRef<HTMLImageElement | null>(null);
   const fishingHutImageRef = useRef<HTMLImageElement | null>(null);
+
+  // Fish image refs
+  const yellowtailImageRef = useRef<HTMLImageElement | null>(null);
+  const redsnapperImageRef = useRef<HTMLImageElement | null>(null);
+  const clamsImageRef = useRef<HTMLImageElement | null>(null);
+  const starfishImageRef = useRef<HTMLImageElement | null>(null);
+  const urchenImageRef = useRef<HTMLImageElement | null>(null);
+  const octopusImageRef = useRef<HTMLImageElement | null>(null);
+  const sharkImageRef = useRef<HTMLImageElement | null>(null);
+
   const cactusImageRef = useRef<HTMLImageElement | null>(null);
   const rocksImageRef = useRef<HTMLImageElement | null>(null);
   const caveImageRef = useRef<HTMLImageElement | null>(null);
@@ -663,6 +673,49 @@ export default function Game() {
       fishingHutImg.src = '/fishinghut.png';
       fishingHutImg.onload = () => {
         fishingHutImageRef.current = fishingHutImg;
+      };
+
+      // Load fish images for beach theme
+      const yellowtailImg = new Image();
+      yellowtailImg.src = '/yellowtail.png';
+      yellowtailImg.onload = () => {
+        yellowtailImageRef.current = yellowtailImg;
+      };
+
+      const redsnapperImg = new Image();
+      redsnapperImg.src = '/redsnapper.png';
+      redsnapperImg.onload = () => {
+        redsnapperImageRef.current = redsnapperImg;
+      };
+
+      const clamsImg = new Image();
+      clamsImg.src = '/clams.png';
+      clamsImg.onload = () => {
+        clamsImageRef.current = clamsImg;
+      };
+
+      const starfishImg = new Image();
+      starfishImg.src = '/starfish.png';
+      starfishImg.onload = () => {
+        starfishImageRef.current = starfishImg;
+      };
+
+      const urchenImg = new Image();
+      urchenImg.src = '/urchen.png';
+      urchenImg.onload = () => {
+        urchenImageRef.current = urchenImg;
+      };
+
+      const octopusImg = new Image();
+      octopusImg.src = '/octopus.png';
+      octopusImg.onload = () => {
+        octopusImageRef.current = octopusImg;
+      };
+
+      const sharkImg = new Image();
+      sharkImg.src = '/shark.png';
+      sharkImg.onload = () => {
+        sharkImageRef.current = sharkImg;
       };
 
       // Load surfer farmer for beach theme

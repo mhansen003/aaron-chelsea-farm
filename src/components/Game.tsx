@@ -1242,8 +1242,8 @@ export default function Game() {
 
           // Warehouse building uses 500x500 sprite sheet with 4 quadrants (250x250 each)
           if (warehouseImg) {
-            const offsetX = (x - 14) * 250; // x can be 14 or 15
-            const offsetY = (y - 10) * 250; // y can be 10 or 11 (bottom of grid)
+            const offsetX = (x - (GAME_CONFIG.gridWidth - 2)) * 250; // Bottom-right position
+            const offsetY = (y - (GAME_CONFIG.gridHeight - 2)) * 250; // Bottom-right position
             ctx.drawImage(
               warehouseImg,
               offsetX, offsetY, 250, 250,

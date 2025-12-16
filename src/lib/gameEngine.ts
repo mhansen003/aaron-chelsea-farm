@@ -278,8 +278,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         else if ((x === 7 || x === 8) && y >= 3 && y <= 7) {
           type = 'plank';
         }
-        // Beach: top 8 rows water (2/3 of grid), bottom 4 rows sand with seaweed/shells
-        else if (y < 8) {
+        // Beach: top 11 rows water, bottom 4 rows sand with seaweed/shells
+        else if (y < 11) {
           type = 'ocean';
         } else {
           type = 'sand';

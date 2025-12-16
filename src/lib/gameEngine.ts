@@ -1906,8 +1906,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       // Now we have the nearest tile with available seeds - plant it!
-      const hasArrivedVisually = Math.abs(visualX - botX) < 0.1 && Math.abs(visualY - botY) < 0.1;
-      if (botX === nearest.x && botY === nearest.y && hasArrivedVisually) {
+      if (botX === nearest.x && botY === nearest.y) {
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;

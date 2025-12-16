@@ -41,6 +41,13 @@ export function getCurrentSellPrice(cropType: Exclude<CropType, null>, cropsSold
   return Math.round(basePrice * multiplier);
 }
 
+/**
+ * Clamp bot position to grid boundaries to prevent going off-map
+ */
+function clampToGrid(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 export const DAY_LENGTH = 60000; // 60 seconds = 1 day
 export const SPRINKLER_COST = 100; // Cost to buy one sprinkler
 export const SPRINKLER_RANGE = 3; // 7x7 area (3 tiles in each direction)
@@ -734,12 +741,12 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   if (distance > 0.01) {
     // Move toward target position
-    newState.player.visualX += dx * MOVE_SPEED;
-    newState.player.visualY += dy * MOVE_SPEED;
+    newState.player.visualX = clampToGrid(newState.player.visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+    newState.player.visualY = clampToGrid(newState.player.visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
   } else {
     // Snap to target when close enough
-    newState.player.visualX = newState.player.x;
-    newState.player.visualY = newState.player.y;
+    newState.player.visualX = clampToGrid(newState.player.x, 0, GAME_CONFIG.gridWidth - 1);
+    newState.player.visualY = clampToGrid(newState.player.y, 0, GAME_CONFIG.gridHeight - 1);
   }
 
   // Process current task
@@ -1266,11 +1273,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX += dx * MOVE_SPEED;
-        visualY += dy * MOVE_SPEED;
+        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
-        visualX = botX;
-        visualY = botY;
+        visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);
       }
 
       const unwateredCrops: Array<{ x: number; y: number }> = [];
@@ -1460,11 +1467,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX += dx * MOVE_SPEED;
-        visualY += dy * MOVE_SPEED;
+        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
-        visualX = botX;
-        visualY = botY;
+        visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);
       }
 
       const isInventoryFull = bot.inventory.length >= bot.inventoryCapacity;
@@ -1734,11 +1741,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX += dx * MOVE_SPEED;
-        visualY += dy * MOVE_SPEED;
+        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
-        visualX = botX;
-        visualY = botY;
+        visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);
       }
 
       if (bot.jobs.length === 0) {
@@ -2026,11 +2033,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX += dx * MOVE_SPEED;
-        visualY += dy * MOVE_SPEED;
+        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
-        visualX = botX;
-        visualY = botY;
+        visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);
       }
 
       // Find warehouse and export positions
@@ -2248,11 +2255,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       if (distance > 0.01) {
-        visualX += dx * MOVE_SPEED;
-        visualY += dy * MOVE_SPEED;
+        visualX = clampToGrid(visualX + dx * MOVE_SPEED, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(visualY + dy * MOVE_SPEED, 0, GAME_CONFIG.gridHeight - 1);
       } else {
-        visualX = botX;
-        visualY = botY;
+        visualX = clampToGrid(botX, 0, GAME_CONFIG.gridWidth - 1);
+        visualY = clampToGrid(botY, 0, GAME_CONFIG.gridHeight - 1);
       }
 
       // Find rocks and forest tiles that need clearing
@@ -5143,8 +5150,8 @@ function updateRabbits(
         } else {
           // Move towards crop
           const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
-          const newVisualX = rabbit.visualX + (dx / dist) * moveSpeed;
-          const newVisualY = rabbit.visualY + (dy / dist) * moveSpeed;
+          const newVisualX = clampToGrid(rabbit.visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+          const newVisualY = clampToGrid(rabbit.visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
 
           updatedRabbits.push({
             ...rabbit,
@@ -5311,8 +5318,8 @@ function updateRabbits(
         } else {
           // Move towards exit
           const moveSpeed = deltaTime * RABBIT_MOVE_SPEED;
-          const newVisualX = rabbit.visualX + (dx / dist) * moveSpeed;
-          const newVisualY = rabbit.visualY + (dy / dist) * moveSpeed;
+          const newVisualX = clampToGrid(rabbit.visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+          const newVisualY = clampToGrid(rabbit.visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
 
           updatedRabbits.push({
             ...rabbit,
@@ -5596,8 +5603,8 @@ function updateHunterBots(
         } else {
           // Keep chasing
           const moveSpeed = deltaTime * HUNTER_MOVE_SPEED * (hunter.supercharged ? 2 : 1);
-          const newVisualX = visualX + (dx / dist) * moveSpeed;
-          const newVisualY = visualY + (dy / dist) * moveSpeed;
+          const newVisualX = clampToGrid(visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+          const newVisualY = clampToGrid(visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
 
           updatedHunterBots.push({
             ...hunter,
@@ -5852,16 +5859,18 @@ function updateFertilizerBot(
     } else {
       // Move to building
       const moveSpeed = deltaTime * 0.005 * (bot.supercharged ? 2 : 1);
+      const newVisualX = clampToGrid(visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+      const newVisualY = clampToGrid(visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
       return {
         zone: {
           ...zone,
           fertilizerBot: {
             ...bot,
             status: 'refilling',
-            visualX: visualX + (dx / dist) * moveSpeed,
-            visualY: visualY + (dy / dist) * moveSpeed,
-            x: Math.round(visualX + (dx / dist) * moveSpeed),
-            y: Math.round(visualY + (dy / dist) * moveSpeed),
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
           },
         },
         grid: updatedGrid,
@@ -5917,16 +5926,18 @@ function updateFertilizerBot(
       } else {
         // Move to garage (slow idle speed)
         const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
+        const newVisualX = clampToGrid(visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+        const newVisualY = clampToGrid(visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
         return {
           zone: {
             ...zone,
             fertilizerBot: {
               ...bot,
               status: 'idle',
-              visualX: visualX + (dx / dist) * moveSpeed,
-              visualY: visualY + (dy / dist) * moveSpeed,
-              x: Math.round(visualX + (dx / dist) * moveSpeed),
-              y: Math.round(visualY + (dx / dist) * moveSpeed),
+              visualX: newVisualX,
+              visualY: newVisualY,
+              x: Math.round(newVisualX),
+              y: Math.round(newVisualY),
             },
           },
           grid: updatedGrid,
@@ -5959,6 +5970,8 @@ function updateFertilizerBot(
       const dy = bot.targetY - visualY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
+      const newVisualX = clampToGrid(visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+      const newVisualY = clampToGrid(visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
 
       return {
         zone: {
@@ -5966,10 +5979,10 @@ function updateFertilizerBot(
           fertilizerBot: {
             ...bot,
             status: 'idle',
-            visualX: visualX + (dx / dist) * moveSpeed,
-            visualY: visualY + (dx / dist) * moveSpeed,
-            x: Math.round(visualX + (dx / dist) * moveSpeed),
-            y: Math.round(visualY + (dy / dist) * moveSpeed),
+            visualX: newVisualX,
+            visualY: newVisualY,
+            x: Math.round(newVisualX),
+            y: Math.round(newVisualY),
           },
         },
         grid: updatedGrid,
@@ -6053,16 +6066,18 @@ function updateFertilizerBot(
   } else {
     // Move to crop (slower speed to match water bots)
     const moveSpeed = deltaTime * 0.002 * (bot.supercharged ? 2 : 1);
+    const newVisualX = clampToGrid(visualX + (dx / dist) * moveSpeed, 0, GAME_CONFIG.gridWidth - 1);
+    const newVisualY = clampToGrid(visualY + (dy / dist) * moveSpeed, 0, GAME_CONFIG.gridHeight - 1);
     return {
       zone: {
         ...zone,
         fertilizerBot: {
           ...bot,
           status: 'fertilizing',
-          visualX: visualX + (dx / dist) * moveSpeed,
-          visualY: visualY + (dy / dist) * moveSpeed,
-          x: Math.round(visualX + (dx / dist) * moveSpeed),
-          y: Math.round(visualY + (dx / dist) * moveSpeed),
+          visualX: newVisualX,
+          visualY: newVisualY,
+          x: Math.round(newVisualX),
+          y: Math.round(newVisualY),
         },
       },
       grid: updatedGrid,

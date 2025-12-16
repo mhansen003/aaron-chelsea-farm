@@ -6382,16 +6382,30 @@ export default function Game() {
           gameState={gameState}
           onClose={() => setShowFarmerModal(false)}
           onUpdateFarmerSettings={(settings) => {
-            setGameState(prev => ({
-              ...prev,
-              player: {
-                ...prev.player,
-                farmerAuto: {
-                  ...prev.player.farmerAuto,
-                  ...settings,
+            setGameState(prev => {
+              const zoneKey = getZoneKey(prev.currentZone.x, prev.currentZone.y);
+              const currentZone = prev.zones[zoneKey];
+
+              return {
+                ...prev,
+                player: {
+                  ...prev.player,
+                  farmerAuto: {
+                    ...prev.player.farmerAuto,
+                    ...settings,
+                  },
                 },
-              },
-            }));
+                zones: {
+                  ...prev.zones,
+                  [zoneKey]: {
+                    ...currentZone,
+                    // Clear current task and queue so new automation settings take effect immediately
+                    currentTask: null,
+                    taskQueue: [],
+                  },
+                },
+              };
+            });
           }}
         />
       )}

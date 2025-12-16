@@ -2372,10 +2372,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               const itemsToLoad = newState.markedForSale.slice(0, Math.min(bot.inventoryCapacity - bot.inventory.length, newState.markedForSale.length));
               const remainingMarked = newState.markedForSale.slice(itemsToLoad.length);
 
-              // Update markedForSale
+              // Remove loaded items from warehouse
+              const updatedWarehouse = newState.warehouse.filter(item => !itemsToLoad.includes(item));
+
+              // Update markedForSale and warehouse
               newState = {
                 ...newState,
                 markedForSale: remainingMarked,
+                warehouse: updatedWarehouse,
               };
 
               // Load items into bot

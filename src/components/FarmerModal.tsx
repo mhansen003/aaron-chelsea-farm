@@ -84,9 +84,12 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {/* Priority Order Info */}
           <div className="bg-purple-900/30 border-2 border-purple-500 rounded-lg p-4 mb-6">
-            <div className="text-sm text-purple-300 font-bold mb-2">Automation Priority</div>
-            <div className="text-xs text-purple-200">
+            <div className="text-sm text-purple-300 font-bold mb-2">⚡ Automation Priority</div>
+            <div className="text-xs text-purple-200 mb-2">
               Harvest → Water → Plant (Fixed order for optimal farming)
+            </div>
+            <div className="text-xs text-green-300 bg-green-900/30 border border-green-500 rounded px-2 py-1 mt-2">
+              ℹ️ Changes take effect immediately and clear the current task queue
             </div>
           </div>
 

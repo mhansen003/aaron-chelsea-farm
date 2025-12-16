@@ -1055,15 +1055,19 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
     currentZone.taskQueue = remainingQueue;
 
     // AUTO-DEPOSIT: If basket is full, insert deposit task before continuing
+    // BUT: If there are marked items, go to EXPORT to sell instead of warehouse!
     if (newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
-      const warehousePos = findWarehouseTile(newState);
-      if (warehousePos) {
-        // Create deposit task at warehouse location
+      const hasMarkedItems = newState.markedForSale.length > 0;
+      const depositPos = hasMarkedItems ? findExportTile(newState) : findWarehouseTile(newState);
+
+      if (depositPos) {
+        console.log(`🔄 AUTO-DEPOSIT: Basket full, going to ${hasMarkedItems ? 'EXPORT (has marked items)' : 'WAREHOUSE'}`);
+        // Create deposit task at appropriate location
         const depositTask: Task = {
           id: `${Date.now()}-${Math.random()}`,
           type: 'deposit',
-          tileX: warehousePos.x,
-          tileY: warehousePos.y,
+          tileX: depositPos.x,
+          tileY: depositPos.y,
           zoneX: newState.currentZone.x,
           zoneY: newState.currentZone.y,
           progress: 0,
@@ -1073,23 +1077,27 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         // Put the current task back in queue and prioritize deposit
         currentZone.taskQueue = [nextTask, ...remainingQueue];
         currentZone.currentTask = depositTask;
-        // Set player position to warehouse so they walk there
-        newState.player.x = warehousePos.x;
-        newState.player.y = warehousePos.y;
+        // Set player position to deposit location so they walk there
+        newState.player.x = depositPos.x;
+        newState.player.y = depositPos.y;
       }
     }
   }
 
   // AUTO-DEPOSIT: If basket is full and no tasks, go deposit immediately
+  // BUT: If there are marked items, go to EXPORT to sell instead of warehouse!
   if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && newState.player.basket && newState.player.basket.length >= newState.player.basketCapacity) {
-    const warehousePos = findWarehouseTile(newState);
-    if (warehousePos) {
-      // Create deposit task at warehouse location
+    const hasMarkedItems = newState.markedForSale.length > 0;
+    const depositPos = hasMarkedItems ? findExportTile(newState) : findWarehouseTile(newState);
+
+    if (depositPos) {
+      console.log(`🔄 AUTO-DEPOSIT (no tasks): Basket full, going to ${hasMarkedItems ? 'EXPORT (has marked items)' : 'WAREHOUSE'}`);
+      // Create deposit task at appropriate location
       const depositTask: Task = {
         id: `${Date.now()}-${Math.random()}`,
         type: 'deposit',
-        tileX: warehousePos.x,
-        tileY: warehousePos.y,
+        tileX: depositPos.x,
+        tileY: depositPos.y,
         zoneX: newState.currentZone.x,
         zoneY: newState.currentZone.y,
         progress: 0,
@@ -1097,9 +1105,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       };
 
       currentZone.currentTask = depositTask;
-      // Set player position to warehouse so they walk there
-      newState.player.x = warehousePos.x;
-      newState.player.y = warehousePos.y;
+      // Set player position to deposit location so they walk there
+      newState.player.x = depositPos.x;
+      newState.player.y = depositPos.y;
     }
   }
 

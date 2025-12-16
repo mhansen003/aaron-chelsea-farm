@@ -905,16 +905,16 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           newState = placeFertilizerBuilding(newState, task.tileX, task.tileY);
           break;
         case 'pickup_marked':
-          // Pickup marked items from warehouse into farmer's basket
+          // Pickup marked items into farmer's basket
+          // Items are already removed from warehouse when marked for sale
           const itemsToPickup = newState.markedForSale.slice(0, Math.min(newState.player.basketCapacity - newState.player.basket.length, newState.markedForSale.length));
-          console.log('🧺 PICKUP_MARKED: Picking up', itemsToPickup.length, 'items from warehouse');
+          console.log('🧺 PICKUP_MARKED: Picking up', itemsToPickup.length, 'items');
           console.log('  Items:', itemsToPickup.map(i => i.crop).join(', '));
           console.log('  Basket before:', newState.player.basket.length);
-          console.log('  Warehouse before:', newState.warehouse.length);
+          console.log('  Warehouse (should be unchanged):', newState.warehouse.length);
 
-          // Remove picked up items from warehouse
-          const updatedWarehouse = newState.warehouse.filter(item => !itemsToPickup.includes(item));
-
+          // Items come from markedForSale, NOT from warehouse
+          // Warehouse was already updated when items were marked for sale
           newState = {
             ...newState,
             player: {
@@ -924,10 +924,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             // DON'T clear markedForSale here - keep it until items are actually sold!
             // This ensures hasMarkedItems stays true so farmer goes to export
             markedForSale: newState.markedForSale,
-            warehouse: updatedWarehouse,
+            // Warehouse is NOT modified - items were already removed when marking
           };
           console.log('  Basket after:', newState.player.basket.length);
-          console.log('  Warehouse after:', newState.warehouse.length);
+          console.log('  Warehouse after (unchanged):', newState.warehouse.length);
           console.log('  Marked for sale (kept):', newState.markedForSale.length);
           break;
         case 'deposit':
@@ -4540,9 +4540,16 @@ export function depositToWarehouse(state: GameState): GameState {
 
   // Otherwise, just deposit to warehouse (storage)
   console.log('📦 Depositing to warehouse (not selling)');
+  console.log('  Warehouse before deposit:', state.warehouse.length, 'items');
+  console.log('  Basket items being added:', state.player.basket.length, 'items');
+  console.log('  Basket contents:', state.player.basket.map(i => i.crop).join(', '));
+
+  const newWarehouse = [...state.warehouse, ...state.player.basket];
+  console.log('  Warehouse after deposit:', newWarehouse.length, 'items');
+
   return {
     ...state,
-    warehouse: [...state.warehouse, ...state.player.basket],
+    warehouse: newWarehouse,
     player: {
       ...state.player,
       basket: [], // Empty the basket

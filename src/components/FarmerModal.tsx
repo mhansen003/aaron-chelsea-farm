@@ -60,25 +60,11 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-gradient-to-br from-green-900 to-green-950 border-4 border-green-500 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-4 border-gray-600 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-green-700 p-4 border-b-4 border-green-500">
+        <div className="bg-gradient-to-r from-gray-700 to-gray-800 p-4 border-b-4 border-gray-600">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-green-800 rounded-full border-4 border-green-400 overflow-hidden flex items-center justify-center">
-                <NextImage
-                  src="/farmer.png"
-                  alt="Farmer"
-                  width={56}
-                  height={56}
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Farmer Settings</h2>
-                <p className="text-green-200 text-sm">Configure your farm's automation</p>
-              </div>
-            </div>
+            <div className="text-2xl font-bold text-white">Farmer Settings</div>
             <button
               onClick={onClose}
               className="text-white hover:text-red-400 text-4xl font-bold transition-colors leading-none"
@@ -88,189 +74,195 @@ export default function FarmerModal({ gameState, onClose, onUpdateFarmerSettings
           </div>
         </div>
 
-        {/* Content - Two Column Layout */}
+        {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(85vh-100px)]">
-          <div className="grid grid-cols-2 gap-6">
-            {/* Left Column - Farmer Info */}
-            <div className="space-y-4">
-              {/* Farmer Name */}
-              <div className="bg-gradient-to-br from-green-800/50 to-green-900/30 border-2 border-green-500/60 rounded-xl p-4">
-                <label className="text-sm text-green-300 font-bold mb-2 block">Farmer Name</label>
-                <input
-                  type="text"
-                  value={editingName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  className="w-full bg-green-950 border-2 border-green-600 rounded-lg px-3 py-2 text-white text-lg font-bold focus:outline-none focus:border-green-400"
-                  maxLength={20}
+          {/* Top Section - Photo, Name, and About */}
+          <div className="bg-gray-800/50 border-2 border-gray-600 rounded-xl p-6 mb-6">
+            <div className="flex items-start gap-6">
+              {/* Bigger Farmer Photo */}
+              <div className="w-32 h-32 bg-gray-700 rounded-full border-4 border-gray-500 overflow-hidden flex items-center justify-center flex-shrink-0">
+                <NextImage
+                  src="/farmer.png"
+                  alt="Farmer"
+                  width={120}
+                  height={120}
+                  className="object-cover"
                 />
               </div>
 
-              {/* Farmer Story */}
-              <div className="bg-gradient-to-br from-amber-900/30 to-amber-950/20 border-2 border-amber-600/60 rounded-xl p-4">
-                <div className="text-sm text-amber-300 font-bold mb-2 flex items-center gap-2">
-                  <span>📖</span>
-                  <span>About {editingName || 'the Farmer'}</span>
+              <div className="flex-1">
+                {/* Name next to photo */}
+                <div className="mb-4">
+                  <label className="text-sm text-gray-400 font-bold mb-2 block">Farmer Name</label>
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    className="w-full bg-gray-700 border-2 border-gray-500 rounded-lg px-4 py-2 text-white text-xl font-bold focus:outline-none focus:border-gray-400"
+                    maxLength={20}
+                    placeholder="Enter farmer name"
+                  />
                 </div>
-                <p className="text-xs text-amber-100 leading-relaxed">
-                  A seasoned agriculturist with a passion for automation, {editingName || 'the Farmer'} has dedicated their life to building the most efficient farm in the land. With calloused hands and a keen eye for detail, they've mastered the art of balancing traditional farming wisdom with cutting-edge bot technology. When not tending to crops, you'll find them tinkering with their bot fleet, always seeking new ways to optimize the harvest.
-                </p>
-              </div>
 
-              {/* Priority Order Info */}
-              <div className="bg-purple-900/30 border-2 border-purple-500 rounded-lg p-4">
-                <div className="text-sm text-purple-300 font-bold mb-2">⚡ Automation Priority</div>
-                <div className="text-xs text-purple-200 mb-2">
-                  Harvest → Water → Plant (Fixed order for optimal farming)
-                </div>
-                <div className="text-xs text-green-300 bg-green-900/30 border border-green-500 rounded px-2 py-1 mt-2">
-                  ℹ️ Changes take effect immediately and clear the current task queue
+                {/* About section at top */}
+                <div>
+                  <div className="text-sm text-gray-400 font-bold mb-2">About {editingName || 'the Farmer'}</div>
+                  <p className="text-sm text-gray-300 leading-relaxed">
+                    A seasoned agriculturist with a passion for automation, {editingName || 'the Farmer'} has dedicated their life to building the most efficient farm in the land. With calloused hands and a keen eye for detail, they've mastered the art of balancing traditional farming wisdom with cutting-edge bot technology.
+                  </p>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Right Column - Automation Settings */}
-            <div className="space-y-4">
-              {/* Auto Harvest */}
-              <label className="flex items-center gap-3 cursor-pointer bg-orange-900/30 hover:bg-orange-900/50 border-2 border-orange-600 rounded-lg p-3 transition-all">
+          {/* Automation Settings */}
+          <div className="space-y-4">
+            <div className="text-sm text-gray-400 font-bold mb-3">Automation Settings</div>
+
+            <div className="text-xs text-gray-500 mb-4 bg-gray-800/30 border border-gray-700 rounded px-3 py-2">
+              ℹ️ Changes take effect immediately and clear the current task queue
+            </div>
+
+            {/* Auto Harvest */}
+            <label className="flex items-center gap-3 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3 transition-all">
+              <input
+                type="checkbox"
+                checked={farmerAuto.autoHarvest}
+                onChange={toggleAutoHarvest}
+                className="w-5 h-5 cursor-pointer"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <NextImage
+                  src="/harvest.png"
+                  alt="Harvest"
+                  width={28}
+                  height={28}
+                />
+                <div>
+                  <div className="text-base font-bold text-white">Auto Harvest</div>
+                  <div className="text-xs text-gray-400">Automatically harvest grown crops</div>
+                </div>
+              </div>
+            </label>
+
+            {/* Auto Water */}
+            <label className="flex items-center gap-3 cursor-pointer bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3 transition-all">
+              <input
+                type="checkbox"
+                checked={farmerAuto.autoWater}
+                onChange={toggleAutoWater}
+                className="w-5 h-5 cursor-pointer"
+              />
+              <div className="flex items-center gap-3 flex-1">
+                <NextImage
+                  src="/water bot.png"
+                  alt="Water"
+                  width={28}
+                  height={28}
+                />
+                <div>
+                  <div className="text-base font-bold text-white">Auto Water</div>
+                  <div className="text-xs text-gray-400">Automatically water planted crops</div>
+                </div>
+              </div>
+            </label>
+
+            {/* Auto Plant */}
+            <div className="bg-gray-800/30 hover:bg-gray-800/50 border-2 border-gray-700 rounded-lg p-3">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={farmerAuto.autoHarvest}
-                  onChange={toggleAutoHarvest}
+                  checked={farmerAuto.autoPlant}
+                  onChange={toggleAutoPlant}
                   className="w-5 h-5 cursor-pointer"
                 />
                 <div className="flex items-center gap-3 flex-1">
                   <NextImage
-                    src="/harvest.png"
-                    alt="Harvest"
+                    src="/plant seeds.png"
+                    alt="Plant"
                     width={28}
                     height={28}
                   />
                   <div>
-                    <div className="text-base font-bold text-white">Auto Harvest</div>
-                    <div className="text-xs text-orange-200">Automatically harvest grown crops</div>
+                    <div className="text-base font-bold text-white">Auto Plant</div>
+                    <div className="text-xs text-gray-400">Automatically plant seeds on cleared tiles</div>
                   </div>
                 </div>
               </label>
 
-              {/* Auto Water */}
-              <label className="flex items-center gap-3 cursor-pointer bg-cyan-900/30 hover:bg-cyan-900/50 border-2 border-cyan-600 rounded-lg p-3 transition-all">
-                <input
-                  type="checkbox"
-                  checked={farmerAuto.autoWater}
-                  onChange={toggleAutoWater}
-                  className="w-5 h-5 cursor-pointer"
-                />
-                <div className="flex items-center gap-3 flex-1">
-                  <NextImage
-                    src="/water bot.png"
-                    alt="Water"
-                    width={28}
-                    height={28}
-                  />
-                  <div>
-                    <div className="text-base font-bold text-white">Auto Water</div>
-                    <div className="text-xs text-cyan-200">Automatically water planted crops</div>
+              {/* Crop Selection Grid */}
+              {farmerAuto.autoPlant && (
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 font-bold mb-2">Select Crops:</div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {crops.map((crop) => {
+                      const isSelected = farmerAuto.autoPlantCrops.includes(crop.value as any);
+                      return (
+                        <label
+                          key={crop.value}
+                          className={`flex items-center gap-1.5 p-2 rounded cursor-pointer transition-all border ${
+                            isSelected
+                              ? 'bg-gray-600/50 border-gray-400'
+                              : 'bg-gray-800/30 border-gray-700 hover:bg-gray-800/50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleCropSelection(crop.value)}
+                            className="w-3 h-3"
+                          />
+                          <NextImage
+                            src={crop.image}
+                            alt={crop.label}
+                            width={20}
+                            height={20}
+                          />
+                          <span className="text-xs text-white">{crop.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
-              </label>
+              )}
+            </div>
 
-              {/* Auto Plant */}
-              <div className="bg-green-900/30 hover:bg-green-900/50 border-2 border-green-600 rounded-lg p-3">
-                <label className="flex items-center gap-3 cursor-pointer">
+            {/* Harvest Destination */}
+            <div className="bg-gray-800/30 border-2 border-gray-700 rounded-lg p-3">
+              <div className="text-sm text-gray-400 font-bold mb-2">Harvest Destination:</div>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
                   <input
-                    type="checkbox"
-                    checked={farmerAuto.autoPlant}
-                    onChange={toggleAutoPlant}
-                    className="w-5 h-5 cursor-pointer"
+                    type="radio"
+                    name="depositDestination"
+                    checked={farmerAuto.autoSell}
+                    onChange={() => setDepositDestination(true)}
+                    className="w-4 h-4"
                   />
-                  <div className="flex items-center gap-3 flex-1">
-                    <NextImage
-                      src="/plant seeds.png"
-                      alt="Plant"
-                      width={28}
-                      height={28}
-                    />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🚢</span>
                     <div>
-                      <div className="text-base font-bold text-white">Auto Plant</div>
-                      <div className="text-xs text-green-200">Automatically plant seeds on cleared tiles</div>
+                      <div className="text-sm font-bold text-white">Auto Sell</div>
+                      <div className="text-xs text-gray-400">Deposit harvests directly to export</div>
                     </div>
                   </div>
                 </label>
-
-                {/* Crop Selection Grid */}
-                {farmerAuto.autoPlant && (
-                  <div className="mt-3 pt-3 border-t border-green-700">
-                    <div className="text-xs text-green-300 font-bold mb-2">Select Crops:</div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {crops.map((crop) => {
-                        const isSelected = farmerAuto.autoPlantCrops.includes(crop.value as any);
-                        return (
-                          <label
-                            key={crop.value}
-                            className={`flex items-center gap-1.5 p-2 rounded cursor-pointer transition-all border ${
-                              isSelected
-                                ? 'bg-green-600/50 border-green-400'
-                                : 'bg-green-900/30 border-green-700 hover:bg-green-900/50'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleCropSelection(crop.value)}
-                              className="w-3 h-3"
-                            />
-                            <NextImage
-                              src={crop.image}
-                              alt={crop.label}
-                              width={20}
-                              height={20}
-                            />
-                            <span className="text-xs text-white">{crop.label}</span>
-                          </label>
-                        );
-                      })}
+                <label className="flex items-center gap-3 cursor-pointer bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 rounded-lg p-2 transition-all">
+                  <input
+                    type="radio"
+                    name="depositDestination"
+                    checked={!farmerAuto.autoSell}
+                    onChange={() => setDepositDestination(false)}
+                    className="w-4 h-4"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🏭</span>
+                    <div>
+                      <div className="text-sm font-bold text-white">To Warehouse</div>
+                      <div className="text-xs text-gray-400">Store harvests in warehouse</div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Harvest Destination */}
-              <div className="bg-amber-900/30 border-2 border-amber-600 rounded-lg p-3">
-                <div className="text-sm text-amber-300 font-bold mb-2">Harvest Destination:</div>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 cursor-pointer bg-amber-950/50 hover:bg-amber-950/70 border border-amber-700 rounded-lg p-2 transition-all">
-                    <input
-                      type="radio"
-                      name="depositDestination"
-                      checked={farmerAuto.autoSell}
-                      onChange={() => setDepositDestination(true)}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🚢</span>
-                      <div>
-                        <div className="text-sm font-bold text-white">Auto Sell</div>
-                        <div className="text-xs text-amber-200">Deposit harvests directly to export</div>
-                      </div>
-                    </div>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer bg-amber-950/50 hover:bg-amber-950/70 border border-amber-700 rounded-lg p-2 transition-all">
-                    <input
-                      type="radio"
-                      name="depositDestination"
-                      checked={!farmerAuto.autoSell}
-                      onChange={() => setDepositDestination(false)}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🏭</span>
-                      <div>
-                        <div className="text-sm font-bold text-white">To Warehouse</div>
-                        <div className="text-xs text-amber-200">Store harvests in warehouse</div>
-                      </div>
-                    </div>
-                  </label>
-                </div>
+                </label>
               </div>
             </div>
           </div>

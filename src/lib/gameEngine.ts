@@ -3100,9 +3100,12 @@ function generateFarmerAutoTasks(state: GameState, zone: Zone): Task[] {
   if (basket.length >= basketCapacity) {
     // Check if there are transport bots - if not, farmer handles marked items and must sell
     const hasTransportBots = zone.transportBots && zone.transportBots.length > 0;
-    // Farmer should ALWAYS sell when there are no transport bots (farmer is the fallback seller)
-    // OR when autoSell is explicitly enabled
-    const shouldSell = !hasTransportBots || farmerAuto.autoSell;
+    const hasMarkedItems = state.markedForSale.length > 0;
+    // Farmer should ALWAYS sell when:
+    // 1. There are no transport bots (farmer is the fallback seller)
+    // 2. OR autoSell is explicitly enabled
+    // 3. OR there are marked items waiting (farmer must complete the sell cycle)
+    const shouldSell = !hasTransportBots || farmerAuto.autoSell || hasMarkedItems;
 
     if (shouldSell) {
       // Go to export building to sell crops

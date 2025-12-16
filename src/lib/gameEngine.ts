@@ -154,7 +154,7 @@ function getAdjustedDuration(baseDuration: number, supercharged?: boolean): numb
 }
 
 function getMovementSpeed(deltaTime: number, supercharged?: boolean): number {
-  return supercharged ? deltaTime / 250 : deltaTime / 500;
+  return supercharged ? deltaTime / 150 : deltaTime / 500; // Supercharged bots move ~3.3x faster
 }
 
 /**

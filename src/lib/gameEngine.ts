@@ -5025,8 +5025,8 @@ const RABBIT_EATING_DURATION = 9750; // ~10 seconds to eat a crop (25% faster th
 const RABBIT_MOVE_SPEED = 0.015; // Faster than player
 const RABBIT_MIN_CROPS = 3; // Min crops before rabbit leaves (reduced by 50%)
 const RABBIT_MAX_CROPS = 5; // Max crops before rabbit leaves (reduced by 50%)
-const HUNTER_DETECTION_RANGE = 8; // Hunter can detect rabbits within 8 tiles
-const HUNTER_MOVE_SPEED = 0.005; // Slower, steady chase speed
+const HUNTER_DETECTION_RANGE = 10; // Hunter can detect rabbits within 10 tiles (increased for better coverage)
+const HUNTER_MOVE_SPEED = 0.006; // Faster chase speed to catch rabbits more reliably
 
 /**
  * Spawn a rabbit in a zone if enough time has passed
@@ -5367,62 +5367,55 @@ function updateHunterBots(
     const visualY = hunter.visualY ?? hunter.y ?? 0;
 
     if (hunter.status === 'garaged') {
-      // Check if there are any rabbits in the zone
-      const hasRabbits = updatedRabbits.some(r => r.status !== 'captured');
+      // Always spawn hunter from garage when garaged - never keep them stuck
+      // Find garage position to spawn from, or use default position if no garage
+      const garagePos = findGaragePosition(zone.grid);
+      const spawnX = garagePos ? garagePos.x : 1;
+      const spawnY = garagePos ? garagePos.y : 1;
 
-      if (hasRabbits) {
-        // Find garage position to spawn from
-        const garagePos = findGaragePosition(zone.grid);
-        if (garagePos) {
-          // Spawn hunter at garage and start patrolling - don't continue, let it detect rabbits immediately
-          const spawnedHunter = {
-            ...hunter,
-            status: 'patrolling' as const,
-            x: garagePos.x,
-            y: garagePos.y,
-            visualX: garagePos.x,
-            visualY: garagePos.y,
-            idleStartTime: undefined,
-          };
+      // Spawn hunter at garage (or default position) and start patrolling
+      const spawnedHunter = {
+        ...hunter,
+        status: 'patrolling' as const,
+        x: spawnX,
+        y: spawnY,
+        visualX: spawnX,
+        visualY: spawnY,
+        idleStartTime: undefined,
+      };
 
-          // Immediately scan for nearest rabbit (same logic as below)
-          let nearestRabbit: import('@/types/game').Rabbit | null = null;
-          let nearestDistance = Infinity;
+      // Immediately scan for nearest rabbit
+      let nearestRabbit: import('@/types/game').Rabbit | null = null;
+      let nearestDistance = Infinity;
 
-          for (const rabbit of updatedRabbits) {
-            if (rabbit.status === 'captured') continue;
+      for (const rabbit of updatedRabbits) {
+        if (rabbit.status === 'captured') continue;
 
-            const rabbitX = rabbit.visualX;
-            const rabbitY = rabbit.visualY;
-            const hunterX = spawnedHunter.x;
-            const hunterY = spawnedHunter.y;
-            const distance = Math.sqrt(
-              Math.pow(rabbitX - hunterX, 2) + Math.pow(rabbitY - hunterY, 2)
-            );
+        const rabbitX = rabbit.visualX;
+        const rabbitY = rabbit.visualY;
+        const hunterX = spawnedHunter.x;
+        const hunterY = spawnedHunter.y;
+        const distance = Math.sqrt(
+          Math.pow(rabbitX - hunterX, 2) + Math.pow(rabbitY - hunterY, 2)
+        );
 
-            if (distance <= spawnedHunter.detectionRange && distance < nearestDistance) {
-              nearestRabbit = rabbit;
-              nearestDistance = distance;
-            }
-          }
-
-          if (nearestRabbit) {
-            // Immediately start chasing
-            updatedHunterBots.push({
-              ...spawnedHunter,
-              status: 'chasing',
-              targetRabbitId: nearestRabbit.id,
-            });
-          } else {
-            // Just patrol
-            updatedHunterBots.push(spawnedHunter);
-          }
-          continue;
+        if (distance <= spawnedHunter.detectionRange && distance < nearestDistance) {
+          nearestRabbit = rabbit;
+          nearestDistance = distance;
         }
       }
 
-      // No rabbits or no garage - stay garaged
-      updatedHunterBots.push({ ...hunter, visualX, visualY });
+      if (nearestRabbit) {
+        // Immediately start chasing
+        updatedHunterBots.push({
+          ...spawnedHunter,
+          status: 'chasing',
+          targetRabbitId: nearestRabbit.id,
+        });
+      } else {
+        // Start patrolling
+        updatedHunterBots.push(spawnedHunter);
+      }
       continue;
     }
 
@@ -5483,7 +5476,8 @@ function updateHunterBots(
           const dx = hunter.targetX - visualX;
           const dy = hunter.targetY - visualY;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const moveSpeed = deltaTime * 0.002 * (hunter.supercharged ? 2 : 1); // Slow idle speed when wandering
+          // Faster patrol speed so hunters cover more ground
+          const moveSpeed = deltaTime * 0.003 * (hunter.supercharged ? 2 : 1);
           const newVisualX = visualX + (dx / dist) * moveSpeed;
           const newVisualY = visualY + (dy / dist) * moveSpeed;
 

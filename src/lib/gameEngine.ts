@@ -271,7 +271,10 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
         if ((x === 7 || x === 8) && (y === 11 || y === 12)) {
           type = 'fishinghut';
         }
-        // Fish Market removed from default - must be purchased and placed
+        // Fish Market at bottom of pier (2x2) on the sand - auto-populated
+        else if ((x === 9 || x === 10) && (y === 11 || y === 12)) {
+          type = 'fishmarket';
+        }
         // Plank dock extending 5 squares into ocean from center of beach - moved down 3 rows
         else if ((x === 7 || x === 8) && y >= 6 && y <= 10) {
           type = 'plank';

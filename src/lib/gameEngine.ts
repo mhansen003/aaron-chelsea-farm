@@ -2117,11 +2117,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
       }
 
       // Now we have the nearest tile with available seeds - plant it!
-      if (botX === nearest.x && botY === nearest.y) {
+      // Check if bot has visually arrived at the tile (not just logically)
+      const hasVisuallyArrived = Math.abs(visualX - nearest.x) < 0.1 && Math.abs(visualY - nearest.y) < 0.1;
+
+      if (botX === nearest.x && botY === nearest.y && hasVisuallyArrived) {
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(480, bot.supercharged); // 40% faster planting (240ms if supercharged)
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant, bot.supercharged); // Use global plant duration
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;

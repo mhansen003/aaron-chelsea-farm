@@ -34,12 +34,12 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
     desert: zone.description,
   };
 
-  // Beach zone buildings data
+  // Beach zone buildings data (no prices shown)
   const beachBuildings = zone.theme === 'beach' ? [
-    { name: 'Fish Market', price: '$5,000', description: 'Sell your fresh catch at premium prices', image: '/fishmarket.png' },
-    { name: 'Bait Shop', price: '$3,500', description: 'Purchase bait and lures to attract rarer fish', image: '/baitshop.png' },
-    { name: 'Sub Depot', price: '$8,000', description: 'Deploy submarine bots to automatically catch fish', image: '/subdepot.png' },
-    { name: 'Fishing Boat', price: '$12,000', description: 'Sail out to deeper waters for bigger catches', image: '/boat.png' },
+    { name: 'Fish Market', description: 'Sell your fresh catch at premium prices', image: '/fishmarket.png' },
+    { name: 'Bait Shop', description: 'Purchase bait and lures to attract rarer fish', image: '/baitshop.png' },
+    { name: 'Sub Depot', description: 'Deploy submarine bots to automatically catch fish', image: '/subdepot.png' },
+    { name: 'Fishing Boat', description: 'Sail out to deeper waters for bigger catches', image: '/boat.png' },
   ] : [];
 
   return (
@@ -66,38 +66,31 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
               className="w-full h-96 object-cover rounded-xl drop-shadow-2xl"
             />
 
-            {/* Purchase price badge on top-left */}
-            {!zone.owned && zone.purchasePrice && (
-              <div className="absolute top-4 left-4 bg-yellow-600/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-yellow-500 shadow-lg">
-                <p className="text-white font-bold text-xs">
-                  ${zone.purchasePrice?.toLocaleString()}
-                </p>
-              </div>
-            )}
-
-            {/* NPC overlaid on bottom-left corner */}
+            {/* NPC photo overlaid on top-left corner - larger */}
             {zone.npc && (
-              <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm p-3 rounded-xl border-2 border-cyan-500">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={zone.npc.image}
-                    alt={zone.npc.name}
-                    className="w-24 h-24 rounded-full border-2 border-cyan-400 object-cover"
-                  />
-                  <div>
-                    <h3 className="text-xl font-bold text-cyan-200">{zone.npc.name}</h3>
-                    <p className="text-sm text-cyan-100 max-w-xs">{zone.npc.description}</p>
-                  </div>
-                </div>
+              <div className="absolute top-4 left-4">
+                <img
+                  src={zone.npc.image}
+                  alt={zone.npc.name}
+                  className="w-32 h-32 rounded-full border-4 border-cyan-400 object-cover shadow-2xl ring-4 ring-cyan-500/30"
+                />
               </div>
             )}
           </div>
 
-          {/* Right: Description - takes 2 columns */}
-          <div className="lg:col-span-2 flex flex-col">
+          {/* Right: Description and NPC info - takes 2 columns */}
+          <div className="lg:col-span-2 flex flex-col space-y-4">
             <p className="text-lg text-slate-200 leading-relaxed">
               {expandedDescriptions[zone.theme as keyof typeof expandedDescriptions]}
             </p>
+
+            {/* NPC description below zone description */}
+            {zone.npc && (
+              <div className="bg-black/40 p-4 rounded-xl border border-cyan-500/50">
+                <h3 className="text-lg font-bold text-cyan-200 mb-2">{zone.npc.name}</h3>
+                <p className="text-sm text-cyan-100">{zone.npc.description}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -114,8 +107,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
                     <img src={building.image} alt={building.name} className="w-full h-full object-contain" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-200 mb-1">{building.name}</h4>
-                  <p className="text-xs text-slate-400 mb-2">{building.description}</p>
-                  <span className="text-xs font-semibold text-yellow-500">{building.price}</span>
+                  <p className="text-xs text-slate-400">{building.description}</p>
                 </div>
               ))}
             </div>
@@ -135,7 +127,7 @@ export default function ZonePreviewModal({ zone, onClose, onTravel }: ZonePrevie
               onClick={onTravel}
               className="flex-1 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl font-bold text-xl transition-all shadow-lg"
             >
-              Purchase & Travel (${zone.purchasePrice?.toLocaleString()})
+              Purchase & Travel
             </button>
           )}
 

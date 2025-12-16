@@ -5327,6 +5327,10 @@ export default function Game() {
         <ExportShop
           gameState={gameState}
           onClose={() => setShowExportModal(false)}
+          onRelocate={() => {
+            // Export building relocation - placeholder for future implementation
+            console.log('Export building relocation requested');
+          }}
         />
       )}
 

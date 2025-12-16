@@ -127,17 +127,7 @@ export default function ExportShop({ gameState, onClose, onRelocate }: ExportSho
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 md:p-6 rounded-xl max-w-7xl w-full max-h-[95vh] border-2 border-slate-600 flex flex-col">
-        {/* Header */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={onClose}
-            className="text-2xl hover:text-red-400 transition-colors w-10 h-10 flex items-center justify-center"
-          >
-            ✕
-          </button>
-        </div>
-
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 md:p-6 rounded-xl max-w-7xl w-full h-[95vh] border-2 border-slate-600 flex flex-col">
         {/* Season Banner with Background Images - 75/25 Split */}
         <div className="mb-4 relative rounded-xl overflow-hidden border-2 border-gray-600/50 shadow-2xl h-48">
           {/* Background Images */}
@@ -477,17 +467,23 @@ export default function ExportShop({ gameState, onClose, onRelocate }: ExportSho
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-700 pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm text-slate-400">
-              💡 Tip: Click any crop for detailed analysis. Green = history, Blue = forecast!
-            </div>
-          </div>
+        <div className="border-t border-slate-700 pt-4 flex gap-3 justify-between">
+          {onRelocate && (
+            <button
+              onClick={() => {
+                onRelocate();
+                onClose();
+              }}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-sm"
+            >
+              📍 Move Building
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-lg transition-colors"
+            className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-6 rounded-lg transition-colors ml-auto"
           >
-            Close Market Data
+            Close
           </button>
         </div>
       </div>

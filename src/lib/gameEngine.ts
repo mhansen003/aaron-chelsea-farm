@@ -910,6 +910,11 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           console.log('🧺 PICKUP_MARKED: Picking up', itemsToPickup.length, 'items from warehouse');
           console.log('  Items:', itemsToPickup.map(i => i.crop).join(', '));
           console.log('  Basket before:', newState.player.basket.length);
+          console.log('  Warehouse before:', newState.warehouse.length);
+
+          // Remove picked up items from warehouse
+          const updatedWarehouse = newState.warehouse.filter(item => !itemsToPickup.includes(item));
+
           newState = {
             ...newState,
             player: {
@@ -917,8 +922,10 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
               basket: [...newState.player.basket, ...itemsToPickup],
             },
             markedForSale: remainingMarked,
+            warehouse: updatedWarehouse,
           };
           console.log('  Basket after:', newState.player.basket.length);
+          console.log('  Warehouse after:', newState.warehouse.length);
           console.log('  Remaining marked for sale:', remainingMarked.length);
           break;
         case 'deposit':

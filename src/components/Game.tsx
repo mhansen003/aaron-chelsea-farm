@@ -97,6 +97,7 @@ import SaveGameModal from './SaveGameModal';
 import WelcomeSplash from './WelcomeSplash';
 import QuickStartTutorial from './QuickStartTutorial';
 import TutorialModal from './TutorialModal';
+import FarmerModal from './FarmerModal';
 import {
   generateSaveCode,
   loadFromSaveCode,
@@ -201,6 +202,7 @@ export default function Game() {
   const [showWellModal, setShowWellModal] = useState(false);
   const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [showBuildingPurchaseTip, setShowBuildingPurchaseTip] = useState(false);
+  const [showFarmerModal, setShowFarmerModal] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
@@ -4307,19 +4309,46 @@ export default function Game() {
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Left Sidebar - Farmer Status */}
-      <div className="w-52 bg-black/70 p-2 rounded-lg text-white flex flex-col max-h-full overflow-y-auto">
-        <div className="text-sm font-bold text-center mb-2 text-green-400">👨‍🌾 Farmer</div>
+      <div className="w-64 bg-gradient-to-b from-green-950/90 to-green-900/90 backdrop-blur-sm p-3 rounded-xl border-2 border-green-500/50 text-white flex flex-col max-h-full overflow-y-auto shadow-2xl">
+        {/* Farmer Avatar Header - Clickable */}
+        <div
+          className="bg-gradient-to-br from-green-700 to-green-800 rounded-xl p-4 mb-3 cursor-pointer hover:from-green-600 hover:to-green-700 transition-all shadow-lg border-2 border-green-400/50"
+          onClick={() => setShowFarmerModal(true)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-16 bg-green-900 rounded-full border-4 border-green-400 overflow-hidden flex items-center justify-center shadow-xl">
+              <NextImage
+                src="/images/general/farmer.png"
+                alt="Farmer"
+                width={56}
+                height={56}
+                className="object-cover"
+              />
+            </div>
+            <div className="flex-1">
+              <div className="text-lg font-bold text-green-100">Farmer</div>
+              <div className="text-xs text-green-300">Click to configure</div>
+            </div>
+            <div className="text-2xl text-green-300">⚙️</div>
+          </div>
+        </div>
 
         {/* Top Section: Queue and Basket */}
-        <div className="flex flex-col gap-2 mb-2">
+        <div className="flex flex-col gap-3 mb-2">
         {/* Task Queue (Current + Next 2 Queued) */}
-        <div className="bg-blue-900/30 border border-blue-600 rounded px-2 py-1.5 mb-1">
-          <div className="text-xs text-blue-300 font-bold mb-1.5">QUEUE (Max 3):</div>
+        <div className="bg-gradient-to-br from-blue-950/50 to-blue-900/30 border-2 border-blue-500/60 rounded-xl p-3 shadow-lg">
+          <div className="text-sm text-blue-300 font-bold mb-2 flex items-center gap-2">
+            <span className="text-lg">📋</span>
+            <span>TASK QUEUE</span>
+          </div>
           <div className="space-y-1">
             {/* Current Task (Position 1) */}
             {currentZone.currentTask ? (
-              <div className="bg-green-900/70 border-2 border-green-500 rounded px-2 py-1.5">
-                <div className="text-[10px] text-green-400 font-bold mb-0.5">▶ ACTIVE</div>
+              <div className="bg-gradient-to-br from-green-900/80 to-green-800/60 border-2 border-green-400 rounded-lg p-2 shadow-md">
+                <div className="text-xs text-green-300 font-bold mb-1 flex items-center gap-1">
+                  <span>▶</span>
+                  <span>ACTIVE</span>
+                </div>
                 <div className="text-sm flex items-center gap-1">
                   {currentZone.currentTask.type === 'clear' ? '⛏️ Clearing' :
                    currentZone.currentTask.type === 'plant' ? '🌱 Planting' :
@@ -4401,8 +4430,14 @@ export default function Game() {
         </div>
 
         {/* Farmer Basket/Inventory */}
-        <div className="bg-amber-900/30 border border-amber-600 rounded px-2 py-1.5 mb-2">
-          <div className="text-xs text-amber-300 font-bold mb-1">🧺 BASKET ({gameState.player.basket.length}/{gameState.player.basketCapacity})</div>
+        <div className="bg-gradient-to-br from-amber-950/50 to-amber-900/30 border-2 border-amber-500/60 rounded-xl p-3 shadow-lg">
+          <div className="text-sm text-amber-300 font-bold mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🧺</span>
+              <span>BASKET</span>
+            </div>
+            <span className="text-xs bg-amber-700/50 px-2 py-1 rounded-full">{gameState.player.basket.length}/{gameState.player.basketCapacity}</span>
+          </div>
           {gameState.player.basket.length > 0 ? (
             <div className="space-y-0.5">
               {gameState.player.basket.map((item, idx) => {
@@ -4425,186 +4460,41 @@ export default function Game() {
         </div>
         </div>
 
-        {/* Farmer Automation Controls - Bottom Aligned */}
-        <div className="mt-auto bg-purple-900/30 border border-purple-600 rounded px-2 py-2 min-h-[280px]">
-          <div className="text-xs text-purple-300 font-bold mb-2">🤖 AUTOMATION</div>
-          <div className="text-[10px] text-purple-400 mb-2 italic">Priority: Harvest → Water → Plant</div>
-          <div className="space-y-1.5">
-            {/* Auto Harvest */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoHarvest}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoHarvest: !prev.player.farmerAuto.autoHarvest,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Harvest</span>
-            </label>
-
-            {/* Auto Water */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoWater}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoWater: !prev.player.farmerAuto.autoWater,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Water</span>
-            </label>
-
-            {/* Auto Plant */}
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-              <input
-                type="checkbox"
-                checked={gameState.player.farmerAuto.autoPlant}
-                onChange={() => {
-                  setGameState(prev => ({
-                    ...prev,
-                    player: {
-                      ...prev.player,
-                      farmerAuto: {
-                        ...prev.player.farmerAuto,
-                        autoPlant: !prev.player.farmerAuto.autoPlant,
-                      },
-                    },
-                  }));
-                }}
-                className="w-3 h-3"
-              />
-              <span className="text-xs text-white">Auto Plant</span>
-            </label>
-                      {/* Crop Selector for Auto Plant - Dropdown */}
-                      {gameState.player.farmerAuto.autoPlant && (
-              <div className="ml-5 text-xs crop-dropdown-container relative">
-                <label className="text-gray-400 mb-1 block">Crop rotation:</label>
-                <button
-                  onClick={() => setShowCropDropdown(!showCropDropdown)}
-                  className="w-full bg-purple-900/50 border border-purple-600 rounded px-2 py-1.5 text-white text-xs text-left flex items-center justify-between hover:bg-purple-800/50 transition-colors"
-                >
-                  <span>
-                    {gameState.player.farmerAuto.autoPlantCrops.length === 0
-                      ? 'Select crops...'
-                      : `${gameState.player.farmerAuto.autoPlantCrops.length} crop${gameState.player.farmerAuto.autoPlantCrops.length !== 1 ? 's' : ''} selected`}
-                  </span>
-                  <span className="text-purple-400">{showCropDropdown ? '▲' : '▼'}</span>
-                </button>
-                {showCropDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-purple-950 border border-purple-600 rounded shadow-lg z-50 max-h-48 overflow-y-auto">
-                    {[
-                      { value: 'carrot', label: '🥕 Carrot' },
-                      { value: 'wheat', label: '🌾 Wheat' },
-                      { value: 'tomato', label: '🍅 Tomato' },
-                      { value: 'pumpkin', label: '🎃 Pumpkin' },
-                      { value: 'watermelon', label: '🍉 Watermelon' },
-                      { value: 'peppers', label: '🌶️ Peppers' },
-                      { value: 'grapes', label: '🍇 Grapes' },
-                      { value: 'oranges', label: '🍊 Oranges' },
-                      { value: 'avocado', label: '🥑 Avocado' },
-                      { value: 'rice', label: '🍚 Rice' },
-                      { value: 'corn', label: '🌽 Corn' },
-                    ].map((crop) => {
-                      const isSelected = gameState.player.farmerAuto.autoPlantCrops.includes(crop.value as any);
-                      return (
-                        <label
-                          key={crop.value}
-                          className="flex items-center gap-2 px-3 py-2 hover:bg-purple-800/50 cursor-pointer transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              const newCrops = e.target.checked
-                                ? [...gameState.player.farmerAuto.autoPlantCrops, crop.value]
-                                : gameState.player.farmerAuto.autoPlantCrops.filter(c => c !== crop.value);
-                              setGameState(prev => ({
-                                ...prev,
-                                player: {
-                                  ...prev.player,
-                                  farmerAuto: {
-                                    ...prev.player.farmerAuto,
-                                    autoPlantCrops: newCrops as any[],
-                                  },
-                                },
-                              }));
-                            }}
-                            className="w-3.5 h-3.5"
-                          />
-                          <span className="text-white">{crop.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+        {/* Automation Status Summary */}
+        <div className="mt-auto bg-gradient-to-br from-purple-950/50 to-purple-900/30 border-2 border-purple-500/60 rounded-xl p-3 shadow-lg">
+          <div className="text-sm text-purple-300 font-bold mb-2 flex items-center gap-2">
+            <span className="text-lg">🤖</span>
+            <span>AUTOMATION</span>
+          </div>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex items-center justify-between bg-purple-900/30 px-2 py-1 rounded">
+              <span className="text-purple-200">Harvest</span>
+              <span className={gameState.player.farmerAuto.autoHarvest ? 'text-green-400' : 'text-gray-500'}>
+                {gameState.player.farmerAuto.autoHarvest ? '✓ ON' : '✗ OFF'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between bg-purple-900/30 px-2 py-1 rounded">
+              <span className="text-purple-200">Water</span>
+              <span className={gameState.player.farmerAuto.autoWater ? 'text-green-400' : 'text-gray-500'}>
+                {gameState.player.farmerAuto.autoWater ? '✓ ON' : '✗ OFF'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between bg-purple-900/30 px-2 py-1 rounded">
+              <span className="text-purple-200">Plant</span>
+              <span className={gameState.player.farmerAuto.autoPlant ? 'text-green-400' : 'text-gray-500'}>
+                {gameState.player.farmerAuto.autoPlant ? '✓ ON' : '✗ OFF'}
+              </span>
+            </div>
+            {gameState.player.farmerAuto.autoPlant && gameState.player.farmerAuto.autoPlantCrops.length > 0 && (
+              <div className="text-[10px] text-purple-300 bg-purple-900/50 px-2 py-1 rounded mt-1">
+                Crops: {gameState.player.farmerAuto.autoPlantCrops.length} selected
               </div>
             )}
-
-            {/* Deposit Destination - Radio buttons */}
-            <div className="border-t border-purple-700 pt-1.5 mt-1.5">
-              <div className="text-xs text-purple-300 mb-1">Harvest Destination:</div>
-              <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-                <input
-                  type="radio"
-                  name="depositDestination"
-                  checked={gameState.player.farmerAuto.autoSell}
-                  onChange={() => {
-                    setGameState(prev => ({
-                      ...prev,
-                      player: {
-                        ...prev.player,
-                        farmerAuto: {
-                          ...prev.player.farmerAuto,
-                          autoSell: true,
-                        },
-                      },
-                    }));
-                  }}
-                  className="w-3 h-3"
-                />
-                <span className="text-xs text-white">🚢 Auto Sell</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer hover:bg-purple-800/20 px-1 py-0.5 rounded">
-                <input
-                  type="radio"
-                  name="depositDestination"
-                  checked={!gameState.player.farmerAuto.autoSell}
-                  onChange={() => {
-                    setGameState(prev => ({
-                      ...prev,
-                      player: {
-                        ...prev.player,
-                        farmerAuto: {
-                          ...prev.player.farmerAuto,
-                          autoSell: false,
-                        },
-                      },
-                    }));
-                  }}
-                  className="w-3 h-3"
-                />
-                <span className="text-xs text-white">🏭 To Warehouse</span>
-              </label>
+            <div className="flex items-center justify-between bg-purple-900/30 px-2 py-1 rounded">
+              <span className="text-purple-200">Destination</span>
+              <span className="text-amber-400">
+                {gameState.player.farmerAuto.autoSell ? '🚢 Sell' : '🏭 Store'}
+              </span>
             </div>
           </div>
         </div>
@@ -6482,6 +6372,26 @@ export default function Game() {
           onSell={() => {
             setGameState(prev => sellBot(prev, renamingBot.id, renamingBot.type));
             setRenamingBot(null);
+          }}
+        />
+      )}
+
+      {/* Farmer Settings Modal */}
+      {showFarmerModal && (
+        <FarmerModal
+          gameState={gameState}
+          onClose={() => setShowFarmerModal(false)}
+          onUpdateFarmerSettings={(settings) => {
+            setGameState(prev => ({
+              ...prev,
+              player: {
+                ...prev.player,
+                farmerAuto: {
+                  ...prev.player.farmerAuto,
+                  ...settings,
+                },
+              },
+            }));
           }}
         />
       )}

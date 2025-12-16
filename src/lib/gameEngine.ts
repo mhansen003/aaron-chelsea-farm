@@ -385,8 +385,8 @@ export function createInitialGrid(zoneX: number, zoneY: number, theme?: import('
 }
 
 export function createZone(x: number, y: number, owned: boolean): Zone {
-  const distanceFromStart = Math.abs(x) + Math.abs(y);
-  const purchasePrice = Math.floor(BASE_ZONE_PRICE * Math.pow(ZONE_PRICE_MULTIPLIER, distanceFromStart - 1));
+  // Assign specific prices to each zone (doubling progression)
+  let purchasePrice = 0;
 
   // Determine theme based on position relative to starting zone
   let theme: import('@/types/game').ZoneTheme = 'farm';
@@ -396,7 +396,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
   let features: import('@/types/game').ZoneFeature[] = [];
 
   if (x === 0 && y === 1) {
-    // North - Beach
+    // North - Beach (1st zone)
+    purchasePrice = 2000;
     theme = 'beach';
     name = "Sunny Beach";
     description = "A tropical paradise with sandy shores and palm trees. Perfect for fishing and relaxation!";
@@ -421,7 +422,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
       },
     ];
   } else if (x === -1 && y === 0) {
-    // West - Barn
+    // West - Barn (2nd zone)
+    purchasePrice = 4000;
     theme = 'barn';
     name = "Animal Barn";
     description = "A cozy barn area where you can raise livestock and collect resources like milk, eggs, and wool.";
@@ -452,7 +454,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
       },
     ];
   } else if (x === 1 && y === 0) {
-    // East - Mountain
+    // East - Mountain (3rd zone)
+    purchasePrice = 8000;
     theme = 'mountain';
     name = "Mountain Range";
     description = "Rugged mountainous terrain rich with minerals and rare resources. Challenging but rewarding!";
@@ -483,7 +486,8 @@ export function createZone(x: number, y: number, owned: boolean): Zone {
       },
     ];
   } else if (x === 0 && y === -1) {
-    // South - Desert
+    // South - Desert (4th zone)
+    purchasePrice = 16000;
     theme = 'desert';
     name = "Desert Oasis";
     description = "An arid desert landscape with unique cacti and valuable gems hidden beneath the sand.";
@@ -1830,16 +1834,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         return { ...bot, status: 'idle' as const, currentJobId: undefined, visualX, visualY };
       }
 
-      // Find the NEAREST tile across ALL jobs (spiral outward pattern)
-      let nearest = allPlantableTiles[0];
-      let minDist = Math.abs(botX - nearest.x) + Math.abs(botY - nearest.y);
-      allPlantableTiles.forEach(tileWithJob => {
-        const dist = Math.abs(botX - tileWithJob.x) + Math.abs(botY - tileWithJob.y);
-        if (dist < minDist) {
-          minDist = dist;
-          nearest = tileWithJob;
-        }
+      // Sort tiles row by row (top to bottom, left to right)
+      allPlantableTiles.sort((a, b) => {
+        if (a.y !== b.y) return a.y - b.y; // Top to bottom
+        return a.x - b.x; // Left to right within same row
       });
+
+      // Pick the first tile in sorted order (row by row planting)
+      let nearest = allPlantableTiles[0];
 
       // Switch to the job that owns the nearest tile
       const currentJob = nearest.job;
@@ -1893,17 +1895,14 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
           return { ...bot, status: 'idle' as const, currentJobId: currentJob.id, visualX, visualY };
         }
 
-        // Find nearest tile that we have seeds for
-        let nearestWithSeeds = tilesWithSeeds[0];
-        let minDistWithSeeds = Math.abs(botX - nearestWithSeeds.x) + Math.abs(botY - nearestWithSeeds.y);
-        tilesWithSeeds.forEach(tileWithJob => {
-          const dist = Math.abs(botX - tileWithJob.x) + Math.abs(botY - tileWithJob.y);
-          if (dist < minDistWithSeeds) {
-            minDistWithSeeds = dist;
-            nearestWithSeeds = tileWithJob;
-          }
+        // Sort tiles with seeds row by row (top to bottom, left to right)
+        tilesWithSeeds.sort((a, b) => {
+          if (a.y !== b.y) return a.y - b.y; // Top to bottom
+          return a.x - b.x; // Left to right within same row
         });
-        nearest = nearestWithSeeds;
+
+        // Pick the first tile with seeds in sorted order
+        nearest = tilesWithSeeds[0];
       }
 
       // Now we have the nearest tile with available seeds - plant it!
@@ -3104,6 +3103,24 @@ export function buyWaterbots(state: GameState, amount: number, name?: string): G
 
   // Check if player can afford it
   if (state.player.money < currentCost) return state;
+
+  // Check if well exists in current zone (or is being constructed)
+  let hasWell = false;
+  for (let y = 0; y < currentZone.grid.length; y++) {
+    for (let x = 0; x < currentZone.grid[y].length; x++) {
+      const tile = currentZone.grid[y][x];
+      if (tile.type === 'well' || (tile.isConstructing && tile.constructionTarget === 'well')) {
+        hasWell = true;
+        break;
+      }
+    }
+    if (hasWell) break;
+  }
+
+  if (!hasWell) {
+    // Need well first
+    return state;
+  }
 
   // Limit purchase to 1 bot per zone
   const actualAmount = 1;

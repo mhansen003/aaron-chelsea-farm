@@ -1095,7 +1095,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   // FARMER AUTOMATION: Generate automated tasks when farmer is idle (farm zones)
   if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && currentZone.theme === 'farm') {
-    const autoTasks = generateFarmerAutoTasks(newState, currentZone);
+    // Get fresh zone reference from newState to ensure we have latest updates
+    const updatedZone = newState.zones[getZoneKey(newState.currentZone.x, newState.currentZone.y)];
+    const autoTasks = generateFarmerAutoTasks(newState, updatedZone);
     if (autoTasks.length > 0) {
       // Add the first task as current, rest go to queue
       currentZone.currentTask = autoTasks[0];
@@ -1105,7 +1107,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
 
   // SURFER AUTOMATION: Generate fishing tasks when surfer is idle (beach zones)
   if (!currentZone.currentTask && currentZone.taskQueue.length === 0 && currentZone.theme === 'beach') {
-    const fishingTasks = generateSurferFishingTasks(newState, currentZone);
+    // Get fresh zone reference from newState to ensure we see caught fish
+    const updatedZone = newState.zones[getZoneKey(newState.currentZone.x, newState.currentZone.y)];
+    const fishingTasks = generateSurferFishingTasks(newState, updatedZone);
     if (fishingTasks.length > 0) {
       currentZone.currentTask = fishingTasks[0];
       currentZone.taskQueue = [...fishingTasks.slice(1)];

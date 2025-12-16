@@ -75,7 +75,7 @@ export const HOPPER_UPGRADE_COST = 400; // Cost to upgrade a single bot with lar
 export const BASE_ZONE_PRICE = 2000; // Base price for first adjacent zone
 export const ZONE_PRICE_MULTIPLIER = 2; // Each zone doubles in price
 export const MOVE_SPEED = 0.0088; // Movement interpolation speed (0-1, higher = faster) - 10% faster
-export const SEEDBOT_MOVE_SPEED = 0.0112; // Seedbot movement speed - 40% faster than original to handle backlog
+export const SEEDBOT_MOVE_SPEED = 0.016; // Seedbot movement speed - 100% faster (2x original speed)
 
 // Fish spawning constants
 export const FISH_SPAWN_INTERVAL = 5000; // Check for new fish every 5 seconds
@@ -2134,7 +2134,7 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         const tile = updatedGrid[nearest.y]?.[nearest.x];
         if (tile && ((tile.type === 'dirt' && tile.cleared) || tile.type === 'grass') && !tile.crop) {
           const finalCropType = nearest.job.cropType;
-          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.6, bot.supercharged); // 40% faster for seed bots to handle backlog
+          const ACTION_DURATION = getAdjustedDuration(TASK_DURATIONS.plant * 0.5, bot.supercharged); // 100% faster (2x speed) for seed bots
 
           if (bot.actionStartTime !== undefined) {
             const elapsed = newState.gameTime - bot.actionStartTime;
@@ -5237,6 +5237,56 @@ export function relocateWarehouse(state: GameState): GameState {
   return {
     ...state,
     zones: newZones,
+  };
+}
+
+export function placeWarehouse(state: GameState, tileX: number, tileY: number): GameState {
+  const grid = getCurrentGrid(state);
+
+  // Check bounds for 2x2 placement
+  if (tileX + 1 >= GAME_CONFIG.gridWidth || tileY + 1 >= GAME_CONFIG.gridHeight) {
+    return state; // Not enough space
+  }
+
+  // Check that all 4 tiles are cleared grass/dirt
+  const tiles = [
+    grid[tileY]?.[tileX],
+    grid[tileY]?.[tileX + 1],
+    grid[tileY + 1]?.[tileX],
+    grid[tileY + 1]?.[tileX + 1],
+  ];
+
+  const allTilesValid = tiles.every(t =>
+    t && t.cleared && (t.type === 'grass' || t.type === 'dirt')
+  );
+
+  if (!allTilesValid || !state.player.inventory.warehousePlaced) {
+    return state;
+  }
+
+  // Warehouse is always a relocation (already exists in starting zone)
+  // Place instantly without construction
+  const newGrid = grid.map((row, y) =>
+    row.map((t, x) => {
+      if ((x === tileX || x === tileX + 1) && (y === tileY || y === tileY + 1)) {
+        return {
+          ...t,
+          type: 'warehouse' as const,
+        };
+      }
+      return t;
+    })
+  );
+
+  return {
+    ...state,
+    zones: {
+      ...state.zones,
+      [getZoneKey(state.currentZone.x, state.currentZone.y)]: {
+        ...state.zones[getZoneKey(state.currentZone.x, state.currentZone.y)],
+        grid: newGrid,
+      },
+    },
   };
 }
 

@@ -40,6 +40,7 @@ import {
   placeSupercharger,
   placeHopper,
   placeExport,
+  placeWarehouse,
   superchargeBot,
   hopperUpgrade,
   relocateGarage,
@@ -3819,6 +3820,15 @@ export default function Game() {
       // Allow placing export on grass, cleared dirt, or existing export tiles
       if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'export') {
         setGameState(prev => placeExport(prev, tileX, tileY));
+        setPlacementMode(null); // Clear placement mode after placing
+      }
+      return;
+    }
+
+    if (placementMode === 'warehouse') {
+      // Allow placing warehouse on grass, cleared dirt, or existing warehouse tiles
+      if (tile.type === 'grass' || (tile.type === 'dirt' && tile.cleared) || tile.type === 'warehouse') {
+        setGameState(prev => placeWarehouse(prev, tileX, tileY));
         setPlacementMode(null); // Clear placement mode after placing
       }
       return;

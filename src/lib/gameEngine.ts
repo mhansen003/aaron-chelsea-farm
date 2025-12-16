@@ -4399,8 +4399,14 @@ export function depositToWarehouse(state: GameState): GameState {
   const grid = getCurrentGrid(state);
   const currentTile = grid[state.player.y]?.[state.player.x];
 
+  console.log('🏪 depositToWarehouse called');
+  console.log('  Player position:', state.player.x, state.player.y);
+  console.log('  Current tile type:', currentTile?.type);
+  console.log('  Basket length:', state.player.basket.length);
+
   // If at export building, sell the crops at market price
   if (currentTile?.type === 'export' && state.player.basket.length > 0) {
+    console.log('💰 SELLING at export building!');
     let totalEarnings = 0;
     const salesRecords: typeof state.salesHistory = [];
     const updatedCropsSold = { ...state.cropsSold };
@@ -4453,10 +4459,14 @@ export function depositToWarehouse(state: GameState): GameState {
     // Record earnings for the zone
     updatedState = recordZoneEarnings(updatedState, totalEarnings, currentZoneKey);
 
+    console.log('💰 Total earnings:', totalEarnings);
+    console.log('💵 New player money:', updatedState.player.money);
+
     return updatedState;
   }
 
   // Otherwise, just deposit to warehouse (storage)
+  console.log('📦 Depositing to warehouse (not selling)');
   return {
     ...state,
     warehouse: [...state.warehouse, ...state.player.basket],

@@ -102,6 +102,7 @@ export interface Player {
   visualY?: number; // Animated visual position
   money: number;
   farmName: string; // Name of the farm
+  farmerName: string; // Name of the farmer
   selectedTool: ToolType;
   selectedCrop: CropType;
   basket: BasketItem[]; // Max 8 items

@@ -1437,7 +1437,7 @@ export default function Game() {
                    gridRef[y]?.[x - 1]?.type === 'garage' &&
                    gridRef[y + 1]?.[x]?.type === 'garage' &&
                    gridRef[y + 1]?.[x - 1]?.type === 'garage') {
-            offsetX = 512;
+            offsetX = 250;
             offsetY = 0;
           }
           // Check if this is bottom-left (has neighbors to right and top)
@@ -1446,22 +1446,22 @@ export default function Game() {
                    gridRef[y - 1]?.[x]?.type === 'garage' &&
                    gridRef[y - 1]?.[x + 1]?.type === 'garage') {
             offsetX = 0;
-            offsetY = 512;
+            offsetY = 250;
           }
           // Check if this is bottom-right (has neighbors to left and top)
           else if (x > 0 && y > 0 &&
                    gridRef[y]?.[x - 1]?.type === 'garage' &&
                    gridRef[y - 1]?.[x]?.type === 'garage' &&
                    gridRef[y - 1]?.[x - 1]?.type === 'garage') {
-            offsetX = 512;
-            offsetY = 512;
+            offsetX = 250;
+            offsetY = 250;
           }
 
-          // Draw the appropriate quadrant from the 1024x1024 sprite sheet
+          // Draw the appropriate quadrant (500x500 image with 250x250 quadrants)
           ctx.drawImage(
             garageImageRef.current,
-            offsetX, offsetY, 512, 512,  // Source: extract quadrant from sprite
-            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize  // Dest: draw at tile position
+            offsetX, offsetY, 250, 250,
+            px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize
           );
         } else if (tile.type === 'supercharger') {
           // ═══════════════════════════════════════════════════════════════════════════

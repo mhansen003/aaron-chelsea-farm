@@ -1143,9 +1143,24 @@ export default function Game() {
           } else if (tile.variant === 3 && grassImageRef3.current) {
             grassImage = grassImageRef3.current;
           }
-          // Draw grass texture
+          // Draw grass texture with random rotation and offset for natural look
           if (grassImage) {
-            ctx.drawImage(grassImage, px, py, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            // Seeded random based on tile position for consistency
+            const seed = x * 73 + y * 37;
+            const pseudoRandom = (Math.sin(seed) * 10000) % 1;
+
+            // Random rotation (0, 90, 180, or 270 degrees)
+            const rotation = Math.floor(pseudoRandom * 4) * (Math.PI / 2);
+
+            // Slight random offset (±2 pixels)
+            const offsetX = ((pseudoRandom * 1000) % 1) * 4 - 2;
+            const offsetY = ((pseudoRandom * 2000) % 1) * 4 - 2;
+
+            ctx.save();
+            ctx.translate(px + GAME_CONFIG.tileSize / 2 + offsetX, py + GAME_CONFIG.tileSize / 2 + offsetY);
+            ctx.rotate(rotation);
+            ctx.drawImage(grassImage, -GAME_CONFIG.tileSize / 2, -GAME_CONFIG.tileSize / 2, GAME_CONFIG.tileSize, GAME_CONFIG.tileSize);
+            ctx.restore();
           }
         } else if (tile.type === 'tree') {
           // Draw grass background first, then tree sprite

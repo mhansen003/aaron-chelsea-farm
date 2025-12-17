@@ -6098,7 +6098,7 @@ export default function Game() {
                           onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'water' })}
                           title="Click for details"
                         >
-                          <NextImage src="/water bot.png" alt="Water Bot" width={40} height={40} className="object-contain" />
+                          <NextImage src="/water-bot.png" alt="Water Bot" width={40} height={40} className="object-contain" />
                         </div>
                         {/* Bot Info */}
                         <div className="flex-1 min-w-0">
@@ -6168,7 +6168,7 @@ export default function Game() {
                           onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'harvest' })}
                           title="Click for details"
                         >
-                          <NextImage src="/harvest bot.png" alt="Harvest Bot" width={40} height={40} className="object-contain" />
+                          <NextImage src="/harvest-bot.png" alt="Harvest Bot" width={40} height={40} className="object-contain" />
                         </div>
                         {/* Bot Info */}
                         <div className="flex-1 min-w-0">
@@ -6439,7 +6439,7 @@ export default function Game() {
                           onClick={() => setShowBotDetailModal({ botId: bot.id, botType: 'hunter' })}
                           title="Click for bot details"
                         >
-                          <NextImage src="/fishing-bot.png" alt="Hunter Bot" width={40} height={40} className="object-contain" />
+                          <NextImage src="/hunter.png" alt="Hunter Bot" width={40} height={40} className="object-contain" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-0.5">

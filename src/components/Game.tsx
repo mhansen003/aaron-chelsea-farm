@@ -210,6 +210,8 @@ export default function Game() {
   const [showFarmerModal, setShowFarmerModal] = useState(false);
   const [showSurferModal, setShowSurferModal] = useState(false);
   const [showBotDetailModal, setShowBotDetailModal] = useState<{ botId: string; botType: 'water' | 'harvest' | 'seed' | 'transport' | 'demolish' | 'hunter' | 'fertilizer' } | null>(null);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
   const [currentSaveCode, setCurrentSaveCode] = useState<string>('');
   const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
   const [showMusicDropdown, setShowMusicDropdown] = useState(false);
@@ -4483,7 +4485,15 @@ export default function Game() {
   return (
     <div className="fixed inset-0 flex gap-2 p-2 pb-4 overflow-hidden">
       {/* Left Sidebar - Farmer Status */}
-      <div className="w-64 bg-gradient-to-b from-green-950/90 to-green-900/90 backdrop-blur-sm p-3 rounded-xl border-2 border-green-500/50 text-white flex flex-col max-h-full overflow-y-auto shadow-2xl">
+      <div className={`relative bg-gradient-to-b from-green-950/90 to-green-900/90 backdrop-blur-sm rounded-xl border-2 border-green-500/50 text-white flex flex-col max-h-full shadow-2xl transition-all duration-300 ${leftPanelCollapsed ? 'w-0 p-0 border-0' : 'w-64 p-3 overflow-y-auto'}`}>
+        {/* Collapse Tab Button */}
+        <button
+          onClick={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+          className="absolute -right-6 top-1/2 -translate-y-1/2 bg-green-950/90 backdrop-blur-sm border-2 border-green-500/50 rounded-r-lg px-1 py-4 text-green-400 hover:bg-green-900/90 hover:text-green-300 transition-all z-10 shadow-lg"
+        >
+          {leftPanelCollapsed ? '▶' : '◀'}
+        </button>
+        {!leftPanelCollapsed && <>
         {/* Farmer Avatar Header - Clickable */}
         <div
           className="bg-gradient-to-br from-green-700 to-green-800 rounded-xl p-4 mb-3 cursor-pointer hover:from-green-600 hover:to-green-700 transition-all shadow-lg border-2 border-green-400/50"
@@ -4767,7 +4777,7 @@ export default function Game() {
             </div>
           </>
         )}
-
+        </>}
       </div>
 
       {/* Main Game Area */}
@@ -6043,7 +6053,15 @@ export default function Game() {
       </div>
 
       {/* Right Sidebar - Bot Fleet */}
-      <div className="w-80 bg-gradient-to-b from-gray-950/90 to-gray-900/90 backdrop-blur-sm p-3 rounded-xl border-2 border-blue-500/50 text-white flex flex-col gap-2 max-h-full overflow-y-auto shadow-2xl">
+      <div className={`relative bg-gradient-to-b from-gray-950/90 to-gray-900/90 backdrop-blur-sm rounded-xl border-2 border-blue-500/50 text-white flex flex-col gap-2 max-h-full shadow-2xl transition-all duration-300 ${rightPanelCollapsed ? 'w-0 p-0 border-0' : 'w-80 p-3 overflow-y-auto'}`}>
+        {/* Collapse Tab Button */}
+        <button
+          onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+          className="absolute -left-6 top-1/2 -translate-y-1/2 bg-gray-950/90 backdrop-blur-sm border-2 border-blue-500/50 rounded-l-lg px-1 py-4 text-blue-400 hover:bg-gray-900/90 hover:text-blue-300 transition-all z-10 shadow-lg"
+        >
+          {rightPanelCollapsed ? '◀' : '▶'}
+        </button>
+        {!rightPanelCollapsed && <>
         <div className="text-lg font-bold text-center mb-2 text-blue-400 flex items-center justify-center gap-2">
           <span className="text-2xl">🤖</span>
           <span>Bot Fleet</span>
@@ -6530,6 +6548,7 @@ export default function Game() {
           )}
           </>;
         })()}
+        </>}
       </div>
 
 

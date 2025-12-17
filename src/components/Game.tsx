@@ -1820,8 +1820,8 @@ export default function Game() {
             ctx.fillText('🎒', px + GAME_CONFIG.tileSize / 2, py + GAME_CONFIG.tileSize / 2);
           }
         } else if (tile.type === 'waterbot' && waterBotImageRef.current) {
-          // Draw water bot sprite (30% larger)
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          // Draw water bot sprite (56% larger)
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(waterBotImageRef.current, px - botOffset, py - botOffset, botSize, botSize);
         } else if (tile.type === 'arch' && tile.archTargetZone) {
@@ -2831,7 +2831,7 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (waterBotImageRef.current) {
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(waterBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -2904,7 +2904,7 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (harvestBotImageRef.current) {
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(harvestBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -3001,7 +3001,7 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (seedBotImageRef.current) {
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(seedBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -3050,7 +3050,7 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (transportBotImageRef.current) {
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(transportBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -3099,8 +3099,8 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (demolishBotImageRef.current) {
-          // Scale demolish bot up by 30% to match other bots
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          // Scale demolish bot up by 56% to match other bots
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(demolishBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -3191,7 +3191,7 @@ export default function Game() {
         const botPy = visualY * GAME_CONFIG.tileSize;
 
         if (hunterBotImageRef.current) {
-          const botSize = GAME_CONFIG.tileSize * 1.3;
+          const botSize = GAME_CONFIG.tileSize * 1.56;
           const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
           ctx.drawImage(hunterBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
         } else {
@@ -3240,7 +3240,7 @@ export default function Game() {
       const botPy = visualY * GAME_CONFIG.tileSize;
 
       if (fertilizerBotImageRef.current) {
-        const botSize = GAME_CONFIG.tileSize * 1.3;
+        const botSize = GAME_CONFIG.tileSize * 1.56;
         const botOffset = (botSize - GAME_CONFIG.tileSize) / 2;
         ctx.drawImage(fertilizerBotImageRef.current, botPx - botOffset, botPy - botOffset, botSize, botSize);
       } else {

@@ -1996,8 +1996,8 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
             return { ...bot, x: newX, y: newY, status: 'idle' as const, currentJobId: undefined, targetX: garagePos.x, targetY: garagePos.y, visualX, visualY };
           }
         }
-        // No garage - wander randomly (move more frequently when idle)
-        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+        // No garage - wander randomly (slow idle wandering)
+        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged) * 0.2) { // 20% of normal speed for idle wander
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
@@ -2051,9 +2051,9 @@ export function updateGameState(state: GameState, deltaTime: number): GameState 
         });
       });
 
-      // No plantable tiles at all - wander randomly while idle
+      // No plantable tiles at all - wander randomly while idle (slow wandering)
       if (allPlantableTiles.length === 0) {
-        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged)) {
+        if (Math.random() < getMovementSpeed(deltaTime, bot.supercharged) * 0.2) { // 20% of normal speed for idle wander
           const walkableTiles: Array<{ x: number; y: number }> = [];
           grid.forEach((row, y) => {
             row.forEach((tile, x) => {
